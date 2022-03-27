@@ -1,0 +1,9 @@
+asm-defines.S
+include/grinch/asm-defines.h
+
+*.bin
+*.elf
+*.o
+*.ld
+*.dtb
+guest/*.ld
