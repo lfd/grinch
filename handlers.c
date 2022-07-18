@@ -26,9 +26,6 @@ int handle_timer(void)
 {
 	sbi_set_timer(-1); /* deactivate timer */
 
-	/* inject timer to VS */
-	csr_set(CSR_HVIP, (1 << IRQ_S_TIMER) << VSIP_TO_HVIP_SHIFT);
-
 	return 0;
 }
 

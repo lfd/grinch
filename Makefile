@@ -44,7 +44,7 @@ OBJS_COMMON += exception.o cpu.o pie.o lib/bitmap.o
 ASM_DEFINES = include/grinch/asm-defines.h
 GENERATED = $(ASM_DEFINES)
 
-OBJS=$(OBJS_COMMON) main.o printk_header.o sbi.o guest-data.o handlers.o plic.o
+OBJS=$(OBJS_COMMON) main.o printk_header.o sbi.o handlers.o plic.o
 OBJS+= smp.o
 GUEST_OBJS=$(OBJS_COMMON) guest/main.o guest/printk_header.o guest/handlers.o
 

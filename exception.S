@@ -43,9 +43,3 @@ excp_handler:
 	csrrw	sp, sscratch, sp
 
 	sret
-
-.globl vmreturn
-vmreturn:
-	mv	sp, a0
-	context	ld
-	sret
