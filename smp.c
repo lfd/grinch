@@ -16,11 +16,15 @@
 #include <grinch/errno.h>
 #include <grinch/irq.h>
 #include <grinch/fdt.h>
+#include <grinch/irq.h>
 #include <grinch/mm.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/sbi.h>
+#include <grinch/spinlock.h>
 #include <grinch/smp.h>
+
+#include "config.h"
 
 #define for_each_cpu(cpu, set)  for_each_cpu_except(cpu, set, -1)
 #define for_each_cpu_except(cpu, set, exception)                \
@@ -38,6 +42,14 @@ void secondary_start(void);
 /* C entry point for secondary CPUs */
 void secondary_cmain(void);
 
+#if defined(MEAS_IPI)
+static volatile bool ipi_master;
+static spinlock_t ipi_lock;
+#endif
+static unsigned long boot_hart;
+
+unsigned long eval_ipi_target;
+
 void secondary_cmain(void)
 {
 	int err;
@@ -53,6 +65,48 @@ void secondary_cmain(void)
 			  (void *)virt_to_phys(__load_addr), GRINCH_SIZE);
 	if (err)
 		goto out;
+
+#if defined(MEAS_IPI) /* IPI roundtrip test */
+	bool do_ipi = false;
+
+	spin_lock(&ipi_lock);
+	if (!ipi_master) {
+		ipi_master = true;
+		do_ipi = true;
+	}
+	spin_unlock(&ipi_lock);
+
+	if (do_ipi) {
+		pr("HART %lu selected for IPI test. Target HART: %lu\n", this_cpu_id(), boot_hart);
+
+		eval_ipi_target = this_cpu_id();
+		irq_disable();
+
+		for (;;) {
+			unsigned long c1, c2, t;
+
+			/* Wait some time... */
+			t = get_time();
+			while(get_time() < t + TIMEBASE_DELTA);
+
+			/* Send IPI to target */
+			c1 = get_cycle();
+			/* Danger: We don't check errors here */
+			sbi_send_ipi((1UL << boot_hart), 0);
+
+			/* Wait until ipi comes back */
+			while (!(csr_read(sip) & IE_SIE));
+			c2 = get_cycle();
+
+			c2 = c2 - c1;
+
+			print_meas_cyc("IPI RT", c2);
+			csr_clear(sip, (1 << IRQ_S_SOFT));
+		}
+	}
+#endif
+
+	pr("Halting CPU %lu\n", this_cpu_id());
 
 out:
 	if (err)
@@ -152,6 +206,8 @@ int platform_init(void)
 		pr("No CPUs found in device-tree. Halting.\n");
 		return -ENOENT;
 	}
+
+	boot_hart = this_cpu_id();
 
 	fdt_for_each_subnode(child, _fdt, off) {
 		name = fdt_get_name(_fdt, child, NULL);

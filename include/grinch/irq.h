@@ -3,6 +3,7 @@
 
 #include <grinch/csr.h>
 #include <grinch/types.h>
+#include <grinch/printk.h>
 #include <grinch/smp.h>
 #include "../../config.h"
 
@@ -38,6 +39,11 @@ static inline u64 timer_to_us(u64 ticks)
 static inline u64 us_to_cpu_cycles(u64 us)
 {
 	return (us * hz) / US_PER_SEC;
+}
+
+static inline void print_meas_cyc(const char *pfx, u64 cyc)
+{
+	pr("%s: %lluus (%llu cycles)\n", pfx, cycles_to_us(cyc), cyc);
 }
 
 static inline void ext_enable(void)

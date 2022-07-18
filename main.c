@@ -111,6 +111,17 @@ void cmain(paddr_t __fdt)
 	if (err)
 		goto out;
 
+#if defined(MEAS_IPI)
+	pr("%lu: Waiting for IPIs...\n", this_cpu_id());
+	for (;;) {
+		while (!(csr_read(sip) & IE_SIE));
+		csr_clear(sip, IE_SIE);
+
+		/* Danger: We don't check errors here */
+		sbi_send_ipi((1UL << eval_ipi_target), 0);
+	}
+#endif
+
 out:
 	pr("End reached: %d\n", err);
 }
