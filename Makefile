@@ -15,7 +15,7 @@ QEMU_ARGS=-m 128M -smp 2 -serial stdio -nographic -monitor telnet:127.0.0.1:5555
 
 GRINCH_VER=3.13
 
-CFLAGS=-nostdinc -ffreestanding -O0 -g -ggdb \
+CFLAGS=-nostdinc -ffreestanding -O2 -g -ggdb \
        -fno-strict-aliasing -fno-stack-protector \
        -ffunction-sections \
        -Wall -Wextra -Wno-unused-parameter \
