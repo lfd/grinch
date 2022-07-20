@@ -23,7 +23,11 @@
 #include <grinch/serial.h>
 #include <grinch/sbi.h>
 
+#define LOOPS 0xfffffffUL
+
 void cmain(paddr_t fdt);
+
+unsigned long hz;
 
 static const char logo[] =
 "\n\n"
@@ -79,14 +83,27 @@ void cmain(paddr_t __fdt)
 	if (err)
 		goto out;
 
-	/* enable external IRQs */
-	ext_enable();
+	/* disable external IRQs */
+	ext_disable();
 
 	ps("Initialising Serial...\n");
 	err = serial_init();
 	if (err)
 		goto out;
 	ps("Switched over from SBI to UART\n");
+
+	ps("Measuring core frequency...\n");
+	unsigned long t;
+	t = get_time();
+	asm volatile(
+		"li		t0, " __stringify(LOOPS) "\n"
+		".p2align 3\n"
+		"1: addi	t0, t0, -1\n"
+		"bnez		t0, 1b\n" ::: "t0", "memory");
+	t = get_time() - t;
+	/* calculate instructions that were executed during that time */
+	hz = (1 * LOOPS * US_PER_SEC) / timer_to_us(t);
+	pr("Took %lluus for %lu loops -> %luHz (%luMHz) core speed\n", timer_to_us(t), LOOPS, hz, hz / (1000*1000));
 
 	/* Boot secondary CPUs */
 	ps("Booting secondary CPUs\n");
