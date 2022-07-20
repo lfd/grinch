@@ -19,7 +19,6 @@
 #include <grinch/mm.h>
 #include <grinch/plic.h>
 #include <grinch/printk.h>
-#include <grinch/smp.h>
 #include <grinch/irq.h>
 #include <grinch/serial.h>
 #include <grinch/sbi.h>
