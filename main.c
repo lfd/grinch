@@ -22,6 +22,7 @@
 #include <grinch/irq.h>
 #include <grinch/serial.h>
 #include <grinch/sbi.h>
+#include "config.h"
 
 #define LOOPS 0xfffffffUL
 
@@ -40,6 +41,24 @@ static const char logo[] =
 "  __/ |\n"
 " |___/\n"
 "      -> Welcome to Grinch " __stringify(GRINCH_VER) " <- \n\n\n";
+
+static unsigned long timer_value;
+
+int handle_timer(void)
+{
+	unsigned long now = get_time();
+	unsigned long delta;
+	unsigned long delta_us;
+	unsigned long delta_cyc;
+
+	delta = now - timer_value;
+	delta_us = timer_to_us(delta);
+	delta_cyc = us_to_cpu_cycles(delta_us);
+	pr("Jtr: %luus (%lu cycles)\n", delta_us, delta_cyc);
+	timer_value += TIMEBASE_DELTA;
+	sbi_set_timer(timer_value);
+	return 0;
+}
 
 void cmain(paddr_t __fdt)
 {
@@ -120,6 +139,13 @@ void cmain(paddr_t __fdt)
 		/* Danger: We don't check errors here */
 		sbi_send_ipi((1UL << eval_ipi_target), 0);
 	}
+#elif defined(MEAS_TMR)
+	sbi_set_timer(-1);
+	ps("Starting Timer measurement\n");
+	timer_value = TIMEBASE_DELTA + get_time();
+	timer_enable();
+	irq_enable();
+	sbi_set_timer(timer_value);
 #endif
 
 out:

@@ -22,7 +22,7 @@ int handle_ipi(void)
 	return -ENOSYS;
 }
 
-int handle_timer(void)
+int __attribute__((weak)) handle_timer(void)
 {
 	sbi_set_timer(-1); /* deactivate timer */
 

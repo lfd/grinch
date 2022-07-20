@@ -1,4 +1,7 @@
 #include <grinch/types.h>
+#include <grinch/irq.h>
+
+#include "../../config.h"
 
 #define SBI_EXT_0_1_CONSOLE_PUTCHAR	0x1
 
@@ -51,8 +54,37 @@ static inline void sbi_console_putchar(int ch)
 
 static inline struct sbiret __sbi_set_timer_v02(u64 stime_value)
 {
+#if defined(MEAS_TMR)
+	struct sbiret ret;
+	u64 c1, c2;
+
+	register uintptr_t a0 asm ("a0") = stime_value;
+	register uintptr_t a1 asm ("a1") = 0;
+	register uintptr_t a2 asm ("a2") = 0;
+	register uintptr_t a3 asm ("a3") = 0;
+	register uintptr_t a4 asm ("a4") = 0;
+	register uintptr_t a5 asm ("a5") = 0;
+	register uintptr_t a6 asm ("a6") = SBI_EXT_TIME_SET_TIMER;
+	register uintptr_t a7 asm ("a7") = SBI_EXT_TIME;
+
+	asm volatile(
+		"rdcycle %0\n"
+		"ecall\n"
+		"rdcycle %1\n"
+		: "=r"(c1), "=r"(c2), "+r"(a0), "+r"(a1)
+		: "r" (a2), "r" (a3), "r" (a4), "r" (a5), "r" (a6), "r" (a7)
+		: "memory" );
+	ret.error = a0;
+	ret.value = a1;
+
+	c2 = c2 - c1;
+	print_meas_cyc("TMR SBI", c2);
+
+	return ret;
+#else
 	return sbi_ecall(SBI_EXT_TIME, SBI_EXT_TIME_SET_TIMER, stime_value,
 			 0, 0, 0, 0, 0);
+#endif
 }
 
 
