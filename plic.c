@@ -20,6 +20,7 @@
 #include <grinch/printk.h>
 #include <grinch/mmio.h>
 #include <grinch/plic.h>
+#include <grinch/smp.h>
 
 #define PLIC_SIZE 	0x4000000
 #define IRQ_MAX		32
@@ -143,7 +144,12 @@ static void plic_hart_init(void)
 	struct per_cpu *pcpu = this_per_cpu();
 	unsigned int irq;
 
-	pcpu->plic.ctx = this_cpu_id() * 2 + 1;
+	// This is a BLOODY hack to differentiate between QEMU and the NOEL-V
+	unsigned int stride;
+	stride = 2;
+	if (timebase_frequency == 50000000)
+		stride = 4;
+	pcpu->plic.ctx = this_cpu_id() * stride + 1;
 
 	for (irq = 0; irq < IRQ_MAX; irq++)
 		plic_disable_irq(pcpu->hartid, irq);
