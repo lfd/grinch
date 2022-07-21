@@ -146,6 +146,9 @@ void cmain(paddr_t __fdt)
 	timer_enable();
 	irq_enable();
 	sbi_set_timer(timer_value);
+#elif defined(MEAS_PLIC)
+	ext_enable();
+	irq_enable();
 #endif
 
 out:

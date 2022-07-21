@@ -16,11 +16,14 @@
 #include <grinch/errno.h>
 #include <grinch/fdt.h>
 #include <grinch/ioremap.h>
+#include <grinch/irq.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/mmio.h>
 #include <grinch/plic.h>
 #include <grinch/smp.h>
+
+#include "config.h"
 
 #define PLIC_SIZE 	0x4000000
 #define IRQ_MAX		32
@@ -50,12 +53,48 @@ static inline u16 this_ctx(void)
 
 static inline void plic_write_reg(u32 reg, u32 value)
 {
+#if defined(MEAS_PLIC)
+	void *addr = plic.vbase + reg;
+	u64 c1, c2;
+
+	asm volatile(
+		"rdcycle %[c1]\n"
+		"sw %[value], 0(%[addr])\n"
+		"rdcycle %[c2]\n"
+		: [c1]"=&r"(c1), [c2]"=&r"(c2)
+		: [addr]"r"(addr), [value]"r"(value)
+		: );
+
+	c2 = c2 - c1;
+	print_meas_cyc("PLIC write", c2);
+
+#else
 	mmio_write32(plic.vbase + reg, value);
+#endif
 }
 
 static inline u32 plic_read_reg(u32 reg)
 {
+#if defined(MEAS_PLIC)
+	void *addr = plic.vbase + reg;
+	u64 c1, c2;
+	u32 ret;
+
+	asm volatile(
+		"rdcycle %[c1]\n"
+		"lw %[ret], 0(%[addr])\n"
+		"rdcycle %[c2]\n"
+		: [c1]"=&r"(c1), [c2]"=&r"(c2), [ret]"=r"(ret)
+		: [addr]"r"(addr)
+		: );
+
+	c2 = c2 - c1;
+	print_meas_cyc("PLIC read", c2);
+
+	return ret;
+#else
 	return mmio_read32(plic.vbase + reg);
+#endif
 }
 
 static inline void plic_irq_set_prio(u32 irq, u32 prio)
