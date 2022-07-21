@@ -30,6 +30,7 @@
 	    )
 
 static unsigned long available_harts[BITMAP_SZ(MAX_HARTS)];
+u64 timebase_frequency;
 
 /* Assembly entry point for secondary CPUs */
 void secondary_start(void);
@@ -142,17 +143,17 @@ int smp_init(void)
 int platform_init(void)
 {
 	unsigned long hart_id;
-	int err, cpu, child;
+	int err, off, child;
 	const char *name;
 	const fdt32_t *reg;
 
-	cpu = fdt_path_offset(_fdt, "/cpus");
-	if (cpu < 0) {
+	off = fdt_path_offset(_fdt, "/cpus");
+	if (off < 0) {
 		pr("No CPUs found in device-tree. Halting.\n");
-		return -ENOSYS;
+		return -ENOENT;
 	}
 
-	fdt_for_each_subnode(child, _fdt, cpu) {
+	fdt_for_each_subnode(child, _fdt, off) {
 		name = fdt_get_name(_fdt, child, NULL);
 		if (strcmp(name, "cpu-map") == 0)
 			continue;
@@ -182,6 +183,15 @@ int platform_init(void)
 		if (err)
 			return err;
 	}
+
+	/* get timebase frequency */
+	reg = fdt_getprop(_fdt, off, "timebase-frequency", &err);
+	if (err < 0) {
+		pr("timebase-frequency not found. Halting.\n");
+		return -ENOENT;
+	}
+	timebase_frequency = fdt32_to_cpu(reg[0]);
+	pr("Timebase Frequency: %llu\n", timebase_frequency);
 
 	return 0;
 }
