@@ -104,6 +104,22 @@ void secondary_cmain(void)
 			csr_clear(sip, (1 << IRQ_S_SOFT));
 		}
 	}
+#elif defined(MEAS_RFNC)
+	for (;;) {
+		unsigned long t;
+		struct sbiret ret;
+
+		/* Wait some time... */
+		t = get_time();
+		while(get_time() < t + TIMEBASE_DELTA);
+
+		ret = sbi_remote_fence_i((1UL << boot_hart), 0);
+		if (ret.error) {
+			pr("SBI RFENCE error: %ld %ld!\n", ret.error, ret.value);
+			goto foo;
+		}
+	}
+foo:
 #endif
 
 	pr("Halting CPU %lu\n", this_cpu_id());

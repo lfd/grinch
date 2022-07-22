@@ -116,8 +116,37 @@ static inline struct sbiret sbi_hart_start(unsigned long hartid,
 static inline struct sbiret sbi_remote_fence_i(unsigned long hmask,
 					       unsigned long hbase)
 {
+#if defined(MEAS_RFNC)
+	struct sbiret ret;
+	u64 c1, c2;
+
+	register uintptr_t a0 asm ("a0") = hmask;
+	register uintptr_t a1 asm ("a1") = hbase;
+	register uintptr_t a2 asm ("a2") = 0;
+	register uintptr_t a3 asm ("a3") = 0;
+	register uintptr_t a4 asm ("a4") = 0;
+	register uintptr_t a5 asm ("a5") = 0;
+	register uintptr_t a6 asm ("a6") = SBI_EXT_RFNC_FENCE_I;
+	register uintptr_t a7 asm ("a7") = SBI_EXT_RFNC;
+
+	asm volatile(
+		"rdcycle %0\n"
+		"ecall\n"
+		"rdcycle %1\n"
+		: "=r"(c1), "=r"(c2), "+r"(a0), "+r"(a1)
+		: "r" (a2), "r" (a3), "r" (a4), "r" (a5), "r" (a6), "r" (a7)
+		: "memory" );
+	ret.error = a0;
+	ret.value = a1;
+
+	c2 = c2 - c1;
+	print_meas_cyc("RFNC SBI", c2);
+
+	return ret;
+#else
 	return sbi_ecall(SBI_EXT_RFNC, SBI_EXT_RFNC_FENCE_I, hmask, hbase, 0, 0,
 			 0, 0);
+#endif
 }
 
 int sbi_init(void);
