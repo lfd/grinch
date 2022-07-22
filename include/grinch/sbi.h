@@ -11,6 +11,9 @@
 #define SBI_EXT_HSM			0x48534D
 #define SBI_EXT_HSM_HART_START		0
 
+#define SBI_EXT_RFNC			0x52464E43
+#define SBI_EXT_RFNC_FENCE_I		0
+
 struct sbiret {
 	long error;
 	long value;
@@ -76,6 +79,13 @@ static inline struct sbiret sbi_hart_start(unsigned long hartid,
 {
 	return sbi_ecall(SBI_EXT_HSM, SBI_EXT_HSM_HART_START, hartid,
 			 start_addr, opaque, 0, 0, 0);
+}
+
+static inline struct sbiret sbi_remote_fence_i(unsigned long hmask,
+					       unsigned long hbase)
+{
+	return sbi_ecall(SBI_EXT_RFNC, SBI_EXT_RFNC_FENCE_I, hmask, hbase, 0, 0,
+			 0, 0);
 }
 
 int sbi_init(void);
