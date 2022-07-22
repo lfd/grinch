@@ -36,7 +36,7 @@ extern const char printk_header[];
 
 void puts(const char *msg) {
 	spin_lock(&print_lock);
-	_puts(printk_header);
+	//_puts(printk_header);
 	_puts(msg);
 	spin_unlock(&print_lock);
 }
@@ -212,7 +212,7 @@ void printk(const char *fmt, ...)
 	va_list ap;
 
 	spin_lock(&print_lock);
-	_puts(printk_header);
+	//_puts(printk_header);
 
 	va_start(ap, fmt);
 
