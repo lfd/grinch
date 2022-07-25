@@ -53,7 +53,7 @@ int handle_timer(void)
 
 	delta = now - timer_value;
 	delta_us = timer_to_us(delta);
-	delta_cyc = us_to_cpu_cycles(delta_us);
+	delta_cyc = timer_to_cpu_cycles(delta);
 	pr("Jtr: %luus (%lu cycles)\n", delta_us, delta_cyc);
 	timer_value += TIMEBASE_DELTA;
 	sbi_set_timer(timer_value);

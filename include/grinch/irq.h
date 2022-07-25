@@ -36,9 +36,9 @@ static inline u64 timer_to_us(u64 ticks)
 	return ticks * US_PER_SEC / timebase_frequency;
 }
 
-static inline u64 us_to_cpu_cycles(u64 us)
+static inline u64 timer_to_cpu_cycles(u64 ticks)
 {
-	return (us * hz) / US_PER_SEC;
+	return (ticks * hz) / timebase_frequency;
 }
 
 static inline void print_meas_cyc(const char *pfx, u64 cyc)
