@@ -50,6 +50,44 @@ int fdt_probe_known(void *fdt, const char **names, unsigned int length)
 	return off;
 }
 
+static const struct of_device_id
+*fdt_find_compat(const char *str, const struct of_device_id *compats)
+{
+	for (; *compats->compatible; compats++)
+		if (!strcmp(str, compats->compatible))
+			return compats;
+	return NULL;
+}
+
+int fdt_find_device(const void *fdt, const char *path,
+		    const struct of_device_id *compats,
+		    const struct of_device_id **match)
+{
+	const struct of_device_id *compat;
+	const char *compatible;
+	int off, sub, res;
+
+	off = fdt_path_offset(_fdt, path);
+	if (off <= 0)
+		return -ENOENT;
+
+	fdt_for_each_subnode(sub, _fdt, off) {
+		compatible = fdt_getprop(_fdt, sub, "compatible", &res);
+		if (res < 0)
+			continue;
+
+		compat = fdt_find_compat(compatible, compats);
+		if (compat && fdt_device_is_available(_fdt, sub)) {
+			if (match)
+				*match = compat;
+			return sub; /* we found it */
+		}
+
+	}
+
+	return -ENOENT;
+}
+
 int fdt_init(paddr_t pfdt)
 {
 	void *fdt;
