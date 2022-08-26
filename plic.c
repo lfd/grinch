@@ -27,12 +27,6 @@
 
 #define PLIC_BASE	(void*)(0xf8000000)
 
-static const char *known_plics[] = {
-	"/soc/plic@f8000000",
-	"/soc/plic@c000000",
-	"/soc/interrupt-controller@f8000000",
-};
-
 struct plic {
 	paddr_t pbase;
 	void *vbase;
@@ -149,12 +143,18 @@ static void plic_hart_init(void)
 		plic_disable_irq(pcpu->hartid, irq);
 }
 
+static const struct of_device_id plic_compats[] = {
+	{ .compatible = "riscv,plic0" },
+	{ .compatible = "sifive,plic-1.0.0"},
+	{ /* sentinel */ }
+};
+
 int plic_init(void)
 {
 	int err, off;
 
-	off = fdt_probe_known(_fdt, known_plics, ARRAY_SIZE(known_plics));
-	if (off <= 0)
+	off = fdt_find_device(_fdt, "/soc", plic_compats, NULL);
+	if (off < 0)
 		return off;
 
 	err = fdt_read_reg(_fdt, off, 0, &plic.pbase, &plic.size);
