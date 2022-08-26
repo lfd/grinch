@@ -34,22 +34,6 @@ bool fdt_device_is_available(const void *fdt, unsigned long node)
 	return false;
 }
 
-int fdt_probe_known(void *fdt, const char **names, unsigned int length)
-{
-	unsigned int i;
-	int off = -ENOENT;
-
-	for (i = 0; i < length; i++) {
-		off = fdt_path_offset(fdt, names[i]);
-		if (off > 0) {
-			pr("Found Node %s\n", names[i]);
-			break;
-		}
-	}
-
-	return off;
-}
-
 static const struct of_device_id
 *fdt_find_compat(const char *str, const struct of_device_id *compats)
 {
