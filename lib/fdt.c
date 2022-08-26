@@ -21,9 +21,9 @@
 
 unsigned char *_fdt;
 
-bool fdt_device_is_available(const void *blob, unsigned long node)
+bool fdt_device_is_available(const void *fdt, unsigned long node)
 {
-	const char *status = fdt_getprop(blob, node, "status", NULL);
+	const char *status = fdt_getprop(fdt, node, "status", NULL);
 
 	if (!status)
 		return true;

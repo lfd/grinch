@@ -23,6 +23,6 @@ int fdt_read_reg(const void *fdt, int nodeoffset, int idx, void *addrp,
 		 u64 *sizep);
 
 int fdt_probe_known(void *fdt, const char **names, unsigned int length);
-bool fdt_device_is_available(const void *blob, unsigned long node);
+bool fdt_device_is_available(const void *fdt, unsigned long node);
 
 #endif /* _FDT_H */
