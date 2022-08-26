@@ -12,10 +12,10 @@
 
 #include <grinch/cpu.h>
 #include <grinch/irq.h>
+#include <grinch/irqchip.h>
 #include <grinch/printk.h>
 #include <grinch/paging.h>
 #include <grinch/percpu.h>
-#include <grinch/plic.h>
 #include <grinch/sbi.h>
 #include <grinch/sbi_handler.h>
 #include <grinch/symbols.h>
@@ -38,7 +38,7 @@ int handle_irq(u64 irq)
 			break;
 
 		case IRQ_S_EXT:
-			err = plic_handle_irq();
+			err = irqchip.fn->handle_irq();
 			break;
 
 		default:

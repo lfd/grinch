@@ -12,17 +12,11 @@
 
 #include <grinch/errno.h>
 #include <grinch/irq.h>
-#include <grinch/plic.h>
 #include <grinch/printk.h>
 #include <grinch/sbi.h>
 #include <grinch/sbi_handler.h>
 
 int handle_ipi(void)
-{
-	return -ENOSYS;
-}
-
-int plic_handle_irq(void)
 {
 	return -ENOSYS;
 }
