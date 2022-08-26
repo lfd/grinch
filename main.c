@@ -15,9 +15,9 @@
 #include <grinch/cpu.h>
 #include <grinch/errno.h>
 #include <grinch/fdt.h>
+#include <grinch/irqchip.h>
 #include <grinch/percpu.h>
 #include <grinch/mm.h>
-#include <grinch/plic.h>
 #include <grinch/printk.h>
 #include <grinch/smp.h>
 #include <grinch/irq.h>
@@ -196,8 +196,8 @@ void cmain(paddr_t __fdt)
 	timer_enable();
 
 	/* Initialise external interrupts */
-	ps("Initialising PLIC...\n");
-	err = plic_init();
+	ps("Initialising irqchip...\n");
+	err = irqchip_init();
 	if (err)
 		goto out;
 

@@ -17,7 +17,7 @@
 #include <grinch/fdt.h>
 #include <grinch/ioremap.h>
 #include <grinch/percpu.h>
-#include <grinch/plic.h>
+#include <grinch/irqchip.h>
 #include <grinch/printk.h>
 #include <grinch/serial.h>
 
@@ -108,9 +108,9 @@ int serial_init(void)
 	chip = c;
 
 	if (irq) {
-		plic_register_handler(irq, (void*)chip.driver->rcv_handler,
-				      &chip);
-		plic_enable_irq(this_cpu_id(), irq, 5, 4);
+		irq_register_handler(irq, (void*)chip.driver->rcv_handler,
+				     &chip);
+		irqchip_enable_irq(this_cpu_id(), irq, 5, 4);
 	}
 
 	return err;
