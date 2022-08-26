@@ -1,3 +1,15 @@
+/*
+ * Grinch, a minimalist RISC-V operating system
+ *
+ * Copyright (c) OTH Regensburg, 2022
+ *
+ * Authors:
+ *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
+ *
+ * This work is licensed under the terms of the GNU GPL, version 2.  See
+ * the COPYING file in the top-level directory.
+ */
+
 #define _PAGE_SIZE	0x1000
 #define _MEGA_PAGE_SIZE	0x200000
 #define _GIGA_PAGE_SIZE	0x40000000
