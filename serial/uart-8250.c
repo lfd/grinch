@@ -61,13 +61,4 @@ const struct uart_driver uart_8250 = {
 	.write_char = uart_8250_write_char,
 	.is_busy = uart_8250_is_busy,
 	.rcv_handler = uart_8250_rcv_handler,
-	.compatible = {
-		{
-			.name ="ns16550a",
-		},
-		{
-			.name = "uart8250",
-		},
-		{ },
-	},
 };

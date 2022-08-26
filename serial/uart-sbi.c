@@ -33,10 +33,4 @@ const struct uart_driver uart_sbi = {
 	.init = uart_sbi_init,
 	.write_char = uart_sbi_write_char,
 	.is_busy = uart_sbi_busy,
-	.compatible = {
-		{
-			.name ="sbi",
-		},
-		{ },
-	},
 };

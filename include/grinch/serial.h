@@ -15,10 +15,6 @@
 
 #include <grinch/types.h>
 
-struct of_compatible {
-	const char *name;
-};
-
 struct uart_chip;
 
 struct uart_driver {
@@ -26,8 +22,6 @@ struct uart_driver {
 	void (*write_char)(struct uart_chip *chip, char ch);
 	bool (*is_busy)(struct uart_chip *chip);
 	int (*rcv_handler)(struct uart_chip *chip);
-
-	struct of_compatible compatible[];
 };
 
 struct uart_chip {

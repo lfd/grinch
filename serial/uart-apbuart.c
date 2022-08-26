@@ -97,10 +97,4 @@ const struct uart_driver uart_apbuart = {
 	.write_char = apbuart_write_char,
 	.is_busy = apbuart_is_busy,
 	.rcv_handler = apbuart_rcv,
-	.compatible = {
-		{
-			.name = "gaisler,apbuart",
-		},
-		{ },
-	},
 };

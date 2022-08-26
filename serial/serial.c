@@ -21,46 +21,9 @@
 #include <grinch/printk.h>
 #include <grinch/serial.h>
 
-static const struct uart_driver *uart_drivers[] = {
-	&uart_sbi,
-	&uart_8250,
-	&uart_apbuart,
-};
-
 struct uart_chip chip = {
 	.driver = &uart_sbi,
 };
-
-static const char *known_uarts[] = {
-	"/soc/uart@10000000",
-	"/uart@fc001000",
-	"/soc/uart@fc001000",
-};
-
-static const struct uart_driver *serial_find_driver(void *fdt, int nodeoff)
-{
-	const struct uart_driver **d;
-	const struct of_compatible *compat_list;
-	unsigned int i;
-	int err;
-
-	d = uart_drivers;
-	for (i = 0; i < ARRAY_SIZE(uart_drivers); i++, d++) {
-		compat_list = (*d)->compatible;
-		while (compat_list->name) {
-			err = fdt_node_check_compatible(fdt, nodeoff,
-							compat_list->name);
-			if (!err) {
-				pr("Found a %s compatible UART\n",
-				       compat_list->name);
-				return *d;
-			}
-			compat_list++;
-		}
-	}
-
-	return ERR_PTR(-ENOENT);
-}
 
 static void uart_write_char(char ch)
 {
@@ -90,8 +53,16 @@ void serial_in(char ch)
 	pr("STDIN rcvd: %c\n", ch);
 }
 
+static const struct of_device_id of_match[] = {
+	{ .compatible = "ns16550a", .data = &uart_8250, },
+	{ .compatible = "uart8250", .data = &uart_8250, },
+	{ .compatible = "gaisler,apbuart", .data = &uart_apbuart, },
+	{ /* sentinel */}
+};
+
 int serial_init(void)
 {
+	const struct of_device_id *match;
 	const struct uart_driver *d;
 	struct uart_chip c;
 	paddr_t uart_base;
@@ -100,18 +71,18 @@ int serial_init(void)
 	int off, err;
 	u32 irq;
 
-	off = fdt_probe_known(_fdt, known_uarts, ARRAY_SIZE(known_uarts));
-	if (off <= 0)
+	off = fdt_find_device(_fdt, "/soc", of_match, &match);
+	if (off <= 0) {
+		pr("WARNING: No UART found. Remaining on SBI console\n");
 		return -ENOENT;
+	}
 
-	d = serial_find_driver(_fdt, off);
-	if (IS_ERR(d))
-		return PTR_ERR(d);
-
+	d = match->data;
 
 	err = fdt_read_reg(_fdt, off, 0, &uart_base, &uart_size);
 	if (err)
 		return err;
+	pr("Found %s UART@0x%llx\n", match->compatible, uart_base);
 
 	res = fdt_getprop(_fdt, off, "interrupts", &err);
 	if (IS_ERR(res)) {
