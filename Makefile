@@ -50,7 +50,7 @@ ASM_DEFINES = include/grinch/asm-defines.h
 GENERATED = $(ASM_DEFINES)
 
 OBJS=$(OBJS_COMMON) main.o printk_header.o sbi.o guest-data.o handlers.o
-OBJS+= drivers/irq/plic.o smp.o
+OBJS+= drivers/irq/plic.o drivers/irq/aplic.o smp.o
 GUEST_OBJS=$(OBJS_COMMON) guest/main.o guest/printk_header.o guest/handlers.o
 
 %.o: %.c $(GENERATED)
