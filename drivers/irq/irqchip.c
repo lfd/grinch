@@ -17,6 +17,7 @@
 #include <grinch/irqchip.h>
 
 extern const struct irqchip_fn irqchip_fn_plic;
+extern const struct irqchip_fn irqchip_fn_aplic;
 
 struct irqchip irqchip;
 
@@ -26,6 +27,7 @@ static void *irq_handlers_userdata[IRQ_MAX];
 static const struct of_device_id plic_compats[] = {
 	{ .compatible = "riscv,plic0", .data = &irqchip_fn_plic, },
 	{ .compatible = "sifive,plic-1.0.0", .data = &irqchip_fn_plic, },
+	{ .compatible = "riscv,aplic", .data = &irqchip_fn_aplic, },
 	{ /* sentinel */ }
 };
 
