@@ -39,18 +39,18 @@ AFLAGS=-D__ASSEMBLY__
 all: grinch.bin
 
 OBJS_FDT = libfdt/fdt.o libfdt/fdt_ro.o libfdt/fdt_addresses.o
-OBJS_SERIAL = serial/serial.o serial/uart-8250.o serial/uart-sbi.o
-OBJS_SERIAL += serial/uart-apbuart.o
+OBJS_SERIAL = drivers/serial/serial.o drivers/serial/uart-8250.o
+OBJS_SERIAL += drivers/serial/uart-sbi.o drivers/serial/uart-apbuart.o
 OBJS_MM = mm/mm.o mm/paging.o mm/ioremap.o mm/mmu.o
 OBJS_COMMON = $(OBJS_MM) $(OBJS_SERIAL) $(OBJS_FDT)
 OBJS_COMMON += entry.o printk.o lib/string.o lib/fdt.o traps.o
-OBJS_COMMON += exception.o cpu.o pie.o lib/bitmap.o irqchip.o
+OBJS_COMMON += exception.o cpu.o pie.o lib/bitmap.o drivers/irq/irqchip.o
 
 ASM_DEFINES = include/grinch/asm-defines.h
 GENERATED = $(ASM_DEFINES)
 
 OBJS=$(OBJS_COMMON) main.o printk_header.o sbi.o guest-data.o handlers.o
-OBJS+= plic.o smp.o
+OBJS+= drivers/irq/plic.o smp.o
 GUEST_OBJS=$(OBJS_COMMON) guest/main.o guest/printk_header.o guest/handlers.o
 
 %.o: %.c $(GENERATED)
