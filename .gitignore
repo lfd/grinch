@@ -7,3 +7,6 @@ include/grinch/asm-defines.h
 *.ld
 *.dtb
 guest/*.ld
+
+.gdbinit
+.gdb_history
