@@ -150,6 +150,16 @@
 			      : "memory");                      \
 })
 
+#define csr_swap(csr, val) 	                                \
+({                                                              \
+	register unsigned long __r;                             \
+	unsigned long __w = (unsigned long)(val);               \
+	__asm__ __volatile__ ("csrrw %0, " __stringify(csr) ", %1" \
+			      : "=r" (__r) : "rK" (__w)         \
+			      : "memory");                      \
+	__r;							\
+})
+
 #define csr_clear(csr, val)                                     \
 ({                                                              \
 	unsigned long __v = (unsigned long)(val);               \
