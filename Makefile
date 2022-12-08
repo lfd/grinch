@@ -14,6 +14,7 @@ QEMU=qemu-system-riscv64
 QEMU_ARGS=-m 128M -smp 2 -serial stdio -nographic -monitor telnet:127.0.0.1:55555,server,nowait -machine virt -cpu rv64,h=true -kernel grinch.bin
 
 GRINCH_VER=3.13
+DEBUG_OUTPUT=1
 
 CFLAGS=-nostdinc -ffreestanding -O0 -g -ggdb \
        -fno-strict-aliasing -fno-stack-protector \
@@ -27,6 +28,10 @@ CFLAGS=-nostdinc -ffreestanding -O0 -g -ggdb \
        -Iinclude/ \
        -Ilibfdt/ \
        -DGRINCH_VER=$(GRINCH_VER)
+
+ifeq ($(DEBUG_OUTPUT), 1)
+CFLAGS += -DDEBUG
+endif
 
 LDFLAGS=-melf64lriscv --gc-sections
 AFLAGS=-D__ASSEMBLY__

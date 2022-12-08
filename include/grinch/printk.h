@@ -19,7 +19,7 @@ void __attribute__((format(printf, 1, 2))) printk(const char *fmt, ...);
 
 #ifndef dbg_fmt
 #define dbg_fmt(__x) (__x)
-#endif
+#endif /* dbg_fmt */
 
 #define pr(fmt, ...) printk(dbg_fmt(fmt), ##__VA_ARGS__)
 #define ps(str) puts(dbg_fmt(str))
@@ -28,5 +28,11 @@ void __attribute__((format(printf, 1, 2))) printk(const char *fmt, ...);
 	printk("%s:%d: returning error %s\n", __FILE__, __LINE__, #code); \
 	code;								  \
 })
+
+#ifdef DEBUG
+#define pd(fmt, ...) printk(dbg_fmt(fmt), ##__VA_ARGS__)
+#else /* !DEBUG */
+#define pd(...) do{ } while ( false )
+#endif /* DEBUG */
 
 #endif /* _PRINTK_H */
