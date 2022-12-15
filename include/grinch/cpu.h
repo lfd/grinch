@@ -61,6 +61,12 @@ static inline void flush_tlb_all(void)
 	asm volatile("sfence.vma" : : : "memory");
 }
 
+static inline void __attribute__((noreturn, always_inline)) cpu_halt(void)
+{
+	asm volatile("j _cpu_halt");
+	__builtin_unreachable();
+}
+
 void dump_regs(struct registers *a);
 
 #endif /* _CPU_H */
