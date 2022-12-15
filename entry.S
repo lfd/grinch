@@ -86,8 +86,11 @@ virt_entry:
 
 	/* Hand over to C */
 	jal	cmain
-1:	wfi
-	jal	1b
+
+.globl _cpu_halt
+_cpu_halt:
+	wfi
+	j	_cpu_halt
 
 .globl secondary_start
 secondary_start:
