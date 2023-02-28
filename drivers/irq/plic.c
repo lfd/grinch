@@ -21,10 +21,7 @@
 #include <grinch/printk.h>
 #include <grinch/mmio.h>
 
-#define PLIC_SIZE 	0x4000000
 #define CTX_MAX		32
-
-#define PLIC_BASE	(void*)(0xf8000000)
 
 static inline u16 this_ctx(void)
 {
