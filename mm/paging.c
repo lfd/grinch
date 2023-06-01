@@ -1,5 +1,5 @@
 /*
- * Grinch, a minimalist RISC-V operating system
+ * Grinch, a minimalist operating system
  *
  * Copyright (c) OTH Regensburg, 2022
  *
@@ -78,6 +78,7 @@ static int paging_destroy(const struct paging_structures *pg_structs,
 		   unsigned long paging_flags)
 {
 	size = page_up(size);
+	virt &= PAGE_MASK;
 
 	while (size > 0) {
 		const struct paging *paging = pg_structs->root_paging;
@@ -266,7 +267,7 @@ int paging_cpu_init(unsigned long hart_id)
 	err = map_range(root, (void*)PERCPU_BASE,
 			virt_to_phys(per_cpu(hart_id)),
 			sizeof(struct per_cpu),
-			PAGE_FLAGS_RW);
+			PAGE_FLAGS_MEM_RW);
 
 	return err;
 }
@@ -287,26 +288,26 @@ int paging_init(void)
 
 	err = map_osmem(root, _load_addr,
 			page_up(__text_end - __load_addr),
-			PAGE_FLAGS_RX);
+			PAGE_FLAGS_MEM_RX);
 	if (err)
 		goto out;
 
 	err = map_osmem(root, __rw_data_start,
 			page_up(__rw_data_end - __rw_data_start),
-			PAGE_FLAGS_RW);
+			PAGE_FLAGS_MEM_RW);
 	if (err)
 		goto out;
 
 	err = map_osmem(root, __rodata_start,
 			page_up(__rodata_end - __rodata_start),
-			PAGE_FLAGS_RO);
+			PAGE_FLAGS_MEM_RO);
 	if (err)
 		goto out;
 
 	/* Map the page pool */
 	err = map_osmem(root, __internal_page_pool_start,
 			internal_page_pool_pages() * PAGE_SIZE,
-			PAGE_FLAGS_RW);
+			PAGE_FLAGS_MEM_RW);
 	if (err)
 		goto out;
 

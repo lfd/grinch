@@ -1,7 +1,7 @@
 /*
- * Grinch, a minimalist RISC-V operating system
+ * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2022-2023
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -42,10 +42,9 @@ void *ioremap(paddr_t paddr, size_t size)
 	if (start > IOREMAP_PAGES)
 		return ERR_PTR(-ENOMEM);
 
-	ret = IOREMAP_BASE + start * PAGE_SIZE;
-
-	/* TODO: We could mark pages here dirty&accessed */
-	err = map_range(this_root_table_page(), ret, paddr, size, PAGE_FLAGS_RW);
+	ret = IOREMAP_BASE + (start * PAGE_SIZE) + (paddr & PAGE_OFFS_MASK);
+	err = map_range(this_root_table_page(), ret, paddr, size,
+			PAGE_FLAGS_DEVICE);
 	if (err)
 		return ERR_PTR(err);
 
