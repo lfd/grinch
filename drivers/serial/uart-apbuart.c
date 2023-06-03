@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist RISC-V operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2022-2023
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -10,10 +10,9 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <grinch/cpu.h>
+#include <asm/cpu.h>
 #include <grinch/errno.h>
 #include <grinch/mmio.h>
-#include <grinch/paging.h>
 #include <grinch/serial.h>
 
 #define UART_STATUS_DR   0x00000001	/* Data Ready */
@@ -41,7 +40,7 @@ struct apbuart {
 	u32 scaler;
 } __attribute__((packed));
 
-static void apbuart_write_char(struct uart_chip *chip, char ch)
+static void apbuart_write_byte(struct uart_chip *chip, unsigned char ch)
 {
 	struct apbuart *uart = chip->base;
 
@@ -94,7 +93,7 @@ static int apbuart_init(struct uart_chip *chip)
 
 const struct uart_driver uart_apbuart = {
 	.init = apbuart_init,
-	.write_char = apbuart_write_char,
+	.write_byte = apbuart_write_byte,
 	.is_busy = apbuart_is_busy,
 	.rcv_handler = apbuart_rcv,
 };

@@ -1,7 +1,7 @@
 /*
- * Grinch, a minimalist RISC-V operating system
+ * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2022-2023
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -10,7 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <grinch/asm-defines.h>
+#include <asm/asm-defines.h>
 
 .section .text, "ax"
 

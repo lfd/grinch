@@ -13,7 +13,7 @@
 #ifndef _IRQ_H
 #define _IRQ_H
 
-#include <grinch/csr.h>
+#include <asm/csr.h>
 #include <grinch/types.h>
 
 void irq_init(unsigned long timerdelta);

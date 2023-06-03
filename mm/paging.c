@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2022-2023
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -12,13 +12,14 @@
 
 #define dbg_fmt(x) "page: " x
 
+#include <asm/cpu.h>
+
 #include <grinch/errno.h>
-#include <grinch/mm.h>
-#include <grinch/cpu.h>
 #include <grinch/paging.h>
-#include <grinch/mmu.h>
+#include <grinch/mm.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
+#include <grinch/string.h>
 #include <grinch/symbols.h>
 
 /* For later usages */
@@ -27,20 +28,12 @@
 
 #define MAX_PAGE_TABLE_LEVELS	4
 
-unsigned long satp_mode;
-
-static const struct paging *root_paging;
+const struct paging *root_paging;
 
 struct paging_structures {
 	const struct paging *root_paging;
 	page_table_t root_table;
 };
-
-static inline void paging_flush_page_tlbs(paddr_t page_addr)
-{
-	asm volatile("sfence.vma /* rd, */ zero, %[addr]"
-		     : : [addr] "r" (page_addr));
-}
 
 static int paging_create(const struct paging_structures *pg_structs,
 		  unsigned long phys, unsigned long size, unsigned long virt,
@@ -147,7 +140,7 @@ static int paging_destroy(const struct paging_structures *pg_structs,
 			pte = paging->get_entry(pt[--n], virt);
 		}
 
-		paging_flush_page_tlbs(virt);
+		flush_tlb_page(virt);
 
 		if (page_size > size)
 			break;
@@ -211,7 +204,7 @@ static int paging_create(const struct paging_structures *pg_structs,
 			paging++;
 		}
 
-		paging_flush_page_tlbs(virt);
+		flush_tlb_page(virt);
 
 		phys += paging->page_size;
 		virt += paging->page_size;
@@ -240,6 +233,7 @@ int map_range(page_table_t pt, const void *vaddr, paddr_t paddr, size_t size, u1
 		.root_table = pt,
 	};
 
+#if 0
 	pr("Create mapping VA: 0x%llx PA: 0x%llx (%c%c%c%c SZ: 0x%lx)\n",
 	   (u64)vaddr, (u64)paddr,
 	   flags & RISCV_PTE_FLAG(R) ? 'R' : '-',
@@ -247,6 +241,7 @@ int map_range(page_table_t pt, const void *vaddr, paddr_t paddr, size_t size, u1
 	   flags & RISCV_PTE_FLAG(X) ? 'X' : '-',
 	   flags & RISCV_PTE_FLAG(U) ? 'U' : '-',
 	   size);
+#endif
 
 	return paging_create(&pg, paddr, size, (unsigned long)vaddr, flags, 0);
 }
@@ -256,16 +251,16 @@ static int map_osmem(page_table_t root, void *vaddr, size_t size, u16 flags)
 	return map_range(root, vaddr, virt_to_phys(vaddr), size, flags);
 }
 
-int paging_cpu_init(unsigned long hart_id)
+int paging_cpu_init(unsigned long cpuid)
 {
 	int err;
 	page_table_t root;
 
-	root = per_cpu(hart_id)->root_table_page;
+	root = per_cpu(cpuid)->root_table_page;
 
-	/* Map the stack */
+	/* Map the per_cpu structures */
 	err = map_range(root, (void*)PERCPU_BASE,
-			virt_to_phys(per_cpu(hart_id)),
+			virt_to_phys(per_cpu(cpuid)),
 			sizeof(struct per_cpu),
 			PAGE_FLAGS_MEM_RW);
 
@@ -277,11 +272,9 @@ int paging_init(void)
 	int err;
 	page_table_t root;
 
-	/* SV39 should suffice for everything */
-	root_paging = riscv_Sv39;
-	satp_mode = SATP_MODE_39;
+	arch_paging_init();
 
-	root = this_root_table_page();
+	root = this_per_cpu()->root_table_page;
 
 	/* root tables are not in bss section, so zero them */
 	memset(root, 0, sizeof(this_per_cpu()->root_table_page));
@@ -315,8 +308,7 @@ int paging_init(void)
 	if (err)
 		goto out;
 
-	ps("Activating MMU...\n");
-	enable_mmu_satp(satp_mode, virt_to_phys(root));
+	arch_paging_enable(root);
 
 	return 0;
 

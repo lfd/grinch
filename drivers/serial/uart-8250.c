@@ -1,7 +1,7 @@
 /*
- * Grinch, a minimalist RISC-V operating system
+ * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2022-2023
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -12,7 +12,6 @@
 
 #include <grinch/errno.h>
 #include <grinch/mmio.h>
-#include <grinch/paging.h>
 #include <grinch/serial.h>
 
 #define UART_TX			0x0
@@ -51,14 +50,14 @@ static bool uart_8250_is_busy(struct uart_chip *chip)
 	return !(mmio_read8(chip->base + UART_LSR) & UART_LSR_THRE);
 }
 
-static void uart_8250_write_char(struct uart_chip *chip, char c)
+static void uart_8250_write_byte(struct uart_chip *chip, unsigned char c)
 {
 	mmio_write8(chip->base + UART_TX, c);
 }
 
 const struct uart_driver uart_8250 = {
 	.init = uart_8250_init,
-	.write_char = uart_8250_write_char,
+	.write_byte = uart_8250_write_byte,
 	.is_busy = uart_8250_is_busy,
 	.rcv_handler = uart_8250_rcv_handler,
 };

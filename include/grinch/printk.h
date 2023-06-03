@@ -1,7 +1,7 @@
 /*
- * Grinch, a minimalist RISC-V operating system
+ * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2023
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -14,8 +14,9 @@
 #define _PRINTK_H
 
 void puts(const char *msg);
-void _puts(const char *msg);
 void __attribute__((format(printf, 1, 2))) printk(const char *fmt, ...);
+
+void console_flush(void);
 
 #ifndef dbg_fmt
 #define dbg_fmt(__x) (__x)

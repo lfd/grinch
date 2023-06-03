@@ -12,7 +12,7 @@
 
 #define dbg_fmt(x) "serial: " x
 
-#include <grinch/cpu.h>
+#include <asm/cpu.h>
 #include <grinch/errno.h>
 #include <grinch/fdt.h>
 #include <grinch/ioremap.h>
@@ -21,32 +21,13 @@
 #include <grinch/printk.h>
 #include <grinch/serial.h>
 
-struct uart_chip chip = {
+struct uart_chip uart_default = {
+#if defined(ARCH_RISCV)
 	.driver = &uart_sbi,
+#elif defined(ARCH_ARM64)
+	.driver = &uart_dummy,
+#endif
 };
-
-static void uart_write_char(char ch)
-{
-	while (chip.driver->is_busy(&chip))
-		cpu_relax();
-	chip.driver->write_char(&chip, ch);
-}
-
-void _puts(const char *msg)
-{
-	char c;
-
-	while (1) {
-		c = *msg++;
-		if (!c)
-			break;
-
-		if (c == '\n')
-			uart_write_char('\r');
-		
-		uart_write_char(c);
-	}
-}
 
 void serial_in(char ch)
 {
@@ -60,11 +41,47 @@ static const struct of_device_id of_match[] = {
 	{ /* sentinel */}
 };
 
-int serial_init(void)
+int serial_init(const struct uart_driver *d, paddr_t uart_base, u64 uart_size, u32 irq)
+{
+	int err;
+	struct uart_chip c;
+	bool flush;
+
+	c.driver = d;
+	c.irq = irq;
+
+	c.base = ioremap(uart_base, uart_size);
+	if (IS_ERR(c.base))
+		return PTR_ERR(c.base);
+
+	err = d->init(&c);
+	if (err)
+		return err;
+
+	/* activate as default chip */
+	flush = uart_default.driver == &uart_dummy;
+	uart_default = c;
+
+	/* FIXME!!! */ if(0) {
+	if (irq) {
+		pr("UART: using IRQ %d\n", irq);
+		irq_register_handler(irq, (void*)uart_default.driver->rcv_handler,
+				     &uart_default);
+		irqchip_enable_irq(this_cpu_id(), irq, 5, 4);
+	} else {
+		ps("No IRQ found!\n");
+	}}
+
+	if (flush)
+		console_flush();
+
+	return err;
+}
+
+int serial_init_fdt(void)
 {
 	const struct of_device_id *match;
 	const struct uart_driver *d;
-	struct uart_chip c;
 	paddr_t uart_base;
 	const int *res;
 	u64 uart_size;
@@ -85,33 +102,10 @@ int serial_init(void)
 	pr("Found %s UART@0x%llx\n", match->compatible, uart_base);
 
 	res = fdt_getprop(_fdt, off, "interrupts", &err);
-	if (IS_ERR(res)) {
+	if (IS_ERR(res))
 		irq = 0;
-		ps("No IRQ found!\n");
-	} else {
+	else
 		irq = fdt32_to_cpu(*res);
-		pr("UART: using IRQ %d\n", irq);
-	}
 
-	c.driver = d;
-	c.irq = irq;
-
-	c.base = ioremap(uart_base, uart_size);
-	if (IS_ERR(c.base))
-		return PTR_ERR(c.base);
-
-	err = d->init(&c);
-	if (err)
-		return err;
-
-	/* activate as default chip */
-	chip = c;
-
-	if (irq) {
-		irq_register_handler(irq, (void*)chip.driver->rcv_handler,
-				     &chip);
-		irqchip_enable_irq(this_cpu_id(), irq, 5, 4);
-	}
-
-	return err;
+	return serial_init(d, uart_base, uart_size, irq);
 }

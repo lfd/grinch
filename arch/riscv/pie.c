@@ -10,10 +10,11 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <asm/grinch_layout.h>
+
 #include <grinch/compiler_attributes.h>
 #include <grinch/paging.h>
 #include <grinch/percpu.h>
-#include <grinch/grinch_layout.h>
 #include <grinch/symbols.h>
 
 ptrdiff_t setup_trampoline(unsigned long hart_id, paddr_t load_addr, void *vbase);
@@ -97,7 +98,7 @@ ptrdiff_t setup_trampoline(unsigned long hart_id, paddr_t load_addr, void *vbase
 
 	enable_mmu_satp(SATP_MODE_39, (paddr_t)table);
 
-	this_per_cpu()->hartid = hart_id;
+	this_per_cpu()->cpuid = hart_id;
 
 	v2p = (paddr_t)vbase - load_addr;
 	return v2p;

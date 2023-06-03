@@ -2,7 +2,7 @@
  * Jailhouse, a Linux-based partitioning hypervisor
  *
  * Copyright (c) Siemens AG, 2020
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2022-2023
  *
  * Authors:
  *  Konrad Schwarz <konrad.schwarz@siemens.com>
@@ -13,7 +13,7 @@
  */
 
 #include <grinch/paging.h>
-#include <grinch/mmu.h>
+#include <grinch/mm.h>
 
 #define	PAGE_BITS	12
 #define	WORD_BITS	3 /* 1 << WORD_BITS == sizeof (void *) */
@@ -28,6 +28,8 @@
 
 #define	PAGE_TERMINAL_FLAGS \
 	(RISCV_PTE_FLAG(R) | RISCV_PTE_FLAG(W) | RISCV_PTE_FLAG(X))
+
+unsigned long satp_mode;
 
 static inline unsigned long pte2phys(unsigned long pte)
 {
@@ -140,15 +142,32 @@ static bool svX_page_table_empty(page_table_t page_table)
 	}
 
 /* sequence is from root to leaves */
-const struct paging riscv_Sv39[] = {
+static const struct paging riscv_Sv39[] = {
 	RISCV_SVX_PAGING_LEVEL(2),
 	RISCV_SVX_PAGING_LEVEL(1),
 	RISCV_SVX_PAGING_LEVEL(0),
 };
 
-const struct paging riscv_Sv48[] = {
+static const struct paging riscv_Sv48[] = {
 	RISCV_SVX_PAGING_LEVEL(3),
 	RISCV_SVX_PAGING_LEVEL(2),
 	RISCV_SVX_PAGING_LEVEL(1),
 	RISCV_SVX_PAGING_LEVEL(0),
 };
+
+void arch_paging_init(void)
+{
+	/* SV39 should suffice for everything */
+	if (1) {
+		root_paging = riscv_Sv39;
+		satp_mode = SATP_MODE_39;
+	} else {
+		root_paging = riscv_Sv48;
+		satp_mode = SATP_MODE_48;
+	}
+}
+
+void arch_paging_enable(page_table_t pt)
+{
+	enable_mmu_satp(satp_mode, virt_to_phys(pt));
+}

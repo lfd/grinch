@@ -83,7 +83,7 @@ static int boot_cpu(unsigned long hart_id)
 	/* Zero everything */
 	memset(pcpu, 0, sizeof(struct per_cpu));
 
-	pcpu->hartid = hart_id;
+	pcpu->cpuid = hart_id;
 
 	/* Copy over kernel page tables */
 

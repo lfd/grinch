@@ -1,7 +1,7 @@
 /*
- * Grinch, a minimalist RISC-V operating system
+ * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2022-2023
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -24,19 +24,57 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <asm/spinlock.h>
+
 #include <grinch/stdarg.h>
 #include <grinch/string.h>
 #include <grinch/printk.h>
-#include <grinch/sbi.h>
-#include <grinch/spinlock.h>
+#include <grinch/serial.h>
 
 static spinlock_t print_lock;
 
-extern const char printk_header[];
+struct {
+	unsigned int tail;
+	char content[1024];
+} console;
+
+static inline void console_write(char c)
+{
+	console.content[console.tail % sizeof(console.content)] = c;
+	console.tail++;
+}
+
+void console_flush(void)
+{
+	unsigned int pos;
+
+	if (console.tail > sizeof(console.content)) {
+		for (pos = console.tail % sizeof(console.content); pos < sizeof(console.content); pos++)
+			uart_write_char(&uart_default, console.content[pos]);
+	}
+
+	for (pos = 0; pos < console.tail % sizeof(console.content); pos++)
+		uart_write_char(&uart_default, console.content[pos]);
+
+	console.tail = 0;
+}
+
+static void _puts(const char *msg)
+{
+	char c;
+
+	while (1) {
+		c = *msg++;
+		if (!c)
+			break;
+
+		uart_write_char(&uart_default, c);
+		console_write(c);
+	}
+}
 
 void puts(const char *msg) {
 	spin_lock(&print_lock);
-	_puts(printk_header);
 	_puts(msg);
 	spin_unlock(&print_lock);
 }
@@ -211,13 +249,9 @@ void printk(const char *fmt, ...)
 {
 	va_list ap;
 
-	spin_lock(&print_lock);
-	_puts(printk_header);
-
 	va_start(ap, fmt);
-
+	spin_lock(&print_lock);
 	__vprintk(fmt, ap);
 	spin_unlock(&print_lock);
-
 	va_end(ap);
 }

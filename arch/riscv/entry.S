@@ -1,7 +1,7 @@
 /*
- * Grinch, a minimalist RISC-V operating system
+ * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2022-2023
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -10,9 +10,11 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <grinch/asm-defines.h>
+#include <asm/asm-defines.h>
+#include <asm/grinch_layout.h>
+
+#include <grinch/paging.h>
 #include <grinch/percpu.h>
-#include <grinch/grinch_layout.h>
 
 .section .header, "ax"
 
@@ -38,6 +40,8 @@ start:
 	/* push fdt location */
 	addi	sp, sp, -8
 	sd	a1, 0(sp) /* fdt */
+	addi	sp, sp, -8
+	sd	a0, 0(sp) /* hart-id */
 
 	/* load pc-relative load address (i.e., where we are) */
 	lpc	a1, start
@@ -81,7 +85,9 @@ virt_entry:
 	csrw	stvec, t0
 
 	/* pop parameters from stack */
-	ld	a0, 0(sp)
+	ld	a0, 0(sp) /* hart-id */
+	addi	sp, sp, 8
+	ld	a1, 0(sp) /* fdt */
 	addi	sp, sp, 8
 
 	/* Hand over to C */

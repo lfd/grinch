@@ -10,11 +10,12 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <grinch/cpu.h>
+#include <asm/cpu.h>
+
 #include <grinch/irq.h>
 #include <grinch/irqchip.h>
-#include <grinch/printk.h>
 #include <grinch/paging.h>
+#include <grinch/printk.h>
 #include <grinch/percpu.h>
 #include <grinch/sbi.h>
 #include <grinch/sbi_handler.h>

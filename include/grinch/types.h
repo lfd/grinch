@@ -1,7 +1,7 @@
 /*
- * Grinch, a minimalist RISC-V operating system
+ * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2022-2023
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -18,12 +18,13 @@
 #define BITS_PER_LONG	64
 #define ARRAY_SIZE(array)	(sizeof(array) / sizeof((array)[0]))
 
-#define MIN(a, b)          ((a) <= (b) ? (a) : (b))
-#define __round_mask(x, y) ((__typeof__(x))((y)-1))
-#define round_down(x, y) ((x) & ~__round_mask(x, y))
+#define MIN(a, b)		((a) <= (b) ? (a) : (b))
+#define __round_mask(x, y)	((__typeof__(x))((y)-1))
+#define round_down(x, y)	((x) & ~__round_mask(x, y))
 
 #define NULL	((void*)0)
 
+/* Applies to both, arm64 and riscv64 */
 typedef unsigned long long u64;
 typedef unsigned short u16;
 typedef unsigned int u32;
@@ -41,7 +42,12 @@ typedef s64 intptr_t;
 typedef uintptr_t paddr_t;
 typedef intptr_t ptrdiff_t;
 
+typedef unsigned long *pt_entry_t;
+typedef pt_entry_t page_table_t;
+
+/* Generic types */
 typedef enum { true = 1, false = 0 } bool;
+
 
 #endif /* __ASSEMBLY__ */
 

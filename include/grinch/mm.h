@@ -1,7 +1,7 @@
 /*
- * Grinch, a minimalist RISC-V operating system
+ * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2022-2023
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -22,9 +22,10 @@ int mm_init(void);
 
 /*
  * After the internal page pool was set up, we're now able to access the DTB,
- * and setup the rest of the system's memory
+ * and setup the rest of the system's memory: Either manually, or via the DTB.
  */
-int mm_init_late(void);
+int mm_init_late_fdt(void);
+int mm_init_late(paddr_t addrp, size_t sizep);
 
 /* page allocation flags */
 #define PAF_INT		0x00000001

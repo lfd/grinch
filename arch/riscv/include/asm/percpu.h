@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist RISC-V operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2022-2023
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -10,4 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
-const char printk_header[] = "grinch: ";
+#define ARCH_PER_CPU_FIELDS	\
+	struct {		\
+		u16 ctx;	\
+	} plic;

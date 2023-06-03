@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist RISC-V operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2023
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -12,7 +12,7 @@
 
 #define dbg_fmt(x) "aplic: " x
 
-#include <grinch/cpu.h>
+#include <asm/cpu.h>
 #include <grinch/errno.h>
 #include <grinch/fdt.h>
 #include <grinch/ioremap.h>

@@ -10,15 +10,11 @@
  * the COPYING file in the top-level directory.
  */
 
-.section .rodata
+#ifndef _SBI_HANDLER_H
+#define _SBI_HANDLER_H
 
-.macro incbin name, filename
-.globl \name
-\name:
-	.incbin "\filename"
-.globl \name\()_end
-\name\()_end:
-.endm
+#include <asm/cpu.h>
 
-incbin __guest_code, "guest/guest.bin"
-incbin __guest_dtb, "guest.dtb"
+int handle_ecall(struct registers *regs);
+
+#endif /* _SBI_HANDLER_H */

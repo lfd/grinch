@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2022-2023
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -12,12 +12,13 @@
 
 #define dbg_fmt(x)	"mm: " x
 
+#include <asm/grinch_layout.h>
+
 #include <grinch/bitmap.h>
 #include <grinch/errno.h>
 #include <grinch/fdt.h>
-#include <grinch/grinch_layout.h>
-#include <grinch/mm.h>
 #include <grinch/paging.h>
+#include <grinch/mm.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/string.h>
@@ -123,7 +124,7 @@ static int mempool_mark_free(struct mempool *m, paddr_t addr, size_t pages)
 {
 	unsigned int start;
 
-	if (addr & ~PAGE_MASK)
+	if (addr & PAGE_OFFS_MASK)
 		return -EINVAL;
 
 	if (addr < m->base || addr > (m->base + m->pages * PAGE_SIZE))
@@ -142,7 +143,7 @@ static int mempool_mark_used(struct mempool *m, paddr_t addr, size_t pages)
 {
 	unsigned int start;
 
-	if (addr & ~PAGE_MASK)
+	if (addr & PAGE_OFFS_MASK)
 		return -EINVAL;
 
 	if (addr < m->base || addr > (m->base + m->pages * PAGE_SIZE))
@@ -162,7 +163,7 @@ static int mempool_init(struct mempool *m)
 	unsigned long bitmap_size;
 	unsigned int bitmap_pgs;
 
-	if (m->base & ~MEGA_PAGE_MASK)
+	if (m->base & MEGA_PAGE_OFFS_MASK)
 		return trace_error(-ENOSYS);
 
 	bitmap_size = BITMAP_SZ(m->pages);
@@ -212,7 +213,7 @@ static int mempool_free(struct mempool *m, const void *addr, size_t pages)
 {
 	unsigned int start;
 
-	if ((unsigned long)addr & ~PAGE_MASK)
+	if ((unsigned long)addr & PAGE_OFFS_MASK)
 		return trace_error(-EINVAL);
 
 	start = (addr - m->vbase) / PAGE_SIZE;
@@ -297,7 +298,30 @@ int mm_init(void)
 	return err;
 }
 
-int mm_init_late(void)
+int mm_init_late(paddr_t addrp, size_t sizep)
+{
+	struct mempool *m;
+	int err;
+
+	pr("Found main memory: %llx, size: %lx\n", addrp, sizep);
+	m = &mempool[MEMPOOL_EXT];
+	m->base = addrp;
+	m->pages = PAGES(sizep);
+
+	err = mempool_init(m);
+	if (err)
+		return err;
+
+	/* check if the physical location of the OS is inside that region */
+	err = mempool_mark_used(m, virt_to_phys(_load_addr),
+				PAGES(GRINCH_SIZE));
+	if (err && err != -ERANGE)
+		return err;
+
+	return err;
+}
+
+int mm_init_late_fdt(void)
 {
 	int child, err, len, memory, ac, sc, parent;
 	struct mempool *m;
@@ -337,18 +361,10 @@ int mm_init_late(void)
 	if (err < 0)
 		return trace_error(err);
 
-	pr("Found main memory: %llx, size: %lx\n", addrp, sizep);
 	m = &mempool[MEMPOOL_EXT];
-	m->base = addrp;
-	m->pages = PAGES(sizep);
-
-	err = mempool_init(m);
-
-	/* check if the physical location of the OS is inside that region */
-	err = mempool_mark_used(m, virt_to_phys(_load_addr),
-				PAGES(GRINCH_SIZE));
-	if (err && err != -ERANGE)
-		return err;
+	err = mm_init_late(addrp, sizep);
+	if (err)
+		return trace_error(err);
 
 	/* search for reserved regions in the device tree */
 	memory = fdt_path_offset(_fdt, "/reserved-memory");

@@ -1,7 +1,7 @@
 /*
- * Grinch, a minimalist RISC-V operating system
+ * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2023
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -10,5 +10,6 @@
  * the COPYING file in the top-level directory.
  */
 
-extern const struct paging riscv_Sv39[];
-extern const struct paging riscv_Sv48[];
+#include <grinch/types.h>
+
+int arch_init(paddr_t __fdt);

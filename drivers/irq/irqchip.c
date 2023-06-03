@@ -10,12 +10,13 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <asm/csr.h>
+
 #include <grinch/errno.h>
 #include <grinch/printk.h>
 #include <grinch/fdt.h>
 #include <grinch/ioremap.h>
 #include <grinch/irqchip.h>
-#include <grinch/csr.h>
 
 extern const struct irqchip_fn irqchip_fn_plic;
 extern const struct irqchip_fn irqchip_fn_aplic;

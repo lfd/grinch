@@ -1,12 +1,12 @@
-asm-defines.S
-include/grinch/asm-defines.h
-
 *.bin
 *.elf
+*.a
 *.o
-*.ld
-*.dtb
+linkerfile.ld
 guest/*.ld
+
+arch/riscv/asm-defines.S
+arch/riscv/include/asm/asm-defines.h
 
 .gdbinit
 .gdb_history

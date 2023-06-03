@@ -13,6 +13,8 @@
 #ifndef _CPU_H
 #define _CPU_H
 
+#include <grinch/types.h>
+
 extern const char *causes[];
 
 struct registers {
@@ -59,6 +61,12 @@ static inline void cpu_relax(void)
 static inline void flush_tlb_all(void)
 {
 	asm volatile("sfence.vma" : : : "memory");
+}
+
+static inline void flush_tlb_page(paddr_t page_addr)
+{
+	asm volatile("sfence.vma /* rd, */ zero, %[addr]"
+		     : : [addr] "r" (page_addr));
 }
 
 static inline void __attribute__((noreturn, always_inline)) cpu_halt(void)

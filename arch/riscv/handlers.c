@@ -10,7 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <grinch/csr.h>
+#include <asm/csr.h>
 #include <grinch/errno.h>
 #include <grinch/irq.h>
 #include <grinch/printk.h>

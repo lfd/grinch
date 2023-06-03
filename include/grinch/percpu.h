@@ -13,6 +13,9 @@
 #ifndef _PERCPU_H
 #define _PERCPU_H
 
+#include <asm/percpu.h>
+#include <asm/grinch_layout.h>
+
 #include <grinch/paging.h>
 
 #define STACK_PAGES	1
@@ -21,8 +24,8 @@
 
 #ifndef __ASSEMBLY__
 
-#include <grinch/cpu.h>
-#include <grinch/grinch_layout.h>
+#include <asm/cpu.h>
+
 #include <grinch/symbols.h>
 
 struct per_cpu {
@@ -38,10 +41,9 @@ struct per_cpu {
 	unsigned long root_table_page[PTES_PER_PT]
 		__attribute__((aligned(PAGE_SIZE)));
 
-	struct {
-		u16 ctx;
-	} plic;
-	int hartid;
+	int cpuid;
+
+	ARCH_PER_CPU_FIELDS
 } __attribute__((aligned(PAGE_SIZE)));
 
 static inline struct per_cpu *this_per_cpu(void)
@@ -51,12 +53,12 @@ static inline struct per_cpu *this_per_cpu(void)
 
 static inline unsigned long this_cpu_id(void)
 {
-	return this_per_cpu()->hartid;
+	return this_per_cpu()->cpuid;
 }
 
-static inline struct per_cpu *per_cpu(unsigned long hartid)
+static inline struct per_cpu *per_cpu(unsigned long cpuid)
 {
-	return (struct per_cpu*)__internal_page_pool_end - (hartid + 1);
+	return (struct per_cpu*)__internal_page_pool_end - (cpuid + 1);
 }
 
 static inline page_table_t this_root_table_page(void)

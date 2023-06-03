@@ -12,7 +12,7 @@
 
 #define dbg_fmt(x) "plic: " x
 
-#include <grinch/cpu.h>
+#include <asm/cpu.h>
 #include <grinch/errno.h>
 #include <grinch/fdt.h>
 #include <grinch/ioremap.h>
@@ -106,7 +106,7 @@ static void plic_hart_init(void)
 	pcpu->plic.ctx = this_cpu_id() * 2 + 1;
 
 	for (irq = 0; irq < IRQ_MAX; irq++)
-		plic_disable_irq(pcpu->hartid, irq);
+		plic_disable_irq(pcpu->cpuid, irq);
 }
 
 const struct irqchip_fn irqchip_fn_plic = {
