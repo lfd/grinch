@@ -67,7 +67,7 @@ static inline void spin_lock(spinlock_t *lock)
 \n\
 	.endif\n\
 "	:
-	[spin] "=&m" (lock->spin):
+	[spin] "=&A" (lock->spin):
 	[use_lr_sc] "n" (RISCV_USE_LR_SC):
 	"t1", "t2", "memory");
 }
