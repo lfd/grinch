@@ -50,7 +50,7 @@ void cmain(paddr_t __fdt)
 	if (err)
 		goto out;
 
-	err = mm_init_late();
+	err = mm_init_late_fdt();
 	if (err)
 		goto out;
 

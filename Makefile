@@ -14,6 +14,7 @@ include $(ARCH_DIR)/inc.mk
 include $(LIB_DIR)/inc.mk
 include $(MM_DIR)/inc.mk
 include $(DRIVERS_DIR)/inc.mk
+include guest/inc.mk
 
 GDB=$(CROSS_COMPILE)gdb
 CC=$(CROSS_COMPILE)gcc
@@ -48,13 +49,10 @@ endif
 LDFLAGS = $(ARCH_LDFLAGS)
 AFLAGS = -D__ASSEMBLY__
 
-OBJS_COMMON = $(OBJS_SERIAL)
-
 ASM_DEFINES = arch/$(ARCH)/include/asm/asm-defines.h
 GENERATED = $(ASM_DEFINES)
 
-OBJS = $(OBJS_COMMON) main.o
-GUEST_OBJS = $(OBJS_COMMON) guest/main.o guest/printk_header.o guest/handlers.o
+OBJS = main.o
 
 %.o: %.c $(GENERATED)
 	$(CC) -c $(CFLAGS) -o $@ $<
@@ -78,25 +76,11 @@ linkerfile.ld: linkerfile.ld.S
 	# Remove commment lines. Required for older linkers.
 	sed -e '/^#/d' -i $@
 
-guest-data.o: guest/guest.bin guest.dtb
-
-guest/linkerfile.ld: linkerfile.ld.S
-	$(CC) $(CFLAGS) $(AFLAGS) -E -o $@ $^ -DIS_GUEST
-	# Remove commment lines. Required for older linkers.
-	sed -e '/^#/d' -i $@
-
-guest/guest.elf: guest/linkerfile.ld guest/guest.o
-	$(LD) $(LDFLAGS) -T $^ -o $@
-	$(SZ) --format=SysV -x $@
-
 $(ASM_DEFINES): arch/$(ARCH)/asm-defines.S
 	./asm-defines.sh $^ > $@
 
 arch/$(ARCH)/asm-defines.S: arch/$(ARCH)/asm-defines.c
 	$(CC) $(CFLAGS) -S -o $@ $^
-
-guest/guest.o: $(GUEST_OBJS)
-	$(LD) $(LDFLAGS) -relocatable -o $@ $^
 
 grinch.o: $(ARCH_DIR)/built-in.a $(LIB_DIR)/built-in.a $(MM_DIR)/built-in.a $(DRIVERS_DIR)/built-in.a $(OBJS)
 	$(LD) $(LDFLAGS) --whole-archive -relocatable -o $@ $^
@@ -128,9 +112,8 @@ debug: grinch.elf
 deploy: grinch.elf
 	scp -P 33333 grinch.elf root@localhost:
 
-clean: clean_arch
+clean: clean_arch clean_guest
 	rm -rf $(OBJS) grinch.o
-	rm -rf $(GUEST_OBJS) guest/guest.o
 	rm -rf $(GENERATED)
 	rm -rf arch/$(ARCH)/*.{o,a} arch/$(ARCH)/asm-defines.S
 	rm -rf lib/*.{o,a} lib/libfdt/*.{o,a}

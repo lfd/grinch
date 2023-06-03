@@ -103,7 +103,7 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 	if (err)
 		goto out;
 
-	if (1)
+	if (0)
 		memtest();
 
 out:
