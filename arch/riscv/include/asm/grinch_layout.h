@@ -15,22 +15,22 @@
 #define _GIGA_PAGE_SIZE	0x40000000
 
 #ifdef IS_GUEST
-#define LINK_BASE	0x70000000
+#define VMGRINCH_BASE	0x70000000
 #define GRINCH_SIZE	_MEGA_PAGE_SIZE
 #else
-#define LINK_BASE	0xffffffc000000000
+#define VMGRINCH_BASE	0xffffffc000000000
 /*
  * Take the uppermost address that the ioremap area will still be located at
  * the same VPN. This gives us 256MiB ioremap area.
  */
 #define IOREMAP_BITS	29
-#define IOREMAP_BASE	((void*)(LINK_BASE | (1 << IOREMAP_BITS)))
+#define IOREMAP_BASE	((void*)(VMGRINCH_BASE | (1 << IOREMAP_BITS)))
 #define IOREMAP_SIZE	(1 << (IOREMAP_BITS - 1))
 
 #define GRINCH_SIZE	2 * _MEGA_PAGE_SIZE
 #endif
 
-#define PERCPU_BASE	(LINK_BASE + 64UL * _GIGA_PAGE_SIZE)
+#define PERCPU_BASE	(VMGRINCH_BASE + 64UL * _GIGA_PAGE_SIZE)
 
 #define KMEM_BASE	(PERCPU_BASE + 64UL * _GIGA_PAGE_SIZE)
 #define KMEM_SIZE	_GIGA_PAGE_SIZE

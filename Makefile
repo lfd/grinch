@@ -8,7 +8,7 @@ LIB_DIR = lib
 MM_DIR = mm
 DRIVERS_DIR = drivers
 
-all: grinch.bin
+all: vmgrinch.bin
 
 include $(ARCH_DIR)/inc.mk
 include $(LIB_DIR)/inc.mk
@@ -82,38 +82,36 @@ $(ASM_DEFINES): arch/$(ARCH)/asm-defines.S
 arch/$(ARCH)/asm-defines.S: arch/$(ARCH)/asm-defines.c
 	$(CC) $(CFLAGS) -S -o $@ $^
 
-grinch.o: $(ARCH_DIR)/built-in.a $(LIB_DIR)/built-in.a $(MM_DIR)/built-in.a $(DRIVERS_DIR)/built-in.a $(OBJS)
+vmgrinch.o: $(ARCH_DIR)/built-in.a $(LIB_DIR)/built-in.a $(MM_DIR)/built-in.a $(DRIVERS_DIR)/built-in.a $(OBJS)
 	$(LD) $(LDFLAGS) --whole-archive -relocatable -o $@ $^
 
-grinch.elf: grinch.ld grinch.o
+vmgrinch.elf: grinch.ld vmgrinch.o
 	$(LD) $(LDFLAGS) --gc-sections -T $^ -o $@
 	$(SZ) --format=SysV -x $@
 
-objd: grinch.elf
+objd: vmgrinch.elf
 	$(OBJDUMP) -d $^ | less
 
-objdS: grinch.elf
+objdS: vmgrinch.elf
 	$(OBJDUMP) -dS $^ | less
 
 objdg: guest/guest.elf
 	$(OBJDUMP) -d $^ | less
 
-ifeq ($(ARCH),riscv)
-qemu: grinch.bin
+qemu: vmgrinch.bin
 	$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS) -kernel $< -s
 
-qemudb: grinch.bin
+qemudb: vmgrinch.bin
 	$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS) -kernel $< -s -S
-endif
 
-debug: grinch.elf
+debug: vmgrinch.elf
 	$(GDB) $^
 
 deploy: grinch.elf
 	scp -P 33333 grinch.elf root@localhost:
 
 clean: clean_arch clean_guest
-	rm -rf $(OBJS) grinch.o
+	rm -rf $(OBJS) vmgrinch.o
 	rm -rf $(GENERATED)
 	rm -rf arch/$(ARCH)/*.{o,a} arch/$(ARCH)/asm-defines.S
 	rm -rf lib/*.{o,a} lib/libfdt/*.{o,a}

@@ -15,7 +15,7 @@
 ENTRY(start)
 SECTIONS
 {
-	. = LINK_BASE;
+	. = VMGRINCH_BASE;
 	__load_addr = .;
 	.header		: { *(.header) }
 	.text		: {
