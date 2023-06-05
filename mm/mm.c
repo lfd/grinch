@@ -291,10 +291,6 @@ int mm_init(void)
 	if (err)
 		return err;
 
-	/* reserve pages for bootstrap page tables */
-	err = mempool_mark_used(m, m->base + num_os_pages() * PAGE_SIZE,
-				PIE_PAGES);
-
 	return err;
 }
 
@@ -391,11 +387,6 @@ int mm_init_late_fdt(void)
 		if (err)
 			return err;
 	}
-
-	/* Free bootstrapping pages */
-	m = &mempool[MEMPOOL_INT];
-	err = mempool_mark_free(m, m->base + num_os_pages() * PAGE_SIZE,
-				PIE_PAGES);
 
 	return err;
 }

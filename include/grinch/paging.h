@@ -75,10 +75,10 @@ static inline u64 mega_page_up(u64 diff)
 extern const struct paging *root_paging;
 
 void arch_paging_init(void);
-void arch_paging_enable(page_table_t pt);
+void arch_paging_enable(unsigned long this_cpu, page_table_t pt);
 
-int paging_init(void);
-int paging_cpu_init(unsigned long hart_id);
+int paging_init(unsigned long this_cpu);
+int paging_cpu_init(unsigned long this_cpu);
 
 /* Versatile mapper */
 int map_range(page_table_t pt, const void *vaddr, paddr_t paddr, size_t size,

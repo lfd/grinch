@@ -50,11 +50,6 @@
 
 #ifndef __ASSEMBLY__
 
-/*
- * The number of pages that need to be reserved for the bootstrap page tables
- */
-#define PIE_PAGES	5
-
 static inline unsigned int vaddr2vpn(const void *vaddr, unsigned char lvl)
 {
 	return ((uintptr_t)vaddr >> (PAGE_SHIFT + lvl * VPN_SHIFT)) & VPN_MASK;

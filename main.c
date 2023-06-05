@@ -93,7 +93,7 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 		goto out;
 
 	ps("Activating final paging\n");
-	err = paging_init();
+	err = paging_init(boot_cpu);
 	if (err)
 		goto out;
 

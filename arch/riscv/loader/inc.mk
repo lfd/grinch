@@ -4,7 +4,7 @@ ARCH_LOADER_DIR = $(ARCH_DIR)/loader
 
 LOADER_OBJS := $(addprefix $(ARCH_LOADER_DIR)/, $(LOADER_OBJS))
 
-$(ARCH_LOADER_DIR)/built-in.a: $(LOADER_OBJS)
+$(ARCH_LOADER_DIR)/built-in.a: $(LOADER_OBJS) lib/string.o
 
 $(ARCH_LOADER_DIR)/entry.o: vmgrinch.bin
 

@@ -6,7 +6,7 @@ QEMU_ARGS=-m 128M -smp 2 -serial stdio -nographic -monitor telnet:127.0.0.1:5555
 CFLAGS_ARCH = -mcmodel=medany -march=rv64imafdc -DARCH_RISCV=1
 LDFLAGS_ARCH = -melf64lriscv
 
-ARCH_OBJS = entry.o exception.o guest-data.o sbi.o traps.o pie.o cpu.o
+ARCH_OBJS = entry.o exception.o guest-data.o sbi.o traps.o cpu.o
 ARCH_OBJS += handlers.o smp.o paging.o arch.o
 
 ARCH_OBJS := $(addprefix $(ARCH_DIR)/, $(ARCH_OBJS))

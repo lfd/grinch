@@ -13,6 +13,7 @@
  */
 
 #include <grinch/paging.h>
+#include <grinch/percpu.h>
 #include <grinch/mm.h>
 
 #define	PAGE_BITS	12
@@ -167,7 +168,12 @@ void arch_paging_init(void)
 	}
 }
 
-void arch_paging_enable(page_table_t pt)
+void arch_paging_enable(unsigned long this_cpu, page_table_t pt)
 {
+	u64 offset;
 	enable_mmu_satp(satp_mode, virt_to_phys(pt));
+
+	/* Get the stack pointer under control */
+	offset = PERCPU_BASE - (u64)per_cpu(this_cpu);
+	asm volatile("add sp, sp, %0" : : "r"(offset));
 }

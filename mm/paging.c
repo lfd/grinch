@@ -267,14 +267,14 @@ int paging_cpu_init(unsigned long cpuid)
 	return err;
 }
 
-int paging_init(void)
+int paging_init(unsigned long this_cpu)
 {
 	int err;
 	page_table_t root;
 
 	arch_paging_init();
 
-	root = this_per_cpu()->root_table_page;
+	root = per_cpu(this_cpu)->root_table_page;
 
 	/* root tables are not in bss section, so zero them */
 	memset(root, 0, sizeof(this_per_cpu()->root_table_page));
@@ -304,11 +304,14 @@ int paging_init(void)
 	if (err)
 		goto out;
 
-	err = paging_cpu_init(this_cpu_id());
+	err = paging_cpu_init(this_cpu);
 	if (err)
 		goto out;
 
-	arch_paging_enable(root);
+	arch_paging_enable(this_cpu, root);
+
+	/* Now, we're allowed to access it */
+	this_per_cpu()->cpuid = this_cpu;
 
 	return 0;
 
