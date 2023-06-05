@@ -107,9 +107,6 @@ qemudb: vmgrinch.bin
 debug: vmgrinch.elf
 	$(GDB) $^
 
-deploy: grinch.elf
-	scp -P 33333 grinch.elf root@localhost:
-
 clean: clean_arch clean_guest
 	rm -rf $(OBJS) vmgrinch.o
 	rm -rf $(GENERATED)
