@@ -4,6 +4,7 @@
 *.o
 
 grinch.ld
+loader.ld
 guest/*.ld
 
 arch/riscv/asm-defines.S

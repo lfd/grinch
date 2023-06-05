@@ -1,5 +1,5 @@
-add-symbol-file grinch.elf
-add-symbol-file guest/guest.elf
+#add-symbol-file vmgrinch.elf
+add-symbol-file kernel.elf
 layout split
 fs cmd
 target remote :1234

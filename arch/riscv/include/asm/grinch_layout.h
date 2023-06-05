@@ -1,7 +1,7 @@
 /*
- * Grinch, a minimalist RISC-V operating system
+ * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2022-2023
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -13,6 +13,8 @@
 #define _PAGE_SIZE	0x1000
 #define _MEGA_PAGE_SIZE	0x200000
 #define _GIGA_PAGE_SIZE	0x40000000
+
+#define LOADER_BASE	0x40000000
 
 #ifdef IS_GUEST
 #define VMGRINCH_BASE	0x70000000

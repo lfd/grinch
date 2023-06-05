@@ -8,7 +8,7 @@ LIB_DIR = lib
 MM_DIR = mm
 DRIVERS_DIR = drivers
 
-all: vmgrinch.bin
+all: kernel.bin
 
 include $(ARCH_DIR)/inc.mk
 include $(LIB_DIR)/inc.mk
@@ -99,13 +99,13 @@ objdS: vmgrinch.elf
 objdg: guest/guest.elf
 	$(OBJDUMP) -d $^ | less
 
-qemu: vmgrinch.bin
+qemu: kernel.bin
 	$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS) -kernel $< -s
 
-qemudb: vmgrinch.bin
+qemudb: kernel.bin
 	$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS) -kernel $< -s -S
 
-debug: vmgrinch.elf
+debug: kernel.bin
 	$(GDB) $^
 
 clean: clean_arch clean_guest
