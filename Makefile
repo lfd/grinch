@@ -71,7 +71,7 @@ OBJS = main.o
 guest.dtb: guest.dts
 	dtc -I dts -O dtb $^ -o $@
 
-linkerfile.ld: linkerfile.ld.S
+grinch.ld: grinch.ld.S
 	$(CC) $(CFLAGS) $(AFLAGS) -E -o $@ $^
 	# Remove commment lines. Required for older linkers.
 	sed -e '/^#/d' -i $@
@@ -85,7 +85,7 @@ arch/$(ARCH)/asm-defines.S: arch/$(ARCH)/asm-defines.c
 grinch.o: $(ARCH_DIR)/built-in.a $(LIB_DIR)/built-in.a $(MM_DIR)/built-in.a $(DRIVERS_DIR)/built-in.a $(OBJS)
 	$(LD) $(LDFLAGS) --whole-archive -relocatable -o $@ $^
 
-grinch.elf: linkerfile.ld grinch.o
+grinch.elf: grinch.ld grinch.o
 	$(LD) $(LDFLAGS) --gc-sections -T $^ -o $@
 	$(SZ) --format=SysV -x $@
 

@@ -2,7 +2,8 @@
 *.elf
 *.a
 *.o
-linkerfile.ld
+
+grinch.ld
 guest/*.ld
 
 arch/riscv/asm-defines.S
