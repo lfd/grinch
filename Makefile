@@ -63,18 +63,19 @@ OBJS = main.o
 %.bin: %.elf
 	$(OBJCOPY) -O binary $^ $@
 
+%.ld: %.ld.S
+	$(CC) $(CFLAGS) $(AFLAGS) -E -o $@ $^
+	# Remove commment lines. Required for older linkers.
+	sed -e '/^#/d' -i $@
+
 %/built-in.a:
 	rm -f $@
 	$(AR) cDPrST $@ $^
-
 
 guest.dtb: guest.dts
 	dtc -I dts -O dtb $^ -o $@
 
 grinch.ld: grinch.ld.S
-	$(CC) $(CFLAGS) $(AFLAGS) -E -o $@ $^
-	# Remove commment lines. Required for older linkers.
-	sed -e '/^#/d' -i $@
 
 $(ASM_DEFINES): arch/$(ARCH)/asm-defines.S
 	./asm-defines.sh $^ > $@
