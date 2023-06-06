@@ -90,6 +90,9 @@ vmgrinch.elf: grinch.ld vmgrinch.o
 	$(LD) $(LDFLAGS) --gc-sections -T $^ -o $@
 	$(SZ) --format=SysV -x $@
 
+objdk: kernel.elf
+	$(OBJDUMP) -d $^ | less
+
 objd: vmgrinch.elf
 	$(OBJDUMP) -d $^ | less
 
