@@ -112,7 +112,7 @@ qemudb: kernel.bin
 debug: kernel.bin
 	$(GDB) $^
 
-clean: clean_arch clean_arch_loader clean_guest
+clean: clean_loader clean_guest
 	rm -rf $(OBJS) vmgrinch.o
 	rm -rf $(GENERATED)
 	rm -rf arch/$(ARCH)/*.{o,a} arch/$(ARCH)/asm-defines.S

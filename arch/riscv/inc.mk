@@ -14,5 +14,3 @@ ARCH_OBJS := $(addprefix $(ARCH_DIR)/, $(ARCH_OBJS))
 #$(ARCH_OBJS)/guest-data.o: guest.dtb guest/guest.bin
 
 arch/riscv/built-in.a: $(ARCH_OBJS)
-
-clean_arch:

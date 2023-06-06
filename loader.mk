@@ -17,7 +17,7 @@ kernel.elf: loader.ld $(ARCH_LOADER_DIR)/loader.o
 
 kernel.bin: kernel.elf
 
-clean_arch_loader:
+clean_loader:
 	rm -rf kernel.elf
 	rm -rf $(LOADER_OBJS)
 	rm -rf $(ARCH_LOADER_DIR)/built-in.a $(ARCH_LOADER_DIR)/loader.o
