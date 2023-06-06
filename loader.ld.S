@@ -46,6 +46,7 @@ SECTIONS
 		. = ALIGN(16);
 		__bss_start = .;
 		*(.bss)
+		. = ALIGN(16);
 		__bss_end = .;
 	}
 	__bss_qwords = SIZEOF(.bss) / 8;
