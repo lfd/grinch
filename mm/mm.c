@@ -378,12 +378,15 @@ int mm_init_late_fdt(void)
 			continue;
 
 		uname = fdt_get_name(_fdt, child, NULL);
-		pr("Reserving memory area %s\n", uname);
 
 		err = fdt_read_reg(_fdt, child, 0, &addrp, (u64*)&sizep);
-		if (err)
+		if (err) {
+			pr("Error reserving area %s\n", uname);
 			return trace_error(err);
+		}
 
+		pr("Reserving memory area %s (0x%llx len: 0x%lx)\n",
+		   uname, addrp, sizep);
 		err = mempool_mark_used(m, addrp, PAGES(page_up(sizep)));
 		if (err)
 			return err;
