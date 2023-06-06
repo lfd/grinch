@@ -24,7 +24,7 @@
 #define VPN_SHIFT		9
 #define VPN_MASK		((1UL << VPN_SHIFT) - 1)
 
-#define PTES_PER_PT	(PAGE_SIZE / sizeof(u64))
+#define PTES_PER_PT		(PAGE_SIZE / sizeof(u64))
 #define PAGE_SIZE		_BITUL(PAGE_SHIFT)
 #define PAGE_MASK		PMASK(PAGE_SIZE)
 #define PAGE_OFFS_MASK		(~PAGE_MASK)

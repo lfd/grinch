@@ -11,6 +11,7 @@
  */
 
 #include <asm/grinch_layout.h>
+#include <grinch/paging.h>
 
 ENTRY(start)
 SECTIONS
@@ -24,14 +25,14 @@ SECTIONS
 	}
 	__text_end = .;
 
-	. = ALIGN(_PAGE_SIZE);
+	. = ALIGN(PAGE_SIZE);
 	__rw_data_start = .;
 	.data           : {
 		*(.sdata)
 		*(.data)
 	}
 	
-	. = ALIGN(_PAGE_SIZE);
+	. = ALIGN(PAGE_SIZE);
 	.bss            : {
 		__bss_start = .;
 		*(.bss)
@@ -42,7 +43,7 @@ SECTIONS
 	__bss_qwords = SIZEOF(.bss) / 8;
 	__rw_data_end = .;
 
-	. = ALIGN(_PAGE_SIZE);
+	. = ALIGN(PAGE_SIZE);
 	__rodata_start = .;
 	.rodata		: {
 		*(.srodata.*)
@@ -51,12 +52,12 @@ SECTIONS
 	}
 	__rodata_end = .;
 
-	. = ALIGN(_PAGE_SIZE);
+	. = ALIGN(PAGE_SIZE);
 
 	__internal_page_pool_start = .;
-	__num_os_pages = (__internal_page_pool_start - __load_addr) / _PAGE_SIZE;
+	__num_os_pages = (__internal_page_pool_start - __load_addr) / PAGE_SIZE;
 	. = __load_addr + GRINCH_SIZE;
 	__internal_page_pool_end = .;
 	__internal_page_pool_pages =
-		(__internal_page_pool_end - __internal_page_pool_start) / _PAGE_SIZE;
+		(__internal_page_pool_end - __internal_page_pool_start) / PAGE_SIZE;
 }

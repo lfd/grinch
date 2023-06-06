@@ -12,6 +12,8 @@
 
 #include <asm/grinch_layout.h>
 
+#include <grinch/paging.h>
+
 ENTRY(_loader_start)
 
 SECTIONS
@@ -34,7 +36,7 @@ SECTIONS
 	}
 	__vmgrinch_bin_size = __vmgrinch_bin_end - __vmgrinch_bin_start;
 
-	. = ALIGN(_PAGE_SIZE);
+	. = ALIGN(PAGE_SIZE);
 	.data : {
 	    *(.data)
 	}
@@ -47,9 +49,9 @@ SECTIONS
 		__bss_end = .;
 	}
 	__bss_qwords = SIZEOF(.bss) / 8;
-	. = ALIGN(_PAGE_SIZE);
+	. = ALIGN(PAGE_SIZE);
 	__stack_start = .;
-	. = . + _PAGE_SIZE;
+	. = . + PAGE_SIZE;
 	__stack_end = .;
 
 	/DISCARD/ : {
