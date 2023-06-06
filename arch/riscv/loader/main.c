@@ -85,11 +85,9 @@ loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr, void *vbase)
 
 	/* Alright, here we have a working environment */
 	u64 p_grinch_dst = load_addr + mega_page_up(__stack_end - __start);
-	for (d = 0; d < GRINCH_SIZE; d += MEGA_PAGE_SIZE) {
+	for (d = 0; d < GRINCH_SIZE; d += MEGA_PAGE_SIZE)
 		map_2M(&next, l0, (void*)VMGRINCH_BASE + d, p_grinch_dst + d);
-		/* Actually no need to memset... */
-		memset((void*)VMGRINCH_BASE + d, 0, MEGA_PAGE_SIZE);
-	}
+
 	memcpy((void*)VMGRINCH_BASE, __vmgrinch_bin_start,
 	       (size_t)__vmgrinch_bin_size);
 
