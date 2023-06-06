@@ -32,23 +32,21 @@
 
 #define RISCV_PTE_FLAG(FLAG)    (1 << RISCV_PTE_ ## FLAG)
 
-#define PAGE_FLAGS_DEFAULT	(0			\
-				| RISCV_PTE_FLAG(G)	\
-				| RISCV_PTE_FLAG(V)	\
-				| RISCV_PTE_FLAG(R)	\
-				| RISCV_PTE_FLAG(W)	\
-				| RISCV_PTE_FLAG(X))
-
-#define PAGE_FLAGS_MEM_RX		(RISCV_PTE_FLAG(V) | RISCV_PTE_FLAG(G) | RISCV_PTE_FLAG(R) | RISCV_PTE_FLAG(X))
-#define PAGE_FLAGS_MEM_RW		(RISCV_PTE_FLAG(V) | RISCV_PTE_FLAG(G) | RISCV_PTE_FLAG(R) | RISCV_PTE_FLAG(W))
-#define PAGE_FLAGS_MEM_RWXU		(RISCV_PTE_FLAG(V) | RISCV_PTE_FLAG(G) | RISCV_PTE_FLAG(R) | RISCV_PTE_FLAG(W) | RISCV_PTE_FLAG(X) | RISCV_PTE_FLAG(U))
-#define PAGE_FLAGS_MEM_RO		(RISCV_PTE_FLAG(V) | RISCV_PTE_FLAG(G) | RISCV_PTE_FLAG(R))
-/* FIXME */
-#define PAGE_FLAGS_DEVICE		PAGE_FLAGS_MEM_RW
-
 #define PAGE_PRESENT_FLAGS	(RISCV_PTE_FLAG(G) | RISCV_PTE_FLAG(V))
 
 #ifndef __ASSEMBLY__
+
+static inline unsigned long arch_paging_access_flags(mem_flags_t flags)
+{
+	unsigned long ret;
+
+	ret = RISCV_PTE_FLAG(V) | RISCV_PTE_FLAG(G) |
+	      ((flags & GRINCH_MEM_R) ? RISCV_PTE_FLAG(R) : 0) |
+	      ((flags & GRINCH_MEM_W) ? RISCV_PTE_FLAG(W) : 0) |
+	      ((flags & GRINCH_MEM_X) ? RISCV_PTE_FLAG(X) : 0);
+
+	return ret;
+}
 
 static inline unsigned int vaddr2vpn(const void *vaddr, unsigned char lvl)
 {

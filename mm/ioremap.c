@@ -44,7 +44,7 @@ void *ioremap(paddr_t paddr, size_t size)
 
 	ret = IOREMAP_BASE + (start * PAGE_SIZE) + (paddr & PAGE_OFFS_MASK);
 	err = map_range(this_root_table_page(), ret, paddr, size,
-			PAGE_FLAGS_DEVICE);
+			GRINCH_MEM_DEVICE | GRINCH_MEM_RW);
 	if (err)
 		return ERR_PTR(err);
 

@@ -112,7 +112,7 @@ static int boot_cpu(unsigned long hart_id)
 	/* The page table must contain a boot trampoline */
 	paddr = virt_to_phys(__load_addr);
 	map_range(pcpu->root_table_page, (void*)paddr, paddr, GRINCH_SIZE,
-		  PAGE_FLAGS_DEFAULT);
+		  GRINCH_MEM_DEFAULT);
 
 	paddr= virt_to_phys(secondary_start);
 

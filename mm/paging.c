@@ -226,27 +226,30 @@ int unmap_range(page_table_t pt, const void *vaddr, size_t size)
 	return paging_destroy(&pg, (unsigned long)vaddr, size, 0);
 }
 
-int map_range(page_table_t pt, const void *vaddr, paddr_t paddr, size_t size, u16 flags)
+int map_range(page_table_t pt, const void *vaddr, paddr_t paddr, size_t size,
+	      mem_flags_t grinch_flags)
 {
 	struct paging_structures pg = {
 		.root_paging = root_paging,
 		.root_table = pt,
 	};
+	unsigned long flags;
 
-#if 0
-	pr("Create mapping VA: 0x%llx PA: 0x%llx (%c%c%c%c SZ: 0x%lx)\n",
+	pr("Create mapping VA: 0x%llx PA: 0x%llx (%c%c%c%c%c SZ: 0x%lx)\n",
 	   (u64)vaddr, (u64)paddr,
-	   flags & RISCV_PTE_FLAG(R) ? 'R' : '-',
-	   flags & RISCV_PTE_FLAG(W) ? 'W' : '-',
-	   flags & RISCV_PTE_FLAG(X) ? 'X' : '-',
-	   flags & RISCV_PTE_FLAG(U) ? 'U' : '-',
+	   grinch_flags & GRINCH_MEM_R ? 'R' : '-',
+	   grinch_flags & GRINCH_MEM_W ? 'W' : '-',
+	   grinch_flags & GRINCH_MEM_X ? 'X' : '-',
+	   grinch_flags & GRINCH_MEM_U ? 'U' : '-',
+	   grinch_flags & GRINCH_MEM_DEVICE ? 'D' : '-',
 	   size);
-#endif
+	flags = arch_paging_access_flags(grinch_flags);
 
 	return paging_create(&pg, paddr, size, (unsigned long)vaddr, flags, 0);
 }
 
-static int map_osmem(page_table_t root, void *vaddr, size_t size, u16 flags)
+static int map_osmem(page_table_t root, void *vaddr, size_t size,
+		     mem_flags_t flags)
 {
 	return map_range(root, vaddr, virt_to_phys(vaddr), size, flags);
 }
@@ -262,7 +265,7 @@ int paging_cpu_init(unsigned long cpuid)
 	err = map_range(root, (void*)PERCPU_BASE,
 			virt_to_phys(per_cpu(cpuid)),
 			sizeof(struct per_cpu),
-			PAGE_FLAGS_MEM_RW);
+			GRINCH_MEM_RW);
 
 	return err;
 }
@@ -281,26 +284,26 @@ int paging_init(unsigned long this_cpu)
 
 	err = map_osmem(root, _load_addr,
 			page_up(__text_end - __load_addr),
-			PAGE_FLAGS_MEM_RX);
+			GRINCH_MEM_RX);
 	if (err)
 		goto out;
 
 	err = map_osmem(root, __rw_data_start,
 			page_up(__rw_data_end - __rw_data_start),
-			PAGE_FLAGS_MEM_RW);
+			GRINCH_MEM_RW);
 	if (err)
 		goto out;
 
 	err = map_osmem(root, __rodata_start,
 			page_up(__rodata_end - __rodata_start),
-			PAGE_FLAGS_MEM_RO);
+			GRINCH_MEM_R);
 	if (err)
 		goto out;
 
 	/* Map the page pool */
 	err = map_osmem(root, __internal_page_pool_start,
 			internal_page_pool_pages() * PAGE_SIZE,
-			PAGE_FLAGS_MEM_RW);
+			GRINCH_MEM_RW);
 	if (err)
 		goto out;
 

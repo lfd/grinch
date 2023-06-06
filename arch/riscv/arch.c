@@ -75,13 +75,13 @@ static int vmm_test(void)
 	/* setup G-stage translation */
 	err = map_range(virt_pt, guest_loadaddr,
 			virt_to_phys(guest_code), GUEST_MEM_SZ,
-			PAGE_FLAGS_MEM_RWXU);
+			GRINCH_MEM_RWXU);
 	if (err)
 		goto out;
 
 	err = map_range(virt_pt, guest_dtb,
 			virt_to_phys(dtb), page_up(_guest_dtb_size()),
-			PAGE_FLAGS_MEM_RWXU);
+			GRINCH_MEM_RWXU);
 	if (err)
 		goto out;
 

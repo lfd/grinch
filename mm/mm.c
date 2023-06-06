@@ -249,7 +249,7 @@ void *page_alloc(unsigned int pages, unsigned int alignment, paf_t paf)
 	if (paf & PAF_EXT) {
 		/* In case of the ext mempool, we must create the mapping */
 		err = map_range(this_root_table_page(), ret, paddr, sz,
-				PAGE_FLAGS_MEM_RW);
+				GRINCH_MEM_RW);
 		if (err)
 			return ERR_PTR(err);
 	}

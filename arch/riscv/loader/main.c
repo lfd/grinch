@@ -18,6 +18,10 @@
 #include <grinch/percpu.h>
 #include <grinch/symbols.h>
 
+#define PAGE_FLAGS_DEFAULT				\
+	(PAGE_PRESENT_FLAGS | RISCV_PTE_FLAG(R) |	\
+	 RISCV_PTE_FLAG(W) | RISCV_PTE_FLAG(X))
+
 extern unsigned char __start[];
 extern unsigned char __stack_end[];
 

@@ -41,10 +41,22 @@
 #define PAGES(X)		((X) / PAGE_SIZE)
 #define MEGA_PAGES(X)		((X) / MEGA_PAGE_SIZE)
 
+#define GRINCH_MEM_R		(1 << 0)
+#define GRINCH_MEM_W		(1 << 1)
+#define GRINCH_MEM_X		(1 << 2)
+#define GRINCH_MEM_U		(1 << 3)
+#define GRINCH_MEM_DEVICE	(1 << 4)
+
+#define GRINCH_MEM_RW		(GRINCH_MEM_R | GRINCH_MEM_W)
+#define GRINCH_MEM_RX		(GRINCH_MEM_R | GRINCH_MEM_X)
+#define GRINCH_MEM_RWXU		(GRINCH_MEM_RW | GRINCH_MEM_X | GRINCH_MEM_U)
+#define GRINCH_MEM_DEFAULT	GRINCH_MEM_RW
 
 #define INVALID_PHYS_ADDR	(~0UL)
 
 #ifndef __ASSEMBLY__
+typedef unsigned char mem_flags_t;
+
 struct paging {
         /** Page size of terminal entries in this level or 0 if none are
          * supported. */
@@ -82,7 +94,7 @@ int paging_cpu_init(unsigned long this_cpu);
 
 /* Versatile mapper */
 int map_range(page_table_t pt, const void *vaddr, paddr_t paddr, size_t size,
-	      u16 flags);
+	      mem_flags_t grinch_flags);
 int unmap_range(page_table_t pt, const void *vaddr, size_t size);
 
 #endif /* __ASSEMBLY__ */
