@@ -15,6 +15,4 @@ ARCH_OBJS := $(addprefix $(ARCH_DIR)/, $(ARCH_OBJS))
 
 arch/riscv/built-in.a: $(ARCH_OBJS)
 
-include arch/riscv/loader/inc.mk
-
-clean_arch: clean_arch_loader
+clean_arch:
