@@ -120,25 +120,6 @@ void *phys_to_virt(paddr_t addr)
 	return ERR_PTR(-ENOENT);
 }
 
-static int mempool_mark_free(struct mempool *m, paddr_t addr, size_t pages)
-{
-	unsigned int start;
-
-	if (addr & PAGE_OFFS_MASK)
-		return -EINVAL;
-
-	if (addr < m->base || addr > (m->base + m->pages * PAGE_SIZE))
-		return -ERANGE;
-
-	start = (addr - m->base) / PAGE_SIZE;
-	if (start + pages > m->pages)
-		return -ERANGE;
-
-	bitmap_clear(m->bitmap, start, pages);
-
-	return 0;
-}
-
 static int mempool_mark_used(struct mempool *m, paddr_t addr, size_t pages)
 {
 	unsigned int start;
@@ -217,6 +198,9 @@ static int mempool_free(struct mempool *m, const void *addr, size_t pages)
 		return trace_error(-EINVAL);
 
 	start = (addr - m->vbase) / PAGE_SIZE;
+	if (start + pages > m->pages)
+		return trace_error(-ERANGE);
+
 	bitmap_clear(m->bitmap, start, pages);
 
 	return 0;
