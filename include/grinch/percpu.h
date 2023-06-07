@@ -30,20 +30,12 @@
 
 struct per_cpu {
 	unsigned char stack[STACK_SIZE];
-	union {
-		unsigned char stack[STACK_SIZE];
-		struct {
-			unsigned char __fill[STACK_SIZE - sizeof(struct registers)];
-			struct registers regs;
-		};
-	} exception;
-
 	unsigned long root_table_page[PTES_PER_PT]
 		__attribute__((aligned(PAGE_SIZE)));
 
-	int cpuid;
-
 	ARCH_PER_CPU_FIELDS
+
+	int cpuid;
 } __attribute__((aligned(PAGE_SIZE)));
 
 static inline struct per_cpu *this_per_cpu(void)

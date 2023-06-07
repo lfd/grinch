@@ -1,5 +1,5 @@
 /*
- * Grinch, a minimalist RISC-V operating system
+ * Grinch, a minimalist operating system
  *
  * Copyright (c) OTH Regensburg, 2022-2023
  *
@@ -10,7 +10,14 @@
  * the COPYING file in the top-level directory.
  */
 
-#define ARCH_PER_CPU_FIELDS	\
-	struct {		\
-		u16 ctx;	\
+#define ARCH_PER_CPU_FIELDS				\
+	union {						\
+		unsigned char stack[STACK_SIZE];	\
+		struct {				\
+			unsigned char __fill[STACK_SIZE - sizeof(struct registers)];	\
+			struct registers regs;		\
+		};					\
+	} exception;					\
+	struct {					\
+		u16 ctx;				\
 	} plic;
