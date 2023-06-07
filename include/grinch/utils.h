@@ -17,4 +17,8 @@
 #define BIT_MASK(last, first) \
 	((0xffffffffffffffffULL >> (64 - ((last) + 1 - (first)))) << (first))
 
+/* extract the field value at [last:first] from an input of up to 64 bits */
+#define GET_FIELD(value, last, first) \
+	(((value) & BIT_MASK((last), (first))) >> (first))
+
 #endif /* _UTILS_H */
