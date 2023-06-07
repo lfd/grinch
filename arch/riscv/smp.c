@@ -40,7 +40,12 @@ void secondary_cmain(void);
 void secondary_cmain(void)
 {
 	int err;
+	paddr_t sscratch;
+
 	pr("Hello world from CPU %lu\n", this_cpu_id());
+
+	sscratch = (paddr_t)&this_per_cpu()->exception + STACK_SIZE;
+	csr_write(sscratch, sscratch);
 
 	irq_disable();
 	ext_disable();

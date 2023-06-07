@@ -170,10 +170,14 @@ void arch_paging_init(void)
 
 void arch_paging_enable(unsigned long this_cpu, page_table_t pt)
 {
-	u64 offset;
+	paddr_t tmp;
 	enable_mmu_satp(satp_mode, virt_to_phys(pt));
 
 	/* Get the stack pointer under control */
-	offset = PERCPU_BASE - (u64)per_cpu(this_cpu);
-	asm volatile("add sp, sp, %0" : : "r"(offset));
+	tmp = PERCPU_BASE - (paddr_t)per_cpu(this_cpu);
+	asm volatile("add sp, sp, %0" : : "r"(tmp));
+
+	/* Setup exception stack */
+	tmp = (paddr_t)&this_per_cpu()->exception + STACK_SIZE;
+	csr_write(sscratch, tmp);
 }

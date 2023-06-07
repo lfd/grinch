@@ -57,10 +57,7 @@ start:
 	mv	a0, a2
 	jal	mm_set_int_v2p_offset
 
-	/* Setup stvec */
-	li	t1, EXCEPTION_STACK_TOP
-	csrw	sscratch, t1
-
+	/* Setup exception trap vector. Exception stack is yet uninitialised. */
 	la	t0, excp_handler
 	csrw	stvec, t0
 
@@ -97,10 +94,7 @@ secondary_virt_entry:
 	/* setup stack */
 	li	sp, STACK_TOP
 
-	/* setup exception trap vectors */
-	li	t1, EXCEPTION_STACK_TOP
-	csrw	sscratch, t1
-
+	/* Setup exception trap vector. Exception stack is yet uninitialised. */
 	la	t0, excp_handler
 	csrw	stvec, t0
 

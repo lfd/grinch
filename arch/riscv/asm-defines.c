@@ -1,5 +1,5 @@
 /*
- * Grinch, a minimalist RISC-V operating system
+ * Grinch, a minimalist operating system
  *
  * Copyright (c) OTH Regensburg, 2022-2023
  *
@@ -20,8 +20,4 @@ void common(void)
 
 	DEFINE(STACK_TOP,
 		PERCPU_BASE + __builtin_offsetof(struct per_cpu, stack) + STACK_SIZE);
-	DEFINE(EXCEPTION_STACK_TOP,
-		PERCPU_BASE + __builtin_offsetof(struct per_cpu, exception) + STACK_SIZE);
-
-	OFFSET(OFF_PER_CPU_ROOT_TABLE, per_cpu, root_table_page);
 }
