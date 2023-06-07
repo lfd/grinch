@@ -28,7 +28,9 @@ SZ=$(CROSS_COMPILE)size
 
 QEMU_ARGS_COMMON=-monitor telnet:127.0.0.1:11111,server,nowait
 
-CFLAGS=-nostdinc -ffreestanding -O0 -g -ggdb \
+OPT?=-O0
+
+CFLAGS=-nostdinc -ffreestanding -g -ggdb $(OPT) \
        -fno-strict-aliasing -fno-stack-protector \
        -ffunction-sections \
        -Wall -Wextra -Wno-unused-parameter \
