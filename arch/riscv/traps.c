@@ -1,7 +1,7 @@
 /*
- * Grinch, a minimalist RISC-V operating system
+ * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2022-2023
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -15,6 +15,7 @@
 #include <grinch/irq.h>
 #include <grinch/irqchip.h>
 #include <grinch/paging.h>
+#include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/percpu.h>
 #include <grinch/sbi.h>
@@ -102,9 +103,7 @@ out:
 		pr("FATAL Exception on CPU %lu. Cause: %lu (%s)\n",
 		   this_cpu_id(), to_irq(cause), cause_str);
 		dump_regs(regs);
-		pr("CPU %lu HALTED\n", this_cpu_id());
-		for (;;)
-			cpu_relax();
+		panic_stop();
 	}
 
 	csr_write(sepc, regs->sepc);

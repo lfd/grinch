@@ -1,4 +1,4 @@
-LIB_OBJS = printk.o string.o bitmap.o fdt.o
+LIB_OBJS = panic.o printk.o string.o bitmap.o fdt.o
 LIBFDT_OBJS = libfdt/fdt.o libfdt/fdt_ro.o libfdt/fdt_addresses.o
 
 LIB_OBJS := $(addprefix $(LIB_DIR)/, $(LIB_OBJS))
