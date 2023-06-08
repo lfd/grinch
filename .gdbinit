@@ -1,4 +1,4 @@
-#add-symbol-file vmgrinch.elf
+add-symbol-file vmgrinch.elf
 add-symbol-file kernel.elf
 layout split
 fs cmd
