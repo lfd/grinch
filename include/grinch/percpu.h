@@ -1,7 +1,7 @@
 /*
- * Grinch, a minimalist RISC-V operating system
+ * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2022-2023
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -13,8 +13,8 @@
 #ifndef _PERCPU_H
 #define _PERCPU_H
 
+#include <asm_generic/grinch_layout.h>
 #include <asm/percpu.h>
-#include <asm/grinch_layout.h>
 
 #include <grinch/paging.h>
 

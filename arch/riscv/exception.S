@@ -10,7 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <asm/asm-defines.h>
+#include <asm/asm_defines.h>
 
 .section .text, "ax"
 

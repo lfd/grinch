@@ -10,8 +10,8 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <asm/asm-defines.h>
-#include <asm/grinch_layout.h>
+#include <asm_generic/grinch_layout.h>
+#include <asm/asm_defines.h>
 
 #include <grinch/paging.h>
 #include <grinch/percpu.h>

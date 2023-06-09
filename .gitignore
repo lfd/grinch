@@ -7,8 +7,8 @@ grinch.ld
 loader.ld
 guest/*.ld
 
-arch/riscv/asm-defines.S
-arch/riscv/include/asm/asm-defines.h
+arch/riscv/asm_defines.S
+arch/riscv/include/asm/asm_defines.h
 
 .gdbinit
 .gdb_history

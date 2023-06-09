@@ -10,7 +10,8 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <asm/grinch_layout.h>
+#include <asm_generic/grinch_layout.h>
+
 #include <grinch/paging.h>
 
 ENTRY(start)
@@ -31,7 +32,7 @@ SECTIONS
 		*(.sdata)
 		*(.data)
 	}
-	
+
 	. = ALIGN(PAGE_SIZE);
 	.bss            : {
 		__bss_start = .;

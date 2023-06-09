@@ -52,7 +52,7 @@ endif
 LDFLAGS = $(ARCH_LDFLAGS)
 AFLAGS = -D__ASSEMBLY__
 
-ASM_DEFINES = arch/$(ARCH)/include/asm/asm-defines.h
+ASM_DEFINES = arch/$(ARCH)/include/asm/asm_defines.h
 GENERATED = $(ASM_DEFINES)
 
 OBJS = main.o
@@ -80,10 +80,10 @@ guest.dtb: guest.dts
 
 grinch.ld: grinch.ld.S
 
-$(ASM_DEFINES): arch/$(ARCH)/asm-defines.S
+$(ASM_DEFINES): arch/$(ARCH)/asm_defines.S
 	./asm-defines.sh $^ > $@
 
-arch/$(ARCH)/asm-defines.S: arch/$(ARCH)/asm-defines.c
+arch/$(ARCH)/asm_defines.S: arch/$(ARCH)/asm_defines.c
 	$(CC) $(CFLAGS) -S -o $@ $^
 
 vmgrinch.o: $(ARCH_DIR)/built-in.a $(LIB_DIR)/built-in.a $(MM_DIR)/built-in.a $(DRIVERS_DIR)/built-in.a $(OBJS)
@@ -117,7 +117,7 @@ debug: kernel.bin
 clean: clean_loader clean_guest
 	rm -rf $(OBJS) vmgrinch.o
 	rm -rf $(GENERATED)
-	rm -rf arch/$(ARCH)/*.{o,a} arch/$(ARCH)/asm-defines.S
+	rm -rf arch/$(ARCH)/*.{o,a} arch/$(ARCH)/asm_defines.S
 	rm -rf lib/*.{o,a} lib/libfdt/*.{o,a}
 	rm -rf drivers/*.{o,a} drivers/irq/*.{o,a} drivers/serial/*.{o,a}
 	rm -rf mm/*.{o,a}

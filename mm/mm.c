@@ -12,7 +12,7 @@
 
 #define dbg_fmt(x)	"mm: " x
 
-#include <asm/grinch_layout.h>
+#include <asm_generic/grinch_layout.h>
 
 #include <grinch/bitmap.h>
 #include <grinch/errno.h>

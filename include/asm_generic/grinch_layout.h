@@ -13,11 +13,6 @@
 #include <grinch/const.h>
 
 #define LOADER_BASE	_UL(0x40000000)
-
-#ifdef IS_GUEST
-#define VMGRINCH_BASE	_UL(0x70000000)
-#define GRINCH_SIZE	MEGA_PAGE_SIZE
-#else
 #define VMGRINCH_BASE	_UL(0xffffffc000000000)
 /*
  * Take the uppermost address that the ioremap area will still be located at
@@ -28,7 +23,6 @@
 #define IOREMAP_SIZE	(1 << (IOREMAP_BITS - 1))
 
 #define GRINCH_SIZE	(2 * MEGA_PAGE_SIZE)
-#endif
 
 #define PERCPU_BASE	(VMGRINCH_BASE + 64UL * GIGA_PAGE_SIZE)
 

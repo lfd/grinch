@@ -10,7 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <asm-generic/asm-defines.h>
+#include <asm_generic/asm_defines.h>
 #include <grinch/percpu.h>
 
 void common(void)

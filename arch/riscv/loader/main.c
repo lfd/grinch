@@ -10,7 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <asm/grinch_layout.h>
+#include <asm_generic/grinch_layout.h>
 
 #include <grinch/compiler_attributes.h>
 #include <grinch/errno.h>
