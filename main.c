@@ -29,8 +29,11 @@ static const char logo[] =
 "| (_| | |  | | | | | (__| | | |\n"
 " \\__, |_|  |_|_| |_|\\___|_| |_|\n"
 "  __/ |\n"
-" |___/\n"
-"      -> Welcome to Grinch " __stringify(GRINCH_VER) " <- \n\n\n";
+" |___/"
+#ifdef ARCH_RISCV
+"       on RISC-V\n"
+#endif
+"\n      -> Welcome to Grinch " __stringify(GRINCH_VER) " <- \n\n\n";
 
 
 #undef dbg_fmt
