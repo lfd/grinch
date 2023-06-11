@@ -61,6 +61,8 @@ int serial_init(const struct uart_driver *d, paddr_t uart_base, u64 uart_size, u
 	/* activate as default chip */
 	flush = uart_default.driver == &uart_dummy;
 	uart_default = c;
+	if (flush)
+		console_flush();
 
 	if (irq) {
 		pr("UART: using IRQ %d\n", irq);
@@ -70,9 +72,6 @@ int serial_init(const struct uart_driver *d, paddr_t uart_base, u64 uart_size, u
 	} else {
 		ps("No IRQ found!\n");
 	}
-
-	if (flush)
-		console_flush();
 
 	return err;
 }

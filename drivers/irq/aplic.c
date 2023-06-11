@@ -1,5 +1,5 @@
 /*
- * Grinch, a minimalist RISC-V operating system
+ * Grinch, a minimalist operating system
  *
  * Copyright (c) OTH Regensburg, 2023
  *
@@ -13,6 +13,7 @@
 #define dbg_fmt(x) "aplic: " x
 
 #include <asm/cpu.h>
+
 #include <grinch/errno.h>
 #include <grinch/fdt.h>
 #include <grinch/ioremap.h>
@@ -34,14 +35,13 @@ static int aplic_handle_irq(void)
 	return -EINVAL;
 }
 
-static void aplic_hart_init(void)
+int aplic_init(void *vaddr)
 {
+	return -ENOSYS;
 }
 
 const struct irqchip_fn irqchip_fn_aplic = {
-	.hart_init = aplic_hart_init,
 	.handle_irq = aplic_handle_irq,
-
 	.enable_irq = aplic_enable_irq,
 	.disable_irq = aplic_disable_irq,
 };

@@ -1,7 +1,7 @@
 /*
- * Grinch, a minimalist RISC-V operating system
+ * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2022-2023
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -18,10 +18,7 @@
 #include <grinch/ioremap.h>
 #include <grinch/irqchip.h>
 
-extern const struct irqchip_fn irqchip_fn_plic;
-extern const struct irqchip_fn irqchip_fn_aplic;
-
-struct irqchip irqchip;
+const struct irqchip_fn *irqchip_fn;
 
 static irq_handler_t irq_handlers[IRQ_MAX];
 static void *irq_handlers_userdata[IRQ_MAX];
@@ -102,19 +99,28 @@ int irqchip_init(void)
 
 	/* Initialise IRQ controller */
 init:
-	irqchip.fn = (const struct irqchip_fn *)(match->data);
+	irqchip_fn = (const struct irqchip_fn *)(match->data);
 
-	err = fdt_read_reg(_fdt, off, 0, &irqchip.pbase, &irqchip.size);
+	paddr_t pbase;
+	void *vbase;
+	u64 size;
+
+	err = fdt_read_reg(_fdt, off, 0, &pbase, &size);
 	if (err)
 		return err;
 
-	pr("base: 0x%llx, size: 0x%llx\n", (u64)irqchip.pbase, irqchip.size);
+	pr("base: 0x%llx, size: 0x%llx\n", (u64)pbase, size);
 
-	irqchip.vbase = ioremap(irqchip.pbase, irqchip.size);
-	if (IS_ERR(irqchip.vbase))
-		return PTR_ERR(irqchip.vbase);
+	vbase = ioremap(pbase, size);
+	if (IS_ERR(vbase))
+		return PTR_ERR(vbase);
 
-	irqchip.fn->hart_init();
+	if (irqchip_fn == &irqchip_fn_plic)
+		err = plic_init(vbase);
+	else if (irqchip_fn == &irqchip_fn_aplic)
+		err = aplic_init(vbase);
+	else
+		return -ENOSYS;
 
-	return 0;
+	return err;
 }

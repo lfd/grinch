@@ -1,7 +1,7 @@
 /*
- * Grinch, a minimalist RISC-V operating system
+ * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2022-2023
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -13,6 +13,7 @@
 #define dbg_fmt(x) "plic: " x
 
 #include <asm/cpu.h>
+
 #include <grinch/errno.h>
 #include <grinch/fdt.h>
 #include <grinch/ioremap.h>
@@ -23,6 +24,8 @@
 
 #define CTX_MAX		32
 
+static void *plic;
+
 static inline u16 this_ctx(void)
 {
 	return this_per_cpu()->plic.ctx;
@@ -30,12 +33,12 @@ static inline u16 this_ctx(void)
 
 static inline void plic_write_reg(u32 reg, u32 value)
 {
-	mmio_write32(irqchip.vbase + reg, value);
+	mmio_write32(plic + reg, value);
 }
 
 static inline u32 plic_read_reg(u32 reg)
 {
-	return mmio_read32(irqchip.vbase + reg);
+	return mmio_read32(plic + reg);
 }
 
 static inline void plic_irq_set_prio(u32 irq, u32 prio)
@@ -98,21 +101,23 @@ static int plic_handle_irq(void)
 	return err;
 }
 
-static void plic_hart_init(void)
+int plic_init(void *vaddr)
 {
 	struct per_cpu *pcpu = this_per_cpu();
 	unsigned int irq;
+
+	plic = vaddr;
 
 	pcpu->plic.ctx = this_cpu_id() * 2 + 1;
 
 	for (irq = 0; irq < IRQ_MAX; irq++)
 		plic_disable_irq(pcpu->cpuid, irq);
+
+	return 0;
 }
 
 const struct irqchip_fn irqchip_fn_plic = {
-	.hart_init = plic_hart_init,
 	.handle_irq = plic_handle_irq,
-
 	.enable_irq = plic_enable_irq,
 	.disable_irq = plic_disable_irq,
 };

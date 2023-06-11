@@ -5,7 +5,7 @@ DRIVERS_SERIAL_OBJS += serial/uart-dummy.o
 
 ifeq ($(ARCH),riscv)
 	DRIVERS_SERIAL_OBJS += serial/uart-sbi.o
-	DRIVERS_IRQ_OBJS = irq/aplic.o irq/irqchip.o irq/plic.o
+	DRIVERS_IRQ_OBJS = irq/aplic.o irq/plic.o
 endif
 
 DRIVERS_OBJS := $(addprefix $(DRIVERS_DIR)/, $(DRIVERS_OBJS))

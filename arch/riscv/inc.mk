@@ -7,7 +7,7 @@ CFLAGS_ARCH = -mcmodel=medany -march=rv64imafdc -DARCH_RISCV=1
 LDFLAGS_ARCH = -melf64lriscv
 
 ARCH_OBJS = entry.o exception.o guest-data.o sbi.o traps.o cpu.o
-ARCH_OBJS += handlers.o smp.o paging.o arch.o
+ARCH_OBJS += handlers.o smp.o paging.o arch.o irqchip.o
 
 ARCH_OBJS := $(addprefix $(ARCH_DIR)/, $(ARCH_OBJS))
 

@@ -40,7 +40,7 @@ int handle_irq(u64 irq)
 			break;
 
 		case IRQ_S_EXT:
-			err = irqchip.fn->handle_irq();
+			err = irqchip_fn->handle_irq();
 			break;
 
 		default:
