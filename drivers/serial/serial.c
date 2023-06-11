@@ -1,7 +1,7 @@
 /*
- * Grinch, a minimalist RISC-V operating system
+ * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2022-2023
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -62,7 +62,6 @@ int serial_init(const struct uart_driver *d, paddr_t uart_base, u64 uart_size, u
 	flush = uart_default.driver == &uart_dummy;
 	uart_default = c;
 
-	/* FIXME!!! */ if(0) {
 	if (irq) {
 		pr("UART: using IRQ %d\n", irq);
 		irq_register_handler(irq, (void*)uart_default.driver->rcv_handler,
@@ -70,7 +69,7 @@ int serial_init(const struct uart_driver *d, paddr_t uart_base, u64 uart_size, u
 		irqchip_enable_irq(this_cpu_id(), irq, 5, 4);
 	} else {
 		ps("No IRQ found!\n");
-	}}
+	}
 
 	if (flush)
 		console_flush();

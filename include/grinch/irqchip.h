@@ -21,8 +21,8 @@ struct irqchip_fn {
 	void (*hart_init)(void);
 	int (*handle_irq)(void);
 
-	void (*enable_irq)(unsigned long hart, u32 irq, u32 prio, u32 thres);
-	void (*disable_irq)(unsigned long hart, u32 irq);
+	void (*enable_irq)(unsigned long cpuid, u32 irq, u32 prio, u32 thres);
+	void (*disable_irq)(unsigned long cpuid, u32 irq);
 };
 
 struct irqchip {
@@ -40,9 +40,9 @@ int irqchip_handle_irq(unsigned int irq);
 int irqchip_init(void);
 
 static inline void
-irqchip_enable_irq(unsigned long hart, u32 irq, u32 prio, u32 thres)
+irqchip_enable_irq(unsigned long cpuid, u32 irq, u32 prio, u32 thres)
 {
-	irqchip.fn->enable_irq(hart, irq, prio, thres);
+	irqchip.fn->enable_irq(cpuid, irq, prio, thres);
 }
 
 #endif /* _IRQCHIP_H */

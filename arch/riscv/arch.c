@@ -194,6 +194,10 @@ int arch_init(paddr_t __fdt)
 	//csr_set(sstatus, SR_SPIE);
 	if (0)
 		err = vmm_test();
+
+	ps("Enabling IRQs\n");
+	irq_enable();
+
 out:
 	return err;
 }
