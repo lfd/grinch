@@ -66,18 +66,22 @@ static inline void plic_irq_set_enable(u16 ctx, u32 irq, bool enable)
 	plic_write_reg(reg, value);
 }
 
-static void plic_disable_irq(unsigned long hart, u32 irq)
+static int plic_disable_irq(unsigned long hart, u32 irq)
 {
 	plic_irq_set_enable(per_cpu(hart)->plic.ctx, irq, false);
+
+	return 0;
 }
 
-static void plic_enable_irq(unsigned long hart, u32 irq, u32 prio, u32 thres)
+static int plic_enable_irq(unsigned long hart, u32 irq, u32 prio, u32 thres)
 {
 	unsigned int ctx = per_cpu(hart)->plic.ctx;
+
 	plic_irq_set_prio(irq, prio);
 	plic_irq_set_prio_thres(ctx, irq, thres);
 
 	plic_irq_set_enable(ctx, irq, true);
+	return 0;
 }
 
 static int plic_handle_irq(void)

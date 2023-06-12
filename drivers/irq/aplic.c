@@ -22,12 +22,14 @@
 #include <grinch/printk.h>
 #include <grinch/mmio.h>
 
-static void aplic_enable_irq(unsigned long hart, u32 irq, u32 prio, u32 thres)
+static int aplic_enable_irq(unsigned long hart, u32 irq, u32 prio, u32 thres)
 {
+	return -ENOSYS;
 }
 
-static void aplic_disable_irq(unsigned long hart, u32 irq)
+static int aplic_disable_irq(unsigned long hart, u32 irq)
 {
+	return -ENOSYS;
 }
 
 static int aplic_handle_irq(void)

@@ -66,9 +66,17 @@ int serial_init(const struct uart_driver *d, paddr_t uart_base, u64 uart_size, u
 
 	if (irq) {
 		pr("UART: using IRQ %d\n", irq);
-		irq_register_handler(irq, (void*)uart_default.driver->rcv_handler,
-				     &uart_default);
-		irqchip_enable_irq(this_cpu_id(), irq, 5, 4);
+		err = irq_register_handler(irq, (void*)uart_default.driver->rcv_handler,
+					   &uart_default);
+		if (err) {
+			pr("Unable to register IRQ %d (%d)\n", irq, err);
+			return err;
+		}
+		err = irqchip_enable_irq(this_cpu_id(), irq, 5, 4);
+		if (err) {
+			pr("Unable to enable IRQ %d\n", irq);
+			return err;
+		}
 	} else {
 		ps("No IRQ found!\n");
 	}
