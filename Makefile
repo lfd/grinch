@@ -14,7 +14,6 @@ include $(ARCH_DIR)/inc.mk
 include $(LIB_DIR)/inc.mk
 include $(MM_DIR)/inc.mk
 include $(DRIVERS_DIR)/inc.mk
-include guest/inc.mk
 include loader.mk
 
 GDB=$(CROSS_COMPILE)gdb
@@ -114,7 +113,7 @@ qemudb: kernel.bin
 debug: kernel.bin
 	$(GDB) $^
 
-clean: clean_loader clean_guest
+clean: clean_loader
 	rm -rf $(OBJS) vmgrinch.o
 	rm -rf $(GENERATED)
 	rm -rf arch/$(ARCH)/*.{o,a} arch/$(ARCH)/asm_defines.S
