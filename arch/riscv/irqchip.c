@@ -20,9 +20,6 @@
 
 const struct irqchip_fn *irqchip_fn;
 
-static irq_handler_t irq_handlers[IRQ_MAX];
-static void *irq_handlers_userdata[IRQ_MAX];
-
 static const struct of_device_id plic_compats[] = {
 	{ .compatible = "riscv,plic0", .data = &irqchip_fn_plic, },
 	{ .compatible = "sifive,plic-1.0.0", .data = &irqchip_fn_plic, },
@@ -33,38 +30,6 @@ static const struct of_device_id aplic_compats[] = {
 	{ .compatible = "riscv,aplic", .data = &irqchip_fn_aplic, },
 	{ /* sentinel */ }
 };
-
-int irq_register_handler(u32 irq, irq_handler_t handler, void *userdata)
-{
-	if (!handler)
-		return -EINVAL;
-
-	if (irq >= IRQ_MAX)
-		return -EINVAL;
-
-	irq_handlers[irq] = handler;
-	irq_handlers_userdata[irq] = userdata;
-
-	return 0;
-}
-
-int irqchip_handle_irq(unsigned int irq)
-{
-	irq_handler_t handler = NULL;
-	int err;
-
-	if (irq < IRQ_MAX)
-		handler = irq_handlers[irq];
-
-	if (handler)
-		err = handler(irq_handlers_userdata[irq]);
-	else {
-		pr("No Handler for PLIC IRQ %u\n", irq);
-		err = -ENOENT;
-	}
-
-	return err;
-}
 
 static int fdt_irqchip_get_extended(const void *fdt, int off)
 {
