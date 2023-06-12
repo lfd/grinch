@@ -1,5 +1,5 @@
 /*
- * Grinch, a minimalist RISC-V operating system
+ * Grinch, a minimalist operating system
  *
  * Copyright (c) OTH Regensburg, 2022
  *

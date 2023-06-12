@@ -1,7 +1,7 @@
 /*
- * Grinch, a minimalist RISC-V operating system
+ * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2022-2023
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -19,9 +19,8 @@ extern unsigned char __load_addr[], __text_end[];
 extern unsigned char __rodata_start[], __rodata_end[];
 extern unsigned char __rw_data_start[], __rw_data_end[];
 extern unsigned char __internal_page_pool_start[], __internal_page_pool_end[];
-extern unsigned char __internal_page_pool_size[];
-extern unsigned char __num_os_pages[];
 extern unsigned char __internal_page_pool_pages[];
+extern unsigned char __num_os_pages[];
 
 #define _load_addr	((void *)&__load_addr)
 
