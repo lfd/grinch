@@ -13,8 +13,6 @@
 #ifndef _IRQCHIP_H
 #define _IRQCHIP_H
 
-#define IRQ_MAX		32
-
 typedef int (*irq_handler_t)(void *userdata);
 
 struct irqchip_fn {

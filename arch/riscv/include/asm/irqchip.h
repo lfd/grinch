@@ -10,6 +10,8 @@
  * the COPYING file in the top-level directory.
  */
 
+#define IRQ_MAX		32
+
 extern const struct irqchip_fn irqchip_fn_plic;
 extern const struct irqchip_fn irqchip_fn_aplic;
 
