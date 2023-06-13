@@ -64,7 +64,7 @@ int serial_init(const struct uart_driver *d, paddr_t uart_base, u64 uart_size, u
 	if (flush)
 		console_flush();
 
-	if (irq) {
+	if (irq != IRQ_INVALID) {
 		pr("UART: using IRQ %d\n", irq);
 		err = irq_register_handler(irq, (void*)uart_default.driver->rcv_handler,
 					   &uart_default);

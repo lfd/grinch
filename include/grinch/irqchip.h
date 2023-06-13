@@ -15,6 +15,8 @@
 
 #include <grinch/errno.h>
 
+#define	IRQ_INVALID	((u32)-1)
+
 typedef int (*irq_handler_t)(void *userdata);
 
 struct irqchip_fn {
