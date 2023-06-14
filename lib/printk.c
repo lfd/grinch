@@ -28,6 +28,7 @@
 
 #include <grinch/stdarg.h>
 #include <grinch/string.h>
+#include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/serial.h>
 
@@ -245,7 +246,7 @@ static void __vprintk(const char *fmt, va_list ap)
 	_puts(buf);
 }
 
-void printk(const char *fmt, ...)
+void __printf(1, 2) printk(const char *fmt, ...)
 {
 	va_list ap;
 
@@ -254,4 +255,18 @@ void printk(const char *fmt, ...)
 	__vprintk(fmt, ap);
 	spin_unlock(&print_lock);
 	va_end(ap);
+}
+
+void __noreturn __printf(1, 2) panic(const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	spin_lock(&print_lock);
+	_puts("KERNEL PANIC: ");
+	__vprintk(fmt, ap);
+	spin_unlock(&print_lock);
+	va_end(ap);
+
+	panic_stop();
 }

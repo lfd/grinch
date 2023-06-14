@@ -17,6 +17,7 @@
 
 void puts(const char *msg);
 void __printf(1, 2) printk(const char *fmt, ...);
+void __printf(1, 2) panic(const char *fmt, ...) __noreturn;
 
 void console_flush(void);
 
