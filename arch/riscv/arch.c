@@ -49,7 +49,6 @@ int arch_init(paddr_t __fdt)
 	ps("Disabling IRQs\n");
 	irq_disable();
 
-	/* Enable timers. The guest might want to have a timer. */
 	timer_enable();
 
 	/* Initialise external interrupts */
