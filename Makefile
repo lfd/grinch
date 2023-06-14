@@ -4,16 +4,13 @@ GRINCH_VER=3.13
 DEBUG_OUTPUT=1
 
 ARCH_DIR = arch/$(ARCH)
-LIB_DIR = lib
-MM_DIR = mm
-DRIVERS_DIR = drivers
 
 all: kernel.bin
 
 include $(ARCH_DIR)/inc.mk
-include $(LIB_DIR)/inc.mk
-include $(MM_DIR)/inc.mk
-include $(DRIVERS_DIR)/inc.mk
+include lib/inc.mk
+include mm/inc.mk
+include drivers/inc.mk
 include loader.mk
 
 GDB=$(CROSS_COMPILE)gdb
@@ -85,7 +82,7 @@ $(ASM_DEFINES): arch/$(ARCH)/asm_defines.S
 arch/$(ARCH)/asm_defines.S: arch/$(ARCH)/asm_defines.c
 	$(CC) $(CFLAGS) -S -o $@ $^
 
-vmgrinch.o: $(ARCH_DIR)/built-in.a $(LIB_DIR)/built-in.a $(MM_DIR)/built-in.a $(DRIVERS_DIR)/built-in.a $(OBJS)
+vmgrinch.o: $(ARCH_DIR)/built-in.a lib/built-in.a mm/built-in.a drivers/built-in.a $(OBJS)
 	$(LD) $(LDFLAGS) --whole-archive -relocatable -o $@ $^
 
 vmgrinch.elf: grinch.ld vmgrinch.o
