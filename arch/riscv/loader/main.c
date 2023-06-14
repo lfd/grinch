@@ -28,7 +28,7 @@ extern unsigned char __stack_end[];
 extern unsigned char __vmgrinch_bin_start[];
 extern unsigned char __vmgrinch_bin_size[];
 
-void __attribute__((noreturn))
+void __noreturn
 loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr, void *vbase);
 
 static void *loader_page_zalloc(void **next)
@@ -59,10 +59,10 @@ static void map_2M(void **next, u64 *l0, void *vaddr, paddr_t paddr)
 	*l1_entry = paddr2pte(paddr) | PAGE_FLAGS_DEFAULT;
 }
 
-void __attribute__((noreturn))
+void __noreturn
 loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr, void *vbase)
 {
-	void __attribute__((noreturn)) (*grinch_entry)
+	void __noreturn (*grinch_entry)
 		(unsigned long hart_id, paddr_t fdt, u64 offset);
 	void *next, *l0;
 	unsigned int d;

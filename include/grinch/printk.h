@@ -13,8 +13,10 @@
 #ifndef _PRINTK_H
 #define _PRINTK_H
 
+#include <grinch/compiler_attributes.h>
+
 void puts(const char *msg);
-void __attribute__((format(printf, 1, 2))) printk(const char *fmt, ...);
+void __printf(1, 2) printk(const char *fmt, ...);
 
 void console_flush(void);
 

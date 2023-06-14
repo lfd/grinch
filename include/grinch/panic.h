@@ -13,6 +13,8 @@
 #ifndef _PANIC_H
 #define _PANIC_H
 
-void __attribute__((noreturn)) panic_stop(void);
+#include <grinch/compiler_attributes.h>
+
+void __noreturn panic_stop(void);
 
 #endif /* _PANIC_H */

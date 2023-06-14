@@ -14,7 +14,7 @@
 #include <grinch/printk.h>
 #include <grinch/percpu.h>
 
-void __attribute__((noreturn)) panic_stop(void)
+void __noreturn panic_stop(void)
 {
 	pr("Panic: CPU %lu HALTED\n", this_cpu_id());
 	cpu_halt();
