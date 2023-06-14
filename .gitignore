@@ -2,10 +2,7 @@
 *.elf
 *.a
 *.o
-
-grinch.ld
-loader.ld
-guest/*.ld
+*.ld
 
 arch/riscv/asm_defines.S
 arch/riscv/include/asm/asm_defines.h
