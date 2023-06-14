@@ -45,6 +45,14 @@ ifeq ($(DEBUG_OUTPUT), 1)
 CFLAGS += -DDEBUG
 endif
 
+ifdef V
+QUIET := @true
+VERBOSE :=
+else
+QUIET := @echo
+VERBOSE := @
+endif
+
 LDFLAGS = $(ARCH_LDFLAGS)
 AFLAGS = -D__ASSEMBLY__
 
@@ -54,22 +62,26 @@ GENERATED = $(ASM_DEFINES)
 OBJS = main.o
 
 %.o: %.c $(GENERATED)
-	$(CC) -c $(CFLAGS) -o $@ $<
+	$(QUIET) "[CC]    $@"
+	$(VERBOSE) $(CC) -c $(CFLAGS) -o $@ $<
 
 %.o: %.S $(GENERATED)
-	$(CC) -c $(AFLAGS) $(CFLAGS) -o $@ $<
+	$(QUIET) "[CC/AS] $@"
+	$(VERBOSE) $(CC) -c $(AFLAGS) $(CFLAGS) -o $@ $<
 
 %.bin: %.elf
-	$(OBJCOPY) -O binary $^ $@
+	$(QUIET) "[OBJC]  $@"
+	$(VERBOSE) $(OBJCOPY) -O binary $^ $@
 
 %.ld: %.ld.S
-	$(CC) $(CFLAGS) $(AFLAGS) -E -o $@ $^
-	# Remove commment lines. Required for older linkers.
-	sed -e '/^#/d' -i $@
+	$(QUIET) "[CC/AS] $@"
+	$(VERBOSE) $(CC) $(CFLAGS) $(AFLAGS) -E -o $@ $^
+	$(VERBOSE) sed -e '/^#/d' -i $@
 
 %/built-in.a:
-	rm -f $@
-	$(AR) cDPrST $@ $^
+	$(QUIET) "[AR]    $@"
+	$(VERBOSE) rm -f $@
+	$(VERBOSE) $(AR) cDPrST $@ $^
 
 guest.dtb: guest.dts
 	dtc -I dts -O dtb $^ -o $@
@@ -83,11 +95,15 @@ arch/$(ARCH)/asm_defines.S: arch/$(ARCH)/asm_defines.c
 	$(CC) $(CFLAGS) -S -o $@ $^
 
 vmgrinch.o: $(ARCH_DIR)/built-in.a lib/built-in.a mm/built-in.a drivers/built-in.a $(OBJS)
-	$(LD) $(LDFLAGS) --whole-archive -relocatable -o $@ $^
+	$(QUIET) "[LD]    $@"
+	$(VERBOSE) $(LD) $(LDFLAGS) --whole-archive -relocatable -o $@ $^
 
 vmgrinch.elf: grinch.ld vmgrinch.o
-	$(LD) $(LDFLAGS) --gc-sections -T $^ -o $@
-	$(SZ) --format=SysV -x $@
+	$(QUIET) "[LD]    $@"
+	$(VERBOSE) $(LD) $(LDFLAGS) --gc-sections -T $^ -o $@
+ifdef V
+	$(VERBOSE) $(SZ) --format=SysV -x $@
+endif
 
 objdk: kernel.elf
 	$(OBJDUMP) -d $^ | less
