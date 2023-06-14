@@ -40,6 +40,7 @@ CFLAGS_COMMON += -DDEBUG
 endif
 
 include scripts/kernel.mk
+include user/inc.mk
 
 %.bin: %.elf
 	$(QUIET) "[OBJC]  $@"
@@ -59,7 +60,7 @@ qemudb: kernel.bin
 debug: kernel.bin
 	$(GDB) $^
 
-clean: clean_kernel
+clean: clean_kernel clean_user
 	rm -rf *.dtb
 	rm -rf *.elf
 	rm -rf *.bin

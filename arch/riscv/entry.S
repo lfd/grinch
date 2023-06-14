@@ -125,3 +125,10 @@ secondary_virt_entry:
 .globl ___load_addr
 ___load_addr:
 	.quad	__load_addr
+
+.section ".text", "ax"
+.globl __user_start
+__user_start:
+.incbin "user/user.elf"
+.globl __user_end
+__user_end:
