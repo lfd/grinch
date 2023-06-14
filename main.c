@@ -12,6 +12,7 @@
 
 #define dbg_fmt(x)	"main: " x
 
+#include <grinch/alloc.h>
 #include <grinch/arch.h>
 #include <grinch/boot.h>
 #include <grinch/errno.h>
@@ -39,23 +40,28 @@ static const char logo[] =
 #undef dbg_fmt
 #define dbg_fmt(x)	"memtest: " x
 
-#if 0
-static void *pages[1024];
-static void memtest_area(paf_t paf)
+#define PTRS	1024
+static void memtest_kmem(void)
 {
 	unsigned int ctr, tmp;
 	void *page;
 	int err;
 	u64 *i;
 
+	void **pages = kzalloc(PTRS * sizeof(void *));
+	if (!pages) {
+		pr("No memory\n");
+		return;
+	}
+
 	pr("Running Memtest...\n");
-	for (ctr = 0; ctr < ARRAY_SIZE(pages); ctr++) {
-		page = page_alloc(1, PAGE_SIZE, paf);
-		if (IS_ERR(page)) {
+	for (ctr = 0; ctr < PTRS; ctr++) {
+		page = kmm_page_alloc(1);
+		if (!page) {
 			pr("Err: %ld\n", PTR_ERR(page));
 			break;
 		}
-		pr("Allocated %p -> 0x%llx\n", page, virt_to_phys(page));
+		pr("Allocated %p -> 0x%llx\n", page, kmm_v2p(page));
 		for (i = page; (void*)i < page + PAGE_SIZE; i++) {
 			if (*i) {
 				pr("  -> Page not zero: %p = 0x%llx\n", i, *i);
@@ -69,7 +75,7 @@ static void memtest_area(paf_t paf)
 
 	for (tmp = 0; tmp < ctr; tmp++) {
 		pr("Freeing %p\n", pages[tmp]);
-		err = page_free(pages[tmp], 1, paf);
+		err = kmm_page_free(pages[tmp], 1);
 		if (err) {
 			pr("Err: %d\n", err);
 			break;
@@ -79,14 +85,41 @@ static void memtest_area(paf_t paf)
 	pr("Success.\n");
 }
 
+static void memtest_kmalloc(void)
+{
+	size_t sz = 5;
+	unsigned int i;
+	void **ptrs;
+
+	ptrs = kzalloc(PTRS * sizeof(*ptrs));
+	if (!ptrs) {
+		pr("No memory :-(\n");
+		return;
+	}
+	for (i = 0; i < PTRS; i++) {
+		pr("i %u, sz: %lu\n", i, sz);
+		ptrs[i] = kmalloc(sz);
+		if (!ptrs[i]) {
+			pr("Malloc error!\n");
+			break;
+		}
+		sz += 12;
+	}
+
+	for (i = 0; i < PTRS; i++) {
+		pr("i %u, ptr: %p\n", i, ptrs[i]);
+		if (!ptrs[i])
+			break;
+		kfree(ptrs[i]);
+	}
+	kfree(ptrs);
+}
+
 static void memtest(void)
 {
-	memtest_area(PAF_INT);
-	memtest_area(PAF_EXT);
+	memtest_kmem();
+	memtest_kmalloc();
 }
-#else
-static void memtest(void){}
-#endif
 
 #undef dbg_fmt
 #define dbg_fmt(x)	"main: " x
