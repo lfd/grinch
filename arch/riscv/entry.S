@@ -26,6 +26,14 @@
 .globl start
 start:
 	/*
+	 * We arrive here with:
+	 * a0: hartid
+	 * a1: phys fdt
+	 * a2: VMGRINCH_BASE
+	 * a3: offset
+	 */
+
+	/*
 	 * Setup stack: The stack for a HART is located at
 	 * __internal_page_pool_end - hartid * STRUCT_PER_CPU_SIZE + STACK_SIZE
 	 */
