@@ -19,6 +19,8 @@ typedef struct {
 	int unsigned spin; /* has to have offset 0 */
 } spinlock_t;
 
+#define DEFINE_SPINLOCK(X)	spinlock_t X = { .spin = 0, }
+
 static inline void spin_init(spinlock_t *lock)
 {
 	lock->spin = 0;

@@ -32,7 +32,7 @@
 #include <grinch/printk.h>
 #include <grinch/serial.h>
 
-static spinlock_t print_lock;
+static DEFINE_SPINLOCK(print_lock);
 
 struct {
 	unsigned int tail;
