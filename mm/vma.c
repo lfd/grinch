@@ -67,7 +67,7 @@ int vma_init(paddr_t addrp, size_t sizep)
 		return -ERANGE;
 	}
 
-	pmem_bitmap = kmm_page_zalloc(PAGES(page_up(BITMAP_SZ(pmem_pages))));
+	pmem_bitmap = kmm_page_zalloc(PAGES(page_up(BITMAP_SIZE(pmem_pages))));
 	if (!pmem_bitmap)
 		return -ENOMEM;
 

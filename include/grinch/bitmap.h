@@ -15,7 +15,8 @@
 
 #include <grinch/types.h>
 
-#define BITMAP_SZ(BITS)	(((BITS) + BITS_PER_LONG - 1) / BITS_PER_LONG)
+#define BITMAP_ELEMS(BITS)	(((BITS) + BITS_PER_LONG - 1) / BITS_PER_LONG)
+#define BITMAP_SIZE(BITS)	(BITMAP_ELEMS(BITS) * sizeof(unsigned long))
 
 static inline __attribute__((always_inline)) int
 test_bit(unsigned int nr, const volatile unsigned long *addr)

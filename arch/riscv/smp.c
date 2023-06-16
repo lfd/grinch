@@ -29,7 +29,7 @@
 	     (cpu) <= (MAX_HARTS - 1);	                        \
 	    )
 
-static unsigned long available_harts[BITMAP_SZ(MAX_HARTS)];
+static unsigned long available_harts[BITMAP_ELEMS(MAX_HARTS)];
 
 /* Assembly entry point for secondary CPUs */
 void secondary_start(void);

@@ -23,7 +23,7 @@
 
 #define IOREMAP_PAGES	PAGES(IOREMAP_SIZE)
 
-static unsigned long ioremap_bitmap[BITMAP_SZ(IOREMAP_PAGES)];
+static unsigned long ioremap_bitmap[BITMAP_ELEMS(IOREMAP_PAGES)];
 
 void *ioremap(paddr_t paddr, size_t size)
 {

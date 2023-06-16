@@ -32,7 +32,7 @@
 #error GRINCH_SIZE must fit into internal bitmap without remainder
 #endif
 
-static unsigned long kmm_bitmap[BITMAP_SZ(KMM_PAGES)];
+static unsigned long kmm_bitmap[BITMAP_ELEMS(KMM_PAGES)];
 static DEFINE_SPINLOCK(kmm_lock);
 static paddr_t kmm_pbase;
 static ptrdiff_t kmm_v2p_offset;
