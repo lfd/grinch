@@ -15,7 +15,7 @@
 #include <grinch/errno.h>
 #include <grinch/fdt.h>
 #include <grinch/ioremap.h>
-#include <grinch/mm.h>
+#include <grinch/kmm.h>
 #include <grinch/paging.h>
 #include <grinch/printk.h>
 
@@ -88,7 +88,7 @@ int fdt_init(paddr_t pfdt)
 		goto unmap;
 	}
 
-	_fdt = page_alloc(PAGES(page_up(err)), PAGE_SIZE, PAF_INT);
+	_fdt = kmm_page_alloc(PAGES(page_up(err)));
 	if (IS_ERR(_fdt))
 		return PTR_ERR(_fdt);
 

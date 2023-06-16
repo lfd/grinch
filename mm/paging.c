@@ -16,7 +16,7 @@
 
 #include <grinch/errno.h>
 #include <grinch/paging.h>
-#include <grinch/mm.h>
+#include <grinch/kmm.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/string.h>
@@ -57,10 +57,10 @@ static int split_hugepage(const struct paging *paging,
 	flags = paging->get_flags(pte);
 
 	sub_structs.root_paging = paging + 1;
-	sub_structs.root_table = page_zalloc(1, PAGE_SIZE, PAF_INT);
+	sub_structs.root_table = kmm_page_zalloc(1);
 	if (!sub_structs.root_table)
 		return -ENOMEM;
-	paging->set_next_pt(pte, virt_to_phys(sub_structs.root_table));
+	paging->set_next_pt(pte, kmm_v2p(sub_structs.root_table));
 
 	return paging_create(&sub_structs, phys, paging->page_size, virt,
 			     flags, paging_flags);
@@ -121,7 +121,7 @@ static int paging_destroy(const struct paging_structures *pg_structs,
 				if (err)
 					return err;
 			}
-			pt[++n] = phys_to_virt(paging->get_next_pt(pte));
+			pt[++n] = kmm_p2v(paging->get_next_pt(pte));
 			paging++;
 		}
 		/* advance by page size of current level paging */
@@ -132,7 +132,7 @@ static int paging_destroy(const struct paging_structures *pg_structs,
 			paging->clear_entry(pte);
 			if (n == 0 || !paging->page_table_empty(pt[n]))
 				break;
-			err = page_free(pt[n], 1, PAF_INT);
+			err = kmm_page_free(pt[n], 1);
 			if (err)
 				return err;
 
@@ -193,13 +193,12 @@ static int paging_create(const struct paging_structures *pg_structs,
 						     paging_flags);
 				if (err)
 					return err;
-				pt = phys_to_virt(paging->get_next_pt(pte));
+				pt = kmm_p2v(paging->get_next_pt(pte));
 			} else {
-				pt = page_zalloc(1, PAGE_SIZE, PAF_INT);
+				pt = kmm_page_zalloc(1);
 				if (!pt)
 					return -ENOMEM;
-				paging->set_next_pt(pte,
-						    virt_to_phys(pt));
+				paging->set_next_pt(pte, kmm_v2p(pt));
 			}
 			paging++;
 		}
@@ -220,8 +219,13 @@ int unmap_range(page_table_t pt, const void *vaddr, size_t size)
 		.root_table = pt,
 	};
 
+#if 0
 	pr("Unmapping VA: 0x%llx PA: 0x%llx (SZ: 0x%lx)\n",
 	   (u64)vaddr, virt_to_phys(vaddr), size);
+#else
+	pr("Unmapping VA: 0x%llx (SZ: 0x%lx)\n",
+	   (u64)vaddr, size);
+#endif
 
 	return paging_destroy(&pg, (unsigned long)vaddr, size, 0);
 }
@@ -251,7 +255,7 @@ int map_range(page_table_t pt, const void *vaddr, paddr_t paddr, size_t size,
 static int map_osmem(page_table_t root, void *vaddr, size_t size,
 		     mem_flags_t flags)
 {
-	return map_range(root, vaddr, virt_to_phys(vaddr), size, flags);
+	return map_range(root, vaddr, kmm_v2p(vaddr), size, flags);
 }
 
 int paging_cpu_init(unsigned long cpuid)
@@ -263,7 +267,7 @@ int paging_cpu_init(unsigned long cpuid)
 
 	/* Map the per_cpu structures */
 	err = map_range(root, (void*)PERCPU_BASE,
-			virt_to_phys(per_cpu(cpuid)),
+			kmm_v2p(per_cpu(cpuid)),
 			sizeof(struct per_cpu),
 			GRINCH_MEM_RW);
 

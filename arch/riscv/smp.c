@@ -16,7 +16,7 @@
 #include <grinch/errno.h>
 #include <grinch/irq.h>
 #include <grinch/fdt.h>
-#include <grinch/mm.h>
+#include <grinch/kmm.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/sbi.h>
@@ -54,7 +54,7 @@ void secondary_cmain(void)
 
 	/* Unmap bootstrap page tables */
 	err = unmap_range(this_root_table_page(),
-			  (void *)virt_to_phys(__load_addr), GRINCH_SIZE);
+			  (void *)kmm_v2p(__load_addr), GRINCH_SIZE);
 	if (err)
 		goto out;
 
@@ -110,14 +110,14 @@ static int boot_cpu(unsigned long hart_id)
 		return err;
 
 	/* The page table must contain a boot trampoline */
-	paddr = virt_to_phys(__load_addr);
+	paddr = kmm_v2p(__load_addr);
 	map_range(pcpu->root_table_page, (void*)paddr, paddr, GRINCH_SIZE,
 		  GRINCH_MEM_DEFAULT);
 
-	paddr= virt_to_phys(secondary_start);
+	paddr = kmm_v2p(secondary_start);
 
 	/* Make it easy for secondary_entry: provide the content of satp */
-	opaque = (virt_to_phys(per_cpu(hart_id)->root_table_page) >> PAGE_SHIFT)
+	opaque = (kmm_v2p(per_cpu(hart_id)->root_table_page) >> PAGE_SHIFT)
 		| satp_mode;
 
 	ret = sbi_hart_start(hart_id, paddr, opaque);
@@ -183,7 +183,8 @@ int platform_init(void)
 
 		pr("%s: HART %lu available\n", name, hart_id);
 
-		err = page_mark_used(per_cpu(hart_id), PAGES(sizeof(struct per_cpu)));
+		err = kmm_mark_used(per_cpu(hart_id),
+				    PAGES(sizeof(struct per_cpu)));
 		if (err)
 			return err;
 	}

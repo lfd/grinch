@@ -16,7 +16,7 @@
 #include <grinch/boot.h>
 #include <grinch/errno.h>
 #include <grinch/percpu.h>
-#include <grinch/mm.h>
+#include <grinch/kmm.h>
 #include <grinch/printk.h>
 #include <grinch/string.h>
 
@@ -38,6 +38,8 @@ static const char logo[] =
 
 #undef dbg_fmt
 #define dbg_fmt(x)	"memtest: " x
+
+#if 0
 static void *pages[1024];
 static void memtest_area(paf_t paf)
 {
@@ -82,6 +84,9 @@ static void memtest(void)
 	memtest_area(PAF_INT);
 	memtest_area(PAF_EXT);
 }
+#else
+static void memtest(void){}
+#endif
 
 #undef dbg_fmt
 #define dbg_fmt(x)	"main: " x
@@ -91,7 +96,7 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 	int err;
 
 	puts(logo);
-	err = mm_init();
+	err = kmm_init();
 	if (err)
 		goto out;
 

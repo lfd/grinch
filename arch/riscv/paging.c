@@ -12,9 +12,9 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <grinch/kmm.h>
 #include <grinch/paging.h>
 #include <grinch/percpu.h>
-#include <grinch/mm.h>
 
 #define	PAGE_BITS	12
 #define	WORD_BITS	3 /* 1 << WORD_BITS == sizeof (void *) */
@@ -171,7 +171,7 @@ void arch_paging_init(void)
 void arch_paging_enable(unsigned long this_cpu, page_table_t pt)
 {
 	paddr_t tmp;
-	enable_mmu_satp(satp_mode, virt_to_phys(pt));
+	enable_mmu_satp(satp_mode, kmm_v2p(pt));
 
 	/* Get the stack pointer under control */
 	tmp = PERCPU_BASE - (paddr_t)per_cpu(this_cpu);

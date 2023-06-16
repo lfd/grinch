@@ -23,7 +23,8 @@
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/smp.h>
-#include <grinch/mm.h>
+#include <grinch/kmm.h>
+#include <grinch/vma.h>
 
 int arch_init(paddr_t __fdt)
 {
@@ -33,7 +34,7 @@ int arch_init(paddr_t __fdt)
 	if (err)
 		goto out;
 
-	err = mm_init_late_fdt();
+	err = vma_init_fdt();
 	if (err)
 		goto out;
 
