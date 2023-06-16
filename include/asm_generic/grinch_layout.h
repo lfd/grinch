@@ -14,6 +14,10 @@
 
 #define LOADER_BASE	_UL(0x40000000)
 #define VMGRINCH_BASE	_UL(0xffffffc000000000)
+
+/* Must be a multiple of 256 KiB */
+#define GRINCH_SIZE	(256 * KIB)
+
 /*
  * Take the uppermost address that the ioremap area will still be located at
  * the same VPN. This gives us 256MiB ioremap area.
@@ -21,7 +25,5 @@
 #define IOREMAP_BITS	29
 #define IOREMAP_BASE	((void*)(VMGRINCH_BASE | (1 << IOREMAP_BITS)))
 #define IOREMAP_SIZE	(1 << (IOREMAP_BITS - 1))
-
-#define GRINCH_SIZE	(1 * MEGA_PAGE_SIZE)
 
 #define PERCPU_BASE	(VMGRINCH_BASE + 64UL * GIGA_PAGE_SIZE)
