@@ -28,4 +28,8 @@
 #define _UL(x)		(_AC(x, UL))
 #define _ULL(x)		(_AC(x, ULL))
 
+#define KIB		1024
+#define MIB		(1024 * KIB)
+#define GIB		(1024 * MIB)
+
 #endif /* _CONST_H */
