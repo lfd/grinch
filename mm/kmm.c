@@ -52,7 +52,7 @@ void kmm_set_v2p_offset(ptrdiff_t off)
 static inline bool is_kmm_vaddr(const void *virt)
 {
 	if ((u64)virt >= VMGRINCH_BASE &&
-	    (u64)virt < VMGRINCH_BASE + GRINCH_SIZE)
+	    (u64)virt < VMGRINCH_END)
 		return true;
 
 	return false;

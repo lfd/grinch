@@ -18,7 +18,7 @@
 extern unsigned char __load_addr[], __text_end[];
 extern unsigned char __rodata_start[], __rodata_end[];
 extern unsigned char __rw_data_start[], __rw_data_end[];
-extern unsigned char __internal_page_pool_start[], __internal_page_pool_end[];
+extern unsigned char __internal_page_pool_start[];
 extern unsigned char __internal_page_pool_pages[];
 extern unsigned char __num_os_pages[];
 

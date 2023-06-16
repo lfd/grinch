@@ -18,6 +18,8 @@
 /* Must be a multiple of 256 KiB */
 #define GRINCH_SIZE	(256 * KIB)
 
+#define VMGRINCH_END	(VMGRINCH_BASE + GRINCH_SIZE)
+
 /*
  * Take the uppermost address that the ioremap area will still be located at
  * the same VPN. This gives us 256MiB ioremap area.

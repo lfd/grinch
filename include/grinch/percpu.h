@@ -50,7 +50,7 @@ static inline unsigned long this_cpu_id(void)
 
 static inline struct per_cpu *per_cpu(unsigned long cpuid)
 {
-	return (struct per_cpu*)__internal_page_pool_end - (cpuid + 1);
+	return (struct per_cpu*)VMGRINCH_END - (cpuid + 1);
 }
 
 static inline page_table_t this_root_table_page(void)
