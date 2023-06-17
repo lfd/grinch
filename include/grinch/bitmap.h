@@ -18,6 +18,11 @@
 #define BITMAP_ELEMS(BITS)	(((BITS) + BITS_PER_LONG - 1) / BITS_PER_LONG)
 #define BITMAP_SIZE(BITS)	(BITMAP_ELEMS(BITS) * sizeof(unsigned long))
 
+struct bitmap {
+	unsigned long *bitmap;
+	unsigned long bit_max;
+};
+
 static inline __attribute__((always_inline)) int
 test_bit(unsigned int nr, const volatile unsigned long *addr)
 {

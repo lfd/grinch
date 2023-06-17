@@ -19,6 +19,7 @@
 #include <grinch/errno.h>
 #include <grinch/fdt.h>
 #include <grinch/paging.h>
+#include <grinch/mm.h>
 #include <grinch/kmm.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
@@ -32,7 +33,10 @@
 #error GRINCH_SIZE must fit into internal bitmap without remainder
 #endif
 
-static unsigned long kmm_bitmap[BITMAP_ELEMS(KMM_PAGES)];
+static struct bitmap kmm_bitmap = {
+	.bitmap = (unsigned long[BITMAP_ELEMS(KMM_PAGES)]){},
+	.bit_max = KMM_PAGES,
+};
 static DEFINE_SPINLOCK(kmm_lock);
 static paddr_t kmm_pbase;
 static ptrdiff_t kmm_v2p_offset;
@@ -78,41 +82,6 @@ void *kmm_p2v(paddr_t addr)
 	return ERR_PTR(-ENOENT);
 }
 
-/* If from (bit) is not zero, then the area MUST start from start. */
-static int kmm_find_and_allocate(size_t pages, unsigned int from,
-				 unsigned int alignment, paddr_t *paddr)
-{
-	unsigned int start;
-
-	switch (alignment) {
-		case PAGE_SIZE:
-			alignment = 0;
-			break;
-		case MEGA_PAGE_SIZE:
-			alignment = PAGES(MEGA_PAGE_SIZE) - 1;
-			break;
-		case GIGA_PAGE_SIZE:
-			alignment = PAGES(GIGA_PAGE_SIZE) - 1;
-			break;
-		default:
-			return trace_error(-EINVAL);
-	};
-
-	start = bitmap_find_next_zero_area(kmm_bitmap, KMM_PAGES, from, pages,
-					   alignment);
-	if (from && start != from)
-		return trace_error(-ENOMEM);
-
-	if (start > KMM_PAGES)
-		return trace_error(-ENOMEM);
-
-	/* mark as used, return pointer */
-	bitmap_set(kmm_bitmap, start, pages);
-
-	*paddr = kmm_pbase + start * PAGE_SIZE;
-	return 0;
-}
-
 void *kmm_page_alloc_aligned(unsigned int pages, unsigned int alignment,
 			     void *hint, unsigned int flags)
 {
@@ -131,10 +100,12 @@ void *kmm_page_alloc_aligned(unsigned int pages, unsigned int alignment,
 	}
 
 	spin_lock(&kmm_lock);
-	err = kmm_find_and_allocate(pages, page_offset, alignment, &paddr);
-	if (err)
+	err = mm_bitmap_find_and_allocate(&kmm_bitmap, pages, page_offset, alignment);
+	if (err < 0)
 		return ERR_PTR(err);
 	spin_unlock(&kmm_lock);
+
+	paddr = kmm_pbase + err * PAGE_SIZE;
 
 	ret = kmm_p2v(paddr);
 
@@ -159,7 +130,7 @@ int kmm_page_free(const void *addr, unsigned int pages)
 		return trace_error(-ERANGE);
 
 	spin_lock(&kmm_lock);
-	bitmap_clear(kmm_bitmap, start, pages);
+	bitmap_clear(kmm_bitmap.bitmap, start, pages);
 	spin_unlock(&kmm_lock);
 
 	return 0;

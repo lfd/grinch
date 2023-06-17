@@ -23,13 +23,12 @@
 #include <grinch/types.h>
 #include <grinch/vma.h>
 
-static unsigned long *pmem_bitmap;
-static paddr_t pmem_base;
-static size_t pmem_pages;
+static struct bitmap pmem_bitmap;
+static paddr_t pmem_base, pmem_end;
 
 static inline bool is_vma_pmem(paddr_t addr)
 {
-	if (addr >= pmem_base && addr < pmem_base + pmem_pages * PAGE_SIZE)
+	if (addr >= pmem_base && addr < pmem_end)
 		return true;
 	return false;
 }
@@ -44,12 +43,12 @@ static unsigned int vma_pmem_mark_used(paddr_t addr, size_t pages)
 	if (!is_vma_pmem(addr))
 		return -EINVAL;
 
-	if (addr + pages * PAGE_SIZE >= pmem_base + pmem_pages * PAGE_SIZE)
+	if (addr + pages * PAGE_SIZE >= pmem_end)
 		return -ERANGE;
 
 	start = (addr - pmem_base) / PAGE_SIZE;
 
-	bitmap_set(pmem_bitmap, start, pages);
+	bitmap_set(pmem_bitmap.bitmap, start, pages);
 
 	return 0;
 }
@@ -60,16 +59,18 @@ int vma_init(paddr_t addrp, size_t sizep)
 
 	pr("Found main memory: %llx, size: %lx\n", addrp, sizep);
 	pmem_base = addrp;
-	pmem_pages = PAGES(sizep);
+	pmem_bitmap.bit_max = PAGES(sizep);
 
-	if (pmem_pages % 64 != 0) {
+	if (pmem_bitmap.bit_max % 64 != 0) {
 		pr("Implement unaligned bitmap\n");
 		return -ERANGE;
 	}
 
-	pmem_bitmap = kmm_page_zalloc(PAGES(page_up(BITMAP_SIZE(pmem_pages))));
-	if (!pmem_bitmap)
+	pmem_bitmap.bitmap = kmm_page_zalloc(
+		PAGES(page_up(BITMAP_SIZE(pmem_bitmap.bit_max))));
+	if (!pmem_bitmap.bitmap)
 		return -ENOMEM;
+	pmem_end = pmem_base + pmem_bitmap.bit_max * PAGE_SIZE;
 
 	/* check if the physical location of the OS is inside that region */
 	err = vma_pmem_mark_used(kmm_v2p((void*)VMGRINCH_BASE),
