@@ -13,6 +13,7 @@
 #define dbg_fmt(x)	"pmm: " x
 
 #include <asm_generic/grinch_layout.h>
+#include <asm/spinlock.h>
 
 #include <grinch/bitmap.h>
 #include <grinch/errno.h>
@@ -21,10 +22,12 @@
 #include <grinch/paging.h>
 #include <grinch/printk.h>
 #include <grinch/types.h>
+#include <grinch/mm.h>
 #include <grinch/pmm.h>
 
 static struct bitmap pmm_bitmap;
 static paddr_t pmm_base, pmm_end;
+static DEFINE_SPINLOCK(pmm_lock);
 
 static inline bool is_pmm(paddr_t addr)
 {
@@ -33,10 +36,8 @@ static inline bool is_pmm(paddr_t addr)
 	return false;
 }
 
-static unsigned int pmm_mark_used(paddr_t addr, size_t pages)
+static int pmm_check(paddr_t addr, size_t pages)
 {
-	unsigned int start;
-
 	if (addr & PAGE_OFFS_MASK)
 		return -ERANGE;
 
@@ -46,10 +47,61 @@ static unsigned int pmm_mark_used(paddr_t addr, size_t pages)
 	if (addr + pages * PAGE_SIZE >= pmm_end)
 		return -ERANGE;
 
-	start = (addr - pmm_base) / PAGE_SIZE;
+	return 0;
+}
 
+static int pmm_mark_used(paddr_t addr, size_t pages)
+{
+	unsigned int start;
+	int err;
+
+	err = pmm_check(addr, pages);
+	if (err)
+		return err;
+
+	start = (addr - pmm_base) / PAGE_SIZE;
 	bitmap_set(pmm_bitmap.bitmap, start, pages);
 
+	return 0;
+}
+
+int pmm_page_free(paddr_t addr, size_t pages)
+{
+	unsigned int start;
+	int err;
+
+	err = pmm_check(addr, pages);
+	if (err)
+		return err;
+
+	start = (addr - pmm_base) / PAGE_SIZE;
+	bitmap_clear(pmm_bitmap.bitmap, start, pages);
+
+	return 0;
+}
+
+int pmm_page_alloc_aligned(paddr_t *res, size_t pages, unsigned int alignment,
+			   paddr_t hint)
+{
+	unsigned int page_offset;
+	int err;
+
+	if (hint)  {
+		if (!is_pmm(hint) || hint & PAGE_OFFS_MASK)
+			return -EINVAL;
+
+		page_offset = (hint - pmm_base) / PAGE_SIZE;
+	} else {
+		page_offset = 0;
+	}
+
+	spin_lock(&pmm_lock);
+	err = mm_bitmap_find_and_allocate(&pmm_bitmap, pages, page_offset, alignment);
+	if (err < 0)
+		return err;
+	spin_unlock(&pmm_lock);
+
+	*res = pmm_base + err * PAGE_SIZE;
 	return 0;
 }
 
