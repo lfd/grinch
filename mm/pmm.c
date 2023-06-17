@@ -10,7 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
-#define dbg_fmt(x)	"kmm: " x
+#define dbg_fmt(x)	"pmm: " x
 
 #include <asm_generic/grinch_layout.h>
 
@@ -21,67 +21,66 @@
 #include <grinch/paging.h>
 #include <grinch/printk.h>
 #include <grinch/types.h>
-#include <grinch/vma.h>
+#include <grinch/pmm.h>
 
-static struct bitmap pmem_bitmap;
-static paddr_t pmem_base, pmem_end;
+static struct bitmap pmm_bitmap;
+static paddr_t pmm_base, pmm_end;
 
-static inline bool is_vma_pmem(paddr_t addr)
+static inline bool is_pmm(paddr_t addr)
 {
-	if (addr >= pmem_base && addr < pmem_end)
+	if (addr >= pmm_base && addr < pmm_end)
 		return true;
 	return false;
 }
 
-static unsigned int vma_pmem_mark_used(paddr_t addr, size_t pages)
+static unsigned int pmm_mark_used(paddr_t addr, size_t pages)
 {
 	unsigned int start;
 
 	if (addr & PAGE_OFFS_MASK)
 		return -ERANGE;
 
-	if (!is_vma_pmem(addr))
+	if (!is_pmm(addr))
 		return -EINVAL;
 
-	if (addr + pages * PAGE_SIZE >= pmem_end)
+	if (addr + pages * PAGE_SIZE >= pmm_end)
 		return -ERANGE;
 
-	start = (addr - pmem_base) / PAGE_SIZE;
+	start = (addr - pmm_base) / PAGE_SIZE;
 
-	bitmap_set(pmem_bitmap.bitmap, start, pages);
+	bitmap_set(pmm_bitmap.bitmap, start, pages);
 
 	return 0;
 }
 
-int vma_init(paddr_t addrp, size_t sizep)
+int pmm_init(paddr_t addrp, size_t sizep)
 {
 	int err;
 
 	pr("Found main memory: %llx, size: %lx\n", addrp, sizep);
-	pmem_base = addrp;
-	pmem_bitmap.bit_max = PAGES(sizep);
+	pmm_base = addrp;
+	pmm_bitmap.bit_max = PAGES(sizep);
 
-	if (pmem_bitmap.bit_max % 64 != 0) {
+	if (pmm_bitmap.bit_max % 64 != 0) {
 		pr("Implement unaligned bitmap\n");
 		return -ERANGE;
 	}
 
-	pmem_bitmap.bitmap = kmm_page_zalloc(
-		PAGES(page_up(BITMAP_SIZE(pmem_bitmap.bit_max))));
-	if (!pmem_bitmap.bitmap)
+	pmm_bitmap.bitmap = kmm_page_zalloc(
+		PAGES(page_up(BITMAP_SIZE(pmm_bitmap.bit_max))));
+	if (!pmm_bitmap.bitmap)
 		return -ENOMEM;
-	pmem_end = pmem_base + pmem_bitmap.bit_max * PAGE_SIZE;
+	pmm_end = pmm_base + pmm_bitmap.bit_max * PAGE_SIZE;
 
 	/* check if the physical location of the OS is inside that region */
-	err = vma_pmem_mark_used(kmm_v2p((void*)VMGRINCH_BASE),
-				 PAGES(GRINCH_SIZE));
+	err = pmm_mark_used(kmm_v2p((void*)VMGRINCH_BASE), PAGES(GRINCH_SIZE));
 	if (err && err != -ERANGE)
 		return err;
 
 	return err;
 }
 
-int vma_init_fdt(void)
+int pmm_init_fdt(void)
 {
 	int child, err, len, memory, ac, sc, parent;
 	const char *uname;
@@ -120,7 +119,7 @@ int vma_init_fdt(void)
 	if (err < 0)
 		return trace_error(err);
 
-	err = vma_init(addrp, sizep);
+	err = pmm_init(addrp, sizep);
 	if (err)
 		return trace_error(err);
 
@@ -145,7 +144,7 @@ int vma_init_fdt(void)
 
 		pr("Reserving memory area %s (0x%llx len: 0x%lx)\n",
 		   uname, addrp, sizep);
-		vma_pmem_mark_used(addrp, PAGES(page_up(sizep)));
+		pmm_mark_used(addrp, PAGES(page_up(sizep)));
 	}
 
 	return err;

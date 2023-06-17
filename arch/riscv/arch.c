@@ -24,7 +24,7 @@
 #include <grinch/printk.h>
 #include <grinch/smp.h>
 #include <grinch/kmm.h>
-#include <grinch/vma.h>
+#include <grinch/pmm.h>
 
 int arch_init(paddr_t __fdt)
 {
@@ -34,7 +34,7 @@ int arch_init(paddr_t __fdt)
 	if (err)
 		goto out;
 
-	err = vma_init_fdt();
+	err = pmm_init_fdt();
 	if (err)
 		goto out;
 

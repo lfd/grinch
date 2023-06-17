@@ -10,11 +10,11 @@
  * the COPYING file in the top-level directory.
  */
 
-#ifndef _VMA_H
-#define _VMA_H
+#ifndef _PMM_H
+#define _PMM_H
 
-/* Virtual Memory Area: Userspace / Kernelspace VMA areas outside KMMM */
-int vma_init_fdt(void);
-int vma_init(paddr_t addrp, size_t sizep);
+/* Physical memory areas */
+int pmm_init_fdt(void);
+int pmm_init(paddr_t addrp, size_t sizep);
 
 #endif /* _VMA_H */
