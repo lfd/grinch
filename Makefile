@@ -89,10 +89,12 @@ guest.dtb: guest.dts
 grinch.ld: grinch.ld.S
 
 $(ASM_DEFINES): arch/$(ARCH)/asm_defines.S
-	./asm-defines.sh $^ > $@
+	$(QUIET) "[GEN]   $@"
+	$(VERBOSE) ./asm-defines.sh $^ > $@
 
 arch/$(ARCH)/asm_defines.S: arch/$(ARCH)/asm_defines.c
-	$(CC) $(CFLAGS) -S -o $@ $^
+	$(QUIET) "[GEN]   $@"
+	$(VERBOSE) $(CC) $(CFLAGS) -S -o $@ $^
 
 vmgrinch.o: $(ARCH_DIR)/built-in.a lib/built-in.a mm/built-in.a drivers/built-in.a $(OBJS)
 	$(QUIET) "[LD]    $@"
