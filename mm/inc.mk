@@ -1,4 +1,4 @@
-MM_OBJS = paging.o ioremap.o kmm.o pmm.o mm.o
+MM_OBJS = paging.o ioremap.o kmm.o pmm.o mm.o vma.o
 
 MM_OBJS := $(addprefix mm/, $(MM_OBJS))
 

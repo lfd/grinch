@@ -10,17 +10,18 @@
  * the COPYING file in the top-level directory.
  */
 
-#ifndef _PMM_H
-#define _PMM_H
+#ifndef _VMA_H
+#define _VMA_H
 
-#include <grinch/types.h>
+#define VMA_FLAG_LAZY	0x1
+#define VMA_FLAG_ZERO	0x2
 
-/* Physical memory areas */
-int pmm_init_fdt(void);
-int pmm_init(paddr_t addrp, size_t sizep);
-int pmm_page_alloc_aligned(paddr_t *res, size_t pages,
-			   unsigned int alignment, paddr_t hint);
-int pmm_page_free(paddr_t phys, size_t pages);
+struct vma {
+	void *base;
+	size_t size; /* in bytes */
+	unsigned int flags;
+};
 
+int vma_create(struct vma *vma);
 
 #endif /* _VMA_H */
