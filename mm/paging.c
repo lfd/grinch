@@ -281,6 +281,13 @@ int paging_init(unsigned long this_cpu)
 
 	arch_paging_init();
 
+	pr("=== Grinch memory layout ===\n");
+	pr(" Grinch area: 0x%lx -- 0x%lx\n", VMGRINCH_BASE, VMGRINCH_END);
+	pr("ioremap area: %p -- %p\n", IOREMAP_BASE, IOREMAP_END);
+	pr(" percpu area: 0x%lx -- 0x%lx\n", PERCPU_BASE,
+	   PERCPU_BASE + sizeof(struct per_cpu));
+	pr("=== Grinch memory layout end ===\n");
+
 	root = per_cpu(this_cpu)->root_table_page;
 
 	/* root tables are not in bss section, so zero them */
