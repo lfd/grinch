@@ -42,7 +42,8 @@ void *ioremap(paddr_t paddr, size_t size)
 	if (start > IOREMAP_PAGES)
 		return ERR_PTR(-ENOMEM);
 
-	ret = IOREMAP_BASE + (start * PAGE_SIZE) + (paddr & PAGE_OFFS_MASK);
+	ret = (void*)IOREMAP_BASE + (start * PAGE_SIZE) +
+	      (paddr & PAGE_OFFS_MASK);
 	err = map_range(this_root_table_page(), ret, paddr, size,
 			GRINCH_MEM_DEVICE | GRINCH_MEM_RW);
 	if (err)
@@ -55,23 +56,36 @@ void *ioremap(paddr_t paddr, size_t size)
 	return ret;
 }
 
+static bool is_ioremap(const void *vaddr, size_t pages)
+{
+	if (vaddr < IOREMAP_BASE || vaddr >= IOREMAP_END)
+		return false;
+
+	if (vaddr + pages * PAGE_SIZE > IOREMAP_END)
+		return false;
+
+	return true;
+}
+
 int iounmap(const void *vaddr, size_t size)
 {
-	unsigned int start;
+	unsigned int start, pages;
 	int err;
 
-	if (vaddr < IOREMAP_BASE ||
-	    vaddr > IOREMAP_BASE + IOREMAP_SIZE - PAGE_SIZE)
-		return -EINVAL;
-
 	size = page_up(size);
+	pages = PAGES(size);
+	vaddr = (const void *)((uintptr_t)vaddr & PAGE_MASK);
+
+	if (!is_ioremap(vaddr, pages))
+		return -ERANGE;
+
 
 	err = unmap_range(this_root_table_page(), vaddr, size);
 	if (err)
 		return err;
 
 	start = (vaddr - IOREMAP_BASE) / PAGE_SIZE;
-	bitmap_clear(ioremap_bitmap, start, PAGES(size));
+	bitmap_clear(ioremap_bitmap, start, pages);
 
 	return 0;
 }
