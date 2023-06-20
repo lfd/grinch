@@ -58,10 +58,11 @@ void *ioremap(paddr_t paddr, size_t size)
 
 static bool is_ioremap(const void *vaddr, size_t pages)
 {
-	if (vaddr < IOREMAP_BASE || vaddr >= IOREMAP_END)
+	uintptr_t addr = (uintptr_t)vaddr;
+	if (addr < IOREMAP_BASE || addr >= IOREMAP_END)
 		return false;
 
-	if (vaddr + pages * PAGE_SIZE > IOREMAP_END)
+	if (addr + pages * PAGE_SIZE > IOREMAP_END)
 		return false;
 
 	return true;
@@ -84,7 +85,7 @@ int iounmap(const void *vaddr, size_t size)
 	if (err)
 		return err;
 
-	start = (vaddr - IOREMAP_BASE) / PAGE_SIZE;
+	start = (vaddr - (void*)IOREMAP_BASE) / PAGE_SIZE;
 	bitmap_clear(ioremap_bitmap, start, pages);
 
 	return 0;

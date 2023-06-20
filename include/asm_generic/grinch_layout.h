@@ -20,13 +20,8 @@
 
 #define VMGRINCH_END	(VMGRINCH_BASE + GRINCH_SIZE)
 
-/*
- * Take the uppermost address that the ioremap area will still be located at
- * the same VPN. This gives us 256MiB ioremap area.
- */
-#define IOREMAP_BITS	29
-#define IOREMAP_BASE	((void*)(VMGRINCH_BASE | (1 << IOREMAP_BITS)))
-#define IOREMAP_SIZE	(1 << (IOREMAP_BITS - 1))
-#define IOREMAP_END	(IOREMAP_BASE + IOREMAP_SIZE)
+#define IOREMAP_BASE	((VMGRINCH_END + MEGA_PAGE_SIZE - 1) & MEGA_PAGE_MASK)
+#define IOREMAP_END	(IOREMAP_BASE + 128 * MIB)
+#define IOREMAP_SIZE	(IOREMAP_END - IOREMAP_BASE)
 
 #define PERCPU_BASE	(VMGRINCH_BASE + 64UL * GIGA_PAGE_SIZE)
