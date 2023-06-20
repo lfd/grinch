@@ -36,7 +36,7 @@ static DEFINE_SPINLOCK(print_lock);
 
 struct {
 	unsigned int tail;
-	char content[1024];
+	char content[2048];
 } console;
 
 static inline void console_write(char c)
