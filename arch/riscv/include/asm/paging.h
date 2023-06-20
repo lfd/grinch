@@ -43,6 +43,7 @@ static inline unsigned long arch_paging_access_flags(mem_flags_t flags)
 	ret = RISCV_PTE_FLAG(V) | RISCV_PTE_FLAG(G) |
 	      ((flags & GRINCH_MEM_R) ? RISCV_PTE_FLAG(R) : 0) |
 	      ((flags & GRINCH_MEM_W) ? RISCV_PTE_FLAG(W) : 0) |
+	      ((flags & GRINCH_MEM_U) ? RISCV_PTE_FLAG(U) : 0) |
 	      ((flags & GRINCH_MEM_X) ? RISCV_PTE_FLAG(X) : 0);
 
 	return ret;
