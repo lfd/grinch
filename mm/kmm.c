@@ -101,9 +101,9 @@ void *kmm_page_alloc_aligned(unsigned int pages, unsigned int alignment,
 
 	spin_lock(&kmm_lock);
 	err = mm_bitmap_find_and_allocate(&kmm_bitmap, pages, page_offset, alignment);
+	spin_unlock(&kmm_lock);
 	if (err < 0)
 		return ERR_PTR(err);
-	spin_unlock(&kmm_lock);
 
 	paddr = kmm_pbase + err * PAGE_SIZE;
 
