@@ -8,6 +8,7 @@ ARCH_DIR = arch/$(ARCH)
 all: kernel.bin
 
 include $(ARCH_DIR)/inc.mk
+include kernel/inc.mk
 include lib/inc.mk
 include mm/inc.mk
 include drivers/inc.mk
@@ -59,8 +60,6 @@ AFLAGS = -D__ASSEMBLY__
 ASM_DEFINES = arch/$(ARCH)/include/asm/asm_defines.h
 GENERATED = $(ASM_DEFINES)
 
-OBJS = main.o
-
 %.o: %.c $(GENERATED)
 	$(QUIET) "[CC]    $@"
 	$(VERBOSE) $(CC) -c $(CFLAGS) -o $@ $<
@@ -96,7 +95,7 @@ arch/$(ARCH)/asm_defines.S: arch/$(ARCH)/asm_defines.c
 	$(QUIET) "[GEN]   $@"
 	$(VERBOSE) $(CC) $(CFLAGS) -S -o $@ $^
 
-vmgrinch.o: $(ARCH_DIR)/built-in.a lib/built-in.a mm/built-in.a drivers/built-in.a $(OBJS)
+vmgrinch.o: $(ARCH_DIR)/built-in.a kernel/built-in.a lib/built-in.a mm/built-in.a drivers/built-in.a
 	$(QUIET) "[LD]    $@"
 	$(VERBOSE) $(LD) $(LDFLAGS) --whole-archive -relocatable -o $@ $^
 
@@ -129,9 +128,10 @@ debug: kernel.bin
 	$(GDB) $^
 
 clean: clean_loader
-	rm -rf $(OBJS) vmgrinch.o
+	rm -rf vmgrinch.o
 	rm -rf $(GENERATED)
 	rm -rf arch/$(ARCH)/*.{o,a} arch/$(ARCH)/asm_defines.S
+	rm -rf kernel/*.{o,a}
 	rm -rf lib/*.{o,a} lib/libfdt/*.{o,a}
 	rm -rf drivers/*.{o,a} drivers/irq/*.{o,a} drivers/serial/*.{o,a}
 	rm -rf mm/*.{o,a}
