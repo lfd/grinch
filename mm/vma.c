@@ -21,8 +21,9 @@
 #include <grinch/pmm.h>
 #include <grinch/vma.h>
 
-int vma_create(struct vma *vma)
+static int vma_create(page_table_t pt, struct vma *vma)
 {
+	mem_flags_t flags;
 	paddr_t phys;
 	int err;
 
@@ -33,17 +34,35 @@ int vma_create(struct vma *vma)
 	if (err)
 		return err;
 
-	err = map_range(this_per_cpu()->root_table_page, vma->base, phys,
-			vma->size, GRINCH_MEM_RW);
+	flags = GRINCH_MEM_RW;
+	if (vma->flags & VMA_FLAG_USER)
+		flags |= GRINCH_MEM_U;
+	if (vma->flags & VMA_FLAG_EXEC)
+		flags |= GRINCH_MEM_X;
+
+	err = map_range(pt, vma->base, phys, vma->size, flags);
 	if (err)
 		goto free_out;
-
-	if (vma->flags & VMA_FLAG_ZERO)
-		memset(vma->base, 0, vma->size);
 
 	return 0;
 
 free_out:
 	pmm_page_free(phys, PAGES(vma->size));
 	return err;
+}
+
+int kvma_create(struct vma *vma)
+{
+	int err;
+
+	// FIXME: We must somewhen take care, that this applies to all page
+	// tables of all CPUs
+	err = vma_create(this_per_cpu()->root_table_page, vma);
+	if (err)
+		return err;
+
+	if (vma->flags & VMA_FLAG_ZERO)
+		memset(vma->base, 0, vma->size);
+
+	return 0;
 }

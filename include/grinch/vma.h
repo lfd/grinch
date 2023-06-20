@@ -15,6 +15,8 @@
 
 #define VMA_FLAG_LAZY	0x1
 #define VMA_FLAG_ZERO	0x2
+#define VMA_FLAG_USER	0x4
+#define VMA_FLAG_EXEC	0x8
 
 struct vma {
 	void *base;
@@ -22,6 +24,6 @@ struct vma {
 	unsigned int flags;
 };
 
-int vma_create(struct vma *vma);
+int kvma_create(struct vma *vma);
 
 #endif /* _VMA_H */

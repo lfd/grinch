@@ -177,7 +177,7 @@ int kheap_init(void)
 	pr("Kernel Heap base: %p, size: 0x%lx\n",
 	   vma_kheap.base, vma_kheap.size);
 
-	err = vma_create(&vma_kheap);
+	err = kvma_create(&vma_kheap);
 	if (err)
 		return err;
 
