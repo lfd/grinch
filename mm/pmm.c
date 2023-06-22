@@ -20,6 +20,7 @@
 #include <grinch/fdt.h>
 #include <grinch/kmm.h>
 #include <grinch/paging.h>
+#include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/types.h>
 #include <grinch/mm.h>
@@ -128,6 +129,13 @@ int pmm_init(paddr_t addrp, size_t sizep)
 	err = pmm_mark_used(kmm_v2p((void*)VMGRINCH_BASE), PAGES(GRINCH_SIZE));
 	if (err && err != -ERANGE)
 		return err;
+
+	/*
+	 * Last but not least, create a direct physical R/W mapping, so that
+	 * the kernel may easily every single byte of physical memory
+	 */
+	err = map_range(this_per_cpu()->root_table_page, (void *)DIR_PHYS_BASE,
+			addrp, sizep, GRINCH_MEM_RW);
 
 	return err;
 }
