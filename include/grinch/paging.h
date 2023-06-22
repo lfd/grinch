@@ -92,6 +92,8 @@ void arch_paging_enable(unsigned long this_cpu, page_table_t pt);
 int paging_init(unsigned long this_cpu);
 int paging_cpu_init(unsigned long this_cpu);
 
+paddr_t paging_get_phys(page_table_t pt, const void *virt);
+
 /* Versatile mapper */
 int map_range(page_table_t pt, const void *vaddr, paddr_t paddr, size_t size,
 	      mem_flags_t grinch_flags);

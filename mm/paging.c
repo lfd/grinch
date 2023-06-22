@@ -274,6 +274,32 @@ int paging_cpu_init(unsigned long cpuid)
 	return err;
 }
 
+paddr_t paging_get_phys(page_table_t pt, const void *_virt)
+{
+	const struct paging *paging;
+	unsigned long virt;
+	pt_entry_t pte;
+	paddr_t phys;
+
+	paging = root_paging;
+	virt = (unsigned long)_virt;
+
+	while (1) {
+		pte = paging->get_entry(pt, virt);
+		if (!paging->entry_valid(pte, PAGE_PRESENT_FLAGS))
+			return INVALID_PHYS_ADDR;
+
+		phys = paging->get_phys(pte, virt);
+		if (phys != INVALID_PHYS_ADDR)
+			return phys;
+
+		pt = kmm_p2v(paging->get_next_pt(pte));
+		paging++;
+	}
+
+	return INVALID_PHYS_ADDR;
+}
+
 int paging_init(unsigned long this_cpu)
 {
 	int err;
