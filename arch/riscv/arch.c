@@ -35,15 +35,15 @@ int arch_init(paddr_t __fdt)
 	if (err)
 		goto out;
 
+	err = platform_init();
+	if (err)
+		goto out;
+
 	err = pmm_init_fdt();
 	if (err)
 		goto out;
 
 	err = kheap_init();
-	if (err)
-		goto out;
-
-	err = platform_init();
 	if (err)
 		goto out;
 
