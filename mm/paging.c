@@ -249,7 +249,7 @@ int map_range(page_table_t pt, const void *vaddr, paddr_t paddr, size_t size,
 	   size);
 	flags = arch_paging_access_flags(grinch_flags);
 
-	return paging_create(&pg, paddr, size, (unsigned long)vaddr, flags, 0);
+	return paging_create(&pg, paddr, size, (unsigned long)vaddr, flags, PAGING_HUGE);
 }
 
 static int map_osmem(page_table_t root, void *vaddr, size_t size,
