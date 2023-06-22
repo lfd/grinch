@@ -66,6 +66,14 @@ static int pmm_mark_used(paddr_t addr, size_t pages)
 	return 0;
 }
 
+void *pmm_to_virt(paddr_t phys)
+{
+	if (!is_pmm(phys))
+		return ERR_PTR(-ERANGE);
+
+	return (void *)(DIR_PHYS_BASE + (phys - pmm_base));
+}
+
 int pmm_page_free(paddr_t addr, size_t pages)
 {
 	unsigned int start;

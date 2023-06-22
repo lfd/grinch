@@ -21,6 +21,6 @@ int pmm_init(paddr_t addrp, size_t sizep);
 int pmm_page_alloc_aligned(paddr_t *res, size_t pages,
 			   unsigned int alignment, paddr_t hint);
 int pmm_page_free(paddr_t phys, size_t pages);
-
+void *pmm_to_virt(paddr_t phys);
 
 #endif /* _VMA_H */
