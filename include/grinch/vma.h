@@ -13,10 +13,13 @@
 #ifndef _VMA_H
 #define _VMA_H
 
-#define VMA_FLAG_LAZY	0x1
-#define VMA_FLAG_ZERO	0x2
-#define VMA_FLAG_USER	0x4
-#define VMA_FLAG_EXEC	0x8
+#define VMA_FLAG_LAZY	(1 << 0)
+#define VMA_FLAG_ZERO	(1 << 1)
+#define VMA_FLAG_USER	(1 << 2)
+#define VMA_FLAG_EXEC	(1 << 3)
+#define VMA_FLAG_R	(1 << 4)
+#define VMA_FLAG_W	(1 << 5)
+#define VMA_FLAG_RW	(VMA_FLAG_R | VMA_FLAG_W)
 
 struct vma {
 	void *base;

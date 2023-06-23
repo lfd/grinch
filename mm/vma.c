@@ -34,7 +34,11 @@ static int vma_create(page_table_t pt, struct vma *vma)
 	if (err)
 		return err;
 
-	flags = GRINCH_MEM_RW;
+	flags = 0;
+	if (vma->flags & VMA_FLAG_R)
+		flags |= GRINCH_MEM_R;
+	if (vma->flags & VMA_FLAG_W)
+		flags |= GRINCH_MEM_W;
 	if (vma->flags & VMA_FLAG_USER)
 		flags |= GRINCH_MEM_U;
 	if (vma->flags & VMA_FLAG_EXEC)
