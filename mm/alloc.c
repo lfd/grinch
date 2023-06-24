@@ -40,7 +40,7 @@ static DEFINE_SPINLOCK(alloc_lock);
 static struct vma vma_kheap = {
 	.base = (void*)KHEAP_BASE,
 	.size = KHEAP_SIZE,
-	.flags = VMA_FLAG_ZERO | VMA_FLAG_RW,
+	.flags = VMA_FLAG_RW,
 };
 
 #define first_chunk	((struct memchunk *)(vma_kheap.base))
