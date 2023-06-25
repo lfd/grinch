@@ -27,24 +27,25 @@ QEMU_ARGS_COMMON=-monitor telnet:127.0.0.1:11111,server,nowait
 
 OPT?=-O0
 
-CFLAGS=-nostdinc -ffreestanding -g -ggdb $(OPT) \
-       -fno-strict-aliasing -fno-stack-protector \
-       -ffunction-sections \
-       -Wall -Wextra -Wno-unused-parameter \
-       -Wstrict-prototypes -Wtype-limits \
-       -Wmissing-declarations -Wmissing-prototypes \
-       -Wnested-externs -Wshadow -Wredundant-decls \
-       -Wundef -Wdeprecated \
-       -Iinclude/ \
-       -Ilib/libfdt/ \
-       -Iarch/$(ARCH)/include/ \
-       -DGRINCH_VER=$(GRINCH_VER)
+CFLAGS_COMMON=-nostdinc -ffreestanding -g -ggdb $(OPT) \
+              -fno-strict-aliasing -fno-stack-protector \
+              -ffunction-sections \
+              -Wall -Wextra -Wno-unused-parameter \
+              -Wstrict-prototypes -Wtype-limits \
+              -Wmissing-declarations -Wmissing-prototypes \
+              -Wnested-externs -Wshadow -Wredundant-decls \
+              -Wundef -Wdeprecated -Werror
 
-CFLAGS += $(CFLAGS_ARCH)
+INCLUDES_KERNEL=-Iinclude/ \
+                -Ilib/libfdt/ \
+                -Iarch/$(ARCH)/include/ \
+                -DGRINCH_VER=$(GRINCH_VER)
 
 ifeq ($(DEBUG_OUTPUT), 1)
-CFLAGS += -DDEBUG
+CFLAGS_COMMON += -DDEBUG
 endif
+
+CFLAGS_KERNEL=$(CFLAGS_COMMON) $(CFLAGS_ARCH) $(INCLUDES_KERNEL)
 
 ifdef V
 QUIET := @true
@@ -62,11 +63,11 @@ GENERATED = $(ASM_DEFINES)
 
 %.o: %.c $(GENERATED)
 	$(QUIET) "[CC]    $@"
-	$(VERBOSE) $(CC) -c $(CFLAGS) -o $@ $<
+	$(VERBOSE) $(CC) -c $(CFLAGS_KERNEL) -o $@ $<
 
 %.o: %.S $(GENERATED)
 	$(QUIET) "[CC/AS] $@"
-	$(VERBOSE) $(CC) -c $(AFLAGS) $(CFLAGS) -o $@ $<
+	$(VERBOSE) $(CC) -c $(AFLAGS) $(CFLAGS_KERNEL) -o $@ $<
 
 %.bin: %.elf
 	$(QUIET) "[OBJC]  $@"
@@ -74,7 +75,7 @@ GENERATED = $(ASM_DEFINES)
 
 %.ld: %.ld.S
 	$(QUIET) "[CC/AS] $@"
-	$(VERBOSE) $(CC) $(CFLAGS) $(AFLAGS) -E -o $@ $^
+	$(VERBOSE) $(CC) $(CFLAGS_KERNEL) $(AFLAGS) -E -o $@ $^
 	$(VERBOSE) sed -e '/^#/d' -i $@
 
 %/built-in.a:
@@ -93,7 +94,7 @@ $(ASM_DEFINES): arch/$(ARCH)/asm_defines.S
 
 arch/$(ARCH)/asm_defines.S: arch/$(ARCH)/asm_defines.c
 	$(QUIET) "[GEN]   $@"
-	$(VERBOSE) $(CC) $(CFLAGS) -S -o $@ $^
+	$(VERBOSE) $(CC) $(CFLAGS_KERNEL) -S -o $@ $^
 
 vmgrinch.o: $(ARCH_DIR)/built-in.a kernel/built-in.a lib/built-in.a mm/built-in.a drivers/built-in.a
 	$(QUIET) "[LD]    $@"
