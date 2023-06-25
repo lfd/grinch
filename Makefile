@@ -89,7 +89,7 @@ grinch.ld: grinch.ld.S
 
 $(ASM_DEFINES): arch/$(ARCH)/asm_defines.S
 	$(QUIET) "[GEN]   $@"
-	$(VERBOSE) ./asm-defines.sh $^ > $@
+	$(VERBOSE) ./scripts/asm-defines.sh $^ > $@
 
 arch/$(ARCH)/asm_defines.S: arch/$(ARCH)/asm_defines.c
 	$(QUIET) "[GEN]   $@"
