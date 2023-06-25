@@ -3,16 +3,7 @@ ARCH ?= riscv
 GRINCH_VER=3.13
 DEBUG_OUTPUT=1
 
-ARCH_DIR = arch/$(ARCH)
-
 all: kernel.bin
-
-include $(ARCH_DIR)/inc.mk
-include kernel/inc.mk
-include lib/inc.mk
-include mm/inc.mk
-include drivers/inc.mk
-include loader.mk
 
 GDB=$(CROSS_COMPILE)gdb
 CC=$(CROSS_COMPILE)gcc
@@ -23,9 +14,17 @@ OBJDUMP=$(CROSS_COMPILE)objdump
 OBJCOPY=$(CROSS_COMPILE)objcopy
 SZ=$(CROSS_COMPILE)size
 
-QEMU_ARGS_COMMON=-monitor telnet:127.0.0.1:11111,server,nowait
+ifdef V
+QUIET := @true
+VERBOSE :=
+else
+QUIET := @echo
+VERBOSE := @
+endif
 
 OPT?=-O0
+
+AFLAGS_COMMON=-D__ASSEMBLY__
 
 CFLAGS_COMMON=-nostdinc -ffreestanding -g -ggdb $(OPT) \
               -fno-strict-aliasing -fno-stack-protector \
@@ -36,88 +35,20 @@ CFLAGS_COMMON=-nostdinc -ffreestanding -g -ggdb $(OPT) \
               -Wnested-externs -Wshadow -Wredundant-decls \
               -Wundef -Wdeprecated -Werror
 
-INCLUDES_KERNEL=-Iinclude/ \
-                -Ilib/libfdt/ \
-                -Iarch/$(ARCH)/include/ \
-                -DGRINCH_VER=$(GRINCH_VER)
-
 ifeq ($(DEBUG_OUTPUT), 1)
 CFLAGS_COMMON += -DDEBUG
 endif
 
-CFLAGS_KERNEL=$(CFLAGS_COMMON) $(CFLAGS_ARCH) $(INCLUDES_KERNEL)
-
-ifdef V
-QUIET := @true
-VERBOSE :=
-else
-QUIET := @echo
-VERBOSE := @
-endif
-
-LDFLAGS = $(ARCH_LDFLAGS)
-AFLAGS = -D__ASSEMBLY__
-
-ASM_DEFINES = arch/$(ARCH)/include/asm/asm_defines.h
-GENERATED = $(ASM_DEFINES)
-
-%.o: %.c $(GENERATED)
-	$(QUIET) "[CC]    $@"
-	$(VERBOSE) $(CC) -c $(CFLAGS_KERNEL) -o $@ $<
-
-%.o: %.S $(GENERATED)
-	$(QUIET) "[CC/AS] $@"
-	$(VERBOSE) $(CC) -c $(AFLAGS) $(CFLAGS_KERNEL) -o $@ $<
+include scripts/kernel.mk
 
 %.bin: %.elf
 	$(QUIET) "[OBJC]  $@"
 	$(VERBOSE) $(OBJCOPY) -O binary $^ $@
 
-%.ld: %.ld.S
-	$(QUIET) "[CC/AS] $@"
-	$(VERBOSE) $(CC) $(CFLAGS_KERNEL) $(AFLAGS) -E -o $@ $^
-	$(VERBOSE) sed -e '/^#/d' -i $@
-
 %/built-in.a:
 	$(QUIET) "[AR]    $@"
 	$(VERBOSE) rm -f $@
 	$(VERBOSE) $(AR) cDPrST $@ $^
-
-guest.dtb: guest.dts
-	dtc -I dts -O dtb $^ -o $@
-
-grinch.ld: grinch.ld.S
-
-$(ASM_DEFINES): arch/$(ARCH)/asm_defines.S
-	$(QUIET) "[GEN]   $@"
-	$(VERBOSE) ./scripts/asm-defines.sh $^ > $@
-
-arch/$(ARCH)/asm_defines.S: arch/$(ARCH)/asm_defines.c
-	$(QUIET) "[GEN]   $@"
-	$(VERBOSE) $(CC) $(CFLAGS_KERNEL) -S -o $@ $^
-
-vmgrinch.o: $(ARCH_DIR)/built-in.a kernel/built-in.a lib/built-in.a mm/built-in.a drivers/built-in.a
-	$(QUIET) "[LD]    $@"
-	$(VERBOSE) $(LD) $(LDFLAGS) --whole-archive -relocatable -o $@ $^
-
-vmgrinch.elf: grinch.ld vmgrinch.o
-	$(QUIET) "[LD]    $@"
-	$(VERBOSE) $(LD) $(LDFLAGS) --gc-sections -T $^ -o $@
-ifdef V
-	$(VERBOSE) $(SZ) --format=SysV -x $@
-endif
-
-objdk: kernel.elf
-	$(OBJDUMP) -d $^ | less
-
-objd: vmgrinch.elf
-	$(OBJDUMP) -d $^ | less
-
-objdS: vmgrinch.elf
-	$(OBJDUMP) -dS $^ | less
-
-objdg: guest/guest.elf
-	$(OBJDUMP) -d $^ | less
 
 qemu: kernel.bin
 	$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS) -kernel $< -s
@@ -128,15 +59,8 @@ qemudb: kernel.bin
 debug: kernel.bin
 	$(GDB) $^
 
-clean: clean_loader
-	rm -rf vmgrinch.o
-	rm -rf $(GENERATED)
-	rm -rf arch/$(ARCH)/*.{o,a} arch/$(ARCH)/asm_defines.S
-	rm -rf kernel/*.{o,a}
-	rm -rf lib/*.{o,a} lib/libfdt/*.{o,a}
-	rm -rf drivers/*.{o,a} drivers/irq/*.{o,a} drivers/serial/*.{o,a}
-	rm -rf mm/*.{o,a}
+clean: clean_kernel
 	rm -rf *.dtb
-	rm -rf *.elf guest/*.elf
-	rm -rf *.bin guest/*.bin
-	rm -rf *.ld guest/*.ld
+	rm -rf *.elf
+	rm -rf *.bin
+	rm -rf *.ld
