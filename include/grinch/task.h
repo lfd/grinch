@@ -21,3 +21,8 @@ struct task {
 	struct registers regs;
 	struct mm mm;
 };
+
+struct task *task_from_elf(void *elf);
+
+void task_activate(void);
+void task_set_context(struct task *task, unsigned long pc, unsigned long sp);

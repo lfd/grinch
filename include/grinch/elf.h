@@ -29,6 +29,9 @@ typedef __s64 Elf64_Sxword;
 
 #define PT_LOAD		1
 
+#define EM_AARCH64	183 /* ARM 64 bit */
+#define EM_RISCV	243 /* RISC-V */
+
 typedef struct elf64_hdr {
 	unsigned char e_ident[EI_NIDENT];
 	Elf64_Half e_type;

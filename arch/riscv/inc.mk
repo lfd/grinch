@@ -8,7 +8,7 @@ LDFLAGS_ARCH = -melf64lriscv
 
 arch/riscv/entry.o: user/user.bin
 
-ARCH_OBJS = entry.o exception.o sbi.o traps.o cpu.o
+ARCH_OBJS = entry.o exception.o sbi.o traps.o cpu.o task.o
 ARCH_OBJS += handlers.o smp.o paging.o arch.o irqchip.o
 
 ARCH_OBJS := $(addprefix $(ARCH_DIR)/, $(ARCH_OBJS))

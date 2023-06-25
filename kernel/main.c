@@ -22,6 +22,8 @@
 #include <grinch/kmm.h>
 #include <grinch/printk.h>
 #include <grinch/string.h>
+#include <grinch/vma.h>
+#include <grinch/task.h>
 
 static const char logo[] =
 "\n\n"
@@ -126,8 +128,11 @@ static void memtest(void)
 #undef dbg_fmt
 #define dbg_fmt(x)	"main: " x
 
+extern unsigned char __user_start[], __user_end[];
+
 int cmain(unsigned long boot_cpu, paddr_t __fdt)
 {
+	struct task *task;
 	int err;
 
 	irq_disable();
@@ -150,6 +155,16 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 
 	if (0)
 		memtest();
+
+	task = task_from_elf((void *)__user_start);
+	if (IS_ERR(task)) {
+		err = PTR_ERR(task);
+		goto out;
+	}
+
+	/* This should later be done by the scheduler */
+	this_per_cpu()->current_task = task;
+	task_activate();
 
 out:
 	pr("End reached: %d\n", err);
