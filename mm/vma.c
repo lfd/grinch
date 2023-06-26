@@ -14,6 +14,7 @@
 
 #include <asm_generic/grinch_layout.h>
 
+#include <grinch/alloc.h>
 #include <grinch/errno.h>
 #include <grinch/paging.h>
 #include <grinch/percpu.h>
@@ -21,7 +22,7 @@
 #include <grinch/pmm.h>
 #include <grinch/vma.h>
 
-static int vma_create(page_table_t pt, struct vma *vma)
+static int vma_create(page_table_t pt, struct vma *vma, unsigned int alignment)
 {
 	mem_flags_t flags;
 	paddr_t phys;
@@ -30,7 +31,7 @@ static int vma_create(page_table_t pt, struct vma *vma)
 	if (vma->flags & VMA_FLAG_LAZY)
 		return -ENOSYS;
 
-	err = pmm_page_alloc_aligned(&phys, PAGES(vma->size), PAGE_SIZE, 0);
+	err = pmm_page_alloc_aligned(&phys, PAGES(vma->size), alignment, 0);
 	if (err)
 		return err;
 
@@ -61,7 +62,8 @@ int kvma_create(struct vma *vma)
 
 	// FIXME: We must somewhen take care, that this applies to all page
 	// tables of all CPUs
-	err = vma_create(this_per_cpu()->root_table_page, vma);
+	// FIXME: Get alignment via argument
+	err = vma_create(this_per_cpu()->root_table_page, vma, MEGA_PAGE_SIZE);
 	if (err)
 		return err;
 
