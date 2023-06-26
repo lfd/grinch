@@ -19,8 +19,8 @@
 #include <grinch/printk.h>
 #include <grinch/percpu.h>
 #include <grinch/sbi.h>
-#include <grinch/sbi_handler.h>
 #include <grinch/symbols.h>
+#include <grinch/syscall.h>
 
 void arch_handle_trap(struct registers *regs);
 
@@ -47,6 +47,23 @@ int handle_irq(u64 irq)
 			printk("No Handler for IRQ %llu\n", irq);
 			err = -1;
 			break;
+	}
+
+	return err;
+}
+
+static int handle_syscall(struct registers *regs)
+{
+	unsigned long ret;
+	int err;
+
+	err = syscall(regs->a7, regs->a0, regs->a1, regs->a2,
+		      regs->a3, regs->a4, regs->a5, &ret);
+
+	if (!err) {
+		/* we had an ecall, so skip 4b of instructions */
+		regs->sepc += 4;
+		regs->a0 = ret;
 	}
 
 	return err;
@@ -79,8 +96,8 @@ void arch_handle_trap(struct registers *regs)
 			printk("Faulting Address: %016lx\n", csr_read(stval));
 			break;
 
-		case EXC_SUPERVISOR_SYSCALL:
-			err = handle_ecall(regs);
+		case EXC_SYSCALL:
+			err = handle_syscall(regs);
 			break;
 
 		case EXC_BREAKPOINT:
