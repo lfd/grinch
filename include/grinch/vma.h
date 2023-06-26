@@ -13,6 +13,8 @@
 #ifndef _VMA_H
 #define _VMA_H
 
+#include <grinch/list.h>
+
 #define VMA_FLAG_LAZY	(1 << 0)
 #define VMA_FLAG_ZERO	(1 << 1)
 #define VMA_FLAG_USER	(1 << 2)
@@ -25,6 +27,16 @@ struct vma {
 	void *base;
 	size_t size; /* in bytes */
 	unsigned int flags;
+
+	struct list_head vmas;
+};
+
+struct mm {
+	/* Only lower half must be used */
+	page_table_t page_table;
+
+	/* list of struct vma */
+	struct list_head vmas;
 };
 
 int kvma_create(struct vma *vma);
