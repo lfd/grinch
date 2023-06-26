@@ -43,5 +43,6 @@ struct task;
 
 int kvma_create(struct vma *vma);
 struct vma *uvma_create(struct task *task, void* base, size_t size, unsigned int vma_flags);
+void uvmas_destroy(struct task *task);
 
 #endif /* _VMA_H */

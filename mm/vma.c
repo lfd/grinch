@@ -96,6 +96,43 @@ static bool vma_collides(struct vma *vma, void *base, size_t size)
 	return false;
 }
 
+static int uvma_destroy(struct task *task, struct vma *vma)
+{
+	int err;
+	paddr_t phys;
+
+	/* Doesn't understand lazy VMAs! */
+	phys = paging_get_phys(task->mm.page_table, vma->base);
+	if (phys == INVALID_PHYS_ADDR)
+		return -EINVAL;
+
+	err = unmap_range(task->mm.page_table, vma->base, vma->size);
+	if (err)
+		return -EINVAL;
+
+	err = pmm_page_free(phys, PAGES(vma->size));
+	if (err)
+		return -EINVAL;
+
+	return 0;
+}
+
+void uvmas_destroy(struct task *task)
+{
+	struct list_head *pos, *q;
+	struct vma *tmp;
+	int err;
+
+	list_for_each_safe(pos, q, &task->mm.vmas) {
+		tmp = list_entry(pos, struct vma, vmas);
+		err = uvma_destroy(task, tmp);
+		if (err)
+			panic("Destroying VMA\n");
+		list_del(pos);
+		kfree(tmp);
+	}
+}
+
 struct vma *uvma_create(struct task *task, void *base, size_t size, unsigned int vma_flags)
 {
 	struct list_head *item;
