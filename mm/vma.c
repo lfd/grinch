@@ -20,7 +20,8 @@
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/pmm.h>
-#include <grinch/vma.h>
+#include <grinch/task.h>
+#include <grinch/uaccess.h>
 
 static int vma_create(page_table_t pt, struct vma *vma, unsigned int alignment)
 {
@@ -71,4 +72,64 @@ int kvma_create(struct vma *vma)
 		memset(vma->base, 0, vma->size);
 
 	return 0;
+}
+
+static bool is_user_range(void *_base, size_t size)
+{
+	u64 base = (u64)_base;
+
+	if (base >= USER_START && base < USER_END &&
+	    (base + size) <= USER_END)
+		return true;
+
+	return false;
+}
+
+static bool vma_collides(struct vma *vma, void *base, size_t size)
+{
+	if (vma->base < base && vma->base + vma->size > base)
+		return true;
+
+	if (base < vma->base && base + size > vma->base)
+		return true;
+
+	return false;
+}
+
+struct vma *uvma_create(struct task *task, void *base, size_t size, unsigned int vma_flags)
+{
+	struct list_head *item;
+	struct vma *vma;
+	int err;
+
+	if (!is_user_range(base, size))
+		return ERR_PTR(-ERANGE);
+
+	/* Check that the VMA won't collide with any other VMA */
+	list_for_each(item, &task->mm.vmas) {
+		vma = list_entry(item, struct vma, vmas);
+		if (vma_collides(vma, base, size))
+			return ERR_PTR(-EINVAL);
+	}
+
+	vma = kmalloc(sizeof(*vma));
+	if (!vma)
+		return ERR_PTR(-ENOMEM);
+
+	vma->base = base;
+	vma->size = size;
+	vma->flags = vma_flags | VMA_FLAG_USER;
+
+	err = vma_create(task->mm.page_table, vma, PAGE_SIZE);
+	if (err) {
+		kfree(vma);
+		return ERR_PTR(err);
+	}
+
+	list_add(&vma->vmas, &task->mm.vmas);
+
+	if (vma->flags & VMA_FLAG_ZERO)
+		umemset(&task->mm, vma->base, 0, vma->size);
+
+	return vma;
 }
