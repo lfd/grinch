@@ -170,6 +170,30 @@ void kfree(void *ptr)
 	spin_unlock(&alloc_lock);
 }
 
+void kheap_stats(void)
+{
+	size_t used, free;
+	struct memchunk *this;
+
+	used = free = 0;
+	this = first_chunk;
+	
+	spin_lock(&alloc_lock);
+	do {
+		if (this->flags & MEMCHUNK_FLAG_USED)
+			used += this->size;
+		else
+			free += this->size;
+
+		if (this->flags & MEMCHUNK_FLAG_LAST)
+			break;
+		this = next_chunk(this);
+	} while(1);
+	spin_unlock(&alloc_lock);
+
+	pr("Free: 0x%lx Used: 0x%lx\n", free, used);
+}
+
 int kheap_init(void)
 {
 	int err;

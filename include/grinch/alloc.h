@@ -17,6 +17,7 @@
 #include <grinch/string.h>
 
 int kheap_init(void);
+void kheap_stats(void);
 
 void *kmalloc(size_t size);
 void kfree(void *p);
