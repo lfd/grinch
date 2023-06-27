@@ -168,7 +168,5 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 
 out:
 	pr("End reached: %d\n", err);
-	/* As we have no userspace at the moment, return an error */
-	err = -ENOSYS;
 	return err;
 }
