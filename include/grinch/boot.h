@@ -10,4 +10,4 @@
  * the COPYING file in the top-level directory.
  */
 
-void cmain(unsigned long boot_cpu, paddr_t fdt);
+int cmain(unsigned long boot_cpu, paddr_t fdt);

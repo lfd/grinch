@@ -177,7 +177,7 @@ void arch_paging_enable(unsigned long this_cpu, page_table_t pt)
 	tmp = PERCPU_BASE - (paddr_t)per_cpu(this_cpu);
 	asm volatile("add sp, sp, %0" : : "r"(tmp));
 
-	/* Setup exception stack */
-	tmp = (paddr_t)&this_per_cpu()->exception + STACK_SIZE;
+	/* Setup sscratch */
+	tmp = (paddr_t)&this_per_cpu()->stack + STACK_SIZE;
 	csr_write(sscratch, tmp);
 }

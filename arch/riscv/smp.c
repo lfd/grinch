@@ -39,6 +39,7 @@ void secondary_cmain(void);
 
 void secondary_cmain(void)
 {
+#if 0
 	int err;
 	paddr_t sscratch;
 
@@ -61,6 +62,9 @@ void secondary_cmain(void)
 out:
 	if (err)
 		pr("Unable to bring up CPU %lu\n", this_cpu_id());
+#else
+	while(1);
+#endif
 }
 
 static unsigned int next_cpu(unsigned int cpu, unsigned long *bitmap,

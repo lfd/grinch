@@ -124,7 +124,7 @@ static void memtest(void)
 #undef dbg_fmt
 #define dbg_fmt(x)	"main: " x
 
-void cmain(unsigned long boot_cpu, paddr_t __fdt)
+int cmain(unsigned long boot_cpu, paddr_t __fdt)
 {
 	int err;
 
@@ -149,4 +149,7 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 
 out:
 	pr("End reached: %d\n", err);
+	/* As we have no userspace at the moment, return an error */
+	err = -ENOSYS;
+	return err;
 }

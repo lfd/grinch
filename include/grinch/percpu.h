@@ -29,7 +29,14 @@
 #include <grinch/symbols.h>
 
 struct per_cpu {
-	unsigned char stack[STACK_SIZE];
+	union {
+		unsigned char stack[STACK_SIZE];
+		struct {
+			unsigned char __fill[STACK_SIZE - sizeof(struct registers)];
+			struct registers regs;
+		};
+	} stack;
+
 	unsigned long root_table_page[PTES_PER_PT]
 		__attribute__((aligned(PAGE_SIZE)));
 

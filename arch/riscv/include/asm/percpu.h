@@ -11,13 +11,6 @@
  */
 
 #define ARCH_PER_CPU_FIELDS				\
-	union {						\
-		unsigned char stack[STACK_SIZE];	\
-		struct {				\
-			unsigned char __fill[STACK_SIZE - sizeof(struct registers)];	\
-			struct registers regs;		\
-		};					\
-	} exception;					\
 	struct {					\
 		u16 ctx;				\
 	} plic;

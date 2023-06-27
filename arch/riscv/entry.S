@@ -36,6 +36,9 @@ start:
 	/*
 	 * Setup stack: The stack for a HART is located at
 	 * __internal_page_pool_end - hartid * STRUCT_PER_CPU_SIZE + STACK_SIZE
+	 *
+	 * From this address, subtract STRUCT_REGISTERS_SIZE. We will place
+	 * user context here on return.
 	 */
 	la	t0, __internal_page_pool_end
 	li	t1, STRUCT_PER_CPU_SIZE
@@ -44,6 +47,8 @@ start:
 	sub	sp, t0, t2
 	li	t1, STACK_SIZE
 	add	sp, sp, t1
+	li	t1, STRUCT_REGISTERS_SIZE
+	sub	sp, sp, t1
 
 	/* push fdt location */
 	addi	sp, sp, -8
@@ -77,6 +82,13 @@ start:
 
 	/* Hand over to C */
 	jal	cmain
+	bne	a0, zero, _cpu_halt
+
+	/* Preload sscratch with user's stack pointer */
+	ld	t0, 8(sp)
+	csrw	sscratch, t0
+
+	j	return_to_user
 
 .globl _cpu_halt
 _cpu_halt:
