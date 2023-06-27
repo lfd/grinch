@@ -72,11 +72,17 @@ static int handle_syscall(struct registers *regs)
 void arch_handle_trap(struct registers *regs)
 {
 	const char *cause_str = "UNKNOWN";
-	unsigned long cause;
+	unsigned long cause, status;
 	int err = -1;
 
 	regs->sepc = csr_read(sepc);
 	cause = csr_read(scause);
+	status = csr_read(sstatus);
+
+	if (status & SR_SPP) {
+		printk("FATAL: Trap taken from Supervisor mode\n");
+		goto out;
+	}
 
 	if (is_irq(cause)) {
 		err = handle_irq(to_irq(cause));
@@ -117,7 +123,7 @@ out:
 		else if (is_irq(cause))
 			cause_str = "IRQ";
 
-		pr("FATAL Exception on CPU %lu. Cause: %lu (%s)\n",
+		pr("FATAL: Exception on CPU %lu. Cause: %lu (%s)\n",
 		   this_cpu_id(), to_irq(cause), cause_str);
 		dump_regs(regs);
 		panic_stop();
