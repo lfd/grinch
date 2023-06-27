@@ -11,8 +11,9 @@
  */
 
 #include <asm/csr.h>
+#include <asm/irq.h>
+
 #include <grinch/errno.h>
-#include <grinch/irq.h>
 #include <grinch/printk.h>
 #include <grinch/sbi.h>
 

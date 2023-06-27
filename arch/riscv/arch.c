@@ -12,13 +12,14 @@
 
 #define dbg_fmt(x)	"arch: " x
 
+#include <asm/irq.h>
+
 #include <grinch/arch.h>
 #include <grinch/errno.h>
 #include <grinch/fdt.h>
 #include <grinch/paging.h>
 #include <grinch/sbi.h>
 #include <grinch/serial.h>
-#include <grinch/irq.h>
 #include <grinch/irqchip.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>

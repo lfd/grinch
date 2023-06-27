@@ -11,8 +11,8 @@
  */
 
 #include <asm/cpu.h>
+#include <asm/irq.h>
 
-#include <grinch/irq.h>
 #include <grinch/irqchip.h>
 #include <grinch/paging.h>
 #include <grinch/panic.h>

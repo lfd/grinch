@@ -12,9 +12,10 @@
 
 #define dbg_fmt(x)	"smp: " x
 
+#include <asm/irq.h>
+
 #include <grinch/bitmap.h>
 #include <grinch/errno.h>
-#include <grinch/irq.h>
 #include <grinch/fdt.h>
 #include <grinch/kmm.h>
 #include <grinch/percpu.h>

@@ -12,6 +12,8 @@
 
 #define dbg_fmt(x)	"main: " x
 
+#include <asm/irq.h>
+
 #include <grinch/alloc.h>
 #include <grinch/arch.h>
 #include <grinch/boot.h>
@@ -127,6 +129,8 @@ static void memtest(void)
 int cmain(unsigned long boot_cpu, paddr_t __fdt)
 {
 	int err;
+
+	irq_disable();
 
 	puts(logo);
 	err = kmm_init();
