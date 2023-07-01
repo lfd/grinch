@@ -10,12 +10,10 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <stdio.h>
+#ifndef _STDDEF_H
+#define _STDDEF_H
 
-int main(void);
+typedef unsigned long size_t;
+typedef signed long ssize_t;
 
-int main(void)
-{
-	puts("Hello, world from userspace!\n");
-	return 0;
-}
+#endif /* _STDDEF_H */

@@ -11,11 +11,14 @@
  */
 
 #include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 
-int main(void);
-
-int main(void)
+int puts(const char *s)
 {
-	puts("Hello, world from userspace!\n");
-	return 0;
+	ssize_t ret;
+
+	ret = write(stdout, s, strlen(s));
+
+	return ret;
 }

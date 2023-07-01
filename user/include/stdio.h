@@ -10,12 +10,11 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <stdio.h>
+#ifndef _STDIO_H
+#define _STDIO_H
 
-int main(void);
+#define stdout	1
 
-int main(void)
-{
-	puts("Hello, world from userspace!\n");
-	return 0;
-}
+int puts(const char *s);
+
+#endif /* _STDIO_H */

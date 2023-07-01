@@ -13,6 +13,8 @@
 #ifndef _SYSCALL_H
 #define _SYSCALL_H
 
+#include <grinch/syscall_common.h>
+
 unsigned long syscall(unsigned long no, unsigned long arg0,
 		      unsigned long arg1, unsigned long arg2,
 		      unsigned long arg3, unsigned long arg4,

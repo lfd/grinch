@@ -10,12 +10,11 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <stdio.h>
+#ifndef _UNISTD_H
+#define _UNISTD_H
 
-int main(void);
+#include <stddef.h>
 
-int main(void)
-{
-	puts("Hello, world from userspace!\n");
-	return 0;
-}
+ssize_t write(int fd, const void *buf, size_t count);
+
+#endif /* _UNISTD_H */

@@ -1,4 +1,4 @@
-INCLUDES_USER = -Iuser/include
+INCLUDES_USER = -Iuser/include -Iinclude_common
 
 CFLAGS_USER = $(CFLAGS_COMMON) $(CFLAGS_ARCH) $(INCLUDES_USER)
 
@@ -21,10 +21,16 @@ ifdef V
 	$(SZ) --format=SysV -x $@
 endif
 
-user/built-in.a: user/lib/$(ARCH)/entry.o user/lib/$(ARCH)/syscall.o user/main.o
+LIBC = user/lib/stdio.o user/lib/string.o user/lib/unistd.o
+LIBC += user/lib/$(ARCH)/entry.o user/lib/$(ARCH)/syscall.o
+
+user/lib/built-in.a: $(LIBC)
+
+user/built-in.a: user/lib/built-in.a user/main.o
 
 user/user.bin: user/user.elf
 
 clean_user:
 	rm -rf user/*.{elf,o,a,bin}
-	rm -rf user/lib/$(ARCH)/*.o
+	rm -rf user/lib/*.{o,a}
+	rm -rf user/lib/$(ARCH)/*.{o,a}

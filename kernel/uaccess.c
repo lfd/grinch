@@ -63,9 +63,7 @@ unsigned long copy_from_user(struct mm *mm, void *to, const void *from,
 	void *direct;
 	size_t written;
 	unsigned long sum;
-
 	unsigned int remaining_in_page;
-	// FIXME: Check user pointers and len for validity!
 
 	sum = 0;
 	while (n) {

@@ -10,12 +10,15 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <stdio.h>
+#include <unistd.h>
+#include <syscall.h>
 
-int main(void);
-
-int main(void)
+ssize_t write(int fd, const void *buf, size_t count)
 {
-	puts("Hello, world from userspace!\n");
-	return 0;
+	unsigned long ret;
+
+	ret = syscall(SYS_write, (unsigned long)fd, (unsigned long)buf,
+		      (unsigned long)count, 0, 0, 0);
+
+	return (ssize_t)ret;
 }
