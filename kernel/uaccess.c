@@ -57,6 +57,41 @@ void umemset(struct mm *mm, void *s, int c, size_t n)
 	}
 }
 
+unsigned long copy_from_user(struct mm *mm, void *to, const void *from,
+			     unsigned long n)
+{
+	void *direct;
+	size_t written;
+	unsigned long sum;
+
+	unsigned int remaining_in_page;
+	// FIXME: Check user pointers and len for validity!
+
+	sum = 0;
+	while (n) {
+		direct = user_to_virt(mm, from);
+		if (!direct)
+			panic("Invalid user address: %p\n", from);
+
+		remaining_in_page = PAGE_SIZE - ((uintptr_t)direct & PAGE_OFFS_MASK);
+
+		if (n > remaining_in_page) {
+			memcpy(to, direct, remaining_in_page);
+			written = remaining_in_page;
+		} else {
+			memcpy(to, direct, n);
+			written = n;
+		}
+
+		n -= written;
+		to += written;
+		from += written;
+		sum += written;
+	}
+
+	return sum;
+}
+
 void copy_to_user(struct mm *mm, void *d, const void *s, size_t n)
 {
 	void *direct;
