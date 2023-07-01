@@ -9,6 +9,7 @@ include loader.mk
 QEMU_ARGS_COMMON=-monitor telnet:127.0.0.1:11111,server,nowait
 
 INCLUDES_KERNEL=-Iinclude/ \
+		-Iinclude_common \
                 -Ilib/libfdt/ \
                 -Iarch/$(ARCH)/include/ \
                 -DGRINCH_VER=$(GRINCH_VER)
