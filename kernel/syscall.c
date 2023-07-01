@@ -14,13 +14,36 @@
 
 #include <grinch/errno.h>
 #include <grinch/syscall.h>
+#include <grinch/syscall_common.h>
 #include <grinch/printk.h>
+#include <grinch/percpu.h>
+#include <grinch/task.h>
+#include <grinch/uaccess.h>
 
-static void putc(char c)
+static unsigned long sys_write(int fd, const char *buf, size_t count)
 {
-	char tmp[2] = {c, 0};
+#define BLEN	63
 
-	puts(tmp);
+	char tmp[BLEN + 1];
+	unsigned long sz;
+	int err;
+
+	if (fd != 1)
+		return -ENOENT;
+
+	while (count) {
+		sz = count < BLEN ? count : BLEN;
+		err = copy_from_user(&current_task()->mm, tmp, buf, sz);
+		if (err < 0)
+			return err;
+		tmp[sz] = 0;
+		printk("%s", tmp);
+
+		count -= err;
+		buf += err;
+	}
+
+	return 0;
 }
 
 int syscall(unsigned long no, unsigned long arg1,
@@ -28,12 +51,15 @@ int syscall(unsigned long no, unsigned long arg1,
 	    unsigned long arg4, unsigned long arg5,
 	    unsigned long arg6, unsigned long *ret)
 {
-	if (no == 0) {
-		putc(arg1);
-		*ret = 0;
-		return 0;
+	switch (no) {
+		case SYS_write:
+			*ret = sys_write(arg1, (const char *)arg2, arg3);
+			break;
+
+		default:
+			*ret = -ENOSYS;
+			return -ENOSYS;
 	}
 
-	*ret = -ENOSYS;
-	return -ENOSYS;
+	return 0;
 }
