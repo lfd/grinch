@@ -17,7 +17,22 @@ int main(void);
 
 int main(void)
 {
+	const char *txt;
+	pid_t p;
+
 	puts("Hello, world from userspace!\n");
 	printf("My PID: %u\n", getpid());
+
+	p = fork();
+	if (p == -1) {
+		printf("Error forking\n");
+		return -1;
+	}
+
+	txt = p == 0 ? "child" : "parent";
+	for (;;) {
+		printf("Hello from %s, PID %u\n", txt, getpid());
+	}
+
 	return 0;
 }

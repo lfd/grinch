@@ -13,6 +13,18 @@
 #include <unistd.h>
 #include <syscall.h>
 
+pid_t fork(void)
+{
+	pid_t ret;
+
+	ret = syscall_0(SYS_fork);
+	if (ret < 0)
+		ret = -1;
+	/* TODO: Set errno */
+
+	return ret;
+}
+
 pid_t getpid(void)
 {
 	pid_t ret;

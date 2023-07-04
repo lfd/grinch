@@ -15,5 +15,6 @@
 
 #define SYS_write	1
 #define SYS_getpid	39
+#define SYS_fork	57
 
 #endif /* _SYSCALL_COMMON_H */

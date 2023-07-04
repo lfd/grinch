@@ -62,7 +62,7 @@ int syscall(unsigned long no, unsigned long arg1,
 
 		default:
 			*ret = -ENOSYS;
-			return -ENOSYS;
+			break;
 	}
 
 	return 0;
