@@ -11,11 +11,13 @@
  */
 
 #include <stdio.h>
+#include <unistd.h>
 
 int main(void);
 
 int main(void)
 {
 	puts("Hello, world from userspace!\n");
+	printf("My PID: %u\n", getpid());
 	return 0;
 }

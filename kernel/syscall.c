@@ -56,6 +56,10 @@ int syscall(unsigned long no, unsigned long arg1,
 			*ret = sys_write(arg1, (const char *)arg2, arg3);
 			break;
 
+		case SYS_getpid:
+			*ret = current_task()->pid;
+			break;
+
 		default:
 			*ret = -ENOSYS;
 			return -ENOSYS;
