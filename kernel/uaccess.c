@@ -19,7 +19,7 @@
 #include <grinch/uaccess.h>
 #include <grinch/pmm.h>
 
-static void *user_to_virt(struct mm *mm, const void *s)
+void *user_to_direct(struct mm *mm, const void *s)
 {
 	paddr_t pa;
 
@@ -38,7 +38,7 @@ void umemset(struct mm *mm, void *s, int c, size_t n)
 	unsigned int remaining_in_page;
 
 	while (n) {
-		direct = user_to_virt(mm, s);
+		direct = user_to_direct(mm, s);
 		if (!direct)
 			panic("Invalid user address: %p\n", s);
 
@@ -67,7 +67,7 @@ unsigned long copy_from_user(struct mm *mm, void *to, const void *from,
 
 	sum = 0;
 	while (n) {
-		direct = user_to_virt(mm, from);
+		direct = user_to_direct(mm, from);
 		if (!direct)
 			panic("Invalid user address: %p\n", from);
 
@@ -98,7 +98,7 @@ void copy_to_user(struct mm *mm, void *d, const void *s, size_t n)
 	unsigned int remaining_in_page;
 
 	while (n) {
-		direct = user_to_virt(mm, d);
+		direct = user_to_direct(mm, d);
 		if (!direct)
 			panic("Invalid user address: %p\n", s);
 
