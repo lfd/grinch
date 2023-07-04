@@ -12,6 +12,7 @@
 
 #define dbg_fmt(x)	"task: " x
 
+#include <asm/spinlock.h>
 #include <asm_generic/grinch_layout.h>
 
 #include <grinch/errno.h>
@@ -27,6 +28,10 @@
 #ifdef ARCH_RISCV
 #define ELF_ARCH EM_RISCV
 #endif
+
+static LIST_HEAD(task_list);
+static DEFINE_SPINLOCK(task_lock);
+static pid_t next_pid = 1;
 
 static int task_load_elf(struct task *task, Elf64_Ehdr *ehdr)
 {
@@ -111,10 +116,57 @@ struct task *task_from_elf(void *elf)
 	if (err)
 		goto destroy_out;
 
+	spin_lock(&task_lock);
+	task->pid = next_pid++;
+	spin_unlock(&task_lock);
+
 	return task;
 
 destroy_out:
 	task_destroy(task);
 	kfree(task);
 	return ERR_PTR(err);
+}
+
+void task_activate(struct task *task)
+{
+	struct per_cpu *tpcpu;
+
+	tpcpu = this_per_cpu();
+	if (tpcpu->current_task && tpcpu->current_task->state == RUNNING) {
+		tpcpu->current_task->state = SUSPENDED;
+	}
+
+	tpcpu->current_task = task;
+	task->state = RUNNING;
+
+	arch_task_activate(task);
+}
+
+void sched_enqueue(struct task *task)
+{
+	spin_lock(&task_lock);
+	list_add(&task->tasks, &task_list);
+	spin_unlock(&task_lock);
+}
+
+void schedule(void)
+{
+	struct list_head *pos;
+	struct task *task;
+	struct per_cpu *tpcpu;
+
+	tpcpu = this_per_cpu();
+	spin_lock(&task_lock);
+	list_for_each(pos, &task_list) {
+		task = list_entry(pos, struct task, tasks);
+		if (task == tpcpu->current_task)
+			continue;
+
+		if (task->state == SUSPENDED) {
+			task_activate(task);
+			break;
+		}
+	}
+	spin_unlock(&task_lock);
 }

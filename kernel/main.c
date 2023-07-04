@@ -162,9 +162,8 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 		goto out;
 	}
 
-	/* This should later be done by the scheduler */
-	this_per_cpu()->current_task = task;
-	task_activate();
+	sched_enqueue(task);
+	schedule();
 
 out:
 	pr("End reached: %d\n", err);

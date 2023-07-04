@@ -23,15 +23,11 @@ void task_set_context(struct task *task, unsigned long pc, unsigned long sp)
 	task->regs.sp = sp;
 }
 
-void task_activate(void)
+void arch_task_activate(struct task *task)
 {
 	struct per_cpu *tpcpu;
-	struct task *task;
 
 	tpcpu = this_per_cpu();
-
-	task = tpcpu->current_task;
-
 	memcpy(tpcpu->root_table_page, task->mm.page_table, PAGE_SIZE / 2);
 	/* Let's make our life easy */
 	flush_tlb_all();
