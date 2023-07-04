@@ -10,12 +10,11 @@
  * the COPYING file in the top-level directory.
  */
 
-#ifndef _SYSCALL_COMMON_H
-#define _SYSCALL_COMMON_H
+#include <sched.h>
+#include <syscall.h>
 
-#define SYS_write	1
-#define SYS_sched_yield	24
-#define SYS_getpid	39
-#define SYS_fork	57
-
-#endif /* _SYSCALL_COMMON_H */
+int sched_yield(void)
+{
+	syscall_0(SYS_sched_yield);
+	return 0;
+}

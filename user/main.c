@@ -10,6 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <sched.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -32,6 +33,7 @@ int main(void)
 	txt = p == 0 ? "child" : "parent";
 	for (;;) {
 		printf("Hello from %s, PID %u\n", txt, getpid());
+		sched_yield();
 	}
 
 	return 0;

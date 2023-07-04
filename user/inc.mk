@@ -21,7 +21,7 @@ ifdef V
 	$(SZ) --format=SysV -x $@
 endif
 
-LIBC = user/lib/stdio.o user/lib/string.o user/lib/unistd.o
+LIBC = user/lib/stdio.o user/lib/string.o user/lib/unistd.o user/lib/sched.o
 LIBC += user/lib/$(ARCH)/entry.o user/lib/$(ARCH)/syscall.o
 
 user/lib/built-in.a: $(LIBC)
