@@ -13,8 +13,11 @@
 #ifndef _STDIO_H
 #define _STDIO_H
 
+#include <grinch/compiler_attributes.h>
+
 #define stdout	1
 
 int puts(const char *s);
+void __printf(1, 2) printf(const char *fmt, ...);
 
 #endif /* _STDIO_H */
