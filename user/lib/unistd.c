@@ -17,8 +17,8 @@ ssize_t write(int fd, const void *buf, size_t count)
 {
 	unsigned long ret;
 
-	ret = syscall(SYS_write, (unsigned long)fd, (unsigned long)buf,
-		      (unsigned long)count, 0, 0, 0);
+	ret = syscall_3(SYS_write, (unsigned long)fd, (unsigned long)buf,
+		      (unsigned long)count);
 
 	return (ssize_t)ret;
 }
