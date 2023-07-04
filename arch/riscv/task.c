@@ -23,6 +23,16 @@ void task_set_context(struct task *task, unsigned long pc, unsigned long sp)
 	task->regs.sp = sp;
 }
 
+void arch_task_restore(void)
+{
+	struct task *task = current_task();
+
+	this_per_cpu()->stack.regs = task->regs;
+
+	csr_write(sepc, task->regs.sepc);
+	csr_write(sscratch, task->regs.sp);
+}
+
 void arch_task_activate(struct task *task)
 {
 	struct per_cpu *tpcpu;
@@ -31,9 +41,4 @@ void arch_task_activate(struct task *task)
 	memcpy(tpcpu->root_table_page, task->mm.page_table, PAGE_SIZE / 2);
 	/* Let's make our life easy */
 	flush_tlb_all();
-
-	csr_write(sepc, task->regs.sepc);
-	csr_write(sscratch, task->regs.sp);
-
-	memcpy(&tpcpu->stack.regs, &task->regs, sizeof(task->regs));
 }

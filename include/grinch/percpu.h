@@ -43,6 +43,7 @@ struct per_cpu {
 	ARCH_PER_CPU_FIELDS
 
 	int cpuid;
+	bool schedule;
 	struct task *current_task;
 } __attribute__((aligned(PAGE_SIZE)));
 

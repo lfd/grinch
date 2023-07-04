@@ -60,6 +60,15 @@ int syscall(unsigned long no, unsigned long arg1,
 			*ret = current_task()->pid;
 			break;
 
+		case SYS_fork:
+			*ret = do_fork();
+			break;
+
+		case SYS_sched_yield:
+			this_per_cpu()->schedule = true;
+			*ret = 0;
+			break;
+
 		default:
 			*ret = -ENOSYS;
 			break;

@@ -21,6 +21,7 @@
 #include <grinch/sbi.h>
 #include <grinch/symbols.h>
 #include <grinch/syscall.h>
+#include <grinch/task.h>
 
 void arch_handle_trap(struct registers *regs);
 
@@ -84,6 +85,9 @@ void arch_handle_trap(struct registers *regs)
 	if (status & SR_SPP) {
 		printk("FATAL: Trap taken from Supervisor mode\n");
 		goto out;
+	} else {
+		/* Save task context */
+		current_task()->regs = *regs;
 	}
 
 	if (is_irq(cause)) {
@@ -133,5 +137,7 @@ out:
 		panic_stop();
 	}
 
-	csr_write(sepc, regs->sepc);
+	if (this_per_cpu()->schedule)
+		schedule();
+	arch_task_restore();
 }

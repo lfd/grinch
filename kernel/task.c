@@ -93,7 +93,18 @@ static void task_destroy(struct task *task)
 		kfree(task->mm.page_table);
 }
 
-struct task *task_from_elf(void *elf)
+static inline pid_t get_new_pid(void)
+{
+	pid_t ret;
+
+	spin_lock(&task_lock);
+	ret = next_pid++;
+	spin_unlock(&task_lock);
+
+	return ret;
+}
+
+static struct task *task_alloc_new(void)
 {
 	struct task *task;
 	int err;
@@ -105,20 +116,34 @@ struct task *task_from_elf(void *elf)
 	task->mm.page_table = kzalloc(PAGE_SIZE);
 	if (!task->mm.page_table) {
 		err = -ENOMEM;
-		goto destroy_out;
+		goto free_out;
 	}
 
 	INIT_LIST_HEAD(&task->mm.vmas);
-
 	memset(&task->regs, 0, sizeof(task->regs));
+	task->pid = get_new_pid();
+	task->state = SUSPENDED;
+
+	return task;
+
+free_out:
+	kfree(task);
+	return ERR_PTR(err);
+}
+
+struct task *task_from_elf(void *elf)
+{
+	struct task *task;
+	int err;
+
+	task = task_alloc_new();
+	if (IS_ERR(task))
+		return task;
 
 	err = task_load_elf(task, elf);
 	if (err)
 		goto destroy_out;
 
-	spin_lock(&task_lock);
-	task->pid = next_pid++;
-	spin_unlock(&task_lock);
 
 	return task;
 
@@ -158,6 +183,7 @@ void schedule(void)
 
 	tpcpu = this_per_cpu();
 	spin_lock(&task_lock);
+	tpcpu->schedule = false;
 	list_for_each(pos, &task_list) {
 		task = list_entry(pos, struct task, tasks);
 		if (task == tpcpu->current_task)
@@ -169,4 +195,36 @@ void schedule(void)
 		}
 	}
 	spin_unlock(&task_lock);
+}
+
+int do_fork(void)
+{
+	struct task *this, *new;
+	struct list_head *pos;
+	struct vma *vma;
+	int err;
+
+	this = current_task();
+	new = task_alloc_new();
+	if (IS_ERR(new))
+		return PTR_ERR(new);
+
+	new->regs = this->regs;
+	new->regs.a0 = 0;
+
+	list_for_each(pos, &this->mm.vmas) {
+		vma = list_entry(pos, struct vma, vmas);
+		err = uvma_duplicate(new, this, vma);
+		if (err)
+			goto destroy_out;
+	}
+
+	sched_enqueue(new);
+
+	return new->pid;
+
+destroy_out:
+	task_destroy(new);
+	kfree(new);
+	return err;
 }

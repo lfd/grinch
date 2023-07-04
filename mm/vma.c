@@ -170,3 +170,21 @@ struct vma *uvma_create(struct task *task, void *base, size_t size, unsigned int
 
 	return vma;
 }
+
+int uvma_duplicate(struct task *dst, struct task *src, struct vma *vma)
+{
+	struct vma *new;
+
+	void *psrc, *pdst;
+
+	new = uvma_create(dst, vma->base, vma->size, vma->flags);
+	if (IS_ERR(new))
+		return PTR_ERR(new);
+
+	psrc = user_to_direct(&src->mm, vma->base);
+	pdst = user_to_direct(&dst->mm, new->base);
+
+	memcpy(pdst, psrc, vma->size);
+
+	return 0;
+}

@@ -164,6 +164,7 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 
 	sched_enqueue(task);
 	schedule();
+	arch_task_restore();
 
 out:
 	pr("End reached: %d\n", err);

@@ -41,9 +41,12 @@ struct task *task_from_elf(void *elf);
 
 void task_activate(struct task *task);
 void arch_task_activate(struct task *task);
+void arch_task_restore(void);
 void task_set_context(struct task *task, unsigned long pc, unsigned long sp);
 
 void schedule(void);
 void sched_enqueue(struct task *task);
+
+int do_fork(void);
 
 #endif /* _TASK_H */
