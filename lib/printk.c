@@ -26,7 +26,8 @@
 
 #include <asm/spinlock.h>
 
-#include <grinch/stdarg.h>
+#include <stdarg.h>
+
 #include <grinch/string.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
