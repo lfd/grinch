@@ -210,7 +210,7 @@ int do_fork(void)
 		return PTR_ERR(new);
 
 	new->regs = this->regs;
-	new->regs.a0 = 0;
+	regs_set_retval(&new->regs, 0);
 
 	list_for_each(pos, &this->mm.vmas) {
 		vma = list_entry(pos, struct vma, vmas);

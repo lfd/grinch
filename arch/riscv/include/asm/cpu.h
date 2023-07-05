@@ -53,6 +53,11 @@ struct registers {
 	unsigned long sepc;
 } __attribute__((packed));
 
+static inline void regs_set_retval(struct registers *r, unsigned long val)
+{
+	r->a0 = val;
+}
+
 static inline void cpu_relax(void)
 {
 	asm volatile ("" : : : "memory");
