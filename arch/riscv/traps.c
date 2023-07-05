@@ -52,19 +52,21 @@ int handle_irq(u64 irq)
 	return err;
 }
 
-static int handle_syscall(struct registers *regs)
+static int handle_syscall(void)
 {
+	struct registers *regs;
 	unsigned long ret;
 	int err;
+
+	/* we had an ecall, so skip 4b of instructions */
+	regs = &current_task()->regs;
+	regs->sepc += 4;
 
 	err = syscall(regs->a7, regs->a0, regs->a1, regs->a2,
 		      regs->a3, regs->a4, regs->a5, &ret);
 
-	if (!err) {
-		/* we had an ecall, so skip 4b of instructions */
-		regs->sepc += 4;
+	if (!err)
 		regs->a0 = ret;
-	}
 
 	return err;
 }
@@ -103,7 +105,7 @@ void arch_handle_trap(struct registers *regs)
 			break;
 
 		case EXC_SYSCALL:
-			err = handle_syscall(regs);
+			err = handle_syscall();
 			break;
 
 		case EXC_BREAKPOINT:
