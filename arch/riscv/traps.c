@@ -125,6 +125,8 @@ out:
 
 		pr("FATAL: Exception on CPU %lu. Cause: %lu (%s)\n",
 		   this_cpu_id(), to_irq(cause), cause_str);
+		if (!(status & SR_SPP))
+			pr("PID: %u\n", current_task()->pid);
 		dump_regs(regs);
 		panic_stop();
 	}
