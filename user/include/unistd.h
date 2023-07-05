@@ -14,9 +14,11 @@
 #define _UNISTD_H
 
 #include <stddef.h>
+#include <grinch/compiler_attributes.h>
 
 typedef int pid_t;
 
+void __noreturn exit(int status);
 ssize_t write(int fd, const void *buf, size_t count);
 pid_t getpid(void);
 pid_t fork(void);

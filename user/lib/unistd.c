@@ -13,6 +13,13 @@
 #include <unistd.h>
 #include <syscall.h>
 
+void __noreturn exit(int status)
+{
+	syscall_1(SYS_exit, status);
+	for (;;);
+	__builtin_unreachable();
+}
+
 pid_t fork(void)
 {
 	pid_t ret;

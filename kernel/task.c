@@ -85,7 +85,7 @@ static int task_load_elf(struct task *task, Elf64_Ehdr *ehdr)
 	return 0;
 }
 
-static void task_destroy(struct task *task)
+void task_destroy(struct task *task)
 {
 	uvmas_destroy(task);
 
@@ -168,6 +168,13 @@ void task_activate(struct task *task)
 	arch_task_activate(task);
 }
 
+void sched_dequeue(struct task *task)
+{
+	spin_lock(&task_lock);
+	list_del(&task->tasks);
+	spin_unlock(&task_lock);
+}
+
 void sched_enqueue(struct task *task)
 {
 	spin_lock(&task_lock);
@@ -191,9 +198,12 @@ void schedule(void)
 
 		if (task->state == SUSPENDED) {
 			task_activate(task);
-			break;
+			goto out;
 		}
 	}
+	if (list_empty(&task_list))
+		panic("Nothing to schedule!\n");
+out:
 	spin_unlock(&task_lock);
 }
 

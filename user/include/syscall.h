@@ -17,6 +17,7 @@
 #include <arch/syscall.h>
 
 #define syscall_0(no)			syscall((no), 0, 0, 0, 0, 0, 0)
+#define syscall_1(no, arg1)		syscall((no), arg1, 0, 0, 0, 0, 0)
 #define syscall_3(no, arg1, arg2, arg3)	syscall((no), arg1, arg2, arg3, 0, 0, 0)
 
 #endif /* _SYSCALL_H */

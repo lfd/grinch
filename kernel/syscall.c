@@ -46,33 +46,54 @@ static unsigned long sys_write(int fd, const char *buf, size_t count)
 	return 0;
 }
 
+static void exit(int code)
+{
+	struct task *task;
+
+	task = current_task();
+
+	pr("PID %u exited: %d\n", task->pid, code);
+	schedule();
+	sched_dequeue(task);
+	task_destroy(task);
+}
+
 int syscall(unsigned long no, unsigned long arg1,
 	    unsigned long arg2, unsigned long arg3,
 	    unsigned long arg4, unsigned long arg5,
-	    unsigned long arg6, unsigned long *ret)
+	    unsigned long arg6)
 {
+	unsigned long ret;
+
 	switch (no) {
 		case SYS_write:
-			*ret = sys_write(arg1, (const char *)arg2, arg3);
+			ret = sys_write(arg1, (const char *)arg2, arg3);
 			break;
 
 		case SYS_getpid:
-			*ret = current_task()->pid;
+			ret = current_task()->pid;
 			break;
 
 		case SYS_fork:
-			*ret = do_fork();
+			ret = do_fork();
 			break;
 
 		case SYS_sched_yield:
 			this_per_cpu()->schedule = true;
-			*ret = 0;
+			ret = 0;
+			break;
+
+		case SYS_exit:
+			exit(arg1);
 			break;
 
 		default:
-			*ret = -ENOSYS;
+			ret = -ENOSYS;
 			break;
 	}
+
+	if (no != SYS_exit)
+		regs_set_retval(&current_task()->regs, ret);
 
 	return 0;
 }

@@ -56,7 +56,6 @@ int handle_irq(u64 irq)
 static int handle_syscall(void)
 {
 	struct registers *regs;
-	unsigned long ret;
 	int err;
 
 	/* we had an ecall, so skip 4b of instructions */
@@ -64,10 +63,7 @@ static int handle_syscall(void)
 	regs->sepc += 4;
 
 	err = syscall(regs->a7, regs->a0, regs->a1, regs->a2,
-		      regs->a3, regs->a4, regs->a5, &ret);
-
-	if (!err)
-		regs->a0 = ret;
+		      regs->a3, regs->a4, regs->a5);
 
 	return err;
 }
