@@ -44,6 +44,10 @@ struct per_cpu {
 
 	int cpuid;
 	bool schedule;
+
+	/* indicates if the CPU is online */
+	bool online;
+
 	struct task *current_task;
 } __attribute__((aligned(PAGE_SIZE)));
 

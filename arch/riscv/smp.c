@@ -40,14 +40,7 @@ void secondary_cmain(void);
 
 void secondary_cmain(void)
 {
-#if 0
 	int err;
-	paddr_t sscratch;
-
-	pr("Hello world from CPU %lu\n", this_cpu_id());
-
-	sscratch = (paddr_t)&this_per_cpu()->exception + STACK_SIZE;
-	csr_write(sscratch, sscratch);
 
 	irq_disable();
 	ext_disable();
@@ -60,12 +53,13 @@ void secondary_cmain(void)
 	if (err)
 		goto out;
 
+	pr("Hello world from CPU %lu\n", this_cpu_id());
+
+	this_per_cpu()->online = true;
+
 out:
 	if (err)
 		pr("Unable to bring up CPU %lu\n", this_cpu_id());
-#else
-	while(1);
-#endif
 }
 
 static unsigned int next_cpu(unsigned int cpu, unsigned long *bitmap,
@@ -117,7 +111,7 @@ static int boot_cpu(unsigned long hart_id)
 	/* The page table must contain a boot trampoline */
 	paddr = kmm_v2p(__load_addr);
 	map_range(pcpu->root_table_page, (void*)paddr, paddr, GRINCH_SIZE,
-		  GRINCH_MEM_DEFAULT);
+		  GRINCH_MEM_RX);
 
 	paddr = kmm_v2p(secondary_start);
 
@@ -137,13 +131,17 @@ static int boot_cpu(unsigned long hart_id)
 
 int smp_init(void)
 {
-	unsigned long hart_id;
+	unsigned long cpu;
 	int err;
 
-	for_each_cpu_except(hart_id, available_harts, this_cpu_id()) {
-		err = boot_cpu(hart_id);
+	for_each_cpu_except(cpu, available_harts, this_cpu_id()) {
+		err = boot_cpu(cpu);
 		if (err)
 			return err;
+
+		while (!per_cpu(cpu)->online)
+			cpu_relax();
+		pr("CPU %lu online!\n", cpu);
 	}
 
 	return err;

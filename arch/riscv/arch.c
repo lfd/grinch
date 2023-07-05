@@ -73,12 +73,10 @@ int arch_init(paddr_t __fdt)
 	ps("Switched over from SBI to UART\n");
 
 	/* Boot secondary CPUs */
-#if 0
 	ps("Booting secondary CPUs\n");
 	err = smp_init();
 	if (err)
 		goto out;
-#endif
 
 	ps("Enabling IRQs\n");
 	irq_enable();
