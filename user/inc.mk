@@ -1,4 +1,4 @@
-INCLUDES_USER = -Iuser/include -Iinclude_common
+INCLUDES_USER = -Iuser/include -Iinclude_common -Iuser/lib/$(ARCH)/include
 
 CFLAGS_USER = $(CFLAGS_COMMON) $(CFLAGS_ARCH) $(INCLUDES_USER)
 
@@ -22,7 +22,7 @@ ifdef V
 endif
 
 LIBC = user/lib/stdio.o user/lib/string.o user/lib/unistd.o user/lib/sched.o
-LIBC += user/lib/$(ARCH)/entry.o user/lib/$(ARCH)/syscall.o
+LIBC += user/lib/$(ARCH)/entry.o
 
 user/lib/built-in.a: $(LIBC)
 

@@ -10,7 +10,8 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <syscall.h>
+#ifndef _ARCH_SYSCALL_H
+#define _ARCH_SYSCALL_H
 
 struct sbiret {
 	long error;
@@ -42,6 +43,7 @@ static inline struct sbiret sbi_ecall(int ext, unsigned long arg0,
 	return ret;
 }
 
+static inline
 unsigned long syscall(unsigned long no, unsigned long arg0,
 		      unsigned long arg1, unsigned long arg2,
 		      unsigned long arg3, unsigned long arg4,
@@ -53,3 +55,5 @@ unsigned long syscall(unsigned long no, unsigned long arg0,
 
 	return ret.error;
 }
+
+#endif /* _ARCH_SYSCALL_H */
