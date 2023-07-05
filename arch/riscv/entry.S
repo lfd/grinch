@@ -84,10 +84,6 @@ start:
 	jal	cmain
 	bne	a0, zero, _cpu_halt
 
-	/* Preload sscratch with user's stack pointer */
-	ld	t0, 8(sp)
-	csrw	sscratch, t0
-
 	j	return_to_user
 
 .globl _cpu_halt

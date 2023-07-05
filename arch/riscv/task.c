@@ -33,6 +33,7 @@ void arch_task_activate(struct task *task)
 	flush_tlb_all();
 
 	csr_write(sepc, task->regs.sepc);
+	csr_write(sscratch, task->regs.sp);
 
 	memcpy(&tpcpu->stack.regs, &task->regs, sizeof(task->regs));
 }
