@@ -15,9 +15,13 @@
 #ifndef _RWONCE_H
 #define _RWONCE_H
 
+#include <grinch/compiler_types.h>
+
 #define WRITE_ONCE(x, val)						\
 do {									\
 	*(volatile typeof(x) *)&(x) = (val);				\
 } while (0)
+
+#define READ_ONCE(x)	(*(const volatile __unqual_scalar_typeof(x) *)&(x))
 
 #endif /* _RWONCE_H */
