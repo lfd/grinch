@@ -125,7 +125,7 @@ out:
 
 void kfree(void *ptr)
 {
-	struct memchunk *m, *before, *after;
+	struct memchunk *m, *before, *after, *tmp;
 
 	/* Do nothing on NULL ptr free */
 	if (ptr == NULL)
@@ -162,6 +162,10 @@ void kfree(void *ptr)
 
 	/* Merge after */
 	if (after && !(after->flags & MEMCHUNK_FLAG_USED)) {
+		tmp = next_chunk(after);
+		if (tmp)
+			tmp->before = m;
+
 		m->size += sizeof(struct memchunk) + after->size;
 		m->flags = after->flags; /* Carries over MEMCHUNK_FLAG_LAST */
 		memset(after, 0, sizeof(struct memchunk));
