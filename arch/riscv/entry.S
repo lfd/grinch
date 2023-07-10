@@ -125,6 +125,6 @@ ___load_addr:
 .section ".text", "ax"
 .globl __user_start
 __user_start:
-.incbin "user/user.elf"
+.incbin "user/apps/init/init.echse"
 .globl __user_end
 __user_end:

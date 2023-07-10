@@ -1,4 +1,5 @@
 *.bin
+*.echse
 *.elf
 *.a
 *.o

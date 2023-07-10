@@ -6,7 +6,7 @@ QEMU_ARGS=-m 128M -smp 2 -serial stdio -nographic -monitor telnet:127.0.0.1:5555
 CFLAGS_ARCH = -mcmodel=medany -march=rv64imafdc -DARCH_RISCV=1
 LDFLAGS_ARCH = -melf64lriscv
 
-arch/riscv/entry.o: user/user.elf
+arch/riscv/entry.o: user/apps/init/init.echse
 
 ARCH_OBJS = entry.o exception.o sbi.o traps.o cpu.o task.o
 ARCH_OBJS += handlers.o smp.o paging.o arch.o irqchip.o

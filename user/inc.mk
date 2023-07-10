@@ -5,7 +5,9 @@ CFLAGS_USER = $(CFLAGS_COMMON) $(CFLAGS_ARCH) $(INCLUDES_USER)
 LIBC_OBJS = user/lib/stdio.o user/lib/string.o user/lib/unistd.o user/lib/sched.o
 LIBC_OBJS += user/lib/$(ARCH)/entry.o
 
-user/lib/built-in.a: $(LIBC_OBJS)
+LIBC_BUILTIN = user/lib/built-in.a
+
+$(LIBC_BUILTIN): $(LIBC_OBJS)
 
 user/%.o: user/%.c
 	$(QUIET) "[CC-U]  $@"
@@ -26,15 +28,11 @@ define ld_user
 	$(VERBOSE) $(LD) $(LDFLAGS_USER) --whole-archive -relocatable -o $@ $<
 endef
 
-user/built-in.a: user/lib/built-in.a user/main.o
+APPS=init
 
-user/user.o: user/built-in.a
-	$(call ld_user)
+include $(patsubst %,%/inc.mk,user/apps/$(APPS))
 
-user/user.elf: user.ld user/user.o
-	$(call ld_app_user)
-
-clean_user:
+clean_user: $(patsubst %,clean_%,$(APPS))
 	rm -rf user/*.{elf,o,a}
 	rm -rf user/lib/*.{o,a}
 	rm -rf user/lib/$(ARCH)/*.{o,a}
