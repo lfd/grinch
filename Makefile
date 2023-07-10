@@ -1,7 +1,7 @@
 ARCH ?= riscv
 
 GRINCH_VER=3.13
-DEBUG_OUTPUT=1
+#DEBUG_OUTPUT=1
 
 all: kernel.bin
 

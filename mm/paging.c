@@ -219,13 +219,8 @@ int unmap_range(page_table_t pt, const void *vaddr, size_t size)
 		.root_table = pt,
 	};
 
-#if 0
-	pr("Unmapping VA: 0x%llx PA: 0x%llx (SZ: 0x%lx)\n",
-	   (u64)vaddr, virt_to_phys(vaddr), size);
-#else
-	pr("Unmapping VA: 0x%llx (SZ: 0x%lx)\n",
+	pd("Unmapping VA: 0x%llx (SZ: 0x%lx)\n",
 	   (u64)vaddr, size);
-#endif
 
 	return paging_destroy(&pg, (unsigned long)vaddr, size, 0);
 }
@@ -239,7 +234,7 @@ int map_range(page_table_t pt, const void *vaddr, paddr_t paddr, size_t size,
 	};
 	unsigned long flags;
 
-	pr("Create mapping VA: 0x%llx PA: 0x%llx (%c%c%c%c%c SZ: 0x%lx)\n",
+	pd("Create mapping VA: 0x%llx PA: 0x%llx (%c%c%c%c%c SZ: 0x%lx)\n",
 	   (u64)vaddr, (u64)paddr,
 	   grinch_flags & GRINCH_MEM_R ? 'R' : '-',
 	   grinch_flags & GRINCH_MEM_W ? 'W' : '-',
