@@ -28,7 +28,7 @@ define ld_user
 	$(VERBOSE) $(LD) $(LDFLAGS_USER) --whole-archive -relocatable -o $(1) $(2)
 endef
 
-APPS=init
+APPS=init hello
 
 include $(patsubst %,user/apps/%/inc.mk,$(APPS))
 
