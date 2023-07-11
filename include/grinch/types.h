@@ -18,6 +18,11 @@
 #define BITS_PER_LONG	64
 #define ARRAY_SIZE(array)	(sizeof(array) / sizeof((array)[0]))
 
+#define INT_MAX		((int)(~0U>>1))
+#define UINT32_MAX	((u32)~0U)
+#define INT32_MAX	((s32)(UINT32_MAX >> 1))
+#define ULLONG_MAX	(~0ULL)
+
 #define MIN(a, b)		((a) <= (b) ? (a) : (b))
 #define __round_mask(x, y)	((__typeof__(x))((y)-1))
 #define round_down(x, y)	((x) & ~__round_mask(x, y))

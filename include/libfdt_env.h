@@ -4,10 +4,6 @@
 #include <grinch/types.h>
 #include <grinch/string.h>
 
-#define INT_MAX		((int)(~0U>>1))
-#define UINT32_MAX	((u32)~0U)
-#define INT32_MAX	((s32)(UINT32_MAX >> 1))
-
 #define fdt32_to_cpu(x) __be32_to_cpu(x)
 #define cpu_to_fdt32(x) __cpu_to_be32(x)
 #define fdt64_to_cpu(x) __be64_to_cpu(x)
