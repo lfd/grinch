@@ -107,7 +107,6 @@ size_t strlen(const char *s)
 	return i;
 }
 
-
 void *memcpy(void *dest, const void *src, size_t n)
 {
 	const u8 *s = src;
@@ -116,4 +115,20 @@ void *memcpy(void *dest, const void *src, size_t n)
 	while (n-- > 0)
 		*d++ = *s++;
 	return dest;
+}
+
+int strncmp(const char *s1, const char *s2, size_t n)
+{
+	int diff;
+
+	while (n-- > 0) {
+		diff = *s1 - *s2;
+		if (diff)
+			return diff;
+		if (*s1 == 0)
+			break;
+		s1++;
+		s2++;
+	}
+	return 0;
 }

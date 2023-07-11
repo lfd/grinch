@@ -25,7 +25,9 @@ void *memmove(void *dst, const void *src, size_t count);
 void *memset(void *s, int c, size_t n);
 void *memchr(const void *s, int c, size_t n);
 int memcmp(const void *dst, const void *src, size_t count);
+
 int strcmp(const char *s1, const char *s2);
+int strncmp(const char *s1, const char *s2, size_t count);
 
 size_t strnlen(const char *s,size_t maxlen);
 size_t strlen(const char *s);
