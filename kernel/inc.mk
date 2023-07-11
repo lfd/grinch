@@ -1,4 +1,4 @@
-KERNEL_OBJS = main.o syscall.o task.o uaccess.o user.o
+KERNEL_OBJS = main.o syscall.o task.o uaccess.o user.o vfs.o
 
 KERNEL_OBJS := $(addprefix kernel/, $(KERNEL_OBJS))
 
