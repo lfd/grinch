@@ -32,6 +32,7 @@
 #include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/serial.h>
+#include <grinch/math64.h>
 
 static DEFINE_SPINLOCK(print_lock);
 
@@ -79,12 +80,6 @@ void puts(const char *msg) {
 	spin_lock(&print_lock);
 	_puts(msg);
 	spin_unlock(&print_lock);
-}
-
-static inline unsigned long long div_u64_u64(unsigned long long dividend,
-					     unsigned long long divisor)
-{
-	return dividend / divisor;
 }
 
 static char *uint2str(unsigned long long value, char *buf)
