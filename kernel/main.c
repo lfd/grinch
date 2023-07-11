@@ -128,8 +128,6 @@ static void memtest(void)
 #undef dbg_fmt
 #define dbg_fmt(x)	"main: " x
 
-extern unsigned char __user_start[], __user_end[];
-
 int cmain(unsigned long boot_cpu, paddr_t __fdt)
 {
 	struct task *task;
@@ -156,7 +154,7 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 	if (0)
 		memtest();
 
-	task = task_from_elf((void *)__user_start);
+	task = task_from_fs("initrd:/init.echse");
 	if (IS_ERR(task)) {
 		err = PTR_ERR(task);
 		goto out;

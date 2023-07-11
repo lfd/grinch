@@ -11,8 +11,8 @@
  */
 
 .section ".text", "ax"
-.globl __user_start
-__user_start:
-.incbin "user/apps/init/init.echse"
-.globl __user_end
-__user_end:
+.globl __initrd_start
+__initrd_start:
+.incbin "user/initrd.cpio"
+.globl __initrd_end
+__initrd_end:

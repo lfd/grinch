@@ -24,6 +24,7 @@
 #include <grinch/percpu.h>
 #include <grinch/alloc.h>
 #include <grinch/uaccess.h>
+#include <grinch/vfs.h>
 
 #ifdef ARCH_RISCV
 #define ELF_ARCH EM_RISCV
@@ -131,7 +132,7 @@ free_out:
 	return ERR_PTR(err);
 }
 
-struct task *task_from_elf(void *elf)
+static struct task *task_from_elf(void *elf)
 {
 	struct task *task;
 	int err;
@@ -151,6 +152,21 @@ destroy_out:
 	task_destroy(task);
 	kfree(task);
 	return ERR_PTR(err);
+}
+
+struct task *task_from_fs(void *pathname)
+{
+	struct task *task;
+	void *elf;
+
+	elf = vfs_read_file(pathname);
+	if (IS_ERR(elf))
+		return elf;
+
+	task = task_from_elf(elf);
+	kfree(elf);
+
+	return task;
 }
 
 void task_activate(struct task *task)

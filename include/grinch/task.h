@@ -37,7 +37,7 @@ struct task {
 	enum task_state state;
 };
 
-struct task *task_from_elf(void *elf);
+struct task *task_from_fs(void *pathname);
 
 void task_activate(struct task *task);
 void arch_task_activate(struct task *task);

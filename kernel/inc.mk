@@ -4,4 +4,4 @@ KERNEL_OBJS := $(addprefix kernel/, $(KERNEL_OBJS))
 
 kernel/built-in.a: $(KERNEL_OBJS)
 
-kernel/user.o: user/apps/init/init.echse
+kernel/user.o: user/initrd.cpio
