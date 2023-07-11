@@ -31,6 +31,8 @@ size_t strnlen(const char *s,size_t maxlen);
 size_t strlen(const char *s);
 char *strrchr(const char *t, int c);
 
+unsigned long int strtoul(const char *cp, char **endptr, unsigned int base);
+
 #endif /* __ASSEMBLY__ */
 
 #endif /* _STRING_H */
