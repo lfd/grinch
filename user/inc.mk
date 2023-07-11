@@ -1,5 +1,6 @@
-INCLUDES_USER = -Iuser/include -Iinclude_common -Iuser/lib/$(ARCH)/include
+APPS=init hello
 
+INCLUDES_USER = -Iuser/include -Iinclude_common -Iuser/lib/$(ARCH)/include
 CFLAGS_USER = $(CFLAGS_COMMON) $(CFLAGS_ARCH) $(INCLUDES_USER)
 
 LIBC_OBJS = user/lib/stdio.o user/lib/string.o user/lib/unistd.o user/lib/sched.o
@@ -28,15 +29,13 @@ define ld_user
 	$(VERBOSE) $(LD) $(LDFLAGS_USER) --whole-archive -relocatable -o $(1) $(2)
 endef
 
-APPS=init hello
-
 include $(patsubst %,user/apps/%/inc.mk,$(APPS))
 
 UC = $(shell echo '$1' | tr '[:lower:]' '[:upper:]')
 
 define define_app
 clean_$(1):
-	rm -rf user/apps/$(1)/*.{o,a,echse}
+	$(RMRF) user/apps/$(1)/*.{o,a,echse}
 
 user/apps/$(1)/built-in.a: $(LIBC_BUILTIN) $($(call UC,$(1))_OBJS)
 
@@ -50,6 +49,17 @@ endef
 $(foreach app,$(APPS),$(eval $(call define_app,$(app))))
 
 clean_user: $(patsubst %,clean_%,$(APPS))
-	rm -rf user/*.{elf,o,a}
-	rm -rf user/lib/*.{o,a}
-	rm -rf user/lib/$(ARCH)/*.{o,a}
+	$(RMRF) user/*.{elf,o,a}
+	$(RMRF) user/lib/*.{o,a}
+	$(RMRF) user/lib/$(ARCH)/*.{o,a}
+	$(RMRF) user/initrd.cpio
+
+define echse_of
+	user/apps/$(1)/$(1).echse
+endef
+
+APP_ECHSES=$(foreach app,$(APPS),$(call echse_of,$(app)))
+
+user/initrd.cpio: $(APP_ECHSES)
+	$(QUIET) "[CPIO]  $@"
+	$(VERBOSE) ./scripts/create_cpio $@ $^

@@ -22,6 +22,6 @@ endif
 kernel.bin: kernel.elf
 
 clean_loader:
-	rm -rf kernel.elf
-	rm -rf $(LOADER_OBJS)
-	rm -rf $(ARCH_LOADER_DIR)/built-in.a $(ARCH_LOADER_DIR)/loader.o
+	$(RMRF) kernel.elf
+	$(RMRF) $(LOADER_OBJS)
+	$(RMRF) $(ARCH_LOADER_DIR)/built-in.a $(ARCH_LOADER_DIR)/loader.o

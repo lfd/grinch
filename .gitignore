@@ -8,5 +8,7 @@
 arch/riscv/asm_defines.S
 arch/riscv/include/asm/asm_defines.h
 
+user/initrd.cpio
+
 .gdbinit
 .gdb_history

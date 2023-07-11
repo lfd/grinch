@@ -13,6 +13,7 @@ AS=$(CROSS_COMPILE)as
 OBJDUMP=$(CROSS_COMPILE)objdump
 OBJCOPY=$(CROSS_COMPILE)objcopy
 SZ=$(CROSS_COMPILE)size
+RMRF=rm -rf
 
 ifdef V
 QUIET := @true
@@ -61,7 +62,7 @@ debug: kernel.bin
 	$(GDB) $^
 
 clean: clean_kernel clean_user
-	rm -rf *.dtb
-	rm -rf *.elf
-	rm -rf *.bin
-	rm -rf *.ld
+	$(RMRF) *.dtb
+	$(RMRF) *.elf
+	$(RMRF) *.bin
+	$(RMRF) *.ld

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -e
+
+output=$(realpath $1)
+shift
+
+tmp=$(mktemp -d)
+
+cp -a $@ $tmp
+
+cd $tmp
+find . -print | cpio -ov -H newc > $output 2>/dev/null
+
+rm -rf $tmp
