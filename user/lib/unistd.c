@@ -50,3 +50,9 @@ ssize_t write(int fd, const void *buf, size_t count)
 
 	return (ssize_t)ret;
 }
+
+int execve(const char *pathname, char *const argv[], char *const envp[])
+{
+	return syscall_3(SYS_execve, (unsigned long)pathname,
+			 (unsigned long)argv, (unsigned long)envp);
+}

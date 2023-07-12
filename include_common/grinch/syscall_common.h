@@ -17,6 +17,7 @@
 #define SYS_sched_yield	24
 #define SYS_getpid	39
 #define SYS_fork	57
+#define SYS_execve	59
 #define SYS_exit	60
 
 #endif /* _SYSCALL_COMMON_H */
