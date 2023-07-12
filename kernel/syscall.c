@@ -53,8 +53,8 @@ static void exit(int code)
 	task = current_task();
 
 	pr("PID %u exited: %d\n", task->pid, code);
-	schedule();
 	sched_dequeue(task);
+	schedule();
 	task_destroy(task);
 }
 
