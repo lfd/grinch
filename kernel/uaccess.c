@@ -69,7 +69,7 @@ unsigned long copy_from_user(struct mm *mm, void *to, const void *from,
 	while (n) {
 		direct = user_to_direct(mm, from);
 		if (!direct)
-			panic("Invalid user address: %p\n", from);
+			break;
 
 		remaining_in_page = PAGE_SIZE - ((uintptr_t)direct & PAGE_OFFS_MASK);
 
