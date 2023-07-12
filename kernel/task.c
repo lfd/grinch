@@ -238,3 +238,14 @@ destroy_out:
 	kfree(new);
 	return err;
 }
+
+void prepare_user_return(void)
+{
+	if (this_per_cpu()->schedule)
+		schedule();
+	else if (this_per_cpu()->pt_needs_update) {
+		arch_task_activate(current_task());
+		this_per_cpu()->pt_needs_update = false;
+	}
+	arch_task_restore();
+}

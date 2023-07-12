@@ -133,7 +133,5 @@ out:
 		panic_stop();
 	}
 
-	if (this_per_cpu()->schedule)
-		schedule();
-	arch_task_restore();
+	prepare_user_return();
 }

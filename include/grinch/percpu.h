@@ -43,6 +43,8 @@ struct per_cpu {
 	ARCH_PER_CPU_FIELDS
 
 	int cpuid;
+
+	bool pt_needs_update;
 	bool schedule;
 
 	/* indicates if the CPU is online */
