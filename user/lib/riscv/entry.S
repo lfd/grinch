@@ -15,5 +15,7 @@ _user_start:
 
 2:
 	jal	main
+	jal	exit
+	/* should we ever return from exit, loop */
 3:
 	j 3b
