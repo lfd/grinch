@@ -122,7 +122,7 @@ static void malloc_fsck(void)
 
 void *kmalloc(size_t size)
 {
-	struct memchunk *this, *other;
+	struct memchunk *this, *other, *tmp;
 	unsigned int flags, remaining;
 	void *ret;
 
@@ -133,9 +133,7 @@ void *kmalloc(size_t size)
 	size = (size + 3) & ~0x3;
 
 	spin_lock(&alloc_lock);
-
 	this = first_chunk;
-
 	do {
 		check_chunk(this);
 		if (this->flags & MEMCHUNK_FLAG_USED || this->size < size) {
@@ -148,13 +146,19 @@ void *kmalloc(size_t size)
 		}
 
 		this->flags |= MEMCHUNK_FLAG_USED;
-		if (this->size >= size + 16) { /* Split */
+		if (this->size > size + sizeof(struct memchunk)) { /* Split */
 			other = (void *)this + sizeof(struct memchunk) + size;
 			if (this->flags & MEMCHUNK_FLAG_LAST) {
 				flags = MEMCHUNK_FLAG_LAST;
 				this->flags &= ~MEMCHUNK_FLAG_LAST;
-			} else
+			} else {
 				flags = 0;
+				tmp = next_chunk(this);
+				if (!tmp)
+					panic("must not happen\n");
+				check_chunk(tmp);
+				tmp->before = other;
+			}
 
 			remaining = this->size - size - sizeof(struct memchunk);
 			set_chunk(other, this, remaining, flags);
@@ -213,8 +217,10 @@ void kfree(void *ptr)
 	/* Merge after */
 	if (after && !(after->flags & MEMCHUNK_FLAG_USED)) {
 		tmp = next_chunk(after);
-		if (tmp)
+		if (tmp) {
+			check_chunk(tmp);
 			tmp->before = m;
+		}
 
 		m->size += sizeof(struct memchunk) + after->size;
 		m->flags = after->flags; /* Carries over MEMCHUNK_FLAG_LAST */
