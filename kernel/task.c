@@ -105,7 +105,7 @@ static inline pid_t get_new_pid(void)
 	return ret;
 }
 
-static struct task *task_alloc_new(void)
+struct task *task_alloc_new(void)
 {
 	struct task *task;
 	int err;
@@ -132,41 +132,19 @@ free_out:
 	return ERR_PTR(err);
 }
 
-static struct task *task_from_elf(void *elf)
+int task_from_fs(struct task *task, const char *pathname)
 {
-	struct task *task;
-	int err;
-
-	task = task_alloc_new();
-	if (IS_ERR(task))
-		return task;
-
-	err = task_load_elf(task, elf);
-	if (err)
-		goto destroy_out;
-
-
-	return task;
-
-destroy_out:
-	task_destroy(task);
-	kfree(task);
-	return ERR_PTR(err);
-}
-
-struct task *task_from_fs(void *pathname)
-{
-	struct task *task;
 	void *elf;
+	int err;
 
 	elf = vfs_read_file(pathname);
 	if (IS_ERR(elf))
-		return elf;
+		return PTR_ERR(elf);
 
-	task = task_from_elf(elf);
+	err = task_load_elf(task, elf);
 	kfree(elf);
 
-	return task;
+	return err;
 }
 
 void task_activate(struct task *task)
@@ -264,4 +242,19 @@ void prepare_user_return(void)
 		this_per_cpu()->pt_needs_update = false;
 	}
 	arch_task_restore();
+}
+
+int do_execve(const char *pathname, char *const argv[], char *const envp[])
+{
+	struct task *this;
+	char buf[128];
+
+	this = current_task();
+	copy_from_user(&this->mm, buf, pathname, sizeof(buf));
+	buf[sizeof(buf) - 1] = 0;
+
+	uvmas_destroy(this);
+	this_per_cpu()->pt_needs_update = true;
+
+	return task_from_fs(this, buf);
 }

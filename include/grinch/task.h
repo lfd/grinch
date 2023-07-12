@@ -37,7 +37,9 @@ struct task {
 	enum task_state state;
 };
 
-struct task *task_from_fs(void *pathname);
+struct task *task_alloc_new(void);
+
+int task_from_fs(struct task *task, const char *pathname);
 
 void task_activate(struct task *task);
 void arch_task_activate(struct task *task);
@@ -51,5 +53,6 @@ void sched_enqueue(struct task *task);
 void sched_dequeue(struct task *task);
 
 int do_fork(void);
+int do_execve(const char *pathname, char *const argv[], char *const envp[]);
 
 #endif /* _TASK_H */

@@ -83,6 +83,14 @@ int syscall(unsigned long no, unsigned long arg1,
 			ret = 0;
 			break;
 
+		case SYS_execve:
+			ret = do_execve((void *)arg1, (void *)arg2, (void *)arg3);
+			if (ret) {
+				pr("execve failed on task %u. Exiting.\n", current_task()->pid);
+				exit(ret);
+			}
+			break;
+
 		case SYS_exit:
 			exit(arg1);
 			break;
@@ -92,7 +100,7 @@ int syscall(unsigned long no, unsigned long arg1,
 			break;
 	}
 
-	if (no != SYS_exit)
+	if (no != SYS_exit && no != SYS_execve)
 		regs_set_retval(&current_task()->regs, ret);
 
 	return 0;

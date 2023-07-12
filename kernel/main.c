@@ -154,12 +154,17 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 	if (0)
 		memtest();
 
-	task = task_from_fs("initrd:/init.echse");
+	task = task_alloc_new();
 	if (IS_ERR(task)) {
 		err = PTR_ERR(task);
 		goto out;
 	}
 
+	err = task_from_fs(task, "initrd:/init.echse");
+	if (err)
+		goto out;
+
+	/* Here, the scheduler becomes responsible for the mmmgmt of task */
 	sched_enqueue(task);
 	schedule();
 	arch_task_restore();
