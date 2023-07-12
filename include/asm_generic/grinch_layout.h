@@ -22,7 +22,7 @@
 #define USER_STACK_SIZE	_UL(0x2000)
 
 /* Must be a multiple of 256 KiB */
-#define GRINCH_SIZE	(256 * KIB)
+#define GRINCH_SIZE	(2 * 256 * KIB)
 
 #define VMGRINCH_END	(VMGRINCH_BASE + GRINCH_SIZE)
 
