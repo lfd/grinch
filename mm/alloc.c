@@ -27,6 +27,9 @@
 #define MEMCHUNK_FLAG_LAST	0x1
 #define MEMCHUNK_FLAG_USED	0x2
 
+#define MALLOC_FSCK		0
+//#define MALLOC_FSCK		1
+
 struct memchunk {
 	unsigned int canary1;
 	struct memchunk *before;
@@ -76,11 +79,55 @@ static inline struct memchunk *next_chunk(struct memchunk *this)
 	return (void *)this + sizeof(struct memchunk) + this->size;
 }
 
+static void malloc_fsck(void)
+{
+	unsigned long size;
+	struct memchunk *this;
+	static unsigned long ctr;
+
+	pr("fsck run %lu\n", ctr++);
+	/* Forward run */
+	this = first_chunk;
+	size = 0;
+	while (1) {
+		check_chunk(this);
+		size += sizeof(*this) + this->size;
+		if (this->size == 0)
+			pr("Found chunk with zero size\n");
+
+		if (this->flags & MEMCHUNK_FLAG_LAST)
+			break;
+		else
+			this = next_chunk(this);
+	}
+	if (size != KHEAP_SIZE)
+		panic("fsck forw failed!\n");
+
+	/* Backward run */
+	size = 0;
+	while (1) {
+		check_chunk(this);
+		size += sizeof(*this) + this->size;
+		if (this->size == 0)
+			pr("Found chunk with zero size\n");
+
+		if (this->before == NULL)
+			break;
+		else
+			this = this->before;
+	}
+	if (size != KHEAP_SIZE)
+		panic("fsck back failed\n");
+}
+
 void *kmalloc(size_t size)
 {
 	struct memchunk *this, *other;
 	unsigned int flags, remaining;
 	void *ret;
+
+	if (MALLOC_FSCK)
+		malloc_fsck();
 
 	/* align size to multiples of 4 */
 	size = (size + 3) & ~0x3;
@@ -126,6 +173,9 @@ out:
 void kfree(void *ptr)
 {
 	struct memchunk *m, *before, *after, *tmp;
+
+	if (MALLOC_FSCK)
+		malloc_fsck();
 
 	/* Do nothing on NULL ptr free */
 	if (ptr == NULL)
