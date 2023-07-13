@@ -79,6 +79,16 @@ static inline struct memchunk *next_chunk(struct memchunk *this)
 	return (void *)this + sizeof(struct memchunk) + this->size;
 }
 
+static inline void *chunk_data(struct memchunk *m)
+{
+	return (void*)m + sizeof(struct memchunk);
+}
+
+static inline struct memchunk *chunk_of(void *ptr)
+{
+	return (struct memchunk *)(ptr - sizeof(struct memchunk));
+}
+
 static void malloc_fsck(void)
 {
 	unsigned long size;
@@ -147,7 +157,7 @@ void *kmalloc(size_t size)
 
 		this->flags |= MEMCHUNK_FLAG_USED;
 		if (this->size > size + sizeof(struct memchunk)) { /* Split */
-			other = (void *)this + sizeof(struct memchunk) + size;
+			other = chunk_data(this) + size;
 			if (this->flags & MEMCHUNK_FLAG_LAST) {
 				flags = MEMCHUNK_FLAG_LAST;
 				this->flags &= ~MEMCHUNK_FLAG_LAST;
@@ -165,7 +175,7 @@ void *kmalloc(size_t size)
 			this->size = size;
 		}
 
-		ret = (void *)this + sizeof(struct memchunk);
+		ret = chunk_data(this);
 		break;
 	} while (true);
 
@@ -188,7 +198,7 @@ void kfree(void *ptr)
 	if (!is_kheap(ptr))
 		panic("Invalid free on kheap. Out of range: %p\n", ptr);
 
-	m = ptr - sizeof(struct memchunk);
+	m = chunk_of(ptr);
 	spin_lock(&alloc_lock);
 	check_chunk(m);
 
@@ -244,6 +254,7 @@ void kheap_stats(void)
 		if (this->flags & MEMCHUNK_FLAG_USED) {
 			used += this->size;
 			chunks_used++;
+			pr("Used chunk: %p\n", (void *)this + sizeof(struct memchunk));
 		} else {
 			free += this->size;
 			chunks_free++;
