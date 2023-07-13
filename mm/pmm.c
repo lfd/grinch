@@ -45,7 +45,7 @@ static int pmm_check(paddr_t addr, size_t pages)
 	if (!is_pmm(addr))
 		return -EINVAL;
 
-	if (addr + pages * PAGE_SIZE >= pmm_end)
+	if (addr + pages * PAGE_SIZE > pmm_end)
 		return -ERANGE;
 
 	return 0;
