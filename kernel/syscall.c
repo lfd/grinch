@@ -12,6 +12,7 @@
 
 #define dbg_fmt(x)	"task: " x
 
+#include <grinch/alloc.h>
 #include <grinch/errno.h>
 #include <grinch/syscall.h>
 #include <grinch/syscall_common.h>
@@ -56,6 +57,7 @@ static void exit(int code)
 	sched_dequeue(task);
 	schedule();
 	task_destroy(task);
+	kfree(task);
 }
 
 int syscall(unsigned long no, unsigned long arg1,

@@ -196,7 +196,7 @@ void schedule(void)
 		}
 	}
 	if (list_empty(&task_list))
-		panic("Nothing to schedule!\n");
+		this_per_cpu()->current_task = NULL;
 out:
 	spin_unlock(&task_lock);
 }
@@ -235,6 +235,9 @@ destroy_out:
 
 void prepare_user_return(void)
 {
+	if (!this_per_cpu()->current_task)
+		panic("Nothing to schedule!\n");
+
 	if (this_per_cpu()->schedule)
 		schedule();
 	else if (this_per_cpu()->pt_needs_update) {
