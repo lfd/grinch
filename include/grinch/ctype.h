@@ -29,6 +29,7 @@ extern const unsigned char _ctype[];
 #define __ismask(x) (_ctype[(int)(unsigned char)(x)])
 
 #define isxdigit(c)	((__ismask(c)&(_D|_X)) != 0)
+#define isprint(c)	((__ismask(c)&(_P|_U|_L|_D|_SP)) != 0)
 
 static inline char _tolower(const char c)
 {
