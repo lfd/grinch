@@ -232,18 +232,22 @@ void kfree(void *ptr)
 
 void kheap_stats(void)
 {
-	size_t used, free;
+	size_t used, free, chunks_free, chunks_used;
 	struct memchunk *this;
 
-	used = free = 0;
+	used = free = chunks_free = chunks_used = 0;
 	this = first_chunk;
 	
 	spin_lock(&alloc_lock);
 	do {
-		if (this->flags & MEMCHUNK_FLAG_USED)
+		check_chunk(this);
+		if (this->flags & MEMCHUNK_FLAG_USED) {
 			used += this->size;
-		else
+			chunks_used++;
+		} else {
 			free += this->size;
+			chunks_free++;
+		}
 
 		if (this->flags & MEMCHUNK_FLAG_LAST)
 			break;
@@ -251,7 +255,8 @@ void kheap_stats(void)
 	} while(1);
 	spin_unlock(&alloc_lock);
 
-	pr("Free: 0x%lx Used: 0x%lx\n", free, used);
+	pr("Chunks Free: %lu Chunks Used: %lu Free: 0x%lx Used: 0x%lx\n",
+	   chunks_free, chunks_used, free, used);
 }
 
 int kheap_init(void)

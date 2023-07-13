@@ -154,6 +154,8 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 	if (0)
 		memtest();
 
+	kheap_stats();
+
 	task = task_alloc_new();
 	if (IS_ERR(task)) {
 		err = PTR_ERR(task);
