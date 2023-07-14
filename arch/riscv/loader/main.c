@@ -17,6 +17,7 @@
 #include <grinch/paging.h>
 #include <grinch/percpu.h>
 #include <grinch/symbols.h>
+#include <grinch/loader.h>
 
 #define PAGE_FLAGS_DEFAULT				\
 	(PAGE_PRESENT_FLAGS | RISCV_PTE_FLAG(R) |	\
@@ -24,9 +25,6 @@
 
 extern unsigned char __start[];
 extern unsigned char __stack_end[];
-
-extern unsigned char __vmgrinch_bin_start[];
-extern unsigned char __vmgrinch_bin_size[];
 
 void __noreturn
 loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr, void *vbase);
@@ -92,8 +90,7 @@ loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr, void *vbase)
 	for (d = 0; d < GRINCH_SIZE; d += MEGA_PAGE_SIZE)
 		map_2M(&next, l0, (void*)VMGRINCH_BASE + d, p_grinch_dst + d);
 
-	memcpy((void*)VMGRINCH_BASE, __vmgrinch_bin_start,
-	       (size_t)__vmgrinch_bin_size);
+	loader_copy_grinch();
 
 	grinch_entry = (void*)VMGRINCH_BASE;
 	grinch_entry(hart_id, fdt, VMGRINCH_BASE - p_grinch_dst);
