@@ -42,13 +42,14 @@ user/apps/$(1)/built-in.a: $(LIBC_BUILTIN) $($(call UC,$(1))_OBJS)
 user/apps/$(1)/$(1)_linked.o: user/apps/$(1)/built-in.a
 	$(call ld_user,$$@,$$^)
 
-user/apps/$(1)/$(1).echse: user.ld user/apps/$(1)/$(1)_linked.o
+user/apps/$(1)/$(1).echse: user/user.ld user/apps/$(1)/$(1)_linked.o
 	$(call ld_app_user,$$@,$$^)
 endef
 
 $(foreach app,$(APPS),$(eval $(call define_app,$(app))))
 
 clean_user: $(patsubst %,clean_%,$(APPS))
+	$(RMRF) user/user.ld
 	$(RMRF) user/*.{elf,o,a}
 	$(RMRF) user/lib/*.{o,a}
 	$(RMRF) user/lib/$(ARCH)/*.{o,a}
