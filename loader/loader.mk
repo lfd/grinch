@@ -1,6 +1,6 @@
 LOADER_OBJS = entry.o main.o
 
-ARCH_LOADER_DIR = $(ARCH_DIR)/loader
+ARCH_LOADER_DIR = loader/arch/$(ARCH)
 
 LOADER_OBJS := $(addprefix $(ARCH_LOADER_DIR)/, $(LOADER_OBJS))
 
