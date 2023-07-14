@@ -21,7 +21,7 @@ user/%.o: user/%.S $(GENERATED)
 define ld_app_user
 	$(QUIET) "[LD-APP]$(1)"
 	$(VERBOSE) $(LD) $(LDFLAGS_USER) --gc-sections -T $(2) -o $(1)
-	$(if $(V), $(SZ) --format=SysV -x $@)
+	$(if $(V), $(SZ) --format=SysV -x $(1))
 endef
 
 define ld_user
