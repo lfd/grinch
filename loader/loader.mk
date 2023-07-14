@@ -12,7 +12,7 @@ $(ARCH_LOADER_DIR)/loader.o: $(ARCH_LOADER_DIR)/built-in.a
 	$(QUIET) "[LD]    $@"
 	$(VERBOSE) $(LD) $(LDFLAGS) --whole-archive -relocatable -o $@ $<
 
-kernel.elf: loader.ld $(ARCH_LOADER_DIR)/loader.o
+kernel.elf: loader/loader.ld $(ARCH_LOADER_DIR)/loader.o
 	$(QUIET) "[LD]    $@"
 	$(VERBOSE) $(LD) $(LDFLAGS) --gc-sections -T $^ -o $@
 ifdef V
@@ -23,5 +23,6 @@ kernel.bin: kernel.elf
 
 clean_loader:
 	$(RMRF) kernel.elf
+	$(RMRF) loader/loader.ld
 	$(RMRF) $(LOADER_OBJS)
 	$(RMRF) $(ARCH_LOADER_DIR)/built-in.a $(ARCH_LOADER_DIR)/loader.o

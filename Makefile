@@ -65,4 +65,3 @@ clean: clean_kernel clean_user
 	$(RMRF) *.dtb
 	$(RMRF) *.elf
 	$(RMRF) *.bin
-	$(RMRF) *.ld
