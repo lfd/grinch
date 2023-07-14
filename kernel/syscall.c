@@ -10,7 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
-#define dbg_fmt(x)	"task: " x
+#define dbg_fmt(x)	"syscall: " x
 
 #include <grinch/alloc.h>
 #include <grinch/errno.h>
