@@ -35,8 +35,6 @@ GENERATED = $(ASM_DEFINES)
 	$(VERBOSE) $(CC) $(CFLAGS_KERNEL) $(AFLAGS_KERNEL) -E -o $@ $^
 	$(VERBOSE) sed -e '/^#/d' -i $@
 
-grinch.ld: grinch.ld.S
-
 $(ASM_DEFINES): arch/$(ARCH)/asm_defines.S
 	$(QUIET) "[GEN]   $@"
 	$(VERBOSE) ./scripts/asm-defines.sh $^ > $@
@@ -49,7 +47,7 @@ vmgrinch.o: $(ARCH_DIR)/built-in.a kernel/built-in.a lib/built-in.a mm/built-in.
 	$(QUIET) "[LD]    $@"
 	$(VERBOSE) $(LD) $(LDFLAGS) --whole-archive -relocatable -o $@ $^
 
-vmgrinch.elf: grinch.ld vmgrinch.o
+vmgrinch.elf: kernel/grinch.ld vmgrinch.o
 	$(QUIET) "[LD]    $@"
 	$(VERBOSE) $(LD) $(LDFLAGS) --gc-sections -T $^ -o $@
 ifdef V
@@ -69,7 +67,7 @@ clean_kernel: clean_loader
 	$(RMRF) vmgrinch.o
 	$(RMRF) $(GENERATED)
 	$(RMRF) arch/$(ARCH)/*.{o,a} arch/$(ARCH)/asm_defines.S
-	$(RMRF) kernel/*.{o,a}
+	$(RMRF) kernel/*.{o,a,ld}
 	$(RMRF) lib/*.{o,a} lib/libfdt/*.{o,a}
 	$(RMRF) drivers/*.{o,a} drivers/irq/*.{o,a} drivers/serial/*.{o,a}
 	$(RMRF) mm/*.{o,a}
