@@ -134,6 +134,7 @@ int smp_init(void)
 	unsigned long cpu;
 	int err;
 
+	err = 0;
 	for_each_cpu_except(cpu, available_harts, this_cpu_id()) {
 		err = boot_cpu(cpu);
 		if (err)
