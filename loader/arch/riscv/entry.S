@@ -40,15 +40,13 @@ _loader_start:
 	 */
 	lpc	a2, _loader_start
 	/* a3: abs link addr */
-	ld	a3, vmgrinch_base
+	li	a3, VMGRINCH_BASE
 	jal	loader
 
 1:
 	wfi
 	j 1b
 
-vmgrinch_base:   
-        .quad   VMGRINCH_BASE
 
 .section ".grinch", "ax"
 .incbin "vmgrinch.bin"
