@@ -69,8 +69,13 @@ int arch_init(paddr_t __fdt)
 	ps("Initialising Serial...\n");
 	err = serial_init_fdt();
 	if (err)
+	{
+		if (err == -ENOENT)
+			goto con;
 		goto out;
+	}
 	ps("Switched over from SBI to UART\n");
+con:
 
 	/* Boot secondary CPUs */
 	ps("Booting secondary CPUs\n");
