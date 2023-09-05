@@ -53,6 +53,7 @@ extern const struct uart_driver uart_apbuart;
 extern const struct uart_driver uart_8250;
 #ifdef ARCH_RISCV
 extern const struct uart_driver uart_sbi;
+extern const struct uart_driver uart_uartlite;
 #elif defined(ARCH_ARM64)
 extern const struct uart_driver uart_bcm2835_aux;
 #endif
