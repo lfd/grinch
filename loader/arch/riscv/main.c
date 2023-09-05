@@ -19,9 +19,11 @@
 #include <grinch/symbols.h>
 #include <grinch/loader.h>
 
+/* Set PTE access bits to RWX + AD to prevent page faults */
 #define PAGE_FLAGS_DEFAULT				\
 	(PAGE_PRESENT_FLAGS | RISCV_PTE_FLAG(R) |	\
-	 RISCV_PTE_FLAG(W) | RISCV_PTE_FLAG(X))
+	 RISCV_PTE_FLAG(W) | RISCV_PTE_FLAG(X) |	\
+	 RISCV_PTE_FLAG(A) | RISCV_PTE_FLAG(D))
 
 extern unsigned char __start[];
 extern unsigned char __stack_end[];

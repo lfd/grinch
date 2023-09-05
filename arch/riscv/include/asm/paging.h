@@ -46,6 +46,12 @@ static inline unsigned long arch_paging_access_flags(mem_flags_t flags)
 	      ((flags & GRINCH_MEM_U) ? RISCV_PTE_FLAG(U) : 0) |
 	      ((flags & GRINCH_MEM_X) ? RISCV_PTE_FLAG(X) : 0);
 
+	/*
+	 * For the moment, mark all pages as accessed and dirty to prevent page
+	 * faults
+	 */
+	ret |= (RISCV_PTE_FLAG(A) | RISCV_PTE_FLAG(D));
+
 	return ret;
 }
 
