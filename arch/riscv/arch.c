@@ -83,8 +83,10 @@ con:
 	if (err)
 		goto out;
 
+#if 0
 	ps("Enabling IRQs\n");
 	irq_enable();
+#endif
 
 out:
 	return err;
