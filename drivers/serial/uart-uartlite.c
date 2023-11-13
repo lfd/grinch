@@ -11,7 +11,6 @@
  */
 
 #include <grinch/errno.h>
-#include <grinch/mmio.h>
 #include <grinch/serial.h>
 
 #define UARTLITE_RX		0x0
@@ -26,7 +25,7 @@ static int uart_uartlite_rcv_handler(struct uart_chip *chip)
 {
 	unsigned char ch;
 
-	ch = mmio_read8(chip->base + UARTLITE_RX);
+	ch = chip->reg_in(chip, UARTLITE_RX);
 	serial_in(ch);
 
 	return 0;
@@ -39,13 +38,13 @@ static int uart_uartlite_init(struct uart_chip *chip)
 
 static bool uart_uartlite_is_busy(struct uart_chip *chip)
 {
-	return !!(mmio_read32(chip->base + UARTLITE_STATUS)
+	return !!(chip->reg_in(chip, UARTLITE_STATUS)
 		  & UARTLITE_STATUS_TX_FULL);
 }
 
 static void uart_uartlite_write_byte(struct uart_chip *chip, unsigned char c)
 {
-	mmio_write32(chip->base + UARTLITE_TX, c);
+	chip->reg_out(chip, UARTLITE_TX, c);
 }
 
 const struct uart_driver uart_uartlite = {

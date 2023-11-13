@@ -29,6 +29,9 @@ struct uart_chip {
 	const struct uart_driver *driver;
 	void *base;
 	u32 irq;
+
+	void (*reg_out)(struct uart_chip *chip, unsigned int reg, u32 value);
+	u32 (*reg_in)(struct uart_chip *chip, unsigned int reg);
 };
 
 static inline void uart_write_byte(struct uart_chip *chip, unsigned char b)
@@ -59,7 +62,8 @@ extern const struct uart_driver uart_bcm2835_aux;
 #endif
 
 void serial_in(char ch);
-int serial_init(const struct uart_driver *d, paddr_t uart_base, u64 uart_size, u32 irq);
+int serial_init(const struct uart_driver *d, paddr_t uart_base, u64 uart_size,
+		int io_width, u32 irq);
 int serial_init_fdt(void);
 
 #endif /* _SERIAL_H */

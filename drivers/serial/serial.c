@@ -18,6 +18,7 @@
 #include <grinch/ioremap.h>
 #include <grinch/percpu.h>
 #include <grinch/irqchip.h>
+#include <grinch/mmio.h>
 #include <grinch/printk.h>
 #include <grinch/serial.h>
 
@@ -46,7 +47,28 @@ static const struct of_device_id of_match[] = {
 	{ /* sentinel */}
 };
 
-int serial_init(const struct uart_driver *d, paddr_t uart_base, u64 uart_size, u32 irq)
+static void reg_out_mmio8(struct uart_chip *chip, unsigned int reg, u32 value)
+{
+	mmio_write8(chip->base + reg, value);
+}
+
+static u32 reg_in_mmio8(struct uart_chip *chip, unsigned int reg)
+{
+	return mmio_read8(chip->base + reg);
+}
+
+static void reg_out_mmio32(struct uart_chip *chip, unsigned int reg, u32 value)
+{
+	mmio_write32(chip->base + reg * 4, value);
+}
+
+static u32 reg_in_mmio32(struct uart_chip *chip, unsigned int reg)
+{
+	return mmio_read32(chip->base + reg * 4);
+}
+
+int serial_init(const struct uart_driver *d, paddr_t uart_base, u64 uart_size,
+		int io_width, u32 irq)
 {
 	int err;
 	struct uart_chip c;
@@ -54,6 +76,21 @@ int serial_init(const struct uart_driver *d, paddr_t uart_base, u64 uart_size, u
 
 	c.driver = d;
 	c.irq = irq;
+
+	switch (io_width) {
+		case 1:
+			c.reg_in = reg_in_mmio8;
+			c.reg_out = reg_out_mmio8;
+			break;
+		case 4:
+			c.reg_in = reg_in_mmio32;
+			c.reg_out = reg_out_mmio32;
+			break;
+
+		default:
+			pr("Invalid IO width: %d\n", io_width);
+			return -EINVAL;
+	}
 
 	c.base = ioremap(uart_base, uart_size);
 	if (IS_ERR(c.base))
@@ -93,10 +130,10 @@ int serial_init_fdt(void)
 {
 	const struct of_device_id *match;
 	const struct uart_driver *d;
+	int off, err, io_width = 1;
 	paddr_t uart_base;
 	const int *res;
 	u64 uart_size;
-	int off, err;
 	u32 irq;
 
 	off = fdt_find_device(_fdt, "/soc", of_match, &match);
@@ -110,6 +147,10 @@ int serial_init_fdt(void)
 	err = fdt_read_reg(_fdt, off, 0, &uart_base, &uart_size);
 	if (err)
 		return err;
+
+	res = fdt_getprop(_fdt, off, "reg-io-width", &err);
+	if (err > 0)
+		io_width = fdt32_to_cpu(*res);
 	pr("Found %s UART@0x%llx\n", match->compatible, uart_base);
 
 	res = fdt_getprop(_fdt, off, "interrupts", &err);
@@ -118,5 +159,5 @@ int serial_init_fdt(void)
 	else
 		irq = fdt32_to_cpu(*res);
 
-	return serial_init(d, uart_base, uart_size, irq);
+	return serial_init(d, uart_base, uart_size, io_width, irq);
 }
