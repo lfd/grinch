@@ -3,7 +3,7 @@ CROSS_COMPILE ?= riscv64-linux-gnu-
 QEMU=qemu-system-riscv64
 QEMU_ARGS=-m 128M -smp 2 -serial stdio -nographic -monitor telnet:127.0.0.1:55555,server,nowait -machine virt -cpu rv64,h=true
 
-CFLAGS_ARCH = -mcmodel=medany -march=rv64imafdc -DARCH_RISCV=1
+CFLAGS_ARCH = -mcmodel=medany -march=rv64imafdc_zifencei -DARCH_RISCV=1
 LDFLAGS_ARCH = -melf64lriscv
 
 ARCH_OBJS = entry.o exception.o sbi.o traps.o cpu.o task.o

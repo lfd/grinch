@@ -40,5 +40,7 @@ void arch_task_activate(struct task *task)
 	tpcpu = this_per_cpu();
 	memcpy(tpcpu->root_table_page, task->mm.page_table, PAGE_SIZE / 2);
 	/* Let's make our life easy */
+	// FIXME: think again about precise cache flushes
 	flush_tlb_all();
+	asm volatile("fence.i");
 }
