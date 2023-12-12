@@ -27,14 +27,18 @@ enum task_state {
 	RUNNING,
 };
 
-struct task {
-	struct registers regs;
+struct process {
 	struct mm mm;
+};
 
+struct task {
 	struct list_head tasks;
 
+	struct registers regs;
 	pid_t pid;
 	enum task_state state;
+
+	struct process process;
 };
 
 struct task *task_alloc_new(void);
@@ -42,7 +46,7 @@ struct task *task_alloc_new(void);
 int task_from_fs(struct task *task, const char *pathname);
 
 void task_activate(struct task *task);
-void arch_task_activate(struct task *task);
+void arch_process_activate(struct process *task);
 void arch_task_restore(void);
 void task_set_context(struct task *task, unsigned long pc, unsigned long sp);
 void task_destroy(struct task *task);

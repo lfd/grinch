@@ -39,12 +39,12 @@ struct mm {
 	struct list_head vmas;
 };
 
-struct task;
+struct process;
 
 int kvma_create(struct vma *vma);
-struct vma *uvma_create(struct task *task, void* base, size_t size, unsigned int vma_flags);
-void uvmas_destroy(struct task *task);
+struct vma *uvma_create(struct process *task, void* base, size_t size, unsigned int vma_flags);
+void uvmas_destroy(struct process *task);
 
-int uvma_duplicate(struct task *dst, struct task *src, struct vma *vma);
+int uvma_duplicate(struct process *dst, struct process *src, struct vma *vma);
 
 #endif /* _VMA_H */

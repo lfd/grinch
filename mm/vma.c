@@ -96,17 +96,17 @@ static bool vma_collides(struct vma *vma, void *base, size_t size)
 	return false;
 }
 
-static int uvma_destroy(struct task *task, struct vma *vma)
+static int uvma_destroy(struct process *p, struct vma *vma)
 {
 	int err;
 	paddr_t phys;
 
 	/* Doesn't understand lazy VMAs! */
-	phys = paging_get_phys(task->mm.page_table, vma->base);
+	phys = paging_get_phys(p->mm.page_table, vma->base);
 	if (phys == INVALID_PHYS_ADDR)
 		return -EINVAL;
 
-	err = unmap_range(task->mm.page_table, vma->base, vma->size);
+	err = unmap_range(p->mm.page_table, vma->base, vma->size);
 	if (err)
 		return -EINVAL;
 
@@ -117,15 +117,15 @@ static int uvma_destroy(struct task *task, struct vma *vma)
 	return 0;
 }
 
-void uvmas_destroy(struct task *task)
+void uvmas_destroy(struct process *p)
 {
 	struct list_head *pos, *q;
 	struct vma *tmp;
 	int err;
 
-	list_for_each_safe(pos, q, &task->mm.vmas) {
+	list_for_each_safe(pos, q, &p->mm.vmas) {
 		tmp = list_entry(pos, struct vma, vmas);
-		err = uvma_destroy(task, tmp);
+		err = uvma_destroy(p, tmp);
 		if (err)
 			panic("Destroying VMA\n");
 		list_del(pos);
@@ -133,7 +133,7 @@ void uvmas_destroy(struct task *task)
 	}
 }
 
-struct vma *uvma_create(struct task *task, void *base, size_t size, unsigned int vma_flags)
+struct vma *uvma_create(struct process *p, void *base, size_t size, unsigned int vma_flags)
 {
 	struct list_head *item;
 	struct vma *vma;
@@ -143,7 +143,7 @@ struct vma *uvma_create(struct task *task, void *base, size_t size, unsigned int
 		return ERR_PTR(-ERANGE);
 
 	/* Check that the VMA won't collide with any other VMA */
-	list_for_each(item, &task->mm.vmas) {
+	list_for_each(item, &p->mm.vmas) {
 		vma = list_entry(item, struct vma, vmas);
 		if (vma_collides(vma, base, size))
 			return ERR_PTR(-EINVAL);
@@ -157,21 +157,21 @@ struct vma *uvma_create(struct task *task, void *base, size_t size, unsigned int
 	vma->size = size;
 	vma->flags = vma_flags | VMA_FLAG_USER;
 
-	err = vma_create(task->mm.page_table, vma, PAGE_SIZE);
+	err = vma_create(p->mm.page_table, vma, PAGE_SIZE);
 	if (err) {
 		kfree(vma);
 		return ERR_PTR(err);
 	}
 
-	list_add(&vma->vmas, &task->mm.vmas);
+	list_add(&vma->vmas, &p->mm.vmas);
 
 	if (vma->flags & VMA_FLAG_ZERO)
-		umemset(&task->mm, vma->base, 0, vma->size);
+		umemset(&p->mm, vma->base, 0, vma->size);
 
 	return vma;
 }
 
-int uvma_duplicate(struct task *dst, struct task *src, struct vma *vma)
+int uvma_duplicate(struct process *dst, struct process *src, struct vma *vma)
 {
 	void *psrc, *pdst;
 	struct vma *new;

@@ -68,15 +68,15 @@ static int task_load_elf(struct task *task, Elf64_Ehdr *ehdr)
 		if (phdr->p_flags & PF_X)
 			vma_flags |= VMA_FLAG_EXEC;
 
-		vma = uvma_create(task, base, page_up(phdr->p_memsz), vma_flags);
+		vma = uvma_create(&task->process, base, page_up(phdr->p_memsz), vma_flags);
 		if (IS_ERR(vma))
 			return PTR_ERR(vma);
 
 		src = (void *)ehdr + phdr->p_offset;
-		copy_to_user(&task->mm, base, src, phdr->p_memsz);
+		copy_to_user(&task->process.mm, base, src, phdr->p_memsz);
 	}
 
-	vma = uvma_create(task, (void *)USER_STACK_BASE, USER_STACK_SIZE,
+	vma = uvma_create(&task->process, (void *)USER_STACK_BASE, USER_STACK_SIZE,
 			  VMA_FLAG_USER | VMA_FLAG_ZERO | VMA_FLAG_RW);
 	if (IS_ERR(vma))
 		return PTR_ERR(vma);
@@ -88,10 +88,10 @@ static int task_load_elf(struct task *task, Elf64_Ehdr *ehdr)
 
 void task_destroy(struct task *task)
 {
-	uvmas_destroy(task);
+	uvmas_destroy(&task->process);
 
-	if (task->mm.page_table)
-		kfree(task->mm.page_table);
+	if (task->process.mm.page_table)
+		kfree(task->process.mm.page_table);
 }
 
 static inline pid_t get_new_pid(void)
@@ -114,13 +114,13 @@ struct task *task_alloc_new(void)
 	if (!task)
 		return ERR_PTR(-ENOMEM);
 
-	task->mm.page_table = kzalloc(PAGE_SIZE);
-	if (!task->mm.page_table) {
+	task->process.mm.page_table = kzalloc(PAGE_SIZE);
+	if (!task->process.mm.page_table) {
 		err = -ENOMEM;
 		goto free_out;
 	}
 
-	INIT_LIST_HEAD(&task->mm.vmas);
+	INIT_LIST_HEAD(&task->process.mm.vmas);
 	memset(&task->regs, 0, sizeof(task->regs));
 	task->pid = get_new_pid();
 	task->state = SUSPENDED;
@@ -159,7 +159,7 @@ void task_activate(struct task *task)
 	tpcpu->current_task = task;
 	task->state = RUNNING;
 
-	arch_task_activate(task);
+	arch_process_activate(&task->process);
 }
 
 void sched_dequeue(struct task *task)
@@ -237,9 +237,9 @@ int do_fork(void)
 	new->regs = this->regs;
 	regs_set_retval(&new->regs, 0);
 
-	list_for_each(pos, &this->mm.vmas) {
+	list_for_each(pos, &this->process.mm.vmas) {
 		vma = list_entry(pos, struct vma, vmas);
-		err = uvma_duplicate(new, this, vma);
+		err = uvma_duplicate(&new->process, &this->process, vma);
 		if (err)
 			goto destroy_out;
 	}
@@ -262,7 +262,7 @@ void prepare_user_return(void)
 	if (this_per_cpu()->schedule)
 		schedule();
 	else if (this_per_cpu()->pt_needs_update) {
-		arch_task_activate(current_task());
+		arch_process_activate(&current_task()->process);
 		this_per_cpu()->pt_needs_update = false;
 	}
 	arch_task_restore();
@@ -274,10 +274,10 @@ int do_execve(const char *pathname, char *const argv[], char *const envp[])
 	char buf[128];
 
 	this = current_task();
-	copy_from_user(&this->mm, buf, pathname, sizeof(buf));
+	copy_from_user(&this->process.mm, buf, pathname, sizeof(buf));
 	buf[sizeof(buf) - 1] = 0;
 
-	uvmas_destroy(this);
+	uvmas_destroy(&this->process);
 	this_per_cpu()->pt_needs_update = true;
 
 	return task_from_fs(this, buf);
