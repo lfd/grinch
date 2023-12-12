@@ -28,7 +28,7 @@
 
 #define MAX_PAGE_TABLE_LEVELS	4
 
-const struct paging *root_paging;
+const struct paging *root_paging, *vm_paging;
 
 struct paging_structures {
 	const struct paging *root_paging;

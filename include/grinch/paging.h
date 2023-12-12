@@ -85,6 +85,7 @@ static inline u64 mega_page_up(u64 diff)
 }
 
 extern const struct paging *root_paging;
+extern const struct paging *vm_paging;
 
 void arch_paging_init(void);
 void arch_paging_enable(unsigned long this_cpu, page_table_t pt);

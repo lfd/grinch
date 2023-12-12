@@ -156,15 +156,62 @@ static const struct paging riscv_Sv48[] = {
 	RISCV_SVX_PAGING_LEVEL(0),
 };
 
+/* 4K*2 for level 2, in case of SV39, and for level 3, ind case of SV48 */
+DEF_GET_ENTRY(39x4, 2, true)
+
+/* For the rest (non-root tbls), reuse svX routines */
+#define sv39x4_vpn0_get_entry	svX_vpn0_get_entry
+#define sv39x4_vpn1_get_entry	svX_vpn1_get_entry
+
+#define sv39x4_vpn0_get_phys	svX_vpn0_get_phys
+
+#define sv39x4_vpn1_get_phys	svX_vpn1_get_phys
+
+#define sv39x4_vpn2_get_phys	svX_vpn2_get_phys
+
+#define RISCV_SVXx4_PAGING_LEVEL(WIDTH, LEVEL, ROOT)            \
+	{                                                       \
+		1UL << UNTRANSLATED_BITS(LEVEL),                \
+		sv ## WIDTH ## x4_vpn ## LEVEL ## _get_entry,   \
+		svX_entry_valid,                                \
+		svXx4_vpnX_set_terminal,                        \
+		sv ## WIDTH ## x4_vpn ## LEVEL ## _get_phys,    \
+		svX_get_flags,                                  \
+		svXx4_vpnX_set_next_pt,                         \
+		svX_vpnX_get_next_pt,                           \
+		svX_clear_entry,                                \
+		(ROOT)? svXx4_root_page_table_empty:            \
+				svX_page_table_empty,           \
+	}
+
+DEF_SET_TERMINAL(Xx4, RISCV_PTE_FLAG(U))
+
+DEF_SET_NEXT(Xx4, 0)
+
+static bool svXx4_root_page_table_empty(page_table_t page_table)
+{
+	return _svX_page_table_empty(page_table, 2 << (2 + PAGE_LEVEL_BITS));
+}
+
+const struct paging riscv_Sv39x4[] = {
+	RISCV_SVXx4_PAGING_LEVEL(39, 2, true),
+	RISCV_SVXx4_PAGING_LEVEL(39, 1, false),
+	RISCV_SVXx4_PAGING_LEVEL(39, 0, false),
+};
+
 void arch_paging_init(void)
 {
 	/* SV39 should suffice for everything */
 	if (1) {
 		root_paging = riscv_Sv39;
 		satp_mode = SATP_MODE_39;
+
+		vm_paging = riscv_Sv39x4;
 	} else {
 		root_paging = riscv_Sv48;
 		satp_mode = SATP_MODE_48;
+
+		//vm_paging = riscv_Sv48x4;
 	}
 }
 
