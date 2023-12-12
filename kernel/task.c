@@ -34,6 +34,10 @@ void task_destroy(struct task *task)
 		process_destroy(task);
 		break;
 
+	case GRINCH_VMACHINE:
+		vmachine_destroy(task);
+		break;
+
 	default:
 		panic("Unknown task type\n");
 		break;
@@ -97,6 +101,10 @@ void task_activate(struct task *task)
 	switch (task->type) {
 	case GRINCH_PROCESS:
 		arch_process_activate(task->process);
+		break;
+
+	case GRINCH_VMACHINE:
+		arch_vmachine_activate(task->vmachine);
 		break;
 
 	default:

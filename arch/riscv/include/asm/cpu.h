@@ -57,6 +57,9 @@ struct trap_context {
 	/* Privileged registers */
 	unsigned long scause;
 	unsigned long sstatus;
+
+	/* Hypervisor registers */
+	unsigned long hstatus;
 };
 
 static inline void regs_set_retval(struct registers *r, unsigned long val)

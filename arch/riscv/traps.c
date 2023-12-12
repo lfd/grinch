@@ -12,6 +12,7 @@
 
 #include <asm/cpu.h>
 #include <asm/irq.h>
+#include <asm/isa.h>
 
 #include <grinch/irqchip.h>
 #include <grinch/paging.h>
@@ -71,12 +72,27 @@ static int handle_syscall(void)
 void arch_handle_trap(struct registers *regs)
 {
 	const char *cause_str = "UNKNOWN";
+	enum vmm_trap_result vmtr;
 	struct trap_context ctx;
 	int err;
 
 	regs->sepc = csr_read(sepc);
 	ctx.scause = csr_read(scause);
 	ctx.sstatus = csr_read(sstatus);
+
+	if (has_hypervisor()) {
+		vmtr = vmm_handle_trap(&ctx, regs);
+		if (vmtr == VMM_HANDLED) {
+			err = 0;
+			goto out;
+		}
+		if (vmtr == VMM_ERROR) {
+			err = -EINVAL;
+			goto out;
+		} else if (vmtr == VMM_FORWARD) {
+		}
+
+	}
 
 	if (is_irq(ctx.scause)) {
 		err = handle_irq(to_irq(ctx.scause));
@@ -87,11 +103,10 @@ void arch_handle_trap(struct registers *regs)
 	if (ctx.sstatus & SR_SPP) {
 		printk("FATAL: Trap taken from Supervisor mode\n");
 		goto out;
-	} else {
-		/* Save task context */
-		current_task()->regs = *regs;
 	}
 
+	/* Save task context */
+	current_task()->regs = *regs;
 	switch (ctx.scause) {
 		case EXC_INST_ACCESS:
 		case EXC_LOAD_ACCESS:

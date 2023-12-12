@@ -19,6 +19,7 @@
 #include <grinch/list.h>
 #include <grinch/process.h>
 #include <grinch/types.h>
+#include <grinch/vmm.h>
 
 typedef int pid_t;
 
@@ -30,6 +31,7 @@ enum task_state {
 enum task_type {
 	GRINCH_UNDEF = 0,
 	GRINCH_PROCESS,
+	GRINCH_VMACHINE,
 };
 
 struct task {
@@ -42,6 +44,7 @@ struct task {
 	enum task_type type;
 	union {
 		struct process *process;
+		struct vmachine *vmachine;
 	};
 };
 

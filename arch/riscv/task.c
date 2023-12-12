@@ -11,6 +11,7 @@
  */
 
 #include <asm/csr.h>
+#include <asm/isa.h>
 
 #include <grinch/task.h>
 #include <grinch/percpu.h>
@@ -39,6 +40,13 @@ void arch_task_restore(void)
 void arch_process_activate(struct process *process)
 {
 	struct per_cpu *tpcpu;
+
+	/* Deactivate VMM */
+	if (has_hypervisor())
+		csr_write(CSR_HSTATUS, 0);
+
+	/* Ensure that sret returns to U-Mode */
+	csr_clear(sstatus, SR_SPP);
 
 	tpcpu = this_per_cpu();
 	memcpy(tpcpu->root_table_page, process->mm.page_table, PAGE_SIZE / 2);

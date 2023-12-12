@@ -13,6 +13,7 @@
 #define dbg_fmt(x)	"arch: " x
 
 #include <asm/irq.h>
+#include <asm/isa.h>
 
 #include <grinch/arch.h>
 #include <grinch/errno.h>
@@ -97,12 +98,20 @@ con:
 	irq_enable();
 #endif
 
-	if (1) {
-		err = vmm_init();
-		if (err == -ENOSYS) {
-			ps("H-Extensions not available\n");
-			err = 0;
-		}
+	err = vmm_init();
+	if (err == -ENOSYS) {
+		ps("H-Extensions not available\n");
+		err = 0;
+	}
+
+	if (1 && has_hypervisor()) {
+		/* create two test instances */
+		err = vm_create_grinch();
+		if (err)
+			goto out;
+		err = vm_create_grinch();
+		if (err)
+			goto out;
 	}
 
 out:
