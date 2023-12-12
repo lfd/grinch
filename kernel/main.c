@@ -128,9 +128,28 @@ static void memtest(void)
 #undef dbg_fmt
 #define dbg_fmt(x)	"main: " x
 
-int cmain(unsigned long boot_cpu, paddr_t __fdt)
+static int init(void)
 {
 	struct task *task;
+	int err;
+
+	task = process_alloc_new();
+	if (IS_ERR(task))
+		return PTR_ERR(task);
+
+	err = process_from_fs(task, "initrd:/init.echse");
+	if (err) {
+		task_destroy(task);
+		return err;
+	}
+
+	sched_enqueue(task);
+
+	return 0;
+}
+
+int cmain(unsigned long boot_cpu, paddr_t __fdt)
+{
 	int err;
 
 	irq_disable();
@@ -156,18 +175,9 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 
 	kheap_stats();
 
-	task = process_alloc_new();
-	if (IS_ERR(task)) {
-		err = PTR_ERR(task);
-		goto out;
-	}
+	if (1)
+		err = init();
 
-	err = process_from_fs(task, "initrd:/init.echse");
-	if (err)
-		goto out;
-
-	/* Here, the scheduler becomes responsible for the mmmgmt of task */
-	sched_enqueue(task);
 	schedule();
 	arch_task_restore();
 
