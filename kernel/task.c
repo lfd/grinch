@@ -79,7 +79,15 @@ void task_activate(struct task *task)
 	tpcpu->current_task = task;
 	task->state = RUNNING;
 
-	arch_process_activate(task->process);
+	switch (task->type) {
+	case GRINCH_PROCESS:
+		arch_process_activate(task->process);
+		break;
+
+	default:
+		panic("Unknown task type!\n");
+		break;
+	}
 }
 
 void sched_dequeue(struct task *task)
