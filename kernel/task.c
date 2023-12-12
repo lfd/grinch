@@ -55,11 +55,10 @@ struct task *task_alloc_new(void)
 {
 	struct task *task;
 
-	task = kmalloc(sizeof(*task));
+	task = kzalloc(sizeof(*task));
 	if (!task)
 		return ERR_PTR(-ENOMEM);
 
-	memset(&task->regs, 0, sizeof(task->regs));
 	task->pid = get_new_pid();
 	task->state = SUSPENDED;
 	task->type = GRINCH_UNDEF;
