@@ -156,13 +156,13 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 
 	kheap_stats();
 
-	task = task_alloc_new();
+	task = process_alloc_new();
 	if (IS_ERR(task)) {
 		err = PTR_ERR(task);
 		goto out;
 	}
 
-	err = task_from_fs(task, "initrd:/init.echse");
+	err = process_from_fs(task, "initrd:/init.echse");
 	if (err)
 		goto out;
 

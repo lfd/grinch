@@ -17,8 +17,8 @@
 
 #include <grinch/compiler_attributes.h>
 #include <grinch/list.h>
+#include <grinch/process.h>
 #include <grinch/types.h>
-#include <grinch/vma.h>
 
 typedef int pid_t;
 
@@ -27,8 +27,9 @@ enum task_state {
 	RUNNING,
 };
 
-struct process {
-	struct mm mm;
+enum task_type {
+	GRINCH_UNDEF = 0,
+	GRINCH_PROCESS,
 };
 
 struct task {
@@ -38,15 +39,15 @@ struct task {
 	pid_t pid;
 	enum task_state state;
 
-	struct process process;
+	enum task_type type;
+	union {
+		struct process *process;
+	};
 };
 
 struct task *task_alloc_new(void);
 
-int task_from_fs(struct task *task, const char *pathname);
-
 void task_activate(struct task *task);
-void arch_process_activate(struct process *task);
 void arch_task_restore(void);
 void task_set_context(struct task *task, unsigned long pc, unsigned long sp);
 void task_destroy(struct task *task);

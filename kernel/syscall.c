@@ -34,7 +34,7 @@ static unsigned long sys_write(int fd, const char *buf, size_t count)
 
 	while (count) {
 		sz = count < BLEN ? count : BLEN;
-		err = copy_from_user(&current_task()->process.mm, tmp, buf, sz);
+		err = copy_from_user(&current_task()->process->mm, tmp, buf, sz);
 		if (err < 0)
 			return err;
 		tmp[sz] = 0;
@@ -57,7 +57,6 @@ static void exit(int code)
 	sched_dequeue(task);
 	schedule();
 	task_destroy(task);
-	kfree(task);
 }
 
 int syscall(unsigned long no, unsigned long arg1,
