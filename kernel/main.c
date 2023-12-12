@@ -171,6 +171,9 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 	schedule();
 	arch_task_restore();
 
+	if (!current_task())
+		panic("Nothing to schedule!\n");
+
 out:
 	pr("End reached: %d\n", err);
 	return err;

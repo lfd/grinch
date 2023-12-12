@@ -27,6 +27,9 @@ void arch_task_restore(void)
 {
 	struct task *task = current_task();
 
+	if (!task)
+		return;
+
 	this_per_cpu()->stack.regs = task->regs;
 
 	csr_write(sepc, task->regs.sepc);
