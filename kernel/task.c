@@ -178,26 +178,47 @@ void sched_enqueue(struct task *task)
 
 void schedule(void)
 {
-	struct list_head *pos;
 	struct task *task;
 	struct per_cpu *tpcpu;
 
 	tpcpu = this_per_cpu();
 	spin_lock(&task_lock);
 	tpcpu->schedule = false;
-	list_for_each(pos, &task_list) {
-		task = list_entry(pos, struct task, tasks);
-		if (task == tpcpu->current_task)
-			continue;
+	task = NULL;
 
-		if (task->state == SUSPENDED) {
-			task_activate(task);
-			goto out;
-		}
+	if (!tpcpu->current_task)
+		goto begin;
+
+	if (list_is_singular(&task_list)) {
+		task = list_first_entry(&task_list, struct task, tasks);
+		goto out;
 	}
-	if (list_empty(&task_list))
+
+	task = tpcpu->current_task;
+	list_for_each_entry_from(task, &task_list, tasks) {
+		if (task->state == SUSPENDED)
+			goto out;
+	}
+
+begin:
+	if (list_empty(&task_list)) {
 		this_per_cpu()->current_task = NULL;
+		goto out;
+	}
+
+	list_for_each_entry(task, &task_list, tasks) {
+		if (task == tpcpu->current_task)
+			break;
+
+		if (task->state == SUSPENDED)
+			goto out;
+	}
+
+	task = NULL;
+
 out:
+	if (task)
+		task_activate(task);
 	spin_unlock(&task_lock);
 }
 
