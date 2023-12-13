@@ -23,7 +23,8 @@
 int kmm_init(void);
 
 /* May return ENOMEM and EINVAL -> ERR_PTR */
-void *kmm_page_alloc_aligned(unsigned int pages, unsigned int alignment, void *hint, unsigned int flags);
+void *kmm_page_alloc_aligned(unsigned int pages, unsigned int alignment,
+			     void *hint, unsigned int flags);
 
 static inline int kmm_mark_used(void *addr, unsigned int pages)
 {
@@ -37,11 +38,13 @@ static inline int kmm_mark_used(void *addr, unsigned int pages)
 }
 
 /* Can only return ENOMEM -> NULL */
-static inline void *_kmm_page_alloc(unsigned int pages, unsigned int flags)
+static inline void *_kmm_page_alloc_aligned(unsigned int pages,
+					    unsigned int alignment,
+					    unsigned int flags)
 {
 	void *ret;
 
-	ret = kmm_page_alloc_aligned(pages, PAGE_SIZE, 0, flags);
+	ret = kmm_page_alloc_aligned(pages, alignment, 0, flags);
 	if (IS_ERR(ret))
 		return NULL;
 
@@ -50,12 +53,18 @@ static inline void *_kmm_page_alloc(unsigned int pages, unsigned int flags)
 
 static inline void *kmm_page_alloc(unsigned int pages)
 {
-	return _kmm_page_alloc(pages, 0);
+	return _kmm_page_alloc_aligned(pages, PAGE_SIZE, 0);
 }
 
 static inline void *kmm_page_zalloc(unsigned int pages)
 {
-	return _kmm_page_alloc(pages, KMM_ZERO);
+	return _kmm_page_alloc_aligned(pages, PAGE_SIZE, KMM_ZERO);
+}
+
+static inline void *kmm_page_zalloc_aligned(unsigned int pages,
+					    unsigned int alignment)
+{
+	return _kmm_page_alloc_aligned(pages, alignment, KMM_ZERO);
 }
 
 int kmm_page_free(const void *addr, unsigned int pages);
