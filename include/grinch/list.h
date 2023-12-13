@@ -90,12 +90,40 @@ static inline void list_del(struct list_head *entry)
 	entry->prev = LIST_POISON2;
 }
 
-#define list_for_each(pos, head) \
+static inline int list_is_singular(const struct list_head *head)
+{
+	return !list_empty(head) && (head->next == head->prev);
+}
+
+#define list_entry_is_head(pos, head, member)	\
+		(&pos->member == (head))
+
+#define list_first_entry(ptr, type, member)	\
+	list_entry((ptr)->next, type, member)
+
+#define list_next_entry(pos, member)		\
+	list_entry((pos)->member.next, typeof(*(pos)), member)
+
+#define list_for_each(pos, head)		\
 	for (pos = (head)->next; !list_is_head(pos, (head)); pos = pos->next)
 
 #define list_for_each_safe(pos, n, head)	\
 	for (pos = (head)->next, n = pos->next;	\
 	     !list_is_head(pos, (head));	\
 	     pos = n, n = pos->next)
+
+#define list_for_each_entry(pos, head, member)				\
+	for (pos = list_first_entry(head, typeof(*pos), member);	\
+	     !list_entry_is_head(pos, head, member);			\
+	     pos = list_next_entry(pos, member))
+
+#define list_for_each_entry_from(pos, head, member) 			\
+	for (; !list_entry_is_head(pos, head, member);			\
+	     pos = list_next_entry(pos, member))
+
+#define list_for_each_entry_continue(pos, head, member) 		\
+	for (pos = list_next_entry(pos, member);			\
+	     !list_entry_is_head(pos, head, member);			\
+	     pos = list_next_entry(pos, member))
 
 #endif /* _LIST_H */
