@@ -21,19 +21,9 @@ long mm_bitmap_find_and_allocate(struct bitmap *bitmap, size_t pages, unsigned
 {
 	unsigned int start;
 
-	switch (alignment) {
-		case PAGE_SIZE:
-			alignment = 0;
-			break;
-		case MEGA_PAGE_SIZE:
-			alignment = PAGES(MEGA_PAGE_SIZE) - 1;
-			break;
-		case GIGA_PAGE_SIZE:
-			alignment = PAGES(GIGA_PAGE_SIZE) - 1;
-			break;
-		default:
-			return trace_error(-EINVAL);
-	};
+	if (alignment % PAGE_SIZE)
+		return trace_error(-EINVAL);
+	alignment = PAGES(alignment) - 1;
 
 	start = bitmap_find_next_zero_area(bitmap->bitmap, bitmap->bit_max,
 					   from, pages, alignment);
