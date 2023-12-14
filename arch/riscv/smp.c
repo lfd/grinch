@@ -13,6 +13,7 @@
 #define dbg_fmt(x)	"smp: " x
 
 #include <asm/irq.h>
+#include <asm/isa.h>
 
 #include <grinch/bitmap.h>
 #include <grinch/errno.h>
@@ -150,9 +151,9 @@ int smp_init(void)
 
 int platform_init(void)
 {
+	const char *name, *isa;
 	unsigned long hart_id;
 	int err, cpu, child;
-	const char *name;
 	const fdt32_t *reg;
 
 	cpu = fdt_path_offset(_fdt, "/cpus");
@@ -176,6 +177,16 @@ int platform_init(void)
 			pr("%s: HART %lu beyond MAX_HARTS\n", name, hart_id);
 			return -ERANGE;
 		}
+
+		isa = fdt_getprop(_fdt, child, "riscv,isa", &err);
+		if (!isa || err < 0) {
+			pr("CPU %lu: No ISA specification found\n", hart_id);
+		} else {
+			pr("CPU %lu: Found ISA level: %s\n", hart_id, isa);
+		}
+		err = riscv_isa_update(hart_id, isa);
+		if (err)
+			return err;
 
 		if (!fdt_device_is_available(_fdt, child)) {
 			pr("%s: HART %lu disabled via device-tree\n", name,
