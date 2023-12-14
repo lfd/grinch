@@ -52,10 +52,7 @@ static void exit(int code)
 	struct task *task;
 
 	task = current_task();
-
 	pr("PID %u exited: %d\n", task->pid, code);
-	sched_dequeue(task);
-	schedule();
 	task_destroy(task);
 }
 

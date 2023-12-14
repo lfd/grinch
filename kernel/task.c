@@ -27,6 +27,18 @@ static pid_t next_pid = 1;
 
 void task_destroy(struct task *task)
 {
+	/*
+	 * Once we have proper SMP, this won't work like that any longer. We
+	 * first have to make sure, that a Task got suspended before being
+	 * dequeued
+	 */
+	sched_dequeue(task);
+
+	if (this_per_cpu()->current_task == task) {
+		this_per_cpu()->schedule = true;
+		this_per_cpu()->current_task = NULL;
+	}
+
 	switch (task->type) {
 	case GRINCH_PROCESS:
 		process_destroy(task->process);
@@ -182,11 +194,12 @@ destroy_out:
 
 void prepare_user_return(void)
 {
+	if (this_per_cpu()->schedule)
+		schedule();
+
 	if (!this_per_cpu()->current_task)
 		panic("Nothing to schedule!\n");
 
-	if (this_per_cpu()->schedule)
-		schedule();
 	else if (this_per_cpu()->pt_needs_update) {
 		arch_process_activate(current_task()->process);
 		this_per_cpu()->pt_needs_update = false;
