@@ -68,6 +68,53 @@ void *memchr(const void *s, int c, size_t n)
 	return 0;
 }
 
+char *strpbrk(const char *cs, const char *ct)
+{
+	const char *sc;
+
+	for (sc = cs; *sc != '\0'; ++sc) {
+		if (strchr(ct, *sc))
+			return (char *)sc;
+	}
+	return NULL;
+}
+
+char *strchr(const char *s, int c)
+{
+	for (; *s != (char)c; ++s)
+		if (*s == '\0')
+			return NULL;
+	return (char *)s;
+}
+
+char *strncpy(char *dest, const char *src, size_t count)
+{
+	char *tmp = dest;
+
+	while (count) {
+		if ((*tmp = *src) != 0)
+			src++;
+		tmp++;
+		count--;
+	}
+	return dest;
+}
+
+char *strsep(char **s, const char *ct)
+{
+	char *sbegin = *s;
+	char *end;
+
+	if (sbegin == NULL)
+		return NULL;
+
+	end = strpbrk(sbegin, ct);
+	if (end)
+		*end++ = '\0';
+	*s = end;
+	return sbegin;
+}
+
 int strcmp(const char *s1, const char *s2)
 {
 	while (*s1 == *s2) {

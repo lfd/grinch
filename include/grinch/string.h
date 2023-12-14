@@ -26,6 +26,11 @@ void *memset(void *s, int c, size_t n);
 void *memchr(const void *s, int c, size_t n);
 int memcmp(const void *dst, const void *src, size_t count);
 
+char *strchr(const char *s, int c);
+char *strpbrk(const char *cs, const char *ct);
+char *strncpy(char *dest,const char *source, size_t count);
+char *strsep(char **s, const char *ct);
+
 int strcmp(const char *s1, const char *s2);
 int strncmp(const char *s1, const char *s2, size_t count);
 
