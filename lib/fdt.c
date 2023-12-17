@@ -165,3 +165,28 @@ int fdt_read_reg(const void *fdt, int nodeoffset, int idx,
 
 	return 0;
 }
+
+int fdt_read_u64(const void *fdt, int nodeoffset, const char *name, u64 *res)
+{
+	const fdt64_t *prop;
+	int len;
+
+	prop = fdt_getprop(_fdt, nodeoffset, name, &len);
+	if (!prop)
+		return -ENOENT;
+
+	switch (len) {
+		case 4:
+			*res = fdt32_to_cpu(*prop);
+			break;
+
+		case 8:
+			*res = fdt64_to_cpu(*prop);
+			break;
+
+		default:
+			return -EINVAL;
+	}
+
+	return 0;
+}

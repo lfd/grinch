@@ -27,6 +27,8 @@ int fdt_init(paddr_t pfdt);
 int fdt_read_reg(const void *fdt, int nodeoffset, int idx, void *addrp,
 		 u64 *sizep);
 
+int fdt_read_u64(const void *fdt, int nodeoffset, const char *name, u64 *res);
+
 bool fdt_device_is_available(const void *fdt, unsigned long node);
 
 int fdt_find_device(const void *fdt, const char *path,
