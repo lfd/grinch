@@ -15,6 +15,10 @@ OBJCOPY=$(CROSS_COMPILE)objcopy
 SZ=$(CROSS_COMPILE)size
 RMRF=rm -rf
 
+D_UBOOT=res/u-boot/u-boot
+UBOOT_BIN=$(D_UBOOT)/u-boot-nodtb.bin
+MAKEARGS_UBOOT=-j 8 -C $(D_UBOOT) CROSS_COMPILE=$(CROSS_COMPILE)
+
 ifdef V
 QUIET := @true
 VERBOSE :=
@@ -53,13 +57,22 @@ include user/inc.mk
 	$(VERBOSE) $(AR) cDPrST $@ $^
 
 QEMU_CMD=$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS)
-QEMU_CMD_DIRECT=$(QEMU_CMD) -kernel kernel.bin -initrd user/initrd.cpio
 
-qemu: kernel.bin user/initrd.cpio
+QEMU_CMD_DIRECT=$(QEMU_CMD) -kernel kernel.bin -initrd user/initrd.cpio
+QEMU_CMD_UBOOT=$(QEMU_CMD) -kernel $(UBOOT_BIN) $(QEMU_UBOOT_ARGS)
+
+qemu: all
 	$(QEMU_CMD_DIRECT)
 
-qemudb: kernel.bin user/initrd.cpio
+qemudb: all
 	$(QEMU_CMD_DIRECT) -S
+
+qemuu: all $(UBOOT_BIN)
+	$(QEMU_CMD_UBOOT)
+
+$(UBOOT_BIN):
+	cp -av res/u-boot/$(UBOOT_CFG) res/u-boot/u-boot/.config
+	$(MAKE) $(MAKEARGS_UBOOT) u-boot-nodtb.bin
 
 debug: kernel.bin
 	$(GDB) $^
@@ -68,3 +81,6 @@ clean: clean_kernel clean_user
 	$(RMRF) *.dtb
 	$(RMRF) *.elf
 	$(RMRF) *.bin
+
+mrproper: clean
+	$(MAKE) -C $(D_UBOOT) mrproper

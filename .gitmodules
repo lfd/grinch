@@ -1,0 +1,3 @@
+[submodule "res/u-boot/u-boot"]
+	path = res/u-boot/u-boot
+	url = https://github.com/u-boot/u-boot.git
