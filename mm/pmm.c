@@ -51,7 +51,7 @@ static int pmm_check(paddr_t addr, size_t pages)
 	return 0;
 }
 
-static int pmm_mark_used(paddr_t addr, size_t pages)
+int pmm_mark_used(paddr_t addr, size_t pages)
 {
 	unsigned int start;
 	int err;
