@@ -32,7 +32,8 @@ void task_destroy(struct task *task)
 	 * first have to make sure, that a Task got suspended before being
 	 * dequeued
 	 */
-	sched_dequeue(task);
+	if (!list_empty(&task->tasks))
+		sched_dequeue(task);
 
 	if (this_per_cpu()->current_task == task) {
 		this_per_cpu()->schedule = true;
@@ -74,6 +75,7 @@ struct task *task_alloc_new(void)
 	task->pid = get_new_pid();
 	task->state = SUSPENDED;
 	task->type = GRINCH_UNDEF;
+	INIT_LIST_HEAD(&task->tasks);
 
 	return task;
 }
