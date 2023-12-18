@@ -3,7 +3,7 @@ ARCH ?= riscv
 GRINCH_VER=3.13
 #DEBUG_OUTPUT=1
 
-all: kernel.bin
+all: kernel.bin user/initrd.cpio
 
 GDB=$(CROSS_COMPILE)gdb
 CC=$(CROSS_COMPILE)gcc
@@ -52,11 +52,11 @@ include user/inc.mk
 	$(VERBOSE) rm -f $@
 	$(VERBOSE) $(AR) cDPrST $@ $^
 
-qemu: kernel.bin
-	$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS) -kernel $< -s
+qemu: kernel.bin user/initrd.cpio
+	$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS) -kernel $< -initrd user/initrd.cpio -s
 
-qemudb: kernel.bin
-	$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS) -kernel $< -s -S
+qemudb: kernel.bin user/initrd.cpio
+	$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS) -kernel $< -initrd user/initrd.cpio -s -S
 
 debug: kernel.bin
 	$(GDB) $^

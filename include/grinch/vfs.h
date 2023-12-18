@@ -15,4 +15,6 @@
 
 void *vfs_read_file(const char *pathname);
 
+int initrd_init_early(void);
+
 #endif /* _VFS_H */

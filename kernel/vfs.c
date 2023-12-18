@@ -14,12 +14,12 @@
 
 #include <grinch/alloc.h>
 #include <grinch/errno.h>
+#include <grinch/fdt.h>
+#include <grinch/paging.h>
+#include <grinch/pmm.h>
 #include <grinch/printk.h>
 #include <grinch/string.h>
 #include <grinch/vfs.h>
-
-extern unsigned char __initrd_start[];
-extern unsigned char __initrd_end[];
 
 #define CPIO_MAGIC	"070701"
 #define CPIO_TRAILER	"TRAILER!!!"
@@ -32,6 +32,12 @@ struct cpio_header {
 	const char *body;
 	const void *next_header;
 };
+
+static struct {
+	paddr_t pstart;
+	size_t size;
+	const void *vbase;
+} initrd;
 
 static int parse_cpio_header(const char *s, struct cpio_header *hdr)
 {
@@ -70,23 +76,26 @@ static int parse_cpio_header(const char *s, struct cpio_header *hdr)
 
 static int cpio_find_file(const char *pathname, struct cpio_header *hdr)
 {
-	const void *initrd;
+	const void *this;
 	int err;
 
-	initrd = __initrd_start;
+	this = initrd.vbase;
+	if (!this)
+		return -ENOENT;
 
 	/* Skip leading slashes */
 	while (*pathname == '/')
 		pathname++;
 
 	while (1) {
-		err = parse_cpio_header(initrd, hdr);
+		err = parse_cpio_header(this, hdr);
 		if (err)
 			return err;
-		initrd = hdr->next_header;
+		this = hdr->next_header;
 		if (!strcmp(hdr->name, pathname))
 			return 0;
 	}
+
 	return -ENOENT;
 }
 
@@ -117,4 +126,46 @@ void *vfs_read_file(const char *pathname)
 		return ERR_PTR(-ENOSYS);
 
 	return initrd_read_file(pathname + strlen(ird));
+}
+
+int initrd_init_early(void)
+{
+	size_t initrd_pages;
+	paddr_t page_start;
+	const void *vbase;
+	int err, offset;
+	u64 start, end;
+
+	offset = fdt_path_offset(_fdt, "/chosen");
+	if (offset <= 0)
+		return -ENOENT;
+
+	err = fdt_read_u64(_fdt, offset, "linux,initrd-start", &start);
+	if (err)
+		return -ENOENT;
+
+	err = fdt_read_u64(_fdt, offset, "linux,initrd-end", &end);
+	if (err)
+		return -ENOENT;
+
+	initrd.pstart = start;
+	initrd.size = end - start;
+
+	pr("Found Ramdisk at 0x%llx (SZ: 0x%lx)\n", initrd.pstart, initrd.size);
+	page_start = start & PAGE_MASK;
+	initrd_pages = PAGES(page_up(end) - page_start);
+
+	err = pmm_mark_used(page_start, initrd_pages);
+	if (err) {
+		pr("Error reserving memory for ramdisk\n");
+		return err;
+	}
+
+	vbase = pmm_to_virt(initrd.pstart);
+	if (IS_ERR(vbase))
+		return PTR_ERR(vbase);
+
+	initrd.vbase = vbase;
+
+	return 0;
 }
