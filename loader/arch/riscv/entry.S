@@ -12,12 +12,41 @@
 
 #include <asm_generic/grinch_layout.h>
 
+#define RISCV_IMAGE_MAGIC	"RISCV\0\0\0"
+#define RISCV_IMAGE_MAGIC2	"RSC\x05"
+
+#define RISCV_HEADER_VERSION_MAJOR 0
+#define RISCV_HEADER_VERSION_MINOR 2
+
+#define RISCV_HEADER_VERSION	(RISCV_HEADER_VERSION_MAJOR << 16 | \
+				 RISCV_HEADER_VERSION_MINOR)
+
 .section .text.boot, "ax"
 
 .macro lpc reg, symbol
 1:	auipc	\reg, %pcrel_hi (\symbol)
 	addi	\reg, \reg, %pcrel_lo (1b)
 .endm
+
+/*
+ * This adds the Linux boot header. We're compatible with both: we're bootable
+ * as simple SBI payload, and we're bootable via U-Boot.
+ */
+_start:
+	j _loader_start
+	.balign 8
+	/* Image load offset. Load it to a 2M boundary. */
+	.dword 0x200000
+
+	.dword __stack_end - _start
+	.dword 0
+	.word RISCV_HEADER_VERSION
+	.word 0
+	.dword 0
+	.ascii RISCV_IMAGE_MAGIC
+	.balign 4
+	.ascii RISCV_IMAGE_MAGIC2
+	.word 0
 
 .globl _loader_start
 _loader_start:
@@ -38,7 +67,7 @@ _loader_start:
 	 * a1: device-tree address <- already present
 	 * a2: pc-rel load addr
 	 */
-	lpc	a2, _loader_start
+	lpc	a2, _start
 	/* a3: abs link addr */
 	li	a3, VMGRINCH_BASE
 	jal	loader
