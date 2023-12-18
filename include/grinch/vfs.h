@@ -13,7 +13,7 @@
 #ifndef _VFS_H
 #define _VFS_H
 
-void *vfs_read_file(const char *pathname);
+void *vfs_read_file(const char *pathname, size_t *len);
 
 int initrd_init_early(void);
 

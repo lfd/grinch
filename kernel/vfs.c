@@ -99,7 +99,7 @@ static int cpio_find_file(const char *pathname, struct cpio_header *hdr)
 	return -ENOENT;
 }
 
-static void *initrd_read_file(const char *pathname)
+static void *initrd_read_file(const char *pathname, size_t *len)
 {
 	struct cpio_header hdr;
 	int err;
@@ -114,10 +114,13 @@ static void *initrd_read_file(const char *pathname)
 		return ERR_PTR(-ENOMEM);
 
 	memcpy(ret, hdr.body, hdr.body_len);
+	if (len)
+		*len = hdr.body_len;
+
 	return ret;
 }
 
-void *vfs_read_file(const char *pathname)
+void *vfs_read_file(const char *pathname, size_t *len)
 {
 	const char *ird = "initrd:";
 
@@ -125,7 +128,7 @@ void *vfs_read_file(const char *pathname)
 	if (strncmp(pathname, ird, strlen(ird)))
 		return ERR_PTR(-ENOSYS);
 
-	return initrd_read_file(pathname + strlen(ird));
+	return initrd_read_file(pathname + strlen(ird), len);
 }
 
 int initrd_init_early(void)

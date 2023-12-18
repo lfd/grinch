@@ -85,7 +85,7 @@ int process_from_fs(struct task *task, const char *pathname)
 	void *elf;
 	int err;
 
-	elf = vfs_read_file(pathname);
+	elf = vfs_read_file(pathname, NULL);
 	if (IS_ERR(elf))
 		return PTR_ERR(elf);
 
