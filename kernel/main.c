@@ -175,8 +175,12 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 
 	kheap_stats();
 
-	if (1)
+	if (1) {
 		err = init();
+		if (err)
+			ps("Error initialising userland\n");
+		err = 0;
+	}
 
 	schedule();
 	arch_task_restore();
