@@ -52,11 +52,14 @@ include user/inc.mk
 	$(VERBOSE) rm -f $@
 	$(VERBOSE) $(AR) cDPrST $@ $^
 
+QEMU_CMD=$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS)
+QEMU_CMD_DIRECT=$(QEMU_CMD) -kernel kernel.bin -initrd user/initrd.cpio
+
 qemu: kernel.bin user/initrd.cpio
-	$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS) -kernel $< -initrd user/initrd.cpio -s
+	$(QEMU_CMD_DIRECT)
 
 qemudb: kernel.bin user/initrd.cpio
-	$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS) -kernel $< -initrd user/initrd.cpio -s -S
+	$(QEMU_CMD_DIRECT) -S
 
 debug: kernel.bin
 	$(GDB) $^

@@ -6,7 +6,7 @@ include mm/inc.mk
 include drivers/inc.mk
 include loader/loader.mk
 
-QEMU_ARGS_COMMON=-monitor telnet:127.0.0.1:11111,server,nowait
+QEMU_ARGS_COMMON=-monitor telnet:127.0.0.1:11111,server,nowait -s
 
 INCLUDES_KERNEL=-Iinclude/ \
 		-Iinclude_common \
