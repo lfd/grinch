@@ -123,11 +123,6 @@ int pmm_init(paddr_t addrp, size_t sizep)
 	pmm_base = addrp;
 	pmm_bitmap.bit_max = PAGES(sizep);
 
-	if (pmm_bitmap.bit_max % 64 != 0) {
-		pr("Implement unaligned bitmap\n");
-		return -ERANGE;
-	}
-
 	pmm_bitmap.bitmap = kmm_page_zalloc(
 		PAGES(page_up(BITMAP_SIZE(pmm_bitmap.bit_max))));
 	if (!pmm_bitmap.bitmap)
