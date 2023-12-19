@@ -5,6 +5,7 @@ GRINCH_VER=3.13
 
 all: kernel.bin user/initrd.cpio
 
+DTC=dtc
 GDB=$(CROSS_COMPILE)gdb
 CC=$(CROSS_COMPILE)gcc
 LD=$(CROSS_COMPILE)ld

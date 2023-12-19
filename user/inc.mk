@@ -54,6 +54,7 @@ clean_user: $(patsubst %,clean_%,$(APPS))
 	$(RMRF) user/lib/*.{o,a}
 	$(RMRF) user/lib/$(ARCH)/*.{o,a}
 	$(RMRF) user/initrd.cpio
+	$(RMRF) user/vm.dtb
 
 define echse_of
 	user/apps/$(1)/$(1).echse
@@ -61,6 +62,6 @@ endef
 
 APP_ECHSES=$(foreach app,$(APPS),$(call echse_of,$(app)))
 
-user/initrd.cpio: $(APP_ECHSES) kernel.bin
+user/initrd.cpio: $(APP_ECHSES) kernel.bin user/vm.dtb
 	$(QUIET) "[CPIO]  $@"
 	$(VERBOSE) ./scripts/create_cpio $@ $^

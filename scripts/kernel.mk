@@ -54,7 +54,12 @@ ifdef V
 	$(VERBOSE) $(SZ) --format=SysV -x $@
 endif
 
+%.dtb: %.dts
+	$(QUIET) "[DTC]   $@"
+	$(VERBOSE) $(DTC) -I dts -O dtb -o $@ $^
+
 objdk: kernel.elf
+	$(QUIET) "[DTC]    $
 	$(OBJDUMP) -d $^ | less
 
 objd: vmgrinch.elf

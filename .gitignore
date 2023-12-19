@@ -4,6 +4,7 @@
 *.a
 *.o
 *.ld
+*.dtb
 
 arch/riscv/asm_defines.S
 arch/riscv/include/asm/asm_defines.h

@@ -1,0 +1,31 @@
+/dts-v1/;
+
+/ {
+	#address-cells = <2>;
+	#size-cells = <2>;
+
+	chosen {
+		/*
+		 * Specify 256KB. Must be adjusted, once we have a huger
+		 * ramdisk.
+		 */
+		linux,initrd-start = <0xa0100000>;
+		linux,initrd-end = <0xa0140000>;
+	};
+
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cpu@0 {
+			riscv,isa = "rv64imafdc";
+			reg = <0>;
+			status = "okay";
+		};
+	};
+
+	memory@a0000000 {
+		device-type = "memory";
+		reg = <0x0 0xa0000000 0x0 0x401000>;
+	};
+};
