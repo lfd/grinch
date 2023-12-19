@@ -29,7 +29,7 @@ void console_flush(void);
 #define ps(str) puts(dbg_fmt(str))
 
 #define trace_error(code) ({						  \
-	printk("%s:%d: returning error %s\n", __FILE__, __LINE__, #code); \
+	printk("%s:%d: returning error %d\n", __FILE__, __LINE__, code); \
 	code;								  \
 })
 
