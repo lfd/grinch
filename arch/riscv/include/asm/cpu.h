@@ -53,6 +53,12 @@ struct registers {
 	unsigned long sepc;
 } __attribute__((packed));
 
+struct trap_context {
+	/* Privileged registers */
+	unsigned long scause;
+	unsigned long sstatus;
+};
+
 static inline void regs_set_retval(struct registers *r, unsigned long val)
 {
 	r->a0 = val;

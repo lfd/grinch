@@ -71,14 +71,20 @@ static int handle_syscall(void)
 void arch_handle_trap(struct registers *regs)
 {
 	const char *cause_str = "UNKNOWN";
-	unsigned long cause, status;
-	int err = -1;
+	struct trap_context ctx;
+	int err;
 
 	regs->sepc = csr_read(sepc);
-	cause = csr_read(scause);
-	status = csr_read(sstatus);
+	ctx.scause = csr_read(scause);
+	ctx.sstatus = csr_read(sstatus);
 
-	if (status & SR_SPP) {
+	if (is_irq(ctx.scause)) {
+		err = handle_irq(to_irq(ctx.scause));
+		goto out;
+	}
+
+	err = -EINVAL;
+	if (ctx.sstatus & SR_SPP) {
 		printk("FATAL: Trap taken from Supervisor mode\n");
 		goto out;
 	} else {
@@ -86,12 +92,7 @@ void arch_handle_trap(struct registers *regs)
 		current_task()->regs = *regs;
 	}
 
-	if (is_irq(cause)) {
-		err = handle_irq(to_irq(cause));
-		goto out;
-	}
-
-	switch (cause) {
+	switch (ctx.scause) {
 		case EXC_INST_ACCESS:
 		case EXC_LOAD_ACCESS:
 		case EXC_STORE_ACCESS:
@@ -120,14 +121,14 @@ void arch_handle_trap(struct registers *regs)
 out:
 	if (err) {
 		/* We end up here in case of exceptions */
-		if (cause <= 23)
-			cause_str = causes[cause];
-		else if (is_irq(cause))
+		if (ctx.scause <= 23)
+			cause_str = causes[ctx.scause];
+		else if (is_irq(ctx.scause))
 			cause_str = "IRQ";
 
 		pr("FATAL: Exception on CPU %lu. Cause: %lu (%s)\n",
-		   this_cpu_id(), to_irq(cause), cause_str);
-		if (!(status & SR_SPP))
+		   this_cpu_id(), to_irq(ctx.scause), cause_str);
+		if (!(ctx.sstatus & SR_SPP))
 			pr("PID: %u\n", current_task()->pid);
 		dump_regs(regs);
 		panic_stop();
