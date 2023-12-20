@@ -29,17 +29,21 @@
 #include <stdarg.h>
 
 #include <grinch/string.h>
+#include <grinch/boot.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/serial.h>
 #include <grinch/math64.h>
 
 static DEFINE_SPINLOCK(print_lock);
+static char prefix_fmt[16] = "[Grinch %u] ";
 
 struct {
 	unsigned int tail;
 	char content[2048];
 } console;
+
+static void __vprintk(const char *fmt, va_list ap);
 
 static inline void console_write(char c)
 {
@@ -62,7 +66,21 @@ void console_flush(void)
 	console.tail = 0;
 }
 
-static void _puts(const char *msg)
+static void __printf(1, 2) _printk_raw(const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	__vprintk(fmt, ap);
+	va_end(ap);
+}
+
+static inline void print_prefix(void)
+{
+	_printk_raw(prefix_fmt, grinch_id);
+}
+
+static void ___puts(const char *msg)
 {
 	char c;
 
@@ -76,10 +94,23 @@ static void _puts(const char *msg)
 	}
 }
 
-void puts(const char *msg) {
+static inline void __puts(const char *msg, bool prefixed)
+{
 	spin_lock(&print_lock);
-	_puts(msg);
+	if (prefixed)
+		print_prefix();
+	___puts(msg);
 	spin_unlock(&print_lock);
+}
+
+void puts(const char *msg)
+{
+	__puts(msg, true);
+}
+
+void _puts(const char *msg)
+{
+	__puts(msg, false);
 }
 
 static char *uint2str(unsigned long long value, char *buf)
@@ -161,7 +192,7 @@ static void __vprintk(const char *fmt, va_list ap)
 			break;
 		} else if (c == '%') {
 			*p = 0;
-			_puts(buf);
+			___puts(buf);
 			p = buf;
 
 			c = *fmt++;
@@ -207,7 +238,7 @@ static void __vprintk(const char *fmt, va_list ap)
 				p = hex2str(v, p, (unsigned long)-1);
 				break;
 			case 's':
-				_puts(va_arg(ap, const char *));
+				___puts(va_arg(ap, const char *));
 				break;
 			case 'u':
 			case 'x':
@@ -233,13 +264,13 @@ static void __vprintk(const char *fmt, va_list ap)
 		}
 		if (p >= &buf[sizeof(buf) - 1]) {
 			*p = 0;
-			_puts(buf);
+			___puts(buf);
 			p = buf;
 		}
 	}
 
 	*p = 0;
-	_puts(buf);
+	___puts(buf);
 }
 
 void __printf(1, 2) printk(const char *fmt, ...)
@@ -248,6 +279,7 @@ void __printf(1, 2) printk(const char *fmt, ...)
 
 	va_start(ap, fmt);
 	spin_lock(&print_lock);
+	print_prefix();
 	__vprintk(fmt, ap);
 	spin_unlock(&print_lock);
 	va_end(ap);
@@ -259,10 +291,16 @@ void __noreturn __printf(1, 2) panic(const char *fmt, ...)
 
 	va_start(ap, fmt);
 	spin_lock(&print_lock);
-	_puts("KERNEL PANIC: ");
+	___puts("KERNEL PANIC: ");
 	__vprintk(fmt, ap);
 	spin_unlock(&print_lock);
 	va_end(ap);
 
 	panic_stop();
+}
+
+void printk_init(void)
+{
+	if (grinch_is_guest)
+		strncpy(prefix_fmt, "[GrinchVM %02u] ", sizeof(prefix_fmt));
 }

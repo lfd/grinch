@@ -38,7 +38,7 @@ static unsigned long sys_write(int fd, const char *buf, size_t count)
 		if (err < 0)
 			return err;
 		tmp[sz] = 0;
-		printk("%s", tmp);
+		_puts(tmp);
 
 		count -= err;
 		buf += err;

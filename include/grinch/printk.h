@@ -15,11 +15,13 @@
 
 #include <grinch/compiler_attributes.h>
 
-void puts(const char *msg);
+void puts(const char *msg); /* Prefixed */
+void _puts(const char *msg); /* No prefix */
 void __printf(1, 2) printk(const char *fmt, ...);
 void __printf(1, 2) panic(const char *fmt, ...) __noreturn;
 
 void console_flush(void);
+void printk_init(void);
 
 #ifndef dbg_fmt
 #define dbg_fmt(__x) (__x)

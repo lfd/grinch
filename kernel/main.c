@@ -157,7 +157,8 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 
 	guest_init();
 
-	puts(logo);
+	_puts(logo);
+	printk_init();
 
 	err = kmm_init();
 	if (err)
