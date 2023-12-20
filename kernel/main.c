@@ -155,7 +155,10 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 
 	irq_disable();
 
+	guest_init();
+
 	puts(logo);
+
 	err = kmm_init();
 	if (err)
 		goto out;

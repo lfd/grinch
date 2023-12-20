@@ -82,4 +82,8 @@ static inline void __attribute__((noreturn, always_inline)) cpu_halt(void)
 
 void dump_regs(struct registers *a);
 
+void guest_init(void);
+
+extern bool grinch_is_guest;
+
 #endif /* _CPU_H */

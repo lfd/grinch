@@ -19,6 +19,8 @@
 #include <grinch/paging.h>
 #include <grinch/printk.h>
 
+bool grinch_is_guest;
+
 const char *causes[] = {
 	[EXC_INST_MISALIGNED]		= "Instruction Address Misaligned",
 	[EXC_INST_ACCESS]		= "Instruction Address Fault",
@@ -79,10 +81,21 @@ int hypercall(unsigned long no, unsigned long arg1)
 {
 	struct sbiret ret;
 
-	ret = sbi_ecall(SBI_EXT_GRNC, arg1, 0, 0, 0, 0, 0, 0);
-	if (ret.error <= 0)
+	ret = sbi_ecall(SBI_EXT_GRNC, no, arg1, 0, 0, 0, 0, 0);
+	if (ret.error != SBI_SUCCESS)
 		return -EINVAL;
 
 	return ret.value;
 }
 
+void guest_init(void)
+{
+	int ret;
+
+	ret = hypercall_present();
+	if (ret <= 0)
+		return;
+
+	grinch_is_guest = true;
+	grinch_id = ret;
+}
