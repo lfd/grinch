@@ -56,7 +56,7 @@ int irqchip_init(void)
 	/* Probe for APLIC */
 	off = fdt_find_device(_fdt, "/soc", aplic_compats, &match);
 	if (off < 0)
-		return off;
+		return -ENOENT;
 
 	err = fdt_irqchip_get_extended(_fdt, off);
 	if (err != IRQ_S_EXT)

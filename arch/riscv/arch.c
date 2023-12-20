@@ -60,11 +60,12 @@ int arch_init(paddr_t __fdt)
 	/* Initialise external interrupts */
 	ps("Initialising irqchip...\n");
 	err = irqchip_init();
-	if (err)
+	if (err == -ENOENT)
+		pr("No irqchip found!\n");
+	else if (err)
 		goto out;
-
-	/* enable external IRQs */
-	ext_enable();
+	else
+		ext_enable();
 
 	ps("Initialising Serial...\n");
 	err = serial_init_fdt();
