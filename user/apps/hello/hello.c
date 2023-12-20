@@ -16,9 +16,11 @@
 
 int main(void);
 
+APP_NAME(hello);
+
 int main(void)
 {
-	printf("hello: %u: Hello, world!\n", getpid());
+	printf("Hello, world! (PID %u)\n", getpid());
 	//sched_yield();
 	return 0;
 }

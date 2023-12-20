@@ -17,6 +17,10 @@
 
 #define stdout	1
 
+#define APP_NAME(x)	const char app_name[] = "[" #x "] "
+
+extern const char app_name[];
+
 int puts(const char *s);
 void __printf(1, 2) printf(const char *fmt, ...);
 

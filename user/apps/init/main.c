@@ -16,12 +16,14 @@
 
 int main(void);
 
+APP_NAME(init);
+
 int main(void)
 {
 	pid_t p;
 
-	puts("init: Hello, world from userspace!\n");
-	printf("init: My PID: %u\n", getpid());
+	puts("Hello, world from userspace!\n");
+	printf("My PID: %u\n", getpid());
 
 #if 0
 	const char *txt;

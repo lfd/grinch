@@ -29,11 +29,21 @@
 #include <string.h>
 #include <unistd.h>
 
-int puts(const char *s)
+static int _puts(const char *s)
 {
 	ssize_t ret;
 
 	ret = write(stdout, s, strlen(s));
+
+	return ret;
+}
+
+int puts(const char *s)
+{
+	ssize_t ret;
+
+	ret = _puts(app_name);
+	ret += _puts(s);
 
 	return ret;
 }
@@ -123,7 +133,7 @@ static void __vprintk(const char *fmt, va_list ap)
 			break;
 		} else if (c == '%') {
 			*p = 0;
-			puts(buf);
+			_puts(buf);
 			p = buf;
 
 			c = *fmt++;
@@ -169,7 +179,7 @@ static void __vprintk(const char *fmt, va_list ap)
 				p = hex2str(v, p, (unsigned long)-1);
 				break;
 			case 's':
-				puts(va_arg(ap, const char *));
+				_puts(va_arg(ap, const char *));
 				break;
 			case 'u':
 			case 'x':
@@ -195,13 +205,13 @@ static void __vprintk(const char *fmt, va_list ap)
 		}
 		if (p >= &buf[sizeof(buf) - 1]) {
 			*p = 0;
-			puts(buf);
+			_puts(buf);
 			p = buf;
 		}
 	}
 
 	*p = 0;
-	puts(buf);
+	_puts(buf);
 }
 
 void __printf(1, 2) printf(const char *fmt, ...)
@@ -209,6 +219,7 @@ void __printf(1, 2) printf(const char *fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
+	_puts(app_name);
 	__vprintk(fmt, ap);
 	va_end(ap);
 }
