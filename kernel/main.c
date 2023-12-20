@@ -34,7 +34,20 @@ static const char logo[] =
 "| (_| | |  | | | | | (__| | | |\n"
 " \\__, |_|  |_|_| |_|\\___|_| |_|\n"
 "  __/ |\n"
-" |___/"
+" |___/";
+
+static const char logo_vm[] =
+"\n\n"
+"            _            _  __  _____    __\n"
+"           (_)          | | \\ \\/ /| |\\  /| |\n"
+"  __ _ _ __ _ _ __   ___| |_ \\  / | | \\/ | |\n"
+" / _` | '__| | '_ \\ / __| '_\\ \\/  |_| \\/ |_|\n"
+"| (_| | |  | | | | | (__| | | |\n"
+" \\__, |_|  |_|_| |_|\\___|_| |_|\n"
+"  __/ |\n"
+" |___/";
+
+static const char hello[] =
 #ifdef ARCH_RISCV
 "       on RISC-V\n"
 #endif
@@ -157,7 +170,11 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 
 	guest_init();
 
-	_puts(logo);
+	if (grinch_is_guest)
+		_puts(logo_vm);
+	else
+		_puts(logo);
+	_puts(hello);
 	printk_init();
 
 	err = kmm_init();
