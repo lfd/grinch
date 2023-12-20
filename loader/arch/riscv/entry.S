@@ -68,8 +68,6 @@ _loader_start:
 	 * a2: pc-rel load addr
 	 */
 	lpc	a2, _start
-	/* a3: abs link addr */
-	li	a3, VMGRINCH_BASE
 	jal	loader
 
 1:

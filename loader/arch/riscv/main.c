@@ -29,7 +29,7 @@ extern unsigned char __start[];
 extern unsigned char __stack_end[];
 
 void __noreturn
-loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr, void *vbase);
+loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr);
 
 static void *loader_page_zalloc(void **next)
 {
@@ -60,7 +60,7 @@ static void map_2M(void **next, u64 *l0, void *vaddr, paddr_t paddr)
 }
 
 void __noreturn
-loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr, void *vbase)
+loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr)
 {
 	void __noreturn (*grinch_entry)
 		(unsigned long hart_id, paddr_t fdt, u64 offset);
