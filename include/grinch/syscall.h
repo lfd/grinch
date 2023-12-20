@@ -18,4 +18,6 @@ int syscall(unsigned long no, unsigned long arg1,
 	    unsigned long arg4, unsigned long arg5,
 	    unsigned long arg6);
 
+void exit(int code);
+
 #endif /* _SYSCALL_H */

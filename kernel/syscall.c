@@ -47,7 +47,7 @@ static unsigned long sys_write(int fd, const char *buf, size_t count)
 	return 0;
 }
 
-static void exit(int code)
+void exit(int code)
 {
 	struct task *task;
 
