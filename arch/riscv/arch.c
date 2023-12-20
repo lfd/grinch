@@ -29,6 +29,7 @@
 #include <grinch/pmm.h>
 #include <grinch/alloc.h>
 #include <grinch/vfs.h>
+#include <grinch/vmm.h>
 
 int arch_init(paddr_t __fdt)
 {
@@ -95,6 +96,14 @@ con:
 	ps("Enabling IRQs\n");
 	irq_enable();
 #endif
+
+	if (1) {
+		err = vmm_init();
+		if (err == -ENOSYS) {
+			ps("H-Extensions not available\n");
+			err = 0;
+		}
+	}
 
 out:
 	return err;
