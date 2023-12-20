@@ -16,6 +16,7 @@
 #include <asm_generic/grinch_layout.h>
 
 #include <grinch/alloc.h>
+#include <grinch/arch.h>
 #include <grinch/errno.h>
 #include <grinch/printk.h>
 #include <grinch/task.h>
@@ -199,8 +200,10 @@ void prepare_user_return(void)
 	if (this_per_cpu()->schedule)
 		schedule();
 
-	if (!this_per_cpu()->current_task)
-		panic("Nothing to schedule!\n");
+	if (!this_per_cpu()->current_task) {
+		ps("Nothing to schedule!\n");
+		arch_shutdown();
+	}
 
 	else if (this_per_cpu()->pt_needs_update) {
 		arch_process_activate(current_task()->process);

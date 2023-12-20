@@ -17,6 +17,7 @@
 #include <grinch/arch.h>
 #include <grinch/errno.h>
 #include <grinch/fdt.h>
+#include <grinch/hypercall.h>
 #include <grinch/paging.h>
 #include <grinch/sbi.h>
 #include <grinch/serial.h>
@@ -90,4 +91,14 @@ con:
 
 out:
 	return err;
+}
+
+void __noreturn arch_shutdown(void)
+{
+	if (grinch_is_guest) {
+		hypercall_vmquit(0);
+		panic("Unreachable!\n");
+	}
+
+	panic("Shutdown.\n");
 }

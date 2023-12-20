@@ -197,18 +197,16 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 
 	kheap_stats();
 
+	this_per_cpu()->schedule = true;
 	if (1) {
+		ps("Initialising userland\n");
 		err = init();
 		if (err)
 			ps("Error initialising userland\n");
 		err = 0;
 	}
 
-	schedule();
-	arch_task_restore();
-
-	if (!current_task())
-		panic("Nothing to schedule!\n");
+	prepare_user_return();
 
 out:
 	pr("End reached: %d\n", err);

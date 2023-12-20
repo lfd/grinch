@@ -10,6 +10,8 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <grinch/compiler_attributes.h>
 #include <grinch/types.h>
 
 int arch_init(paddr_t __fdt);
+void __noreturn arch_shutdown(void);
