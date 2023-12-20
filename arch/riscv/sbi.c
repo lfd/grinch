@@ -15,9 +15,6 @@
 #include <grinch/printk.h>
 #include <grinch/sbi.h>
 
-#define SBI_EXT_BASE			0x10
-#define SBI_EXT_BASE_GET_SPEC_VERSION	0
-
 #define SBI_SPEC_VERSION_DEFAULT	0x1
 #define SBI_SPEC_VERSION_MAJOR_SHIFT	24
 #define SBI_SPEC_VERSION_MAJOR_MASK	0x7f

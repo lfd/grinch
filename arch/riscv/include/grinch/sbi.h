@@ -14,6 +14,9 @@
 
 #define SBI_EXT_0_1_CONSOLE_PUTCHAR	0x1
 
+#define SBI_EXT_BASE			0x10
+#define SBI_EXT_BASE_GET_SPEC_VERSION	0
+
 #define SBI_EXT_TIME			0x54494D45
 #define SBI_EXT_TIME_SET_TIMER		0
 
@@ -22,6 +25,10 @@
 
 #define SBI_EXT_HSM			0x48534D
 #define SBI_EXT_HSM_HART_START		0
+
+#define SBI_SUCCESS		0
+#define SBI_ERR_FAILED		-1
+#define SBI_ERR_NOT_SUPPORTED	-2
 
 struct sbiret {
 	long error;
