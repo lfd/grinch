@@ -100,6 +100,11 @@ int map_range(page_table_t pt, const void *vaddr, paddr_t paddr, size_t size,
 	      mem_flags_t grinch_flags);
 int unmap_range(page_table_t pt, const void *vaddr, size_t size);
 
+/* Versatile VM mapper */
+int vm_map_range(page_table_t pt, const void *vaddr, paddr_t paddr, size_t size,
+		 mem_flags_t grinch_flags);
+int vm_unmap_range(page_table_t pt, const void *vaddr, size_t size);
+
 #endif /* __ASSEMBLY__ */
 
 #include <asm/paging.h>

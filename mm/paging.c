@@ -212,26 +212,17 @@ static int paging_create(const struct paging_structures *pg_structs,
 	return 0;
 }
 
-int unmap_range(page_table_t pt, const void *vaddr, size_t size)
+static int _unmap_range(struct paging_structures *pg, const void *vaddr, size_t size)
 {
-	struct paging_structures pg = {
-		.root_paging = root_paging,
-		.root_table = pt,
-	};
-
 	pd("Unmapping VA: 0x%llx (SZ: 0x%lx)\n",
 	   (u64)vaddr, size);
 
-	return paging_destroy(&pg, (unsigned long)vaddr, size, 0);
+	return paging_destroy(pg, (unsigned long)vaddr, size, 0);
 }
 
-int map_range(page_table_t pt, const void *vaddr, paddr_t paddr, size_t size,
-	      mem_flags_t grinch_flags)
+static int _map_range(struct paging_structures *pg, const void *vaddr,
+		      paddr_t paddr, size_t size, mem_flags_t grinch_flags)
 {
-	struct paging_structures pg = {
-		.root_paging = root_paging,
-		.root_table = pt,
-	};
 	unsigned long flags;
 
 	pd("Create mapping VA: 0x%llx PA: 0x%llx (%c%c%c%c%c SZ: 0x%lx)\n",
@@ -244,7 +235,50 @@ int map_range(page_table_t pt, const void *vaddr, paddr_t paddr, size_t size,
 	   size);
 	flags = arch_paging_access_flags(grinch_flags);
 
-	return paging_create(&pg, paddr, size, (unsigned long)vaddr, flags, PAGING_HUGE);
+	return paging_create(pg, paddr, size, (unsigned long)vaddr, flags, PAGING_HUGE);
+}
+
+int unmap_range(page_table_t pt, const void *vaddr, size_t size)
+{
+	struct paging_structures pg = {
+		.root_paging = root_paging,
+		.root_table = pt,
+	};
+
+	return _unmap_range(&pg, vaddr, size);
+}
+
+int map_range(page_table_t pt, const void *vaddr, paddr_t paddr, size_t size,
+	      mem_flags_t grinch_flags)
+{
+	struct paging_structures pg = {
+		.root_paging = root_paging,
+		.root_table = pt,
+	};
+
+	return _map_range(&pg, vaddr, paddr, size, grinch_flags);
+
+}
+
+int vm_unmap_range(page_table_t pt, const void *vaddr, size_t size)
+{
+	struct paging_structures pg = {
+		.root_paging = vm_paging,
+		.root_table = pt,
+	};
+
+	return _unmap_range(&pg, vaddr, size);
+}
+
+int vm_map_range(page_table_t pt, const void *vaddr, paddr_t paddr,
+		 size_t size, mem_flags_t grinch_flags)
+{
+	struct paging_structures pg = {
+		.root_paging = vm_paging,
+		.root_table = pt,
+	};
+
+	return _map_range(&pg, vaddr, paddr, size, grinch_flags);
 }
 
 static int map_osmem(page_table_t root, void *vaddr, size_t size,
