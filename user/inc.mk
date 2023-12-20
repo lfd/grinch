@@ -61,6 +61,6 @@ endef
 
 APP_ECHSES=$(foreach app,$(APPS),$(call echse_of,$(app)))
 
-user/initrd.cpio: $(APP_ECHSES)
+user/initrd.cpio: $(APP_ECHSES) kernel.bin
 	$(QUIET) "[CPIO]  $@"
 	$(VERBOSE) ./scripts/create_cpio $@ $^
