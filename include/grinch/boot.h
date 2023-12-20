@@ -10,4 +10,6 @@
  * the COPYING file in the top-level directory.
  */
 
+extern unsigned int grinch_id;
+
 int cmain(unsigned long boot_cpu, paddr_t fdt);

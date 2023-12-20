@@ -40,6 +40,7 @@ static const char logo[] =
 #endif
 "\n      -> Welcome to Grinch " __stringify(GRINCH_VER) " <- \n\n\n";
 
+unsigned int grinch_id;
 
 #undef dbg_fmt
 #define dbg_fmt(x)	"memtest: " x
