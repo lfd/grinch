@@ -28,6 +28,7 @@
 #include <grinch/kmm.h>
 #include <grinch/pmm.h>
 #include <grinch/alloc.h>
+#include <grinch/vfs.h>
 
 int arch_init(paddr_t __fdt)
 {
@@ -43,6 +44,12 @@ int arch_init(paddr_t __fdt)
 
 	err = pmm_init_fdt();
 	if (err)
+		goto out;
+
+	err = initrd_init_early();
+	if (err == -ENOENT)
+		pr("No ramdisk found\n");
+	else if (err)
 		goto out;
 
 	err = kheap_init();

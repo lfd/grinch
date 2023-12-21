@@ -25,7 +25,6 @@
 #include <grinch/types.h>
 #include <grinch/mm.h>
 #include <grinch/pmm.h>
-#include <grinch/vfs.h>
 
 static struct bitmap pmm_bitmap;
 static paddr_t pmm_base, pmm_end;
@@ -209,12 +208,6 @@ int pmm_init_fdt(void)
 		pr("Reserving memory area %s (0x%llx len: 0x%lx)\n",
 		   uname, addrp, sizep);
 		pmm_mark_used(addrp, PAGES(page_up(sizep)));
-	}
-
-	err = initrd_init_early();
-	if (err == -ENOENT) {
-		pr("No ramdisk found\n");
-		err = 0;
 	}
 
 	return err;
