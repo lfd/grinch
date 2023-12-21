@@ -18,6 +18,7 @@
 #include <grinch/alloc.h>
 #include <grinch/arch.h>
 #include <grinch/errno.h>
+#include <grinch/hypercall.h>
 #include <grinch/printk.h>
 #include <grinch/task.h>
 #include <grinch/percpu.h>
@@ -127,6 +128,10 @@ void schedule(void)
 	spin_lock(&task_lock);
 	tpcpu->schedule = false;
 	task = NULL;
+
+	// Use this chance to allow other VMs to run
+	if (grinch_is_guest)
+		hypercall_yield();
 
 	if (!tpcpu->current_task)
 		goto begin;
