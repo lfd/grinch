@@ -13,6 +13,14 @@
 #ifndef _VFS_H
 #define _VFS_H
 
+struct initrd {
+	paddr_t pstart;
+	size_t size;
+	const void *vbase;
+};
+
+extern struct initrd initrd;
+
 void *vfs_read_file(const char *pathname, size_t *len);
 
 int initrd_init_early(void);

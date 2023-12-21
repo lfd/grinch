@@ -33,11 +33,7 @@ struct cpio_header {
 	const void *next_header;
 };
 
-static struct {
-	paddr_t pstart;
-	size_t size;
-	const void *vbase;
-} initrd;
+struct initrd initrd;
 
 static int parse_cpio_header(const char *s, struct cpio_header *hdr)
 {
