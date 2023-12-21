@@ -95,8 +95,11 @@ int process_from_fs(struct task *task, const char *pathname)
 	return err;
 }
 
-void process_destroy(struct process *process)
+void process_destroy(struct task *task)
 {
+	struct process *process;
+
+	process = task->process;
 	uvmas_destroy(process);
 
 	if (process->mm.page_table)

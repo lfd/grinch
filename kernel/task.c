@@ -28,6 +28,16 @@ static pid_t next_pid = 1;
 
 void task_destroy(struct task *task)
 {
+	switch (task->type) {
+	case GRINCH_PROCESS:
+		process_destroy(task);
+		break;
+
+	default:
+		panic("Unknown task type\n");
+		break;
+	}
+
 	/*
 	 * Once we have proper SMP, this won't work like that any longer. We
 	 * first have to make sure, that a Task got suspended before being
@@ -39,16 +49,6 @@ void task_destroy(struct task *task)
 	if (this_per_cpu()->current_task == task) {
 		this_per_cpu()->schedule = true;
 		this_per_cpu()->current_task = NULL;
-	}
-
-	switch (task->type) {
-	case GRINCH_PROCESS:
-		process_destroy(task->process);
-		break;
-
-	default:
-		panic("Unknown task type\n");
-		break;
 	}
 
 	kfree(task);
