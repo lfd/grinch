@@ -11,8 +11,11 @@
  */
 
 #include <asm/cpu.h>
-#include <asm/csr.h>
 
+#include <grinch/errno.h>
+#include <grinch/sbi.h>
+#include <grinch/boot.h>
+#include <grinch/hypercall.h>
 #include <grinch/paging.h>
 #include <grinch/printk.h>
 
@@ -72,4 +75,14 @@ void dump_regs(struct registers *a)
 			a->t5, a->t6);
 }
 
+int hypercall(unsigned long no, unsigned long arg1)
+{
+	struct sbiret ret;
+
+	ret = sbi_ecall(SBI_EXT_GRNC, arg1, 0, 0, 0, 0, 0, 0);
+	if (ret.error <= 0)
+		return -EINVAL;
+
+	return ret.value;
+}
 

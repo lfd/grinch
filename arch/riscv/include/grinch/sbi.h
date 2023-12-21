@@ -26,6 +26,9 @@
 #define SBI_EXT_HSM			0x48534D
 #define SBI_EXT_HSM_HART_START		0
 
+/* "Grinch" SBI Extension */
+#define SBI_EXT_GRNC			0x47524E48
+
 #define SBI_SUCCESS		0
 #define SBI_ERR_FAILED		-1
 #define SBI_ERR_NOT_SUPPORTED	-2
