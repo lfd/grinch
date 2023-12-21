@@ -54,8 +54,7 @@ int arch_init(paddr_t __fdt)
 
 	ps("Disabling IRQs\n");
 	irq_disable();
-
-	timer_enable();
+	timer_disable();
 
 	/* Initialise external interrupts */
 	ps("Initialising irqchip...\n");
