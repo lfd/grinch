@@ -85,6 +85,14 @@ static inline void enable_mmu_##NAME(u64 mode, paddr_t pt)	\
 ENABLE_MMU(satp, CSR_SATP)
 ENABLE_MMU(hgatp, CSR_HGATP)
 
+static inline void disable_mmu_hgatp(void)
+{
+	asm volatile("sfence.vma\n"
+		     "csrwi %0, 0\n"
+		     "sfence.vma\n"
+		     : : "i"(CSR_HGATP) : "memory");
+}
+
 extern unsigned long satp_mode;
 
 #endif /* __ASSEMBLY__ */
