@@ -24,4 +24,4 @@ int pmm_page_free(paddr_t phys, size_t pages);
 void *pmm_to_virt(paddr_t phys);
 int pmm_mark_used(paddr_t addr, size_t pages);
 
-#endif /* _VMA_H */
+#endif /* _PMM_H */
