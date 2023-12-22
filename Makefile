@@ -1,6 +1,6 @@
 ARCH ?= riscv
 
-GRINCH_VER=3.13
+GRINCH_VER=3.14
 #DEBUG_OUTPUT=1
 
 all: kernel.bin user/initrd.cpio
