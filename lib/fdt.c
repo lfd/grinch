@@ -82,24 +82,35 @@ int fdt_init(paddr_t pfdt)
 	if (IS_ERR(fdt))
 		return PTR_ERR(fdt);
 
-	err = fdt_totalsize(fdt);
-	if (err <= 0) {
-		ps("FDT totalsize\n");
+	err = fdt_check_header(fdt);
+	if (err) {
+		pr("No valid FDT header behind 0x%llx\n", pfdt);
+		err = -EINVAL;
 		goto unmap;
 	}
 
-	_fdt = kmm_page_alloc(PAGES(page_up(err)));
-	if (IS_ERR(_fdt))
-		return PTR_ERR(_fdt);
+	err = fdt_totalsize(fdt);
+	if (err <= 0) {
+		ps("FDT totalsize\n");
+		err = -EINVAL;
+		goto unmap;
+	}
+	pr("FDT size: %u\n", err);
 
-	pr("DTB size: %u\n", err);
+	_fdt = kmm_page_alloc(PAGES(page_up(err)));
+	if (IS_ERR(_fdt)) {
+		err = PTR_ERR(_fdt);
+		goto unmap;
+	}
 
 	err = fdt_move(fdt, _fdt, err);
 	if (err)
 		ps("FDT move failed\n");
 
 unmap:
-	return iounmap(fdt, MEGA_PAGE_SIZE);
+	if (iounmap(fdt, MEGA_PAGE_SIZE))
+		pr("iounmap failed\n");
+	return err;
 }
 
 static int _fdt_read_cells(const fdt32_t *cells, unsigned int n, uint64_t *value)
