@@ -59,6 +59,7 @@ static int parse_cpio_header(const char *s, struct cpio_header *hdr)
 	hdr->name = s;
 	hdr->body = hdr->name + CPIO_ALIGN(hdr->name_len);
 	hdr->next_header = hdr->body + hdr->body_len;
+	hdr->next_header = (void *)(((u64)hdr->next_header + 3) & ~3);
 
 	if (hdr->body[-1] != 0)
 		return -EINVAL;
