@@ -91,10 +91,25 @@ static inline struct sbiret handle_sbi_base(unsigned long fid)
 {
 	struct sbiret ret;
 
+	ret.error = SBI_SUCCESS;
 	switch (fid) {
 		case SBI_EXT_BASE_GET_SPEC_VERSION:
-			ret.error = SBI_SUCCESS;
 			ret.value = 0x1000000;
+			break;
+
+		case SBI_EXT_BASE_GET_IMP_ID:
+			ret.value = 1;
+			break;
+
+		case SBI_EXT_BASE_GET_IMP_VERSION:
+			ret.value = 0x10003;
+			break;
+
+		case SBI_EXT_BASE_PROBE_EXT:
+		case SBI_EXT_BASE_GET_MVENDORID:
+		case SBI_EXT_BASE_GET_MARCHID:
+		case SBI_EXT_BASE_GET_MIMPID:
+			ret.value = 0;
 			break;
 
 		default:
