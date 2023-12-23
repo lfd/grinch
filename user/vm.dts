@@ -3,6 +3,7 @@
 / {
 	#address-cells = <2>;
 	#size-cells = <2>;
+	model = "riscv-grinchvm";
 
 	chosen {
 		/*
@@ -11,6 +12,7 @@
 		 */
 		linux,initrd-start = <0xa0100000>;
 		linux,initrd-end = <0xa0140000>;
+		bootargs = "earlycon=sbi";
 	};
 
 	cpus {
@@ -19,13 +21,15 @@
 
 		cpu@0 {
 			riscv,isa = "rv64imafdc";
+			device_type = "cpu";
+			compatible = "riscv";
 			reg = <0>;
 			status = "okay";
 		};
 	};
 
 	memory@a0000000 {
-		device-type = "memory";
+		device_type = "memory";
 		reg = <0x0 0xa0000000 0x0 0x401000>;
 	};
 };
