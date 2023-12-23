@@ -261,19 +261,25 @@ void vmachine_destroy(struct task *task)
 	kfree(vm);
 }
 
-static void vm_memcpy(struct vmachine *vm, unsigned long offset,
-		      const void *src, size_t len)
+static int vm_memcpy(struct vmachine *vm, unsigned long offset,
+		     const void *src, size_t len)
 {
 	void *dst;
 
+	if (offset + len > vm->memregion.size)
+		return -ERANGE;
+
 	dst = pmm_to_virt(vm->memregion.base) + offset;
 	memcpy(dst, src, len);
+
+	return 0;
 }
 
 static int vm_load_file(struct vmachine *vm, const char *filename, size_t offset)
 {
 	size_t len;
 	void *file;
+	int err;
 
 	if (offset >= vm->memregion.size)
 		return -ERANGE;
@@ -289,10 +295,10 @@ static int vm_load_file(struct vmachine *vm, const char *filename, size_t offset
 		return -ENOMEM;
 	}
 
-	vm_memcpy(vm, offset, file, len);
+	err = vm_memcpy(vm, offset, file, len);
 	kfree(file);
 
-	return 0;
+	return err;
 }
 
 static struct task *vmm_alloc_new(void)
@@ -330,10 +336,11 @@ static struct task *vmm_alloc_new(void)
 	if (err)
 		goto vmfree_out;
 
-	if (initrd.vbase) {
-		ps("Copying initrd...\n");
-		vm_memcpy(vm, 1 * MIB, initrd.vbase, initrd.size);
-	}
+	ps("Copying initrd...\n");
+	err = vm_memcpy(vm, 1 * MIB, initrd.vbase, initrd.size);
+	if (err)
+		goto vmfree_out;
+
 	task->regs.a0 = 0;
 	task->regs.a1 = VM_GPHYS_BASE + VM_FDT_OFFSET;
 
