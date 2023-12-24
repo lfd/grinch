@@ -68,10 +68,10 @@ objd: vmgrinch.elf
 objdS: vmgrinch.elf
 	$(OBJDUMP) -dS $^ | less
 
-clean_kernel: clean_loader
+clean_kernel:
 	$(RMRF) vmgrinch.o
 	$(RMRF) $(GENERATED)
-	$(RMRF) arch/$(ARCH)/*.{o,a} arch/$(ARCH)/asm_defines.S
+	$(RMRF) arch/$(ARCH)/asm_defines.S
 	$(RMRF) kernel/*.{o,a,ld}
 	$(RMRF) lib/*.{o,a} lib/libfdt/*.{o,a}
 	$(RMRF) drivers/*.{o,a} drivers/irq/*.{o,a} drivers/serial/*.{o,a}
