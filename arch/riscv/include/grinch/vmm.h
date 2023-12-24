@@ -41,6 +41,10 @@ enum vmm_trap_result {
 	VMM_FORWARD, /* We didn't trap from a VM */
 };
 
+/* internal routines */
+int vmm_handle_ecall(void);
+
+/* external interface */
 int vmm_init(void);
 enum vmm_trap_result
 vmm_handle_trap(struct trap_context *ctx, struct registers *regs);

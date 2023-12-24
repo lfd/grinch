@@ -14,7 +14,7 @@ LDFLAGS_ARCH = -melf64lriscv
 ARCH_OBJS = entry.o exception.o sbi.o traps.o cpu.o task.o
 ARCH_OBJS += handlers.o smp.o paging.o arch.o irqchip.o isa.o
 
-ARCH_OBJS += vmm/vmm.o
+ARCH_OBJS += vmm/vmm.o vmm/vmm_ecall.o
 
 ARCH_OBJS := $(addprefix $(ARCH_DIR)/, $(ARCH_OBJS))
 
