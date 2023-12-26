@@ -59,7 +59,6 @@ endif
 	$(VERBOSE) $(DTC) -I dts -O dtb -o $@ $^
 
 objdk: kernel.elf
-	$(QUIET) "[DTC]    $
 	$(OBJDUMP) -d $^ | less
 
 objd: vmgrinch.elf
