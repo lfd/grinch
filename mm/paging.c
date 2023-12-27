@@ -368,6 +368,10 @@ int paging_init(unsigned long this_cpu)
 	if (err)
 		goto out;
 
+	err = map_osmem(root, __init_start,
+			page_up(__init_end - __init_start),
+			GRINCH_MEM_R);
+
 	/* Map the page pool */
 	err = map_osmem(root, __internal_page_pool_start,
 			internal_page_pool_pages() * PAGE_SIZE,

@@ -17,6 +17,7 @@
 #include <grinch/alloc.h>
 #include <grinch/arch.h>
 #include <grinch/boot.h>
+#include <grinch/bootparam.h>
 #include <grinch/errno.h>
 #include <grinch/fdt.h>
 #include <grinch/memtest.h>
@@ -53,7 +54,15 @@ static const char hello[] =
 #endif
 "\n      -> Welcome to Grinch " __stringify(GRINCH_VER) " <- \n\n\n";
 
+static bool do_memtest;
+
 unsigned int grinch_id;
+
+static void __init memtest_parse(const char *)
+{
+	do_memtest = true;
+}
+bootparam(memtest, memtest_parse);
 
 static int init(void)
 {
@@ -105,11 +114,15 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 	if (err)
 		goto out;
 
+	err = bootparam_init();
+	if (err)
+		goto out;
+
 	err = arch_init();
 	if (err)
 		goto out;
 
-	if (0)
+	if (do_memtest)
 		memtest();
 
 	kheap_stats();

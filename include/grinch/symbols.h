@@ -15,6 +15,8 @@
 
 #include <grinch/compiler_attributes.h>
 
+extern unsigned char __init_start[], __init_end[];
+extern unsigned char __bootparams_start[], __bootparams_end[];
 extern unsigned char __load_addr[], __text_end[];
 extern unsigned char __rodata_start[], __rodata_end[];
 extern unsigned char __rw_data_start[], __rw_data_end[];

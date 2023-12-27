@@ -18,13 +18,29 @@ ENTRY(start)
 SECTIONS
 {
 	. = VMGRINCH_BASE;
+
 	__load_addr = .;
 	.header		: { *(.header) }
 	.text		: {
 		*(.text)
 		*(.text.*)
 	}
+
+	. = ALIGN(PAGE_SIZE);
+	.init.text	: {
+		*(.init.text);
+	}
 	__text_end = .;
+
+	. = ALIGN(PAGE_SIZE);
+	__init_start = .;
+	.init		: {
+		__bootparams_start = .;
+		KEEP(*(.init.bootparams));
+		__bootparams_end = .;
+		*(.init.rodata);
+	}
+	__init_end = .;
 
 	. = ALIGN(PAGE_SIZE);
 	__rw_data_start = .;
