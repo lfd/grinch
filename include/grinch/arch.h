@@ -13,5 +13,5 @@
 #include <grinch/compiler_attributes.h>
 #include <grinch/types.h>
 
-int arch_init(paddr_t __fdt);
+int arch_init(void);
 void __noreturn arch_shutdown(void);

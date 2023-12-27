@@ -17,7 +17,6 @@
 
 #include <grinch/arch.h>
 #include <grinch/errno.h>
-#include <grinch/fdt.h>
 #include <grinch/hypercall.h>
 #include <grinch/paging.h>
 #include <grinch/sbi.h>
@@ -32,13 +31,9 @@
 #include <grinch/vfs.h>
 #include <grinch/vmm.h>
 
-int arch_init(paddr_t __fdt)
+int arch_init(void)
 {
 	int err;
-
-	err = fdt_init(__fdt);
-	if (err)
-		goto out;
 
 	err = platform_init();
 	if (err)

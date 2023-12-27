@@ -18,6 +18,7 @@
 #include <grinch/arch.h>
 #include <grinch/boot.h>
 #include <grinch/errno.h>
+#include <grinch/fdt.h>
 #include <grinch/memtest.h>
 #include <grinch/percpu.h>
 #include <grinch/kmm.h>
@@ -100,7 +101,11 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 
 	pr("CPU ID: %lu\n", this_cpu_id());
 
-	err = arch_init(__fdt);
+	err = fdt_init(__fdt);
+	if (err)
+		goto out;
+
+	err = arch_init();
 	if (err)
 		goto out;
 
