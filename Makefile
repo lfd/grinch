@@ -16,6 +16,8 @@ OBJCOPY=$(CROSS_COMPILE)objcopy
 SZ=$(CROSS_COMPILE)size
 RMRF=rm -rf
 
+CMDLINE ?= ""
+
 D_UBOOT=res/u-boot/u-boot
 UBOOT_BIN=$(D_UBOOT)/u-boot-nodtb.bin
 MAKEARGS_UBOOT=-j 8 -C $(D_UBOOT) CROSS_COMPILE=$(CROSS_COMPILE)
@@ -57,7 +59,7 @@ include user/inc.mk
 	$(VERBOSE) rm -f $@
 	$(VERBOSE) $(AR) cDPrST $@ $^
 
-QEMU_CMD=$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS)
+QEMU_CMD=$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS) -append $(CMDLINE)
 
 QEMU_CMD_DIRECT=$(QEMU_CMD) -kernel kernel.bin -initrd user/initrd.cpio
 QEMU_CMD_UBOOT=$(QEMU_CMD) -kernel $(UBOOT_BIN) $(QEMU_UBOOT_ARGS)
