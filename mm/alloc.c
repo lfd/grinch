@@ -16,6 +16,7 @@
 #include <asm/spinlock.h>
 
 #include <grinch/alloc.h>
+#include <grinch/bootparam.h>
 #include <grinch/errno.h>
 #include <grinch/paging.h>
 #include <grinch/printk.h>
@@ -26,9 +27,6 @@
 
 #define MEMCHUNK_FLAG_LAST	0x1
 #define MEMCHUNK_FLAG_USED	0x2
-
-#define MALLOC_FSCK		0
-//#define MALLOC_FSCK		1
 
 struct memchunk {
 	unsigned int canary1;
@@ -45,6 +43,14 @@ static struct vma vma_kheap = {
 	.size = KHEAP_SIZE,
 	.flags = VMA_FLAG_RW,
 };
+
+static bool do_malloc_fsck;
+
+static void __init malloc_fsck_parse(const char *)
+{
+	do_malloc_fsck = true;
+}
+bootparam(malloc_fsck, malloc_fsck_parse);
 
 #define first_chunk	((struct memchunk *)(vma_kheap.base))
 
@@ -136,7 +142,7 @@ void *kmalloc(size_t size)
 	unsigned int flags, remaining;
 	void *ret;
 
-	if (MALLOC_FSCK)
+	if (do_malloc_fsck)
 		malloc_fsck();
 
 	/* align size to multiples of 4 */
@@ -188,7 +194,7 @@ void kfree(void *ptr)
 {
 	struct memchunk *m, *before, *after, *tmp;
 
-	if (MALLOC_FSCK)
+	if (do_malloc_fsck)
 		malloc_fsck();
 
 	/* Do nothing on NULL ptr free */
