@@ -188,10 +188,8 @@ int pmm_init_fdt(void)
 
 	/* search for reserved regions in the device tree */
 	memory = fdt_path_offset(_fdt, "/reserved-memory");
-	if (memory <= 0) {
-		pr("NO RESERVED MEMORY NODE FOUND! TRYING TO CONTINUE\n");
+	if (memory <= 0)
 		return 0;
-	}
 
 	fdt_for_each_subnode(child, _fdt, memory) {
 		if (!fdt_device_is_available(_fdt, child))
