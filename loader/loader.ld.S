@@ -23,6 +23,7 @@ SECTIONS
 	.text : {
 		KEEP(*(.text.boot))
 		*(.text)
+		*(.text.*)
 	}
 
 	.rodata : {
