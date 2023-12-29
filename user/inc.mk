@@ -2,6 +2,7 @@ APPS=init hello
 
 INCLUDES_USER = -Iuser/include -Iinclude_common -Iuser/lib/$(ARCH)/include
 CFLAGS_USER = $(CFLAGS_COMMON) $(CFLAGS_ARCH) $(INCLUDES_USER)
+LDFLAGS_USER = $(LDFLAGS_COMMON) $(LDFLAGS_ARCH)
 
 LIBC_OBJS = user/lib/stdio.o user/lib/string.o user/lib/unistd.o user/lib/sched.o
 LIBC_OBJS += user/lib/$(ARCH)/entry.o

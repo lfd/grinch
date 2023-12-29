@@ -10,11 +10,11 @@ $(ARCH_LOADER_DIR)/entry.o: vmgrinch.bin
 
 $(ARCH_LOADER_DIR)/loader.o: $(ARCH_LOADER_DIR)/built-in.a
 	$(QUIET) "[LD]    $@"
-	$(VERBOSE) $(LD) $(LDFLAGS) --whole-archive -relocatable -o $@ $<
+	$(VERBOSE) $(LD) $(LDFLAGS_KERNEL) --whole-archive -relocatable -o $@ $<
 
 kernel.elf: loader/loader.ld $(ARCH_LOADER_DIR)/loader.o
 	$(QUIET) "[LD]    $@"
-	$(VERBOSE) $(LD) $(LDFLAGS) --gc-sections -T $^ -o $@
+	$(VERBOSE) $(LD) $(LDFLAGS_KERNEL) --gc-sections -T $^ -o $@
 ifdef V
 	$(SZ) --format=SysV -x $@
 endif

@@ -43,6 +43,8 @@ CFLAGS_COMMON=-nostdinc -ffreestanding -g -ggdb $(OPT) \
               -Wnested-externs -Wshadow -Wredundant-decls \
               -Wundef -Wdeprecated -Werror
 
+LDFLAGS_COMMON=
+
 ifeq ($(DEBUG_OUTPUT), 1)
 CFLAGS_COMMON += -DDEBUG
 endif

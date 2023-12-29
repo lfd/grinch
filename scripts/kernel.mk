@@ -16,7 +16,7 @@ INCLUDES_KERNEL=-Iinclude/ \
 
 CFLAGS_KERNEL=$(CFLAGS_COMMON) $(CFLAGS_ARCH) $(INCLUDES_KERNEL)
 
-LDFLAGS_KERNEL = $(ARCH_LDFLAGS)
+LDFLAGS_KERNEL = $(LDFLAGS_COMMON) $(LDFLAGS_ARCH)
 AFLAGS_KERNEL = $(AFLAGS_COMMON)
 
 ASM_DEFINES = arch/$(ARCH)/include/asm/asm_defines.h
@@ -45,11 +45,11 @@ arch/$(ARCH)/asm_defines.S: arch/$(ARCH)/asm_defines.c
 
 vmgrinch.o: $(ARCH_DIR)/built-in.a kernel/built-in.a lib/built-in.a mm/built-in.a drivers/built-in.a
 	$(QUIET) "[LD]    $@"
-	$(VERBOSE) $(LD) $(LDFLAGS) --whole-archive -relocatable -o $@ $^
+	$(VERBOSE) $(LD) $(LDFLAGS_KERNEL) --whole-archive -relocatable -o $@ $^
 
 vmgrinch.elf: kernel/grinch.ld vmgrinch.o
 	$(QUIET) "[LD]    $@"
-	$(VERBOSE) $(LD) $(LDFLAGS) --gc-sections -T $^ -o $@
+	$(VERBOSE) $(LD) $(LDFLAGS_KERNEL) --gc-sections -T $^ -o $@
 ifdef V
 	$(VERBOSE) $(SZ) --format=SysV -x $@
 endif
