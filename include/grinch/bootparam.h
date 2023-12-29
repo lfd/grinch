@@ -13,6 +13,8 @@
 #ifndef _BOOTPARAM_H
 #define _BOOTPARAM_H
 
+#include <grinch/types.h>
+
 #define __init	__attribute__((section(".init.text"), used))
 
 struct grinch_bootparam {
@@ -31,5 +33,6 @@ static const struct grinch_bootparam bootparam_##NAME 			\
 }
 
 int bootparam_init(void);
+int bootparam_parse_size(const char *str, size_t *res);
 
 #endif /* _BOOTPARAM_H */

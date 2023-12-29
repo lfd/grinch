@@ -40,7 +40,7 @@ static DEFINE_SPINLOCK(alloc_lock);
 
 static struct vma vma_kheap = {
 	.base = (void*)KHEAP_BASE,
-	.size = KHEAP_SIZE,
+	.size = 1 * MIB,
 	.flags = VMA_FLAG_RW,
 };
 
@@ -51,6 +51,26 @@ static void __init malloc_fsck_parse(const char *)
 	do_malloc_fsck = true;
 }
 bootparam(malloc_fsck, malloc_fsck_parse);
+
+static void __init kheap_size_parse(const char *arg)
+{
+	size_t sz;
+	int err;
+
+	err = bootparam_parse_size(arg, &sz);
+	if (err) {
+		pr("Warning: Unable to parse kheap_size=%s\n", arg);
+		return;
+	}
+
+	if (sz < 4 * KIB) {
+		pr("Warning: kheap_size too small\n");
+		return;
+	}
+
+	vma_kheap.size = sz;
+}
+bootparam(kheap_size, kheap_size_parse);
 
 #define first_chunk	((struct memchunk *)(vma_kheap.base))
 
@@ -116,7 +136,7 @@ static void malloc_fsck(void)
 		else
 			this = next_chunk(this);
 	}
-	if (size != KHEAP_SIZE)
+	if (size != vma_kheap.size)
 		panic("fsck forw failed!\n");
 
 	/* Backward run */
@@ -132,7 +152,7 @@ static void malloc_fsck(void)
 		else
 			this = this->before;
 	}
-	if (size != KHEAP_SIZE)
+	if (size != vma_kheap.size)
 		panic("fsck back failed\n");
 }
 

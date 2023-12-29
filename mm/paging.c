@@ -339,7 +339,7 @@ int paging_init(unsigned long this_cpu)
 	pr("=== Grinch memory layout ===\n");
 	pr(" Grinch area: 0x%lx -- 0x%lx\n", VMGRINCH_BASE, VMGRINCH_END);
 	pr("ioremap area: 0x%lx -- 0x%lx\n", IOREMAP_BASE, IOREMAP_END);
-	pr("  kheap area: 0x%lx -- 0x%lx\n", KHEAP_BASE, KHEAP_END);
+	pr("  kheap area: 0x%lx\n", KHEAP_BASE);
 	pr(" direct phys: 0x%lx\n", DIR_PHYS_BASE);
 	pr(" percpu area: 0x%lx -- 0x%lx\n", PERCPU_BASE,
 	   PERCPU_BASE + sizeof(struct per_cpu));

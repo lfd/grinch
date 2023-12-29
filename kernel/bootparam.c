@@ -13,10 +13,51 @@
 #define dbg_fmt(x)	"bootparam: " x
 
 #include <grinch/bootparam.h>
+#include <grinch/errno.h>
+#include <grinch/const.h>
 #include <grinch/fdt.h>
 #include <grinch/printk.h>
 #include <grinch/string.h>
 #include <grinch/symbols.h>
+
+int bootparam_parse_size(const char *str, size_t *sz)
+{
+	unsigned long int ret;
+	size_t len;
+	char *ep;
+
+	ret = strtoul(str, &ep, 10);
+	if (!ret)
+		return -EINVAL;
+
+	len = strlen(ep);
+	if (len > 1)
+		return -EINVAL;
+
+	if (len == 0)
+		goto out;
+
+	switch (ep[0]) {
+		case 'K':
+			ret *= KIB;
+			break;
+
+		case 'M':
+			ret *= MIB;
+			break;
+
+		case 'G':
+			ret *= GIB;
+			break;
+
+		default:
+			return -EINVAL;
+	}
+
+out:
+	*sz = ret;
+	return 0;
+}
 
 static void parse_param(char *str)
 {
