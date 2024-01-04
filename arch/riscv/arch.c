@@ -16,17 +16,14 @@
 #include <asm/isa.h>
 
 #include <grinch/arch.h>
-#include <grinch/errno.h>
+#include <grinch/gfp.h>
 #include <grinch/hypercall.h>
-#include <grinch/paging.h>
 #include <grinch/sbi.h>
 #include <grinch/serial.h>
 #include <grinch/irqchip.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/smp.h>
-#include <grinch/kmm.h>
-#include <grinch/pmm.h>
 #include <grinch/alloc.h>
 #include <grinch/vfs.h>
 #include <grinch/vmm.h>
@@ -39,7 +36,7 @@ int arch_init(void)
 	if (err)
 		goto out;
 
-	err = pmm_init_fdt();
+	err = phys_mem_init_fdt();
 	if (err)
 		goto out;
 

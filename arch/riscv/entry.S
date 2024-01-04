@@ -67,7 +67,7 @@ start:
 
 	/* set v2p for C code */
 	mv	a0, a2
-	jal	kmm_set_v2p_offset
+	jal	kmm_set_base
 
 	/* Setup exception trap vector. Exception stack is yet uninitialised. */
 	la	t0, excp_handler

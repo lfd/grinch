@@ -13,10 +13,8 @@
 #define dbg_fmt(x)	"vfs: " x
 
 #include <grinch/alloc.h>
-#include <grinch/errno.h>
 #include <grinch/fdt.h>
-#include <grinch/paging.h>
-#include <grinch/pmm.h>
+#include <grinch/gfp.h>
 #include <grinch/printk.h>
 #include <grinch/string.h>
 #include <grinch/vfs.h>
@@ -155,13 +153,13 @@ int initrd_init_early(void)
 	page_start = start & PAGE_MASK;
 	initrd_pages = PAGES(page_up(end) - page_start);
 
-	err = pmm_mark_used(page_start, initrd_pages);
+	err = phys_mark_used(page_start, initrd_pages);
 	if (err) {
 		pr("Error reserving memory for ramdisk\n");
 		return err;
 	}
 
-	vbase = pmm_to_virt(initrd.pstart);
+	vbase = p2v(initrd.pstart);
 	if (IS_ERR(vbase))
 		return PTR_ERR(vbase);
 

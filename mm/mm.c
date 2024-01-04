@@ -28,10 +28,10 @@ long mm_bitmap_find_and_allocate(struct bitmap *bitmap, size_t pages, unsigned
 	start = bitmap_find_next_zero_area(bitmap->bitmap, bitmap->bit_max,
 					   from, pages, alignment);
 	if (from && start != from)
-		return trace_error(-ENOMEM);
+		return -ENOMEM;
 
 	if (start > bitmap->bit_max)
-		return trace_error(-ENOMEM);
+		return -ENOMEM;
 
 	/* mark as used, return pointer */
 	bitmap_set(bitmap->bitmap, start, pages);

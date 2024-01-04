@@ -13,8 +13,7 @@
 #define dbg_fmt(x)	"memtest: " x
 
 #include <grinch/alloc.h>
-#include <grinch/errno.h>
-#include <grinch/kmm.h>
+#include <grinch/gfp.h>
 #include <grinch/printk.h>
 #include <grinch/memtest.h>
 
@@ -35,12 +34,12 @@ static void memtest_kmem(void)
 
 	pr("Running Memtest...\n");
 	for (ctr = 0; ctr < PTRS; ctr++) {
-		page = kmm_page_alloc(1);
+		page = alloc_pages(1);
 		if (!page) {
 			pr("Err: %ld\n", PTR_ERR(page));
 			break;
 		}
-		pr("Allocated %p -> 0x%llx\n", page, kmm_v2p(page));
+		pr("Allocated %p -> 0x%llx\n", page, v2p(page));
 		for (i = page; (void*)i < page + PAGE_SIZE; i++) {
 			if (*i) {
 				pr("  -> Page not zero: %p = 0x%llx\n", i, *i);
@@ -54,7 +53,7 @@ static void memtest_kmem(void)
 
 	for (tmp = 0; tmp < ctr; tmp++) {
 		pr("Freeing %p\n", pages[tmp]);
-		err = kmm_page_free(pages[tmp], 1);
+		err = free_pages(pages[tmp], 1);
 		if (err) {
 			pr("Err: %d\n", err);
 			break;

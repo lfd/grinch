@@ -18,11 +18,10 @@
 #include <grinch/arch.h>
 #include <grinch/boot.h>
 #include <grinch/bootparam.h>
-#include <grinch/errno.h>
 #include <grinch/fdt.h>
+#include <grinch/gfp.h>
 #include <grinch/memtest.h>
 #include <grinch/percpu.h>
-#include <grinch/kmm.h>
 #include <grinch/printk.h>
 #include <grinch/task.h>
 
@@ -99,7 +98,7 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 	_puts(hello);
 	printk_init();
 
-	err = kmm_init();
+	err = kernel_mem_init();
 	if (err)
 		goto out;
 

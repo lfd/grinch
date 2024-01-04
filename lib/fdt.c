@@ -12,11 +12,9 @@
 
 #define dbg_fmt(x) "fdt: " x
 
-#include <grinch/errno.h>
 #include <grinch/fdt.h>
+#include <grinch/gfp.h>
 #include <grinch/ioremap.h>
-#include <grinch/kmm.h>
-#include <grinch/paging.h>
 #include <grinch/printk.h>
 
 unsigned char *_fdt;
@@ -97,7 +95,7 @@ int fdt_init(paddr_t pfdt)
 	}
 	pr("FDT size: %u\n", err);
 
-	_fdt = kmm_page_alloc(PAGES(page_up(err)));
+	_fdt = alloc_pages(PAGES(page_up(err)));
 	if (IS_ERR(_fdt)) {
 		err = PTR_ERR(_fdt);
 		goto unmap;

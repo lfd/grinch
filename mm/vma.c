@@ -15,11 +15,9 @@
 #include <asm_generic/grinch_layout.h>
 
 #include <grinch/alloc.h>
-#include <grinch/errno.h>
-#include <grinch/paging.h>
+#include <grinch/gfp.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
-#include <grinch/pmm.h>
 #include <grinch/task.h>
 #include <grinch/uaccess.h>
 
@@ -32,7 +30,7 @@ static int vma_create(page_table_t pt, struct vma *vma, unsigned int alignment)
 	if (vma->flags & VMA_FLAG_LAZY)
 		return -ENOSYS;
 
-	err = pmm_page_alloc_aligned(&phys, PAGES(vma->size), alignment, 0);
+	err = phys_pages_alloc_aligned(&phys, PAGES(vma->size), alignment);
 	if (err)
 		return err;
 
@@ -53,7 +51,7 @@ static int vma_create(page_table_t pt, struct vma *vma, unsigned int alignment)
 	return 0;
 
 free_out:
-	pmm_page_free(phys, PAGES(vma->size));
+	phys_free_pages(phys, PAGES(vma->size));
 	return err;
 }
 
@@ -110,7 +108,7 @@ static int uvma_destroy(struct process *p, struct vma *vma)
 	if (err)
 		return -EINVAL;
 
-	err = pmm_page_free(phys, PAGES(vma->size));
+	err = phys_free_pages(phys, PAGES(vma->size));
 	if (err)
 		return -EINVAL;
 

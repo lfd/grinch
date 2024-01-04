@@ -14,12 +14,9 @@
 
 #include <asm/cpu.h>
 
-#include <grinch/errno.h>
-#include <grinch/paging.h>
-#include <grinch/kmm.h>
+#include <grinch/gfp.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
-#include <grinch/string.h>
 #include <grinch/symbols.h>
 
 /* For later usages */
@@ -57,10 +54,10 @@ static int split_hugepage(const struct paging *paging,
 	flags = paging->get_flags(pte);
 
 	sub_structs.root_paging = paging + 1;
-	sub_structs.root_table = kmm_page_zalloc(1);
+	sub_structs.root_table = zalloc_pages(1);
 	if (!sub_structs.root_table)
 		return -ENOMEM;
-	paging->set_next_pt(pte, kmm_v2p(sub_structs.root_table));
+	paging->set_next_pt(pte, v2p(sub_structs.root_table));
 
 	return paging_create(&sub_structs, phys, paging->page_size, virt,
 			     flags, paging_flags);
@@ -121,7 +118,7 @@ static int paging_destroy(const struct paging_structures *pg_structs,
 				if (err)
 					return err;
 			}
-			pt[++n] = kmm_p2v(paging->get_next_pt(pte));
+			pt[++n] = p2v(paging->get_next_pt(pte));
 			paging++;
 		}
 		/* advance by page size of current level paging */
@@ -132,7 +129,7 @@ static int paging_destroy(const struct paging_structures *pg_structs,
 			paging->clear_entry(pte);
 			if (n == 0 || !paging->page_table_empty(pt[n]))
 				break;
-			err = kmm_page_free(pt[n], 1);
+			err = free_pages(pt[n], 1);
 			if (err)
 				return err;
 
@@ -193,12 +190,12 @@ static int paging_create(const struct paging_structures *pg_structs,
 						     paging_flags);
 				if (err)
 					return err;
-				pt = kmm_p2v(paging->get_next_pt(pte));
+				pt = p2v(paging->get_next_pt(pte));
 			} else {
-				pt = kmm_page_zalloc(1);
+				pt = zalloc_pages(1);
 				if (!pt)
 					return -ENOMEM;
-				paging->set_next_pt(pte, kmm_v2p(pt));
+				paging->set_next_pt(pte, v2p(pt));
 			}
 			paging++;
 		}
@@ -284,7 +281,7 @@ int vm_map_range(page_table_t pt, const void *vaddr, paddr_t paddr,
 static int map_osmem(page_table_t root, void *vaddr, size_t size,
 		     mem_flags_t flags)
 {
-	return map_range(root, vaddr, kmm_v2p(vaddr), size, flags);
+	return map_range(root, vaddr, v2p(vaddr), size, flags);
 }
 
 int paging_cpu_init(unsigned long cpuid)
@@ -296,7 +293,7 @@ int paging_cpu_init(unsigned long cpuid)
 
 	/* Map the per_cpu structures */
 	err = map_range(root, (void*)PERCPU_BASE,
-			kmm_v2p(per_cpu(cpuid)),
+			v2p(per_cpu(cpuid)),
 			sizeof(struct per_cpu),
 			GRINCH_MEM_RW);
 
@@ -322,7 +319,7 @@ paddr_t paging_get_phys(page_table_t pt, const void *_virt)
 		if (phys != INVALID_PHYS_ADDR)
 			return phys;
 
-		pt = kmm_p2v(paging->get_next_pt(pte));
+		pt = p2v(paging->get_next_pt(pte));
 		paging++;
 	}
 

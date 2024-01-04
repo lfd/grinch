@@ -63,7 +63,7 @@ void __noreturn
 loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr)
 {
 	void __noreturn (*grinch_entry)
-		(unsigned long hart_id, paddr_t fdt, u64 offset);
+		(unsigned long hart_id, paddr_t fdt, u64 dst);
 	void *next, *l0;
 	unsigned int d;
 	paddr_t offset;
@@ -95,5 +95,5 @@ loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr)
 	loader_copy_grinch();
 
 	grinch_entry = (void*)VMGRINCH_BASE;
-	grinch_entry(hart_id, fdt, VMGRINCH_BASE - p_grinch_dst);
+	grinch_entry(hart_id, fdt, p_grinch_dst);
 }

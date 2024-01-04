@@ -12,12 +12,11 @@
 
 #define dbg_fmt(x)	"uaccess: " x
 
-#include <grinch/paging.h>
+#include <grinch/gfp.h>
 #include <grinch/printk.h>
 #include <grinch/types.h>
 #include <grinch/task.h>
 #include <grinch/uaccess.h>
-#include <grinch/pmm.h>
 
 void *user_to_direct(struct mm *mm, const void *s)
 {
@@ -27,7 +26,7 @@ void *user_to_direct(struct mm *mm, const void *s)
 	if (pa == INVALID_PHYS_ADDR)
 		return NULL;
 
-	return pmm_to_virt(pa);
+	return p2v(pa);
 }
 
 void umemset(struct mm *mm, void *s, int c, size_t n)

@@ -16,13 +16,10 @@
 #include <asm/isa.h>
 
 #include <grinch/alloc.h>
-#include <grinch/errno.h>
-#include <grinch/kmm.h>
+#include <grinch/gfp.h>
 #include <grinch/printk.h>
 #include <grinch/task.h>
 #include <grinch/vmm.h>
-#include <grinch/pmm.h>
-#include <grinch/paging.h>
 #include <grinch/vfs.h>
 
 #define VM_GPHYS_BASE	(0xa0000000UL)
@@ -55,7 +52,7 @@
 
 void arch_vmachine_activate(struct vmachine *vm)
 {
-	enable_mmu_hgatp(satp_mode, kmm_v2p(vm->hv_page_table));
+	enable_mmu_hgatp(satp_mode, v2p(vm->hv_page_table));
 
 	u64 hstatus =
 	        (2ULL << HSTATUS_VSXL_SHIFT) | /* Xlen 64 */
@@ -153,13 +150,13 @@ void vmachine_destroy(struct task *task)
 		if (err)
 			panic("vm_unmap_range\n");
 
-		err = kmm_page_free(vm->hv_page_table, GUEST_ROOT_PT_PAGES);
+		err = free_pages(vm->hv_page_table, GUEST_ROOT_PT_PAGES);
 		if (err)
-			panic("vmachine_destroy: kmm_free\n");
+			panic("vmachine_destroy: free_pages\n");
 	}
 
 	if (vm->memregion.size) {
-		err = pmm_page_free(vm->memregion.base, PAGES(vm->memregion.size));
+		err = phys_free_pages(vm->memregion.base, PAGES(vm->memregion.size));
 		if (err)
 			panic("vmachine_destroy: pmm_page_free\n");
 	}
@@ -175,7 +172,7 @@ static int vm_memcpy(struct vmachine *vm, unsigned long offset,
 	if (offset + len > vm->memregion.size)
 		return -ERANGE;
 
-	dst = pmm_to_virt(vm->memregion.base) + offset;
+	dst = p2v(vm->memregion.base) + offset;
 	memcpy(dst, src, len);
 
 	return 0;
@@ -227,7 +224,7 @@ static struct task *vmm_alloc_new(void)
 	vm = task->vmachine;
 
 	/* Allocate VM specific parts */
-	err = pmm_page_alloc_aligned(&vm->memregion.base, VM_PAGES, PAGE_SIZE, 0);
+	err = phys_pages_alloc_aligned(&vm->memregion.base, VM_PAGES, PAGE_SIZE);
 	if (err)
 		goto vmfree_out;
 	vm->memregion.size = VM_PAGES * PAGE_SIZE;
@@ -252,8 +249,8 @@ static struct task *vmm_alloc_new(void)
 
 	/* setup G-Stage paging */
 	vm->hv_page_table =
-		kmm_page_zalloc_aligned(GUEST_ROOT_PT_PAGES,
-					GUEST_ROOT_PT_PAGES * PAGE_SIZE);
+		zalloc_pages_aligned(GUEST_ROOT_PT_PAGES,
+				     GUEST_ROOT_PT_PAGES * PAGE_SIZE);
 	if (!vm->hv_page_table) {
 		err = -ENOMEM;
 		goto vmfree_out;

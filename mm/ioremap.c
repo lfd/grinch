@@ -19,7 +19,6 @@
 #include <grinch/ioremap.h>
 #include <grinch/paging.h>
 #include <grinch/percpu.h>
-#include <grinch/kmm.h>
 
 #define IOREMAP_PAGES	PAGES(IOREMAP_SIZE)
 
