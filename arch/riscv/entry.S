@@ -29,8 +29,7 @@ start:
 	 * We arrive here with:
 	 * a0: hartid
 	 * a1: phys fdt
-	 * a2: VMGRINCH_BASE
-	 * a3: offset
+	 * a2: offset
 	 */
 
 	/*
