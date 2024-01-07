@@ -27,6 +27,7 @@ SECTIONS
 	}
 
 	. = ALIGN(PAGE_SIZE);
+	__init_text_start = .;
 	.init.text	: {
 		*(.init.text);
 	}

@@ -92,6 +92,7 @@ void arch_paging_enable(unsigned long this_cpu, page_table_t pt);
 
 int paging_init(unsigned long this_cpu);
 int paging_cpu_init(unsigned long this_cpu);
+int paging_discard_init(void);
 
 paddr_t paging_get_phys(page_table_t pt, const void *virt);
 

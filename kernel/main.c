@@ -117,6 +117,10 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 	if (err)
 		goto out;
 
+	err = paging_discard_init();
+	if (err)
+		goto out;
+
 	err = arch_init();
 	if (err)
 		goto out;

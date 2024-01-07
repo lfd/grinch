@@ -326,6 +326,27 @@ paddr_t paging_get_phys(page_table_t pt, const void *_virt)
 	return INVALID_PHYS_ADDR;
 }
 
+int paging_discard_init(void)
+{
+	page_table_t root;
+	size_t size;
+	int err;
+
+	root = this_per_cpu()->root_table_page;
+	size = page_up(__init_end - __init_text_start);
+	err = map_osmem(root, __init_text_start, size, GRINCH_MEM_RW);
+	if (err)
+		return err;
+	flush_tlb_all();
+
+	err = free_pages(__init_text_start, PAGES(size));
+	if (err)
+		return err;
+
+	pr("%lu bytes init code freed\n", size);
+	return 0;
+}
+
 int paging_init(unsigned long this_cpu)
 {
 	int err;
