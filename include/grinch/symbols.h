@@ -34,23 +34,4 @@ extern unsigned char __num_os_pages[];
 SYMBOL_SZ(num_os_pages)
 SYMBOL_SZ(internal_page_pool_pages)
 
-/* Not available in guest code */
-#define INC_BIN(__sym)						\
-	extern unsigned char __##__sym[];			\
-	extern unsigned char __##__sym##_end[];			\
-								\
-	static __always_inline void *_##__sym(void)		\
-	{							\
-		return (void*)&__##__sym;			\
-	}							\
-	static __always_inline size_t _##__sym##_size(void)	\
-	{							\
-		return __##__sym##_end - __##__sym;		\
-	}
-
-INC_BIN(guest_code)
-INC_BIN(guest_dtb)
-
-extern unsigned char excp_handler[];
-
 #endif /* _SYMBOLS_H */
