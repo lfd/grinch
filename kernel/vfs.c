@@ -94,6 +94,29 @@ static int cpio_find_file(const char *pathname, struct cpio_header *hdr)
 	return -ENOENT;
 }
 
+static int __init cpio_size(const void *base, size_t *size)
+{
+	struct cpio_header hdr;
+	const void *this;
+	int err;
+
+	this = base;
+	while (1) {
+		err = parse_cpio_header(this, &hdr);
+		if (err)
+			break;
+		this = hdr.next_header;
+	}
+
+	if (this == base)
+		return -ENOENT;
+
+	*size = (((uintptr_t)hdr.body - (uintptr_t)base) + 255)
+		& BIT_MASK(64, 8);
+
+	return 0;
+}
+
 static void *initrd_read_file(const char *pathname, size_t *len)
 {
 	struct cpio_header hdr;
@@ -130,7 +153,6 @@ int __init initrd_init_early(void)
 {
 	size_t initrd_pages;
 	paddr_t page_start;
-	const void *vbase;
 	int err, offset;
 	u64 start, end;
 
@@ -147,23 +169,22 @@ int __init initrd_init_early(void)
 		return -ENOENT;
 
 	initrd.pstart = start;
+	initrd.vbase = p2v(initrd.pstart);
+
 	initrd.size = end - start;
+	pri("initrd: found at 0x%llx (SZ: 0x%lx)\n", initrd.pstart, initrd.size);
+	err = cpio_size(initrd.vbase, &initrd.size);
+	if (err)
+		return err;
+	pri("initrd: real size: 0x%lx\n", initrd.size);
 
-	pri("Found Ramdisk at 0x%llx (SZ: 0x%lx)\n", initrd.pstart, initrd.size);
 	page_start = start & PAGE_MASK;
-	initrd_pages = PAGES(page_up(end) - page_start);
-
+	initrd_pages = PAGES(page_up(start + initrd.size) - page_start);
 	err = phys_mark_used(page_start, initrd_pages);
 	if (err) {
 		pri("Error reserving memory for ramdisk\n");
 		return err;
 	}
-
-	vbase = p2v(initrd.pstart);
-	if (IS_ERR(vbase))
-		return PTR_ERR(vbase);
-
-	initrd.vbase = vbase;
 
 	return 0;
 }
