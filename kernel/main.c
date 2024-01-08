@@ -25,7 +25,7 @@
 #include <grinch/printk.h>
 #include <grinch/task.h>
 
-static const char logo[] =
+static const char __initconst logo[] =
 "\n\n"
 "            _            _\n"
 "           (_)          | |\n"
@@ -36,7 +36,7 @@ static const char logo[] =
 "  __/ |\n"
 " |___/";
 
-static const char logo_vm[] =
+static const char __initconst logo_vm[] =
 "\n\n"
 "            _            _  __  _____    __\n"
 "           (_)          | | \\ \\/ /| |\\  /| |\n"
@@ -47,7 +47,7 @@ static const char logo_vm[] =
 "  __/ |\n"
 " |___/";
 
-static const char hello[] =
+static const char __initconst hello[] =
 #ifdef ARCH_RISCV
 "       on RISC-V\n"
 #endif
@@ -63,7 +63,7 @@ static void __init memtest_parse(const char *)
 }
 bootparam(memtest, memtest_parse);
 
-static int init(void)
+static int __init init(void)
 {
 	struct task *task;
 	int err;
@@ -102,22 +102,18 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 	if (err)
 		goto out;
 
-	ps("Activating final paging\n");
+	pri("Activating final paging\n");
 	err = paging_init(boot_cpu);
 	if (err)
 		goto out;
 
-	pr("CPU ID: %lu\n", this_cpu_id());
+	pri("CPU ID: %lu\n", this_cpu_id());
 
 	err = fdt_init(__fdt);
 	if (err)
 		goto out;
 
 	err = bootparam_init();
-	if (err)
-		goto out;
-
-	err = paging_discard_init();
 	if (err)
 		goto out;
 
@@ -132,14 +128,18 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 
 	this_per_cpu()->schedule = true;
 	if (1) {
-		ps("Initialising userland\n");
+		psi("Initialising userland\n");
 		err = init();
 		if (err)
-			ps("Error initialising userland\n");
+			psi("Error initialising userland\n");
 		err = 0;
 	}
 
 	prepare_user_return();
+
+	err = paging_discard_init();
+	if (err)
+		goto out;
 
 out:
 	pr("End reached: %d\n", err);

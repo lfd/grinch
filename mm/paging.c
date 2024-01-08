@@ -334,6 +334,7 @@ int paging_discard_init(void)
 
 	root = this_per_cpu()->root_table_page;
 	size = page_up(__init_end - __init_text_start);
+	pri("Freeing %lu bytes init code freed\n", size);
 	err = map_osmem(root, __init_text_start, size, GRINCH_MEM_RW);
 	if (err)
 		return err;
@@ -343,25 +344,24 @@ int paging_discard_init(void)
 	if (err)
 		return err;
 
-	pr("%lu bytes init code freed\n", size);
 	return 0;
 }
 
-int paging_init(unsigned long this_cpu)
+int __init paging_init(unsigned long this_cpu)
 {
 	int err;
 	page_table_t root;
 
 	arch_paging_init();
 
-	pr("=== Grinch memory layout ===\n");
-	pr(" Grinch area: 0x%lx -- 0x%lx\n", VMGRINCH_BASE, VMGRINCH_END);
-	pr("ioremap area: 0x%lx -- 0x%lx\n", IOREMAP_BASE, IOREMAP_END);
-	pr("  kheap area: 0x%lx\n", KHEAP_BASE);
-	pr(" direct phys: 0x%lx\n", DIR_PHYS_BASE);
-	pr(" percpu area: 0x%lx -- 0x%lx\n", PERCPU_BASE,
+	pri("=== Grinch memory layout ===\n");
+	pri(" Grinch area: 0x%lx -- 0x%lx\n", VMGRINCH_BASE, VMGRINCH_END);
+	pri("ioremap area: 0x%lx -- 0x%lx\n", IOREMAP_BASE, IOREMAP_END);
+	pri("  kheap area: 0x%lx\n", KHEAP_BASE);
+	pri(" direct phys: 0x%lx\n", DIR_PHYS_BASE);
+	pri(" percpu area: 0x%lx -- 0x%lx\n", PERCPU_BASE,
 	   PERCPU_BASE + sizeof(struct per_cpu));
-	pr("=== Grinch memory layout end ===\n");
+	pri("=== Grinch memory layout end ===\n");
 
 	root = per_cpu(this_cpu)->root_table_page;
 
@@ -409,6 +409,6 @@ int paging_init(unsigned long this_cpu)
 	return 0;
 
 out:
-	pr("Mapping error: %d\n", err);
+	pri("Mapping error: %d\n", err);
 	return err;
 }

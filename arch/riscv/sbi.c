@@ -52,15 +52,15 @@ static inline long sbi_get_spec_version(void)
 	return __sbi_base_ecall(SBI_EXT_BASE_GET_SPEC_VERSION);
 }
 
-int sbi_init(void)
+int __init sbi_init(void)
 {
-	ps("Initialising SBI\n");
+	psi("Initialising SBI\n");
 
 	sbi_spec_version = sbi_get_spec_version();
-	pr("SBI version v%lu.%lu detected\n", sbi_major_version(), sbi_minor_version());
+	pri("SBI version v%lu.%lu detected\n", sbi_major_version(), sbi_minor_version());
 
 	if (sbi_major_version() == 0 && sbi_minor_version() <= 1) {
-		ps("SBI too old! Consider upgrading your firmware.\n");
+		psi("SBI too old! Consider upgrading your firmware.\n");
 		return -1;
 	}
 

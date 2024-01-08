@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -129,7 +129,7 @@ static int boot_cpu(unsigned long hart_id)
 	return 0;
 }
 
-int smp_init(void)
+int __init smp_init(void)
 {
 	unsigned long cpu;
 	int err;
@@ -142,13 +142,13 @@ int smp_init(void)
 
 		while (!per_cpu(cpu)->online)
 			cpu_relax();
-		pr("CPU %lu online!\n", cpu);
+		pri("CPU %lu online!\n", cpu);
 	}
 
 	return err;
 }
 
-int platform_init(void)
+int __init platform_init(void)
 {
 	const char *name, *isa;
 	unsigned long hart_id;
@@ -157,7 +157,7 @@ int platform_init(void)
 
 	cpu = fdt_path_offset(_fdt, "/cpus");
 	if (cpu < 0) {
-		pr("No CPUs found in device-tree. Halting.\n");
+		pri("No CPUs found in device-tree. Halting.\n");
 		return -ENOSYS;
 	}
 
@@ -168,34 +168,34 @@ int platform_init(void)
 
 		reg = fdt_getprop(_fdt, child, "reg", &err);
 		if (err < 0) {
-			pr("%s: Error reading reg\n", name);
+			pri("%s: Error reading reg\n", name);
 			return -EINVAL;
 		}
 		hart_id = fdt32_to_cpu(reg[0]);
 		if (hart_id >= MAX_HARTS) {
-			pr("%s: HART %lu beyond MAX_HARTS\n", name, hart_id);
+			pri("%s: HART %lu beyond MAX_HARTS\n", name, hart_id);
 			return -ERANGE;
 		}
 
 		isa = fdt_getprop(_fdt, child, "riscv,isa", &err);
 		if (!isa || err < 0) {
-			pr("CPU %lu: No ISA specification found\n", hart_id);
+			pri("CPU %lu: No ISA specification found\n", hart_id);
 		} else {
-			pr("CPU %lu: Found ISA level: %s\n", hart_id, isa);
+			pri("CPU %lu: Found ISA level: %s\n", hart_id, isa);
 		}
 		err = riscv_isa_update(hart_id, isa);
 		if (err)
 			return err;
 
 		if (!fdt_device_is_available(_fdt, child)) {
-			pr("%s: HART %lu disabled via device-tree\n", name,
+			pri("%s: HART %lu disabled via device-tree\n", name,
 			   hart_id);
 			continue;
 		}
 
 		bitmap_set(available_harts, hart_id, 1);
 
-		pr("%s: HART %lu available\n", name, hart_id);
+		pri("%s: HART %lu available\n", name, hart_id);
 
 		err = phys_mark_used(v2p(per_cpu(hart_id)),
 				     PAGES(sizeof(struct per_cpu)));

@@ -126,7 +126,7 @@ void *vfs_read_file(const char *pathname, size_t *len)
 	return initrd_read_file(pathname + strlen(ird), len);
 }
 
-int initrd_init_early(void)
+int __init initrd_init_early(void)
 {
 	size_t initrd_pages;
 	paddr_t page_start;
@@ -149,13 +149,13 @@ int initrd_init_early(void)
 	initrd.pstart = start;
 	initrd.size = end - start;
 
-	pr("Found Ramdisk at 0x%llx (SZ: 0x%lx)\n", initrd.pstart, initrd.size);
+	pri("Found Ramdisk at 0x%llx (SZ: 0x%lx)\n", initrd.pstart, initrd.size);
 	page_start = start & PAGE_MASK;
 	initrd_pages = PAGES(page_up(end) - page_start);
 
 	err = phys_mark_used(page_start, initrd_pages);
 	if (err) {
-		pr("Error reserving memory for ramdisk\n");
+		pri("Error reserving memory for ramdisk\n");
 		return err;
 	}
 

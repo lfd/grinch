@@ -17,4 +17,7 @@
 #define __initconst		__attribute__((section(".init.rodata"), used))
 #define __initbootparams	__attribute__((section(".init.bootparams"), used))
 
+/* Constant init string */
+#define ISTR(X)			({static const char __c[] __initconst = (X); &__c[0];})
+
 #endif /* _INIT_H */

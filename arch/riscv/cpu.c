@@ -88,7 +88,7 @@ int hypercall(unsigned long no, unsigned long arg1)
 	return ret.value;
 }
 
-void guest_init(void)
+void __init guest_init(void)
 {
 	int ret;
 

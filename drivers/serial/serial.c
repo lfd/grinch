@@ -67,8 +67,8 @@ static u32 reg_in_mmio32(struct uart_chip *chip, unsigned int reg)
 	return mmio_read32(chip->base + reg * 4);
 }
 
-int serial_init(const struct uart_driver *d, paddr_t uart_base, u64 uart_size,
-		int io_width, u32 irq)
+int __init serial_init(const struct uart_driver *d, paddr_t uart_base,
+		       u64 uart_size, int io_width, u32 irq)
 {
 	int err;
 	struct uart_chip c;
@@ -126,7 +126,7 @@ int serial_init(const struct uart_driver *d, paddr_t uart_base, u64 uart_size,
 	return err;
 }
 
-int serial_init_fdt(void)
+int __init serial_init_fdt(void)
 {
 	const struct of_device_id *match;
 	const struct uart_driver *d;

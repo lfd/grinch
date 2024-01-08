@@ -296,12 +296,12 @@ void kheap_stats(void)
 	   chunks_free, chunks_used, free, used);
 }
 
-int kheap_init(void)
+int __init kheap_init(void)
 {
 	int err;
 
-	pr("Kernel Heap base: %p, size: 0x%lx\n",
-	   vma_kheap.base, vma_kheap.size);
+	pri("Kernel Heap base: %p, size: 0x%lx\n",
+	    vma_kheap.base, vma_kheap.size);
 
 	err = kvma_create(&vma_kheap);
 	if (err)

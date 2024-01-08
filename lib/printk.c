@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -28,6 +28,7 @@
 
 #include <stdarg.h>
 
+#include <grinch/init.h>
 #include <grinch/string.h>
 #include <grinch/boot.h>
 #include <grinch/panic.h>
@@ -299,7 +300,7 @@ void __noreturn __printf(1, 2) panic(const char *fmt, ...)
 	panic_stop();
 }
 
-void printk_init(void)
+void __init printk_init(void)
 {
 	if (grinch_is_guest)
 		strncpy(prefix_fmt, "[GrinchVM %02u] ", sizeof(prefix_fmt));

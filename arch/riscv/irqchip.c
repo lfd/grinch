@@ -43,7 +43,7 @@ static int fdt_irqchip_get_extended(const void *fdt, int off)
 	return fdt32_to_cpu(reg[1]);
 }
 
-int irqchip_init(void)
+int __init irqchip_init(void)
 {
 	int err, off;
 	const struct of_device_id *match;
@@ -74,7 +74,7 @@ init:
 	if (err)
 		return err;
 
-	pr("base: 0x%llx, size: 0x%llx\n", (u64)pbase, size);
+	pri("base: 0x%llx, size: 0x%llx\n", (u64)pbase, size);
 
 	vbase = ioremap(pbase, size);
 	if (IS_ERR(vbase))

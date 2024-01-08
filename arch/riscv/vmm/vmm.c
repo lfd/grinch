@@ -274,7 +274,7 @@ free_out:
 	return ERR_PTR(err);
 }
 
-int vmm_init(void)
+int __init vmm_init(void)
 {
 	if (!has_hypervisor())
 		return -ENOSYS;

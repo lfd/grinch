@@ -309,12 +309,12 @@ void *p2v(paddr_t phys)
 	panic("Invalid phys address!\n");
 }
 
-int kernel_mem_init(void)
+int __init kernel_mem_init(void)
 {
 	int err;
 
-	pr("OS pages: %lu\n", num_os_pages());
-	pr("Internal page pool pages: %lu\n", internal_page_pool_pages());
+	pri("OS pages: %lu\n", num_os_pages());
+	pri("Internal page pool pages: %lu\n", internal_page_pool_pages());
 
 	/* mark OS pages as used */
 	memory_areas[0].valid = true;
@@ -380,11 +380,11 @@ err_out:
 
 }
 
-int phys_mem_init(paddr_t addrp, size_t sizep)
+int __init phys_mem_init(paddr_t addrp, size_t sizep)
 {
 	int err;
 
-	pr("Found main memory: %llx, size: %lx\n", addrp, sizep);
+	pri("Found main memory: %llx, size: %lx\n", addrp, sizep);
 	/*
 	 * Create a direct physical R/W mapping, so that the kernel may easily
 	 * access every single byte of physical memory.
@@ -401,7 +401,7 @@ int phys_mem_init(paddr_t addrp, size_t sizep)
 	return 0;
 }
 
-int phys_mem_init_fdt(void)
+int __init phys_mem_init_fdt(void)
 {
 	int child, err, len, memory, ac, sc, parent;
 	const char *uname;
@@ -411,7 +411,7 @@ int phys_mem_init_fdt(void)
 
 	memory = fdt_path_offset(_fdt, "/memory");
 	if (memory <= 0) {
-		pr("NO MEMORY NODE FOUND! TRYING TO CONTINUE\n");
+		pri("NO MEMORY NODE FOUND! TRYING TO CONTINUE\n");
 		return 0;
 	}
 
@@ -432,7 +432,7 @@ int phys_mem_init_fdt(void)
 	ac = (ac + sc) * sizeof(fdt32_t);
 
 	if (len % ac != 0 && len / ac != 1) {
-		pr("MULTIPLE CELLS NOT SUPPORTED\n");
+		pri("MULTIPLE CELLS NOT SUPPORTED\n");
 		return trace_error(-EINVAL);
 	}
 
@@ -457,11 +457,11 @@ int phys_mem_init_fdt(void)
 
 		err = fdt_read_reg(_fdt, child, 0, &addrp, (u64*)&sizep);
 		if (err) {
-			pr("Error reserving area %s\n", uname);
+			pri("Error reserving area %s\n", uname);
 			return trace_error(err);
 		}
 
-		pr("Reserving memory area %s (0x%llx len: 0x%lx)\n",
+		pri("Reserving memory area %s (0x%llx len: 0x%lx)\n",
 		   uname, addrp, sizep);
 		phys_mark_used(addrp, PAGES(page_up(sizep)));
 	}

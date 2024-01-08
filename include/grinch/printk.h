@@ -14,6 +14,7 @@
 #define _PRINTK_H
 
 #include <grinch/compiler_attributes.h>
+#include <grinch/init.h>
 
 void puts(const char *msg); /* Prefixed */
 void _puts(const char *msg); /* No prefix */
@@ -29,6 +30,9 @@ void printk_init(void);
 
 #define pr(fmt, ...) printk(dbg_fmt(fmt), ##__VA_ARGS__)
 #define ps(str) puts(dbg_fmt(str))
+
+#define pri(fmt, ...) printk(ISTR(dbg_fmt(fmt)), ##__VA_ARGS__)
+#define psi(str) puts(ISTR(str))
 
 #define trace_error(code) ({						  \
 	printk("%s:%d: returning error %d\n", __FILE__, __LINE__, code); \

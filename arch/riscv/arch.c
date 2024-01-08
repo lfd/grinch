@@ -28,7 +28,7 @@
 #include <grinch/vfs.h>
 #include <grinch/vmm.h>
 
-int arch_init(void)
+int __init arch_init(void)
 {
 	int err;
 
@@ -42,7 +42,7 @@ int arch_init(void)
 
 	err = initrd_init_early();
 	if (err == -ENOENT)
-		pr("No ramdisk found\n");
+		pri("No ramdisk found\n");
 	else if (err)
 		goto out;
 
@@ -54,21 +54,21 @@ int arch_init(void)
 	if (err)
 		goto out;
 
-	ps("Disabling IRQs\n");
+	psi("Disabling IRQs\n");
 	irq_disable();
 	timer_disable();
 
 	/* Initialise external interrupts */
-	ps("Initialising irqchip...\n");
+	psi("Initialising irqchip...\n");
 	err = irqchip_init();
 	if (err == -ENOENT)
-		pr("No irqchip found!\n");
+		pri("No irqchip found!\n");
 	else if (err)
 		goto out;
 	else
 		ext_enable();
 
-	ps("Initialising Serial...\n");
+	psi("Initialising Serial...\n");
 	err = serial_init_fdt();
 	if (err)
 	{
@@ -76,11 +76,11 @@ int arch_init(void)
 			goto con;
 		goto out;
 	}
-	ps("Switched over from SBI to UART\n");
+	psi("Switched over from SBI to UART\n");
 con:
 
 	/* Boot secondary CPUs */
-	ps("Booting secondary CPUs\n");
+	psi("Booting secondary CPUs\n");
 	err = smp_init();
 	if (err)
 		goto out;
@@ -92,7 +92,7 @@ con:
 
 	err = vmm_init();
 	if (err == -ENOSYS) {
-		ps("H-Extensions not available\n");
+		psi("H-Extensions not available\n");
 		err = 0;
 	}
 

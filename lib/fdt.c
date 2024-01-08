@@ -70,7 +70,7 @@ int fdt_find_device(const void *fdt, const char *path,
 	return -ENOENT;
 }
 
-int fdt_init(paddr_t pfdt)
+int __init fdt_init(paddr_t pfdt)
 {
 	void *fdt;
 	int err;
