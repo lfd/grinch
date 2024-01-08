@@ -51,7 +51,7 @@ void dump_regs(struct registers *a)
 
 	satp = csr_read(CSR_SATP);
 
-	printk("SATP -- Mode: %llu, PFN: 0x%016llx\n"
+	printk("\nSATP -- Mode: %llu, PFN: 0x%016llx     STVAL: 0x%016lx\n"
 	       " PC: 0x%016lx RA: 0x%016lx  SP: 0x%016lx\n"
 	       " GP: 0x%016lx TP: 0x%016lx  T0: 0x%016lx\n"
 	       " T1: 0x%016lx T2: 0x%016lx  S0: 0x%016lx\n"
@@ -64,6 +64,7 @@ void dump_regs(struct registers *a)
 	       "S11: 0x%016lx T3: 0x%016lx  T4: 0x%016lx\n"
 	       " T5: 0x%016lx T6: 0x%016lx\n",
 			satp >> 60, (satp & SATP_PPN) << PAGE_SHIFT,
+			csr_read(stval),
 			a->sepc, a->ra, a->sp,
 			a->gp, a->tp, a->t0,
 			a->t1, a->t2, a->s0,
