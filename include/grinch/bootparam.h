@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -13,9 +13,8 @@
 #ifndef _BOOTPARAM_H
 #define _BOOTPARAM_H
 
+#include <grinch/init.h>
 #include <grinch/types.h>
-
-#define __init	__attribute__((section(".init.text"), used))
 
 struct grinch_bootparam {
 	const char *name;
@@ -23,11 +22,10 @@ struct grinch_bootparam {
 };
 
 #define bootparam(NAME, PARSE)						\
-static const char bootparam_##NAME##_str[]				\
-	__attribute__((section(".init.rodata"), used)) = #NAME;		\
+static const char bootparam_##NAME##_str[] __initconst = #NAME;		\
 									\
-static const struct grinch_bootparam bootparam_##NAME 			\
-	__attribute__((section(".init.bootparams"), used)) = {		\
+static const struct grinch_bootparam bootparam_##NAME			\
+	__initbootparams = {						\
 	.name = bootparam_##NAME##_str,					\
 	.parse = PARSE,							\
 }
