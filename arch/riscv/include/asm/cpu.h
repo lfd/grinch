@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -12,6 +12,8 @@
 
 #ifndef _CPU_H
 #define _CPU_H
+
+#ifndef __ASSEMBLY__
 
 #include <grinch/types.h>
 
@@ -72,6 +74,11 @@ static inline void cpu_relax(void)
 	asm volatile ("" : : : "memory");
 }
 
+static inline void local_hfence_vvma_all(void)
+{
+	asm volatile(".insn 0x22000073"); /* hfence.vvma zero, zero */
+}
+
 static inline void flush_tlb_all(void)
 {
 	asm volatile("sfence.vma" : : : "memory");
@@ -94,5 +101,7 @@ void dump_regs(struct registers *a);
 void guest_init(void);
 
 extern bool grinch_is_guest;
+
+#endif /* __ASSEMBLY__ */
 
 #endif /* _CPU_H */

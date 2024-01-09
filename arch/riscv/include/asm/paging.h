@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -14,6 +14,7 @@
 #define _ASM_PAGING_H
 
 #include <asm/csr.h>
+#include <asm/cpu.h>
 
 #define RISCV_PTE_V     0
 #define RISCV_PTE_R     1
@@ -70,27 +71,27 @@ static inline paddr_t pte2table(u64 pte)
 	return (pte & RISCV_PTE_MASK) << RISCV_PTE_SHIFT;
 }
 
-#define ENABLE_MMU(NAME, REG)					\
-static inline void enable_mmu_##NAME(u64 mode, paddr_t pt)	\
-{								\
-	u64 atp;						\
-								\
-	atp = mode | (u64)pt >> PAGE_SHIFT;			\
-	asm volatile("sfence.vma\n"				\
-		     "csrw %0, %1\n"				\
-		     "sfence.vma\n"				\
-		     : : "i"(REG), "rK"(atp) : "memory");	\
+#define ATP(MODE, PT)	((MODE) | (u64)(PT) >> PAGE_SHIFT)
+
+static inline void enable_mmu_satp(u64 mode, paddr_t pt)
+{
+	flush_tlb_all();
+	csr_write(satp, ATP(mode, pt));
+	flush_tlb_all();
 }
 
-ENABLE_MMU(satp, CSR_SATP)
-ENABLE_MMU(hgatp, CSR_HGATP)
+static inline void enable_mmu_hgatp(u64 mode, paddr_t pt)
+{
+	local_hfence_vvma_all();
+	csr_write(CSR_HGATP, ATP(mode, pt));
+	local_hfence_vvma_all();
+}
 
 static inline void disable_mmu_hgatp(void)
 {
-	asm volatile("sfence.vma\n"
-		     "csrwi %0, 0\n"
-		     "sfence.vma\n"
-		     : : "i"(CSR_HGATP) : "memory");
+	local_hfence_vvma_all();
+	csr_write(CSR_HGATP, 0);
+	local_hfence_vvma_all();
 }
 
 extern unsigned long satp_mode;
