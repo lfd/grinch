@@ -1,7 +1,9 @@
 ARCH ?= riscv
 
-GRINCH_VER=3.14
 #DEBUG_OUTPUT=1
+VERSION=3
+PATCHLEVEL=14
+EXTRAVERSION=-rc0
 
 all: kernel.bin user/initrd.cpio
 

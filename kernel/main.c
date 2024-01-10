@@ -24,6 +24,7 @@
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/task.h>
+#include <grinch/version.h>
 
 static const char __initconst logo[] =
 "\n\n"
@@ -51,7 +52,7 @@ static const char __initconst hello[] =
 #ifdef ARCH_RISCV
 "       on RISC-V\n"
 #endif
-"\n      -> Welcome to Grinch " __stringify(GRINCH_VER) " <- \n\n\n";
+"\n      -> Welcome to Grinch " VERSION_STRING " <- \n\n\n";
 
 static bool do_memtest;
 
@@ -91,12 +92,14 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 
 	guest_init();
 
+	_puts(ISTR("\n" UNAME_A "\n"));
 	if (grinch_is_guest)
 		_puts(logo_vm);
 	else
 		_puts(logo);
 	_puts(hello);
 	printk_init();
+	pdi("Compiler CFLAGS:" COMPILE_CFLAGS "\n");
 
 	err = kernel_mem_init();
 	if (err)

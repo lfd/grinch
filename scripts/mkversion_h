@@ -1,0 +1,32 @@
+#!/bin/bash
+#
+# Grinch, a minimalist operating system
+#
+# Copyright (c) OTH Regensburg, 2024
+#
+# Authors:
+#  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
+#
+# This work is licensed under the terms of the GNU GPL, version 2.  See
+# the COPYING file in the top-level directory.
+
+TARGET=$1
+
+VERSION=$2
+PATCHLEVEL=$3
+EXTRAVERSION=$4
+
+. scripts/mkcommon.sh
+
+cat <<EOF > $TARGET
+#ifndef _GENERATED_VERSION_H
+#define _GENERATED_VERSION_H
+
+${HEADER}
+
+#define VERSION		${VERSION}
+#define PATCHLEVEL	${PATCHLEVEL}
+#define EXTRAVERSION	${EXTRAVERSION}
+
+#endif /*_GENERATED_VERSION_H */
+EOF

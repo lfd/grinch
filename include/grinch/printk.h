@@ -32,7 +32,7 @@ void printk_init(void);
 #define ps(str) puts(dbg_fmt(str))
 
 #define pri(fmt, ...) printk(ISTR(dbg_fmt(fmt)), ##__VA_ARGS__)
-#define psi(str) puts(ISTR(str))
+#define psi(str) puts(ISTR(dbg_fmt(str)))
 
 #define trace_error(code) ({						  \
 	printk("%s:%d: returning error %d\n", __FILE__, __LINE__, code); \
@@ -41,8 +41,10 @@ void printk_init(void);
 
 #ifdef DEBUG
 #define pd(fmt, ...) printk(dbg_fmt(fmt), ##__VA_ARGS__)
+#define pdi(fmt, ...) printk(ISTR(dbg_fmt(fmt)), ##__VA_ARGS__)
 #else /* !DEBUG */
 #define pd(...) do{ } while ( false )
+#define pdi(...) do{ } while ( false )
 #endif /* DEBUG */
 
 #endif /* _PRINTK_H */

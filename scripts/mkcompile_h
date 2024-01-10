@@ -1,0 +1,41 @@
+#!/bin/bash
+#
+# Grinch, a minimalist operating system
+#
+# Copyright (c) OTH Regensburg, 2024
+#
+# Authors:
+#  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
+#
+# This work is licensed under the terms of the GNU GPL, version 2.  See
+# the COPYING file in the top-level directory.
+
+TARGET=$1
+
+CC=$2
+CFLAGS=$3
+
+COMPILE_DATE=$(date)
+COMPILE_BY=$(whoami)
+COMPILE_HOST=$(hostname)
+
+CC_VERSION=$($CC -v 2>&1 | grep ' version ' | sed 's/[[:space:]]*$//')
+
+. scripts/mkcommon.sh
+
+cat <<EOF > $TARGET
+#ifndef _GENERATED_COMPILE_H
+#define _GENERATED_COMPILE_H
+
+${HEADER}
+
+#define COMPILE_DATE	"${COMPILE_DATE}"
+#define COMPILE_BY	"${COMPILE_BY}"
+#define COMPILE_HOST	"${COMPILE_HOST}"
+
+#define COMPILE_CC		"${CC}"
+#define COMPILE_CC_VERSION	"${CC_VERSION}"
+#define COMPILE_CFLAGS		"${CFLAGS}"
+
+#endif /* _GENERATED_COMPILE_H */
+EOF

@@ -11,8 +11,7 @@ QEMU_ARGS_COMMON=-monitor telnet:127.0.0.1:11111,server,nowait -s
 INCLUDES_KERNEL=-Iinclude/ \
 		-Iinclude_common \
                 -Ilib/libfdt/ \
-                -Iarch/$(ARCH)/include/ \
-                -DGRINCH_VER=$(GRINCH_VER)
+                -Iarch/$(ARCH)/include/
 
 CFLAGS_KERNEL=$(CFLAGS_COMMON) $(CFLAGS_ARCH) $(INCLUDES_KERNEL)
 
@@ -20,7 +19,7 @@ LDFLAGS_KERNEL = $(LDFLAGS_COMMON) $(LDFLAGS_ARCH)
 AFLAGS_KERNEL = $(AFLAGS_COMMON)
 
 ASM_DEFINES = arch/$(ARCH)/include/asm/asm_defines.h
-GENERATED = $(ASM_DEFINES)
+GENERATED = $(ASM_DEFINES) include/generated/version.h include/generated/compile.h
 
 %.o: %.c $(GENERATED)
 	$(QUIET) "[CC]    $@"
@@ -38,6 +37,14 @@ GENERATED = $(ASM_DEFINES)
 $(ASM_DEFINES): arch/$(ARCH)/asm_defines.S
 	$(QUIET) "[GEN]   $@"
 	$(VERBOSE) ./scripts/asm-defines.sh $^ > $@
+
+include/generated/compile.h: scripts/mkcompile_h Makefile
+	$(QUIET) "[GEN]   $@"
+	$(VERBOSE) $< $@ $(CC) "$(CFLAGS_KERNEL)"
+
+include/generated/version.h: scripts/mkversion_h Makefile
+	$(QUIET) "[GEN]   $@"
+	$(VERBOSE) $< $@ $(VERSION) $(PATCHLEVEL) $(EXTRAVERSION)
 
 arch/$(ARCH)/asm_defines.S: arch/$(ARCH)/asm_defines.c
 	$(QUIET) "[GEN]   $@"
@@ -75,4 +82,3 @@ clean_kernel:
 	$(RMRF) lib/*.{o,a} lib/libfdt/*.{o,a}
 	$(RMRF) drivers/*.{o,a} drivers/irq/*.{o,a} drivers/serial/*.{o,a}
 	$(RMRF) mm/*.{o,a}
-
