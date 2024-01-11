@@ -129,9 +129,10 @@ out:
 	vsatp = csr_read(vsatp);
 
 	ps("Hypervisor Context:\n");
-	pr("sstatus: %016lx scause: %016lx\n", ctx->sstatus, ctx->scause);
-	pr("hstatus: %016lx\n", ctx->hstatus);
-	pr("vsatp: %016lx (phys: %016llx)\n", vsatp, ((vsatp & BIT_MASK(43, 0)) << PAGE_SHIFT));
+	pr("SSTATUS: %016lx SCAUSE: %016lx\n", ctx->sstatus, ctx->scause);
+	pr("HSTATUS: %016lx  HTVAL: %016lx\n",
+		ctx->hstatus, csr_read(CSR_HTVAL));
+	pr("VSATP: %016lx (phys: %016llx)\n", vsatp, ((vsatp & BIT_MASK(43, 0)) << PAGE_SHIFT));
 
 	return VMM_ERROR;
 }
