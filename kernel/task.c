@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -12,6 +12,7 @@
 
 #define dbg_fmt(x)	"task: " x
 
+#include <asm/irq.h>
 #include <asm/spinlock.h>
 #include <asm_generic/grinch_layout.h>
 
@@ -23,6 +24,7 @@
 #include <grinch/printk.h>
 #include <grinch/task.h>
 #include <grinch/percpu.h>
+#include <grinch/timer.h>
 
 #define GRINCH_VM_PID_OFFSET	10000
 
@@ -82,7 +84,7 @@ struct task *task_alloc_new(void)
 		return ERR_PTR(-ENOMEM);
 
 	task->pid = get_new_pid();
-	task->state = SUSPENDED;
+	task->state = TASK_RUNNABLE;
 	task->type = GRINCH_UNDEF;
 	INIT_LIST_HEAD(&task->tasks);
 
@@ -94,12 +96,12 @@ void task_activate(struct task *task)
 	struct per_cpu *tpcpu;
 
 	tpcpu = this_per_cpu();
-	if (tpcpu->current_task && tpcpu->current_task->state == RUNNING) {
-		tpcpu->current_task->state = SUSPENDED;
+	if (tpcpu->current_task && tpcpu->current_task->state == TASK_RUNNING) {
+		tpcpu->current_task->state = TASK_RUNNABLE;
 	}
 
 	tpcpu->current_task = task;
-	task->state = RUNNING;
+	task->state = TASK_RUNNING;
 
 	switch (task->type) {
 	case GRINCH_PROCESS:
@@ -130,7 +132,7 @@ void sched_enqueue(struct task *task)
 	spin_unlock(&task_lock);
 }
 
-void schedule(void)
+static void schedule(void)
 {
 	struct task *task;
 	struct per_cpu *tpcpu;
@@ -154,7 +156,7 @@ void schedule(void)
 
 	task = tpcpu->current_task;
 	list_for_each_entry_from(task, &task_list, tasks) {
-		if (task->state == SUSPENDED)
+		if (task->state == TASK_RUNNABLE)
 			goto out;
 	}
 
@@ -168,11 +170,13 @@ begin:
 		if (task == tpcpu->current_task)
 			break;
 
-		if (task->state == SUSPENDED)
+		if (task->state == TASK_RUNNABLE)
 			goto out;
 	}
 
+	/* we have nothing to schedule */
 	task = NULL;
+	this_per_cpu()->current_task = NULL;
 
 out:
 	if (task)
@@ -211,17 +215,59 @@ destroy_out:
 	return err;
 }
 
+void task_sleep_for(struct task *task, unsigned long long ns)
+{
+	spin_lock(&task_lock);
+	task->state = TASK_WFE;
+	task->timer_expiration = timer_get_wall() + ns;
+	spin_unlock(&task_lock);
+}
+
+void task_handle_events(void)
+{
+
+	struct task *task;
+
+	spin_lock(&task_lock);
+	list_for_each_entry(task, &task_list, tasks) {
+		if (task->state != TASK_WFE)
+			continue;
+
+		/* we hit a sleeping task */
+		if (timer_get_wall() >= task->timer_expiration)
+			task->state= TASK_RUNNABLE;
+	}
+	spin_unlock(&task_lock);
+}
+
+static void do_idle(void)
+{
+	this_per_cpu()->idling = true;
+	irq_enable();
+	cpu_do_idle();
+	irq_disable();
+	this_per_cpu()->schedule = true;
+	this_per_cpu()->idling = false;
+	mb();
+}
+
 void prepare_user_return(void)
 {
+retry:
 	if (this_per_cpu()->schedule)
 		schedule();
 
 	if (!this_per_cpu()->current_task) {
-		ps("Nothing to schedule!\n");
-		arch_shutdown();
-	}
-
-	else if (this_per_cpu()->pt_needs_update) {
+		if (list_empty(&task_list)) {
+			ps("Nothing to schedule!\n");
+			arch_shutdown();
+		} else {
+			if (this_per_cpu()->idling)
+				panic("Double idling.\n");
+			do_idle();
+			goto retry;
+		}
+	} else if (this_per_cpu()->pt_needs_update) {
 		arch_process_activate(current_task()->process);
 		this_per_cpu()->pt_needs_update = false;
 	}

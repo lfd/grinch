@@ -25,8 +25,9 @@
 typedef int pid_t;
 
 enum task_state {
-	SUSPENDED = 0,
-	RUNNING,
+	TASK_RUNNABLE = 0, /* Scheduleable */
+	TASK_WFE, /* Waits for Events */
+	TASK_RUNNING,
 };
 
 enum task_type {
@@ -42,6 +43,8 @@ struct task {
 	pid_t pid;
 	enum task_state state;
 
+	unsigned long long timer_expiration;
+
 	enum task_type type;
 	union {
 		struct process *process;
@@ -55,11 +58,12 @@ void task_activate(struct task *task);
 void arch_task_restore(void);
 void task_set_context(struct task *task, unsigned long pc, unsigned long sp);
 void task_destroy(struct task *task);
+void task_handle_events(void);
+void task_sleep_for(struct task *task, unsigned long long ns);
 
 int task_init(void);
 
 void prepare_user_return(void);
-void schedule(void);
 void sched_enqueue(struct task *task);
 void sched_dequeue(struct task *task);
 

@@ -16,15 +16,6 @@
 #include <asm/csr.h>
 #include <grinch/types.h>
 
-void irq_init(unsigned long timerdelta);
-int handle_ipi(void);
-int arch_handle_timer(void);
-
-static inline u64 get_time(void)
-{
-	return csr_read(time);
-}
-
 static inline void ext_enable(void)
 {
 	csr_set(sie, IE_EIE);

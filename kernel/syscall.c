@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -19,6 +19,7 @@
 #include <grinch/printk.h>
 #include <grinch/percpu.h>
 #include <grinch/task.h>
+#include <grinch/timer.h>
 #include <grinch/uaccess.h>
 
 static unsigned long sys_write(int fd, const char *buf, size_t count)
@@ -43,6 +44,14 @@ static unsigned long sys_write(int fd, const char *buf, size_t count)
 		count -= err;
 		buf += err;
 	}
+
+	return 0;
+}
+
+static unsigned long sleep(unsigned long seconds)
+{
+	task_sleep_for(current_task(), S_TO_NS(seconds));
+	this_per_cpu()->schedule = true;
 
 	return 0;
 }
@@ -91,6 +100,10 @@ int syscall(unsigned long no, unsigned long arg1,
 
 		case SYS_exit:
 			exit(arg1);
+			break;
+
+		case SYS_sleep:
+			ret = sleep(arg1);
 			break;
 
 		default:

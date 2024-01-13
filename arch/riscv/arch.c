@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -16,14 +16,15 @@
 #include <asm/isa.h>
 
 #include <grinch/arch.h>
+#include <grinch/alloc.h>
 #include <grinch/gfp.h>
 #include <grinch/hypercall.h>
-#include <grinch/serial.h>
 #include <grinch/irqchip.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
+#include <grinch/serial.h>
 #include <grinch/smp.h>
-#include <grinch/alloc.h>
+#include <grinch/timer.h>
 #include <grinch/vfs.h>
 
 #include <grinch/arch/sbi.h>
@@ -32,6 +33,8 @@
 int __init arch_init(void)
 {
 	int err;
+
+	irq_disable();
 
 	err = platform_init();
 	if (err)
@@ -55,9 +58,9 @@ int __init arch_init(void)
 	if (err)
 		goto out;
 
-	psi("Disabling IRQs\n");
-	irq_disable();
-	timer_disable();
+	err = timer_init();
+	if (err)
+		goto out;
 
 	/* Initialise external interrupts */
 	psi("Initialising irqchip...\n");
@@ -85,11 +88,6 @@ con:
 	err = smp_init();
 	if (err)
 		goto out;
-
-#if 0
-	ps("Enabling IRQs\n");
-	irq_enable();
-#endif
 
 	err = vmm_init();
 	if (err == -ENOSYS) {

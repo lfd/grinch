@@ -22,12 +22,18 @@
 #include <grinch/symbols.h>
 #include <grinch/syscall.h>
 #include <grinch/task.h>
+#include <grinch/timer.h>
 
 #include <grinch/arch/sbi.h>
 
 /* called from entry.S */
 void arch_handle_exception(struct registers *regs, u64 scause);
 void arch_handle_irq(struct registers *regs, u64 scause);
+
+static int handle_ipi(void)
+{
+	return -ENOSYS;
+}
 
 static int handle_syscall(void)
 {
@@ -49,6 +55,11 @@ void arch_handle_irq(struct registers *regs, u64 scause)
 	int err;
 	u64 irq;
 
+	if (!this_per_cpu()->idling) {
+		/* Save task context */
+		current_task()->regs = *regs;
+	}
+
 	irq = to_irq(scause);
 	switch (irq) {
 		case IRQ_S_SOFT:
@@ -59,6 +70,10 @@ void arch_handle_irq(struct registers *regs, u64 scause)
 
 		case IRQ_S_TIMER:
 			err = arch_handle_timer();
+			if (!err && !this_per_cpu()->idling) {
+				this_per_cpu()->schedule = true;
+				prepare_user_return();
+			}
 			break;
 
 		case IRQ_S_EXT:
@@ -73,6 +88,7 @@ void arch_handle_irq(struct registers *regs, u64 scause)
 
 	if (err)
 		panic("Error handling IRQ!\n");
+
 }
 
 void arch_handle_exception(struct registers *regs, u64 scause)
@@ -145,5 +161,7 @@ out:
 		panic_stop();
 	}
 
-	prepare_user_return();
+	// Respect existence of hypervisor here, we might come from VS-mode
+	if (!(ctx.sstatus & SR_SPP))
+		prepare_user_return();
 }

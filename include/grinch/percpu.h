@@ -46,6 +46,7 @@ struct per_cpu {
 
 	bool pt_needs_update;
 	bool schedule;
+	bool idling;
 
 	/* indicates if the CPU is online */
 	bool online;
