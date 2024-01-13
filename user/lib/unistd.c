@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -39,6 +39,17 @@ pid_t getpid(void)
 	ret = syscall_0(SYS_getpid);
 
 	return ret;
+}
+
+unsigned int sleep(unsigned int seconds)
+{
+	int err;
+
+	err = syscall_1(SYS_sleep, seconds);
+	if (err < 0)
+		return 0;
+
+	return err;
 }
 
 ssize_t write(int fd, const void *buf, size_t count)

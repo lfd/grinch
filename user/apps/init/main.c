@@ -37,7 +37,7 @@ int main(void)
 			printf("PID %u: Fork error!\n", getpid());
 			exit(-5);
 		} else { /* parent */
-			printf("PID %u: Parent returned\n", getpid());
+			printf("PID %u: Parent returned. Created PID %u.\n", getpid(), p);
 		}
 	}
 

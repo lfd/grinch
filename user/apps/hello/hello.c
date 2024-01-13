@@ -20,7 +20,12 @@ APP_NAME(hello);
 
 int main(void)
 {
-	printf("Hello, world! (PID %u)\n", getpid());
-	//sched_yield();
+	unsigned int pid = getpid();
+
+	for (;;) {
+		printf("Hello, world! (PID %u)\n", pid);
+		//sched_yield();
+		sleep(pid);
+	}
 	return 0;
 }
