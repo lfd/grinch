@@ -27,8 +27,6 @@
 #define __round_mask(x, y)	((__typeof__(x))((y)-1))
 #define round_down(x, y)	((x) & ~__round_mask(x, y))
 
-#define NULL	((void*)0)
-
 /* Applies to both, arm64 and riscv64 */
 typedef unsigned long long u64;
 typedef unsigned short u16;
@@ -50,7 +48,6 @@ typedef short __s16;
 typedef int __s32;
 typedef char __s8;
 
-typedef unsigned long size_t;
 typedef u64 uintptr_t;
 typedef s64 intptr_t;
 
@@ -63,6 +60,7 @@ typedef pt_entry_t page_table_t;
 /* Generic types */
 typedef enum { true = 1, false = 0 } bool;
 
+#include <stddef.h>
 
 #endif /* __ASSEMBLY__ */
 

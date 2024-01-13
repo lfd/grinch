@@ -15,8 +15,9 @@
 #ifndef _CONTAINER_OF_H
 #define _CONTAINER_OF_H
 
+#include <stddef.h>
+
 #include <grinch/compiler_types.h>
-#include <grinch/stddef.h>
 
 #define container_of(ptr, type, member) ({				\
 	void *__mptr = (void *)(ptr);					\
