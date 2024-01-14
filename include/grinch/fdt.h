@@ -28,6 +28,18 @@ int fdt_read_reg(const void *fdt, int nodeoffset, int idx, void *addrp,
 		 u64 *sizep);
 
 int fdt_read_u64(const void *fdt, int nodeoffset, const char *name, u64 *res);
+static inline int
+fdt_read_u32(const void *fdt, int nodeoffset, const char *name, u32 *res)
+{
+	u64 tmp;
+	int err;
+
+	err = fdt_read_u64(fdt, nodeoffset, name, &tmp);
+	if (!err)
+		*res = tmp;
+
+	return err;
+}
 
 bool fdt_device_is_available(const void *fdt, unsigned long node);
 
