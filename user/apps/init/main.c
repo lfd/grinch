@@ -29,18 +29,17 @@ int main(void)
 	for (forked = 0; forked < 5; forked++) {
 		printf("PID %u: Forking\n", getpid());
 		p = fork();
-		if (p == 0) { /* parent */
-			printf("PID %u: Parent returned\n", getpid());
+		if (p == 0) { /* child */
+			printf("PID %u: Calling execve...\n", getpid());
+			execve("initrd:/hello.echse", NULL, NULL);
+			printf("PID %u: Execve Error occured!\n", getpid());
 		} else if (p == -1) { /* error */
 			printf("PID %u: Fork error!\n", getpid());
 			exit(-5);
-		} else /* child */
-			break;
+		} else { /* parent */
+			printf("PID %u: Parent returned\n", getpid());
+		}
 	}
-
-	printf("PID %u: Calling execve...\n", getpid());
-	execve("initrd:/hello.echse", NULL, NULL);
-	printf("PID %u: Execve Error occured!\n", getpid());
 
 	return 0;
 }
