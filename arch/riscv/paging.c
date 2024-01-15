@@ -222,8 +222,4 @@ void arch_paging_enable(unsigned long this_cpu, page_table_t pt)
 	/* Get the stack pointer under control */
 	tmp = PERCPU_BASE - (paddr_t)per_cpu(this_cpu);
 	asm volatile("add sp, sp, %0" : : "r"(tmp));
-
-	/* Setup sscratch */
-	tmp = (paddr_t)&this_per_cpu()->stack + STACK_SIZE;
-	csr_write(sscratch, tmp);
 }

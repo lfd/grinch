@@ -52,7 +52,7 @@ struct registers {
 	unsigned long t5;
 	unsigned long t6;
 
-	unsigned long sepc;
+	unsigned long pc;
 } __attribute__((packed));
 
 struct trap_context {

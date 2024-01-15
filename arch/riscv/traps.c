@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -61,7 +61,7 @@ static int handle_syscall(void)
 
 	/* we had an ecall, so skip 4b of instructions */
 	regs = &current_task()->regs;
-	regs->sepc += 4;
+	regs->pc += 4;
 
 	err = syscall(regs->a7, regs->a0, regs->a1, regs->a2,
 		      regs->a3, regs->a4, regs->a5);
@@ -76,7 +76,6 @@ void arch_handle_trap(struct registers *regs)
 	struct trap_context ctx;
 	int err;
 
-	regs->sepc = csr_read(sepc);
 	ctx.scause = csr_read(scause);
 	ctx.sstatus = csr_read(sstatus);
 
@@ -125,7 +124,7 @@ void arch_handle_trap(struct registers *regs)
 			break;
 
 		case EXC_BREAKPOINT:
-			printk("BP occured @ PC: %016lx - Ignoring\n", regs->sepc);
+			printk("BP occured @ PC: %016lx - Ignoring\n", regs->pc);
 			err = -1;
 			break;
 

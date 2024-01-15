@@ -94,7 +94,7 @@ int vmm_handle_ecall(void)
 	struct sbiret ret;
 
 	regs = &current_task()->regs;
-	regs->sepc += 4;
+	regs->pc += 4;
 
 	eid = regs->a7;
 	fid = regs->a6;

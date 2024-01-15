@@ -70,6 +70,7 @@ start:
 	jal	kmm_set_base
 
 	/* Setup exception trap vector. Exception stack is yet uninitialised. */
+	csrw	sscratch, zero
 	la	t0, excp_handler
 	csrw	stvec, t0
 

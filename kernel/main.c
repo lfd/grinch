@@ -138,12 +138,11 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 		err = 0;
 	}
 
-	prepare_user_return();
-
 	err = paging_discard_init();
 	if (err)
 		goto out;
 
+	prepare_user_return();
 out:
 	pr("End reached: %d\n", err);
 	return err;

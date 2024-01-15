@@ -20,27 +20,26 @@
 	.endr
 .endm
 
-/* Here we arrive, if we have a fault from userspace. */
-.align 4
-.globl excp_handler_user
-excp_handler_user:
-	csrrw	sp, sscratch, sp
-	j	excp_handler
-
-/* Here we arrive directly, if we have a fault inside the kernel */
 .align 4
 .globl excp_handler
 excp_handler:
+	csrrw	sp, sscratch, sp
+	bnez	sp, save_ctx
+
+	/* sp is zero: we have an exception from kernel space. So restore sp. */
+	csrr	sp, sscratch
+
+save_ctx:
 	addi	sp, sp, -STRUCT_REGISTERS_SIZE
 	context sd
 
-	/* We're now in kernel space. So set the kernel's exception handler */
-	la	t0, excp_handler
-	csrw	stvec, t0
+	csrr	a0, sepc
+	sd	a0, REG_PC(sp)
 
 	/* push SP */
 	csrr	a0, sscratch
-	sd	a0, 8(sp)
+	sd	a0, REG_SP(sp)
+	csrw	sscratch, zero
 
 	/* Pass registers */
 	mv	a0, sp
@@ -49,10 +48,14 @@ excp_handler:
 
 .globl return_to_user
 return_to_user:
+	/* restore user's PC */
+	ld	a0, REG_PC(sp)
+	csrw	sepc, a0
 
-	/* We're about to return to user. So set the user's exception handler */
-	la	t0, excp_handler_user
-	csrw	stvec, t0
+	/* restore user's SP, keep it in sscratch */
+	ld	a0, REG_SP(sp)
+	/* No preemption must happen from now on */
+	csrw	sscratch, a0
 
 	context ld
 	addi	sp, sp, STRUCT_REGISTERS_SIZE

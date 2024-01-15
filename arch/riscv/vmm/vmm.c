@@ -303,7 +303,7 @@ int vm_create_grinch(void)
 	if (IS_ERR(task))
 		return PTR_ERR(task);
 
-	task->regs.sepc = VM_GPHYS_BASE;
+	task->regs.pc = VM_GPHYS_BASE;
 	sched_enqueue(task);
 
 	return 0;

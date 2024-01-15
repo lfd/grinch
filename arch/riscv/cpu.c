@@ -65,7 +65,7 @@ void dump_regs(struct registers *a)
 	       " T5: 0x%016lx T6: 0x%016lx\n",
 			satp >> 60, (satp & SATP_PPN) << PAGE_SHIFT,
 			csr_read(stval),
-			a->sepc, a->ra, a->sp,
+			a->pc, a->ra, a->sp,
 			a->gp, a->tp, a->t0,
 			a->t1, a->t2, a->s0,
 			a->s1, a->a0, a->a1,
