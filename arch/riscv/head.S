@@ -116,7 +116,3 @@ secondary_virt_entry:
 	jal	secondary_cmain
 1:	wfi
 	j	1b
-
-.globl ___load_addr
-___load_addr:
-	.quad	__load_addr
