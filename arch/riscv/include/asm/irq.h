@@ -17,7 +17,6 @@
 #include <grinch/types.h>
 
 void irq_init(unsigned long timerdelta);
-int handle_irq(u64 irq);
 int handle_ipi(void);
 int handle_timer(void);
 

@@ -44,7 +44,13 @@ save_ctx:
 	/* Pass registers */
 	mv	a0, sp
 
-	jal arch_handle_trap
+	la	ra, return_to_user
+	csrr	a1, scause
+	bge	a1, zero, 1f
+	j	arch_handle_irq
+
+1:
+	j	arch_handle_exception
 
 .globl return_to_user
 return_to_user:

@@ -24,12 +24,31 @@
 #include <grinch/syscall.h>
 #include <grinch/task.h>
 
-void arch_handle_trap(struct registers *regs);
+/* called from entry.S */
+void arch_handle_exception(struct registers *regs, u64 scause);
+void arch_handle_irq(struct registers *regs, u64 scause);
 
-int handle_irq(u64 irq)
+static int handle_syscall(void)
 {
+	struct registers *regs;
 	int err;
 
+	/* we had an ecall, so skip 4b of instructions */
+	regs = &current_task()->regs;
+	regs->pc += 4;
+
+	err = syscall(regs->a7, regs->a0, regs->a1, regs->a2,
+		      regs->a3, regs->a4, regs->a5);
+
+	return err;
+}
+
+void arch_handle_irq(struct registers *regs, u64 scause)
+{
+	int err;
+	u64 irq;
+
+	irq = to_irq(scause);
 	switch (irq) {
 		case IRQ_S_SOFT:
 			err = handle_ipi();
@@ -47,36 +66,22 @@ int handle_irq(u64 irq)
 
 		default:
 			printk("No Handler for IRQ %llu\n", irq);
-			err = -1;
+			err = -EINVAL;
 			break;
 	}
 
-	return err;
+	if (err)
+		panic("Error handling IRQ!\n");
 }
 
-static int handle_syscall(void)
-{
-	struct registers *regs;
-	int err;
-
-	/* we had an ecall, so skip 4b of instructions */
-	regs = &current_task()->regs;
-	regs->pc += 4;
-
-	err = syscall(regs->a7, regs->a0, regs->a1, regs->a2,
-		      regs->a3, regs->a4, regs->a5);
-
-	return err;
-}
-
-void arch_handle_trap(struct registers *regs)
+void arch_handle_exception(struct registers *regs, u64 scause)
 {
 	const char *cause_str = "UNKNOWN";
 	enum vmm_trap_result vmtr;
 	struct trap_context ctx;
 	int err;
 
-	ctx.scause = csr_read(scause);
+	ctx.scause = scause;
 	ctx.sstatus = csr_read(sstatus);
 
 	if (has_hypervisor()) {
@@ -93,14 +98,9 @@ void arch_handle_trap(struct registers *regs)
 
 	}
 
-	if (is_irq(ctx.scause)) {
-		err = handle_irq(to_irq(ctx.scause));
-		goto out;
-	}
-
 	err = -EINVAL;
 	if (ctx.sstatus & SR_SPP) {
-		printk("FATAL: Trap taken from Supervisor mode\n");
+		pr("FATAL: Trap taken from Supervisor mode\n");
 		goto out;
 	}
 
@@ -134,12 +134,8 @@ void arch_handle_trap(struct registers *regs)
 
 out:
 	if (err) {
-		/* We end up here in case of exceptions */
 		if (ctx.scause <= 23)
 			cause_str = causes[ctx.scause];
-		else if (is_irq(ctx.scause))
-			cause_str = "IRQ";
-
 		pr("FATAL: Exception on CPU %lu. Cause: %lu (%s)\n",
 		   this_cpu_id(), to_irq(ctx.scause), cause_str);
 		if (!(ctx.sstatus & SR_SPP))
