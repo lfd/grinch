@@ -57,7 +57,7 @@ void arch_handle_irq(struct registers *regs, u64 scause)
 			break;
 
 		case IRQ_S_TIMER:
-			err = handle_timer();
+			err = arch_handle_timer();
 			break;
 
 		case IRQ_S_EXT:

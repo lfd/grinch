@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -22,7 +22,7 @@ int handle_ipi(void)
 	return -ENOSYS;
 }
 
-int handle_timer(void)
+int arch_handle_timer(void)
 {
 	sbi_set_timer(-1); /* deactivate timer */
 

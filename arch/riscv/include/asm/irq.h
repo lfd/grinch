@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -18,7 +18,7 @@
 
 void irq_init(unsigned long timerdelta);
 int handle_ipi(void);
-int handle_timer(void);
+int arch_handle_timer(void);
 
 static inline u64 get_time(void)
 {
