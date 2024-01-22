@@ -19,7 +19,8 @@
 #include <grinch/list.h>
 #include <grinch/process.h>
 #include <grinch/types.h>
-#include <grinch/vmm.h>
+
+#include <grinch/arch/vmm.h>
 
 typedef int pid_t;
 

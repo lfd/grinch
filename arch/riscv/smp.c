@@ -20,8 +20,9 @@
 #include <grinch/gfp.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
-#include <grinch/sbi.h>
 #include <grinch/smp.h>
+
+#include <grinch/arch/sbi.h>
 
 #define for_each_cpu(cpu, set)  for_each_cpu_except(cpu, set, -1)
 #define for_each_cpu_except(cpu, set, exception)                \

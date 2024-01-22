@@ -13,11 +13,12 @@
 #include <asm/cpu.h>
 
 #include <grinch/errno.h>
-#include <grinch/sbi.h>
 #include <grinch/boot.h>
 #include <grinch/hypercall.h>
 #include <grinch/paging.h>
 #include <grinch/printk.h>
+
+#include <grinch/arch/sbi.h>
 
 bool grinch_is_guest;
 

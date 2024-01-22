@@ -19,10 +19,11 @@
 #include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/percpu.h>
-#include <grinch/sbi.h>
 #include <grinch/symbols.h>
 #include <grinch/syscall.h>
 #include <grinch/task.h>
+
+#include <grinch/arch/sbi.h>
 
 /* called from entry.S */
 void arch_handle_exception(struct registers *regs, u64 scause);

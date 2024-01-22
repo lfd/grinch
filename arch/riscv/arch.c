@@ -18,7 +18,6 @@
 #include <grinch/arch.h>
 #include <grinch/gfp.h>
 #include <grinch/hypercall.h>
-#include <grinch/sbi.h>
 #include <grinch/serial.h>
 #include <grinch/irqchip.h>
 #include <grinch/percpu.h>
@@ -26,7 +25,9 @@
 #include <grinch/smp.h>
 #include <grinch/alloc.h>
 #include <grinch/vfs.h>
-#include <grinch/vmm.h>
+
+#include <grinch/arch/sbi.h>
+#include <grinch/arch/vmm.h>
 
 int __init arch_init(void)
 {

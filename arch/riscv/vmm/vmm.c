@@ -19,8 +19,9 @@
 #include <grinch/gfp.h>
 #include <grinch/printk.h>
 #include <grinch/task.h>
-#include <grinch/vmm.h>
 #include <grinch/vfs.h>
+
+#include <grinch/arch/vmm.h>
 
 #define VM_GPHYS_BASE	(0xa0000000UL)
 /*

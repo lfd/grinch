@@ -15,7 +15,8 @@
 
 #include <grinch/errno.h>
 #include <grinch/printk.h>
-#include <grinch/sbi.h>
+
+#include <grinch/arch/sbi.h>
 
 int handle_ipi(void)
 {

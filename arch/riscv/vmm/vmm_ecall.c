@@ -17,10 +17,11 @@
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/serial.h>
-#include <grinch/sbi.h>
 #include <grinch/task.h>
-#include <grinch/vmm.h>
 #include <grinch/syscall.h>
+
+#include <grinch/arch/sbi.h>
+#include <grinch/arch/vmm.h>
 
 static inline struct sbiret handle_sbi_base(unsigned long fid)
 {
