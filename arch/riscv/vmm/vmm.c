@@ -97,9 +97,6 @@ vmm_handle_trap(struct trap_context *ctx, struct registers *regs)
 	/* Save regular registers */
 	task->regs = *regs;
 
-	if (is_irq(ctx->scause))
-		return VMM_FORWARD;
-
 	/* Save VM specific registers */
 	vm = task->vmachine;
 	vm->vregs.vsstatus = csr_read(CSR_VSSTATUS);
