@@ -111,12 +111,12 @@ out:
 	return err;
 }
 
-void __noreturn arch_shutdown(void)
+void __noreturn arch_shutdown(int err)
 {
 	if (grinch_is_guest) {
-		hypercall_vmquit(0);
+		hypercall_vmquit(err);
 		panic("Unreachable!\n");
 	}
 
-	panic("Shutdown.\n");
+	panic("Shutdown. Reason: %d\n", err);
 }

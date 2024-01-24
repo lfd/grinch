@@ -260,7 +260,7 @@ retry:
 	if (!this_per_cpu()->current_task) {
 		if (list_empty(&task_list)) {
 			ps("Nothing to schedule!\n");
-			arch_shutdown();
+			arch_shutdown(-ENOENT);
 		} else {
 			if (this_per_cpu()->idling)
 				panic("Double idling.\n");
