@@ -74,6 +74,22 @@ static inline void cpu_relax(void)
 	asm volatile ("" : : : "memory");
 }
 
+static inline void wait_for_interrupt(void)
+{
+	asm volatile("wfi\n" : : : "memory");
+}
+
+static inline void mb(void)
+{
+	asm volatile("fence iorw, iorw\n" : : : "memory");
+}
+
+static inline void cpu_do_idle(void)
+{
+	mb();
+	wait_for_interrupt();
+}
+
 static inline void local_hfence_vvma_all(void)
 {
 	asm volatile(".insn 0x22000073"); /* hfence.vvma zero, zero */
