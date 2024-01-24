@@ -29,15 +29,16 @@
 #include <stdarg.h>
 
 #include <grinch/init.h>
-#include <grinch/string.h>
+#include <grinch/math64.h>
 #include <grinch/boot.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/serial.h>
-#include <grinch/math64.h>
+#include <grinch/string.h>
+#include <grinch/timer.h>
 
 static DEFINE_SPINLOCK(print_lock);
-static char prefix_fmt[16] = "[Grinch %u] ";
+static unsigned char vm[3] = {'V', 'M', 0};
 
 struct {
 	unsigned int tail;
@@ -78,7 +79,10 @@ static void __printf(1, 2) _printk_raw(const char *fmt, ...)
 
 static inline void print_prefix(void)
 {
-	_printk_raw(prefix_fmt, grinch_id);
+	unsigned long long wall;
+
+	wall = timer_get_wall();
+	_printk_raw("[Grinch%s %u " PR_TIME_FMT "] ", vm, grinch_id, PR_TIME_PARAMS(wall));
 }
 
 static void ___puts(const char *msg)
@@ -303,6 +307,6 @@ void __noreturn __printf(1, 2) panic(const char *fmt, ...)
 
 void __init printk_init(void)
 {
-	if (grinch_is_guest)
-		strncpy(prefix_fmt, "[GrinchVM %02u] ", sizeof(prefix_fmt));
+	if (!grinch_is_guest)
+		vm[0] = 0;
 }
