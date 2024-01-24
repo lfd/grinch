@@ -19,9 +19,35 @@
 #include <grinch/serial.h>
 #include <grinch/task.h>
 #include <grinch/syscall.h>
+#include <grinch/task.h>
+#include <grinch/timer.h>
 
 #include <grinch/arch/sbi.h>
 #include <grinch/arch/vmm.h>
+
+static inline struct sbiret handle_sbi_time(unsigned long fid, unsigned long a0)
+{
+	struct sbiret ret;
+
+	switch (fid) {
+		case SBI_EXT_TIME_SET_TIMER:
+			current_task()->vmachine->vregs.hvip &= ~VIE_TIE;
+			if (a0 != (unsigned long)-1)
+				task_sleep_until(current_task(),
+						 timer_ticks_to_time(a0));
+			ret.error = 0;
+			ret.value = 0;
+			break;
+
+		default:
+			pr("Time FID %lx not implemented\n", fid);
+			ret.error = SBI_ERR_NOT_SUPPORTED;
+			ret.value = 0;
+			break;
+	}
+
+	return ret;
+}
 
 static inline struct sbiret handle_sbi_base(unsigned long fid)
 {
@@ -112,6 +138,10 @@ int vmm_handle_ecall(void)
 
 		case SBI_EXT_BASE:
 			ret = handle_sbi_base(fid);
+			break;
+
+		case SBI_EXT_TIME:
+			ret = handle_sbi_time(fid, regs->a0);
 			break;
 
 		case SBI_EXT_GRNC:
