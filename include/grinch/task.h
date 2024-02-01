@@ -56,6 +56,8 @@ void arch_task_restore(void);
 void task_set_context(struct task *task, unsigned long pc, unsigned long sp);
 void task_destroy(struct task *task);
 
+int task_init(void);
+
 void prepare_user_return(void);
 void schedule(void);
 void sched_enqueue(struct task *task);

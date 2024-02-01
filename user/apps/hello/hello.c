@@ -25,7 +25,7 @@ int main(void)
 	for (;;) {
 		puts("Hello, world!\n");
 		//sched_yield();
-		sleep(pid);
+		sleep(pid % 1000);
 	}
 	return 0;
 }

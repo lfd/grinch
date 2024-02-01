@@ -17,11 +17,14 @@
 
 #include <grinch/alloc.h>
 #include <grinch/arch.h>
+#include <grinch/boot.h>
 #include <grinch/errno.h>
 #include <grinch/hypercall.h>
 #include <grinch/printk.h>
 #include <grinch/task.h>
 #include <grinch/percpu.h>
+
+#define GRINCH_VM_PID_OFFSET	10000
 
 static LIST_HEAD(task_list);
 static DEFINE_SPINLOCK(task_lock);
@@ -223,4 +226,12 @@ void prepare_user_return(void)
 		this_per_cpu()->pt_needs_update = false;
 	}
 	arch_task_restore();
+}
+
+int __init task_init(void)
+{
+	if (grinch_is_guest)
+		next_pid += GRINCH_VM_PID_OFFSET * grinch_id;
+
+	return 0;
 }

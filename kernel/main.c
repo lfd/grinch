@@ -124,6 +124,10 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 	if (err)
 		goto out;
 
+	err = task_init();
+	if (err)
+		goto out;
+
 	if (do_memtest)
 		memtest();
 
