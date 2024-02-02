@@ -26,6 +26,7 @@
 #define CSR_VSEPC	0x241
 #define CSR_VSCAUSE	0x242
 #define CSR_VSTVAL	0x243
+#define CSR_VSIP	0x244
 #define CSR_VSATP	0x280
 #define CSR_HSTATUS	0x600
 #define CSR_HEDELEG	0x602
@@ -34,6 +35,7 @@
 #define CSR_HTIMEDELTA	0x605
 #define CSR_HCOUNTEREN	0x606
 #define CSR_HGEIE	0x607
+#define CSR_HENVCFG	0x60a
 #define CSR_HTVAL	0x643
 #define CSR_HIP		0x644
 #define CSR_HVIP	0x645
@@ -107,6 +109,10 @@
 #define IE_SIE		(_UL(0x1) << IRQ_S_SOFT)
 #define IE_TIE		(_UL(0x1) << IRQ_S_TIMER)
 #define IE_EIE		(_UL(0x1) << IRQ_S_EXT)
+
+#define VIE_SIE		(IE_SIE << VSIP_TO_HVIP_SHIFT)
+#define VIE_TIE		(IE_TIE << VSIP_TO_HVIP_SHIFT)
+#define VIE_EIE		(IE_EIE << VSIP_TO_HVIP_SHIFT)
 
 /* SATP flags */
 #define SATP_PPN	_UL(0x00000FFFFFFFFFFF)
