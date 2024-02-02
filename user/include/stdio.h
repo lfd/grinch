@@ -17,9 +17,9 @@
 
 #define stdout	1
 
-#define APP_NAME(x)	const char app_name[] = "[" #x "] "
+#define APP_NAME(x)	const char __app_name_fmt[] = "[" #x " %u] "
 
-extern const char app_name[];
+extern const char __app_name_fmt[];
 
 int puts(const char *s);
 void __printf(1, 2) printf(const char *fmt, ...);

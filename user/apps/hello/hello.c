@@ -23,7 +23,7 @@ int main(void)
 	unsigned int pid = getpid();
 
 	for (;;) {
-		printf("Hello, world! (PID %u)\n", pid);
+		puts("Hello, world!\n");
 		//sched_yield();
 		sleep(pid);
 	}

@@ -24,10 +24,9 @@ int main(void)
 	pid_t p;
 
 	puts("Hello, world from userspace!\n");
-	printf("My PID: %u\n", getpid());
 
 	for (forked = 0; forked < 5; forked++) {
-		printf("PID %u: Forking\n", getpid());
+		puts("Forking...\n");
 		p = fork();
 		if (p == 0) { /* child */
 			printf("PID %u: Calling execve...\n", getpid());

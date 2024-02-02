@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -34,16 +34,6 @@ static int _puts(const char *s)
 	ssize_t ret;
 
 	ret = write(stdout, s, strlen(s));
-
-	return ret;
-}
-
-int puts(const char *s)
-{
-	ssize_t ret;
-
-	ret = _puts(app_name);
-	ret += _puts(s);
 
 	return ret;
 }
@@ -214,12 +204,31 @@ static void __vprintk(const char *fmt, va_list ap)
 	_puts(buf);
 }
 
+static void __printf(1, 2) _printf(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	__vprintk(fmt, ap);
+	va_end(ap);
+}
+
+static inline void print_prefix(void)
+{
+	_printf(__app_name_fmt, getpid());
+}
+
 void __printf(1, 2) printf(const char *fmt, ...)
 {
 	va_list ap;
 
 	va_start(ap, fmt);
-	_puts(app_name);
+	print_prefix();
 	__vprintk(fmt, ap);
 	va_end(ap);
+}
+
+int puts(const char *s)
+{
+	print_prefix();
+	return _puts(s);
 }
