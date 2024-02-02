@@ -102,9 +102,11 @@ con:
 		err = vm_create_grinch();
 		if (err)
 			goto out;
+#if 0
 		err = vm_create_grinch();
 		if (err)
 			goto out;
+#endif
 	}
 
 out:
