@@ -91,16 +91,30 @@ struct task *task_alloc_new(void)
 	return task;
 }
 
-void task_activate(struct task *task)
+static void task_activate(struct task *task)
 {
 	struct per_cpu *tpcpu;
+	struct task *old;
+
+	old = current_task();
+	if (old == task)
+		return;
 
 	tpcpu = this_per_cpu();
-	if (tpcpu->current_task && tpcpu->current_task->state == TASK_RUNNING) {
+	/*
+	 * Only set the task to runnable, if it was running before.
+	 * Through a syscall, it might be set to wait for events.
+	 */
+	if (old && old->state == TASK_RUNNING)
 		tpcpu->current_task->state = TASK_RUNNABLE;
-	}
 
 	tpcpu->current_task = task;
+	if (!task)
+		return;
+
+	if (task->state != TASK_RUNNABLE)
+		panic("Activating non-runnable task: PID %u state: %x\n",
+		      task->pid, task->state);
 	task->state = TASK_RUNNING;
 
 	switch (task->type) {
@@ -142,15 +156,19 @@ static void schedule(void)
 	tpcpu->schedule = false;
 	task = NULL;
 
+#if 0
 	// Use this chance to allow other VMs to run
 	if (grinch_is_guest)
 		hypercall_yield();
+#endif
 
 	if (!tpcpu->current_task)
 		goto begin;
 
 	if (list_is_singular(&task_list)) {
 		task = list_first_entry(&task_list, struct task, tasks);
+		if (task->state != TASK_RUNNABLE)
+			task = NULL;
 		goto out;
 	}
 
@@ -161,10 +179,8 @@ static void schedule(void)
 	}
 
 begin:
-	if (list_empty(&task_list)) {
-		this_per_cpu()->current_task = NULL;
-		goto out;
-	}
+	if (list_empty(&task_list))
+		goto nothing;
 
 	list_for_each_entry(task, &task_list, tasks) {
 		if (task == tpcpu->current_task)
@@ -174,13 +190,18 @@ begin:
 			goto out;
 	}
 
-	/* we have nothing to schedule */
-	task = NULL;
-	this_per_cpu()->current_task = NULL;
+nothing:
+	/*
+	 * We have nothing to schedule. But is the current task running and may
+	 * continue?
+	 */
+	if (current_task() && current_task()->state == TASK_RUNNING)
+		task = current_task();
+	else
+		task = NULL;
 
 out:
-	if (task)
-		task_activate(task);
+	task_activate(task);
 	spin_unlock(&task_lock);
 }
 
@@ -215,11 +236,15 @@ destroy_out:
 	return err;
 }
 
-void task_sleep_for(struct task *task, unsigned long long ns)
+void task_sleep_until(struct task *task, unsigned long long wall_ns)
 {
 	spin_lock(&task_lock);
-	task->state = TASK_WFE;
-	task->timer_expiration = timer_get_wall() + ns;
+	/* VMs remain runnable */
+	if (task->type == GRINCH_PROCESS)
+		task->state = TASK_WFE;
+
+	task->timer.expiration = wall_ns;
+	task->timer.active = true;
 	spin_unlock(&task_lock);
 }
 
@@ -230,12 +255,18 @@ void task_handle_events(void)
 
 	spin_lock(&task_lock);
 	list_for_each_entry(task, &task_list, tasks) {
-		if (task->state != TASK_WFE)
+		if (!task->timer.active)
 			continue;
 
 		/* we hit a sleeping task */
-		if (timer_get_wall() >= task->timer_expiration)
-			task->state= TASK_RUNNABLE;
+		if (timer_get_wall() >= task->timer.expiration) {
+			if (task->state != TASK_RUNNING)
+				task->state = TASK_RUNNABLE;
+			task->timer.active = false;
+
+			if (task->type == GRINCH_VMACHINE)
+				arch_vmachine_inject_timer(task->vmachine);
+		}
 	}
 	spin_unlock(&task_lock);
 }
@@ -249,6 +280,26 @@ static void do_idle(void)
 	this_per_cpu()->schedule = true;
 	this_per_cpu()->idling = false;
 	mb();
+}
+
+static void task_restore(void)
+{
+	struct task *task = current_task();
+
+	this_per_cpu()->stack.regs = task->regs;
+	if (task->type == GRINCH_VMACHINE)
+		arch_vmachine_restore(task->vmachine);
+}
+
+void task_save(struct registers *regs)
+{
+	struct task *task;
+
+	task = current_task();
+	/* Save task context */
+	task->regs = *regs;
+	if (task->type == GRINCH_VMACHINE)
+		arch_vmachine_save(task->vmachine);
 }
 
 void prepare_user_return(void)
@@ -267,11 +318,21 @@ retry:
 			do_idle();
 			goto retry;
 		}
-	} else if (this_per_cpu()->pt_needs_update) {
-		arch_process_activate(current_task()->process);
-		this_per_cpu()->pt_needs_update = false;
 	}
-	arch_task_restore();
+
+	if (this_per_cpu()->pt_needs_update) {
+		this_per_cpu()->pt_needs_update = false;
+		switch (current_task()->type) {
+			case GRINCH_PROCESS:
+				arch_process_activate(current_task()->process);
+				break;
+			default:
+				panic("Not implemented\n");
+				break;
+		}
+	}
+
+	task_restore();
 }
 
 int __init task_init(void)

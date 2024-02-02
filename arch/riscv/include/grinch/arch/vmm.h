@@ -31,7 +31,12 @@ struct vmachine {
 		unsigned long vstvec;
 		unsigned long vscause;
 		unsigned long vsie;
+		unsigned long vsip;
+		unsigned long hvip;
 		unsigned long vstval;
+
+		/* executes in vs mode? */
+		bool vs;
 	} vregs;
 };
 

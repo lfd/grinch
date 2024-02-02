@@ -19,6 +19,7 @@
 #include <grinch/list.h>
 #include <grinch/process.h>
 #include <grinch/types.h>
+#include <grinch/timer.h>
 
 #include <grinch/arch/vmm.h>
 
@@ -43,7 +44,10 @@ struct task {
 	pid_t pid;
 	enum task_state state;
 
-	unsigned long long timer_expiration;
+	struct {
+		bool active;
+		unsigned long long expiration;
+	} timer;
 
 	enum task_type type;
 	union {
@@ -54,12 +58,20 @@ struct task {
 
 struct task *task_alloc_new(void);
 
-void task_activate(struct task *task);
-void arch_task_restore(void);
 void task_set_context(struct task *task, unsigned long pc, unsigned long sp);
 void task_destroy(struct task *task);
 void task_handle_events(void);
-void task_sleep_for(struct task *task, unsigned long long ns);
+void task_save(struct registers *regs);
+
+void task_sleep_until(struct task *task, unsigned long long wall_ns);
+static inline void task_sleep_for(struct task *task, unsigned long long ns)
+{
+	task_sleep_until(task, timer_get_wall() + ns);
+}
+
+void arch_vmachine_save(struct vmachine *vm);
+void arch_vmachine_restore(struct vmachine *vm);
+void arch_vmachine_inject_timer(struct vmachine *vm);
 
 int task_init(void);
 

@@ -24,16 +24,6 @@ void task_set_context(struct task *task, unsigned long pc, unsigned long sp)
 	task->regs.sp = sp;
 }
 
-void arch_task_restore(void)
-{
-	struct task *task = current_task();
-
-	if (!task)
-		return;
-
-	this_per_cpu()->stack.regs = task->regs;
-}
-
 void arch_process_activate(struct process *process)
 {
 	struct per_cpu *tpcpu;

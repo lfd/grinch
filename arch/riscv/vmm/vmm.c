@@ -36,7 +36,11 @@
 
 
 /* forward no IRQs. We have no guest IRQs at the moment */
-#define HIDELEG	0
+#define HIDELEG					\
+	((IE_SIE << VSIP_TO_HVIP_SHIFT) |	\
+	(IE_TIE << VSIP_TO_HVIP_SHIFT) |	\
+	(IE_EIE << VSIP_TO_HVIP_SHIFT))
+
 #define HEDELEG					\
 	((1UL << EXC_INST_MISALIGNED) |		\
 	(1UL << EXC_INST_ACCESS) |		\
@@ -51,6 +55,47 @@
 	(1UL << EXC_LOAD_PAGE_FAULT) |		\
 	(1UL << EXC_STORE_PAGE_FAULT))
 
+void arch_vmachine_inject_timer(struct vmachine *vm)
+{
+	vm->vregs.hvip |= VIE_TIE;
+}
+
+void arch_vmachine_save(struct vmachine *vm)
+{
+	vm->vregs.vsstatus = csr_read(CSR_VSSTATUS);
+	vm->vregs.vsatp = csr_read(CSR_VSATP);
+	vm->vregs.vsscratch = csr_read(CSR_VSSCRATCH);
+	vm->vregs.vstvec = csr_read(CSR_VSTVEC);
+	vm->vregs.vscause = csr_read(CSR_VSCAUSE);
+	vm->vregs.vsie = csr_read(CSR_VSIE);
+	vm->vregs.vsip = csr_read(CSR_VSIP);
+	vm->vregs.hvip = csr_read(CSR_HVIP);
+	vm->vregs.vstval = csr_read(CSR_VSTVAL);
+
+	// FIXME: get sstatus via previous context
+	u64 sstatus = csr_read(sstatus);
+	vm->vregs.vs = !!(sstatus & SR_SPP);
+}
+
+void arch_vmachine_restore(struct vmachine *vm)
+{
+	if (vm->vregs.vs)
+		csr_set(sstatus, SR_SPP);
+	else
+		csr_clear(sstatus, SR_SPP);
+
+	/* Restore shadowed VM registers */
+	csr_write(CSR_VSSTATUS, vm->vregs.vsstatus);
+	csr_write(CSR_VSATP, vm->vregs.vsatp);
+	csr_write(CSR_VSSCRATCH, vm->vregs.vsscratch);
+	csr_write(CSR_VSTVEC, vm->vregs.vstvec);
+	csr_write(CSR_VSCAUSE, vm->vregs.vscause);
+	csr_write(CSR_VSIE, vm->vregs.vsie);
+	csr_write(CSR_VSIP, vm->vregs.vsip);
+	csr_write(CSR_HVIP, vm->vregs.hvip);
+	csr_write(CSR_VSTVAL, vm->vregs.vstval);
+}
+
 void arch_vmachine_activate(struct vmachine *vm)
 {
 	enable_mmu_hgatp(satp_mode, v2p(vm->hv_page_table));
@@ -64,20 +109,6 @@ void arch_vmachine_activate(struct vmachine *vm)
 	        HSTATUS_SPV | /* activate VMM */
 	        0;
 	csr_write(CSR_HSTATUS, hstatus);
-
-	// FIXME: With this, we will return to S-Mode inside the VM. It might
-	// happen that the VM interrupts in U-Mode. This is not supported at
-	// the moment
-	csr_set(sstatus, SR_SPP);
-
-	/* Restore shadowed VM registers */
-	csr_write(CSR_VSSTATUS, vm->vregs.vsstatus);
-	csr_write(CSR_VSATP, vm->vregs.vsatp);
-	csr_write(CSR_VSSCRATCH, vm->vregs.vsscratch);
-	csr_write(CSR_VSTVEC, vm->vregs.vstvec);
-	csr_write(CSR_VSCAUSE, vm->vregs.vscause);
-	csr_write(CSR_VSIE, vm->vregs.vsie);
-	csr_write(CSR_VSTVAL, vm->vregs.vstval);
 }
 
 enum vmm_trap_result
@@ -93,19 +124,18 @@ vmm_handle_trap(struct trap_context *ctx, struct registers *regs)
 	if (!(ctx->hstatus & HSTATUS_SPV))
 		return VMM_FORWARD;
 
+	/* Was the VM in VU-Mode? */
+	if (!(ctx->sstatus & SR_SPP))
+		// Why does sfence.vma trap from VU->HS directly?
+		panic("VU-Mode should not trap\n");
+
 	task = current_task();
 	/* Save regular registers */
 	task->regs = *regs;
 
 	/* Save VM specific registers */
 	vm = task->vmachine;
-	vm->vregs.vsstatus = csr_read(CSR_VSSTATUS);
-	vm->vregs.vsatp = csr_read(CSR_VSATP);
-	vm->vregs.vsscratch = csr_read(CSR_VSSCRATCH);
-	vm->vregs.vstvec = csr_read(CSR_VSTVEC);
-	vm->vregs.vscause = csr_read(CSR_VSCAUSE);
-	vm->vregs.vsie = csr_read(CSR_VSIE);
-	vm->vregs.vstval = csr_read(CSR_VSTVAL);
+	arch_vmachine_save(vm);
 
 	/* Here we land if we take a trap vom V=1 */
 	switch (ctx->scause) {
@@ -245,6 +275,7 @@ static struct task *vmm_alloc_new(void)
 
 	task->regs.a0 = 0;
 	task->regs.a1 = VM_GPHYS_BASE + VM_FDT_OFFSET;
+	vm->vregs.vs = true;
 
 	/* setup G-Stage paging */
 	vm->hv_page_table =
@@ -288,7 +319,9 @@ int __init vmm_init(void)
 	csr_write(CSR_HGEIE, 0);
 	/* Allow rdtime */
 	csr_write(CSR_HCOUNTEREN, HCOUNTEREN_TM);
-	csr_write(CSR_HTIMEDELTA, 0);
+	// What the heck?!
+	//csr_write(CSR_HTIMEDELTA, 0);
+	csr_write(CSR_HENVCFG, 0);
 
 	return 0;
 }
