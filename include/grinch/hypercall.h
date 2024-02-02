@@ -19,6 +19,7 @@
 #define GRINCH_HYPERCALL_PRESENT		0x1
 #define GRINCH_HYPERCALL_YIELD			0x2
 #define GRINCH_HYPERCALL_VMQUIT			0x3
+#define GRINCH_HYPERCALL_BP			0x4
 
 int hypercall(unsigned long no, unsigned long arg1);
 
@@ -36,6 +37,7 @@ static inline int hypercall_##name(unsigned long arg)	\
 
 DEFINE_HYPERCALL_0(present, GRINCH_HYPERCALL_PRESENT)
 DEFINE_HYPERCALL_0(yield, GRINCH_HYPERCALL_YIELD)
+DEFINE_HYPERCALL_0(bp, GRINCH_HYPERCALL_BP)
 DEFINE_HYPERCALL_1(vmquit, GRINCH_HYPERCALL_VMQUIT)
 
 #endif /* _HYPERCALL_H */

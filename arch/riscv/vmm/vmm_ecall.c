@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -66,6 +66,11 @@ static inline struct sbiret handle_sbi_grinch(unsigned long num, unsigned long a
 		case GRINCH_HYPERCALL_PRESENT:
 			ret.error = SBI_SUCCESS;
 			ret.value = current_task()->pid;
+			break;
+
+		case GRINCH_HYPERCALL_BP:
+			ret.error = SBI_SUCCESS;
+			ret.value = 42;
 			break;
 
 		case GRINCH_HYPERCALL_YIELD:
