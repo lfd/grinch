@@ -55,10 +55,8 @@ void arch_handle_irq(struct registers *regs, u64 scause)
 	int err;
 	u64 irq;
 
-	if (!this_per_cpu()->idling) {
-		/* Save task context */
-		current_task()->regs = *regs;
-	}
+	if (!this_per_cpu()->idling)
+		task_save(regs);
 
 	irq = to_irq(scause);
 	switch (irq) {
@@ -101,6 +99,7 @@ void arch_handle_exception(struct registers *regs, u64 scause)
 	ctx.scause = scause;
 	ctx.sstatus = csr_read(sstatus);
 
+	vmtr = VMM_FORWARD;
 	if (has_hypervisor()) {
 		vmtr = vmm_handle_trap(&ctx, regs);
 		if (vmtr == VMM_HANDLED) {
@@ -110,9 +109,7 @@ void arch_handle_exception(struct registers *regs, u64 scause)
 		if (vmtr == VMM_ERROR) {
 			err = -EINVAL;
 			goto out;
-		} else if (vmtr == VMM_FORWARD) {
 		}
-
 	}
 
 	err = -EINVAL;
@@ -121,8 +118,7 @@ void arch_handle_exception(struct registers *regs, u64 scause)
 		goto out;
 	}
 
-	/* Save task context */
-	current_task()->regs = *regs;
+	task_save(regs);
 	switch (ctx.scause) {
 		case EXC_INST_ACCESS:
 		case EXC_LOAD_ACCESS:
@@ -161,7 +157,6 @@ out:
 		panic_stop();
 	}
 
-	// Respect existence of hypervisor here, we might come from VS-mode
-	if (!(ctx.sstatus & SR_SPP))
+	if (vmtr == VMM_HANDLED || !(ctx.sstatus & SR_SPP))
 		prepare_user_return();
 }
