@@ -34,6 +34,7 @@
 
 #define GUEST_ROOT_PT_PAGES	(1 << 2)
 
+#define RISCV_INST_WFI	0x10500073
 
 /* forward no IRQs. We have no guest IRQs at the moment */
 #define HIDELEG					\
@@ -102,6 +103,7 @@ void arch_vmachine_activate(struct vmachine *vm)
 
 	u64 hstatus =
 	        (2ULL << HSTATUS_VSXL_SHIFT) | /* Xlen 64 */
+		HSTATUS_VTW |
 	        /* No TVM */
 	        /* No TW */
 	        /* No TSR */
@@ -109,6 +111,53 @@ void arch_vmachine_activate(struct vmachine *vm)
 	        HSTATUS_SPV | /* activate VMM */
 	        0;
 	csr_write(CSR_HSTATUS, hstatus);
+}
+
+static inline u16 gmem_read16(unsigned long addr)
+{
+	u64 mem;
+
+	/*
+	 * hlvx.hu can potentially fault and throw an exception. But if we end
+	 * up here, we're decoding an instruction that the guest was possible
+	 * to execute. Hence, it must be backed by existing memory, and no
+	 * exception can occur.
+	 */
+	asm volatile(".insn r 0x73, 0x4, 0x32, %0, %1, x3\n" /* hlvx.hu */
+		     : "=r"(mem) : "r"(addr) : "memory");
+
+	return mem;
+}
+
+static int vmm_handle_inst(void)
+{
+	struct registers *regs;
+	bool is_compressed;
+	u32 instruction;
+
+	regs = &current_task()->regs;
+	/* Ensure the instruction is 16-bit aligned */
+	if (regs->pc & 0x1)
+		return -EINVAL;
+
+	/* Load the faulting instruction */
+	instruction = gmem_read16(regs->pc);
+	if ((instruction & 0x3) == 0x3) {
+		is_compressed = false;
+		instruction |= (u32)gmem_read16(regs->pc + 2) << 16;
+	} else
+		is_compressed = true;
+
+	if (instruction != RISCV_INST_WFI)
+		return -ENOSYS;
+
+	/* we have a WFI instruction */
+	task_set_wfe(current_task());
+	this_per_cpu()->schedule = true;
+
+	regs->pc += is_compressed ? 2 : 4;
+
+	return 0;
 }
 
 enum vmm_trap_result
@@ -141,6 +190,12 @@ vmm_handle_trap(struct trap_context *ctx, struct registers *regs)
 	switch (ctx->scause) {
 		case EXC_SUPERVISOR_SYSCALL:
 			err = vmm_handle_ecall();
+			if (err)
+				goto out;
+			break;
+
+		case EXC_VIRTUAL_INST_FAULT:
+			err = vmm_handle_inst();
 			if (err)
 				goto out;
 			break;

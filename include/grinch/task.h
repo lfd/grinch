@@ -63,6 +63,7 @@ void task_destroy(struct task *task);
 void task_handle_events(void);
 void task_save(struct registers *regs);
 
+void task_set_wfe(struct task *task);
 void task_sleep_until(struct task *task, unsigned long long wall_ns);
 static inline void task_sleep_for(struct task *task, unsigned long long ns)
 {

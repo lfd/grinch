@@ -236,12 +236,24 @@ destroy_out:
 	return err;
 }
 
+static inline void _task_set_wfe(struct task *task)
+{
+	task->state = TASK_WFE;
+}
+
+void task_set_wfe(struct task *task)
+{
+	spin_lock(&task_lock);
+	_task_set_wfe(task);
+	spin_unlock(&task_lock);
+}
+
 void task_sleep_until(struct task *task, unsigned long long wall_ns)
 {
 	spin_lock(&task_lock);
 	/* VMs remain runnable */
 	if (task->type == GRINCH_PROCESS)
-		task->state = TASK_WFE;
+		_task_set_wfe(task);
 
 	task->timer.expiration = wall_ns;
 	task->timer.active = true;
