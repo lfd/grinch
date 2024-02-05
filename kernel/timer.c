@@ -74,11 +74,11 @@ int __init timer_init(void)
 	if (err)
 		return err;
 
-	pr("Timer Frequency: %uHz\n", timer_hz);
+	pri("Timer Frequency: %uHz\n", timer_hz);
 	wall_base = arch_timer_get();
 	timer_expected = wall_base + HZ_TO_NS(timer_hz);
 
-	pr("Wall base: " PR_TIME_FMT "\n", PR_TIME_PARAMS(wall_base));
+	pri("Wall base: " PR_TIME_FMT "\n", PR_TIME_PARAMS(wall_base));
 	arch_timer_set(timer_expected);
 	timer_enable();
 
