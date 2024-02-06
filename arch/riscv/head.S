@@ -109,11 +109,13 @@ secondary_start:
 secondary_virt_entry:
 	/* setup stack */
 	li	sp, STACK_TOP
+	addi	sp, sp, -STRUCT_REGISTERS_SIZE
 
 	/* Setup exception trap vector. Exception stack is yet uninitialised. */
 	la	t0, excp_handler
 	csrw	stvec, t0
 
 	jal	secondary_cmain
-1:	wfi
-	j	1b
+	bne	a0, zero, _cpu_halt
+
+	j	return_to_user

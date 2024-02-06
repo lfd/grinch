@@ -20,6 +20,7 @@
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/smp.h>
+#include <grinch/task.h>
 
 #include <grinch/arch/sbi.h>
 
@@ -27,9 +28,9 @@
 void secondary_start(void);
 
 /* C entry point for secondary CPUs */
-void secondary_cmain(void);
+int secondary_cmain(struct registers *regs);
 
-void secondary_cmain(void)
+int secondary_cmain(struct registers *regs)
 {
 	int err;
 
@@ -47,9 +48,16 @@ void secondary_cmain(void)
 	bitmap_set(cpus_online, this_cpu_id(), 1);
 	mb();
 
+	/*
+	 * We will enter idle here, and wait idle until we are kicked by
+	 * another CPU
+	 */
+	prepare_user_return();
+
 out:
 	if (err)
 		pr("Unable to bring up CPU %lu\n", this_cpu_id());
+	return err;
 }
 
 int arch_boot_cpu(unsigned long hart_id)
