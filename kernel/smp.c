@@ -59,3 +59,52 @@ void ipi_broadcast(void)
 	for_each_online_cpu_except_this(cpu)
 		ipi_send(cpu);
 }
+
+void check_events(void)
+{
+	struct per_cpu *tpcpu;
+
+	tpcpu = this_per_cpu();
+	spin_lock(&tpcpu->remote_call.lock);
+	if (tpcpu->remote_call.active) {
+		tpcpu->remote_call.func(tpcpu->remote_call.info);
+		tpcpu->remote_call.active = false;
+		mb();
+	}
+	spin_unlock(&tpcpu->remote_call.lock);
+}
+
+void on_each_cpu(smp_call_func_t func, void *info)
+{
+	unsigned long cpu;
+	struct per_cpu *pcpu;
+
+	/* local execution */
+	func(info);
+
+	/* remote execution */
+	for_each_online_cpu_except_this(cpu) {
+		pcpu = per_cpu(cpu);
+retry:
+		spin_lock(&pcpu->remote_call.lock);
+		if (pcpu->remote_call.active) {
+			spin_unlock(&pcpu->remote_call.lock);
+			cpu_relax();
+			goto retry;
+		}
+
+		pcpu->remote_call.func = func;
+		pcpu->remote_call.info = info;
+		pcpu->remote_call.active = true;
+		spin_unlock(&pcpu->remote_call.lock);
+	}
+
+	ipi_broadcast();
+
+	/* wait for completion */
+	for_each_online_cpu_except_this(cpu) {
+		pcpu = per_cpu(cpu);
+		while (pcpu->remote_call.active)
+			cpu_relax();
+	}
+}

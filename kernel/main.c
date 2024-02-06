@@ -113,6 +113,7 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 
 	pri("CPU ID: %lu\n", this_cpu_id());
 	this_per_cpu()->primary = true;
+	spin_init(&this_per_cpu()->remote_call.lock);
 
 	err = fdt_init(__fdt);
 	if (err)

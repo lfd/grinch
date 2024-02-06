@@ -56,14 +56,14 @@ void arch_handle_irq(struct registers *regs, u64 scause)
 	irq = to_irq(scause);
 	switch (irq) {
 		case IRQ_S_SOFT:
-			this_per_cpu()->schedule = true;
-			/* IPIs need to be acknowledged */
 			ipi_clear();
+			this_per_cpu()->handle_events = true;
 			prepare_user = true;
 			break;
 
 		case IRQ_S_TIMER:
 			handle_timer();
+			this_per_cpu()->handle_events = true;
 			prepare_user = true;
 			break;
 

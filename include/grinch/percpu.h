@@ -25,8 +25,10 @@
 #ifndef __ASSEMBLY__
 
 #include <asm/cpu.h>
+#include <asm/spinlock.h>
 
 #include <grinch/symbols.h>
+#include <grinch/smp.h>
 
 struct per_cpu {
 	union {
@@ -48,6 +50,15 @@ struct per_cpu {
 	bool primary;
 	bool schedule;
 	bool idling;
+	bool handle_events;
+
+	struct {
+		spinlock_t lock;
+		bool active;
+
+		smp_call_func_t func;
+		void *info;
+	} remote_call;
 
 	struct task *current_task;
 } __attribute__((aligned(PAGE_SIZE)));

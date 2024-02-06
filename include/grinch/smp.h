@@ -14,7 +14,6 @@
 #define _SMP_H
 
 #include <grinch/bitmap.h>
-#include <grinch/percpu.h>
 
 #define for_each_cpu_except(cpu, set, exception)                \
 	for ((cpu) = -1;                                        \
@@ -22,6 +21,10 @@
 	     (cpu) <= (MAX_CPUS - 1);	                        \
 	    )
 #define for_each_cpu(cpu, set)		for_each_cpu_except(cpu, set, -1)
+
+typedef void (*smp_call_func_t)(void *info);
+
+#include <grinch/percpu.h>
 
 extern unsigned long cpus_available[BITMAP_ELEMS(MAX_CPUS)];
 #define for_each_available_cpu_except(cpu, exception)	\
@@ -53,5 +56,10 @@ int smp_init(void);
 
 void ipi_send(unsigned long cpu_id);
 void ipi_broadcast(void);
+
+void check_events(void);
+void arch_do_idle(void);
+
+void on_each_cpu(smp_call_func_t func, void *info);
 
 #endif /* _SMP_H */

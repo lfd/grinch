@@ -290,6 +290,9 @@ static void do_idle(void)
 	cpu_do_idle();
 	irq_disable();
 
+	/* We might have received an IPI, so check events */
+	check_events();
+
 	this_per_cpu()->idling = false;
 	mb();
 }

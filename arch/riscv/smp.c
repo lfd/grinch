@@ -14,6 +14,7 @@
 
 #include <asm/irq.h>
 #include <asm/isa.h>
+#include <asm/spinlock.h>
 
 #include <grinch/fdt.h>
 #include <grinch/gfp.h>
@@ -45,6 +46,7 @@ int secondary_cmain(struct registers *regs)
 	if (err)
 		goto out;
 
+	ipi_enable();
 	bitmap_set(cpus_online, this_cpu_id(), 1);
 	mb();
 
@@ -76,6 +78,7 @@ int arch_boot_cpu(unsigned long hart_id)
 	memset(pcpu, 0, sizeof(struct per_cpu));
 
 	pcpu->cpuid = hart_id;
+	spin_init(&pcpu->remote_call.lock);
 
 	/* Copy over kernel page tables */
 
