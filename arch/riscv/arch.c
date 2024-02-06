@@ -58,10 +58,6 @@ int __init arch_init(void)
 	if (err)
 		goto out;
 
-	err = timer_init();
-	if (err)
-		goto out;
-
 	/* Initialise external interrupts */
 	psi("Initialising irqchip...\n");
 	err = irqchip_init();
@@ -86,6 +82,10 @@ con:
 	/* Boot secondary CPUs */
 	psi("Booting secondary CPUs\n");
 	err = smp_init();
+	if (err)
+		goto out;
+
+	err = timer_init();
 	if (err)
 		goto out;
 

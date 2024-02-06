@@ -12,17 +12,21 @@
 
 #define dbg_fmt(x)	"timer: " x
 
+#include <asm/cpu.h>
 #include <asm/irq.h>
 
 #include <grinch/errno.h>
 #include <grinch/fdt.h>
 #include <grinch/init.h>
 #include <grinch/printk.h>
+#include <grinch/smp.h>
 #include <grinch/timer.h>
 
 #include <grinch/arch/sbi.h>
 
 static u32 timebase_frequency;
+
+static __initdata int _err;
 
 static inline u64 get_time(void)
 {
@@ -52,18 +56,27 @@ void arch_timer_set(unsigned long long ns)
 		panic("SBI Error\n");
 }
 
+static void __init arch_timer_cpu_init(void *)
+{
+	struct sbiret ret;
+
+	timer_disable();
+	// FIXME: implement SSTC
+	ret = sbi_set_timer(-1);
+	if (ret.error) {
+		_err = -EINVAL;
+		mb();
+	}
+}
+
 int __init arch_timer_init(void)
 {
 	int err, nodeoffset;
-	struct sbiret ret;
 
 	pri("Initialising platform timer\n");
-	timer_disable();
-
-	// FIXME: implement SSTC
-	ret = sbi_set_timer(-1);
-	if (ret.error)
-		return ret.error;
+	on_each_cpu(arch_timer_cpu_init, NULL);
+	if (_err)
+		return _err;
 
 	nodeoffset = fdt_path_offset(_fdt, "/cpus");
 	if (nodeoffset <= 0)
