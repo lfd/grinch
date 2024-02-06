@@ -80,6 +80,10 @@ int arch_boot_cpu(unsigned long hart_id)
 	index = vaddr2vpn(_load_addr, satp_mode == SATP_MODE_39 ? 2 : 3);
 	pcpu->root_table_page[index] = this_root_table_page()[index];
 
+	/* Hook in the direct physical area */
+	index = vaddr2vpn((void *)DIR_PHYS_BASE, satp_mode == SATP_MODE_39 ? 2 : 3);
+	pcpu->root_table_page[index] = this_root_table_page()[index];
+
 	/*
 	 * Hook in the percpu stack. Take care, SV48 is not supported, Stack
 	 * addresses will overlap with the top-most page table!
