@@ -15,6 +15,7 @@
 
 #define __init			__attribute__((section(".init.text"), used))
 #define __initconst		__attribute__((section(".init.rodata"), used))
+#define __initdata		__attribute__((section(".init.data"), used))
 #define __initbootparams	__attribute__((section(".init.bootparams"), used))
 
 /* Constant init string */

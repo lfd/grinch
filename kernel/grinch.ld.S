@@ -40,8 +40,14 @@ SECTIONS
 		KEEP(*(.init.bootparams));
 		__bootparams_end = .;
 		*(.init.rodata);
+		__init_ro_end = .;
+
+		. = ALIGN(PAGE_SIZE);
+		__init_rw_start = .;
+		*(.init.data);
+		__init_rw_end = .;
+
 	}
-	__init_end = .;
 
 	. = ALIGN(PAGE_SIZE);
 	__rw_data_start = .;
