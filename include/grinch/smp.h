@@ -51,4 +51,7 @@ int arch_boot_cpu(unsigned long cpu);
 int platform_init(void);
 int smp_init(void);
 
+void ipi_send(unsigned long cpu_id);
+void ipi_broadcast(void);
+
 #endif /* _SMP_H */

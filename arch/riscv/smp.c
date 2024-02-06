@@ -121,6 +121,15 @@ int arch_boot_cpu(unsigned long hart_id)
 	return 0;
 }
 
+void ipi_send(unsigned long cpu)
+{
+	struct sbiret ret;
+
+	ret = sbi_send_ipi((1UL << cpu), 0);
+	if (ret.error != SBI_SUCCESS)
+		pr("WARNING: Unable to send IPI\n");
+}
+
 int __init platform_init(void)
 {
 	const char *name, *isa;

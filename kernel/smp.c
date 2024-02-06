@@ -51,3 +51,11 @@ int __init smp_init(void)
 	pri("Successfully brought up %lu CPUs\n", cpus);
 	return 0;
 }
+
+void ipi_broadcast(void)
+{
+	unsigned long cpu;
+
+	for_each_online_cpu_except_this(cpu)
+		ipi_send(cpu);
+}
