@@ -23,6 +23,7 @@
 #include <grinch/memtest.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
+#include <grinch/smp.h>
 #include <grinch/task.h>
 #include <grinch/version.h>
 
@@ -111,6 +112,7 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 		goto out;
 
 	pri("CPU ID: %lu\n", this_cpu_id());
+	this_per_cpu()->primary = true;
 
 	err = fdt_init(__fdt);
 	if (err)

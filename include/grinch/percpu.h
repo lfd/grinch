@@ -45,6 +45,7 @@ struct per_cpu {
 	int cpuid;
 
 	bool pt_needs_update;
+	bool primary;
 	bool schedule;
 	bool idling;
 

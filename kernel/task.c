@@ -316,24 +316,29 @@ void task_save(struct registers *regs)
 
 void prepare_user_return(void)
 {
+	struct per_cpu *tpcpu;
+
+	tpcpu = this_per_cpu();
 retry:
-	if (this_per_cpu()->schedule)
+	if (tpcpu->schedule)
 		schedule();
 
-	if (!this_per_cpu()->current_task) {
+	if (!tpcpu->current_task) {
 		if (list_empty(&task_list)) {
-			ps("Nothing to schedule!\n");
-			arch_shutdown(-ENOENT);
+			if (tpcpu->primary) {
+				ps("Nothing to schedule!\n");
+				arch_shutdown(-ENOENT);
+			}
 		} else {
-			if (this_per_cpu()->idling)
+			if (tpcpu->idling)
 				panic("Double idling.\n");
-			do_idle();
-			goto retry;
 		}
+		do_idle();
+		goto retry;
 	}
 
-	if (this_per_cpu()->pt_needs_update) {
-		this_per_cpu()->pt_needs_update = false;
+	if (tpcpu->pt_needs_update) {
+		tpcpu->pt_needs_update = false;
 		switch (current_task()->type) {
 			case GRINCH_PROCESS:
 				arch_process_activate(current_task()->process);
