@@ -30,10 +30,6 @@
 void arch_handle_exception(struct registers *regs, u64 scause);
 void arch_handle_irq(struct registers *regs, u64 scause);
 
-static int handle_ipi(void)
-{
-	return -ENOSYS;
-}
 
 static int handle_syscall(void)
 {
@@ -54,6 +50,7 @@ void arch_handle_irq(struct registers *regs, u64 scause)
 {
 	int err;
 	u64 irq;
+	bool prepare_user = false;
 
 	if (!this_per_cpu()->idling)
 		task_save(regs);
@@ -61,17 +58,16 @@ void arch_handle_irq(struct registers *regs, u64 scause)
 	irq = to_irq(scause);
 	switch (irq) {
 		case IRQ_S_SOFT:
-			err = handle_ipi();
+			err = 0;
+			this_per_cpu()->schedule = true;
 			/* IPIs need to be acknowledged */
 			csr_clear(sip, IE_SIE);
+			prepare_user = true;
 			break;
 
 		case IRQ_S_TIMER:
 			err = arch_handle_timer();
-			if (!err && !this_per_cpu()->idling) {
-				this_per_cpu()->schedule = true;
-				prepare_user_return();
-			}
+			prepare_user = true;
 			break;
 
 		case IRQ_S_EXT:
@@ -87,6 +83,8 @@ void arch_handle_irq(struct registers *regs, u64 scause)
 	if (err)
 		panic("Error handling IRQ!\n");
 
+	if (prepare_user && !this_per_cpu()->idling)
+		prepare_user_return();
 }
 
 void arch_handle_exception(struct registers *regs, u64 scause)

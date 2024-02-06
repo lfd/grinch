@@ -63,6 +63,8 @@ int handle_timer(void)
 	arch_timer_set(timer_expected);
 	task_handle_events();
 
+	this_per_cpu()->schedule = true;
+
 	return 0;
 }
 

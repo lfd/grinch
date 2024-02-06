@@ -289,7 +289,7 @@ static void do_idle(void)
 	irq_enable();
 	cpu_do_idle();
 	irq_disable();
-	this_per_cpu()->schedule = true;
+
 	this_per_cpu()->idling = false;
 	mb();
 }
