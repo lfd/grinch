@@ -35,7 +35,7 @@ int __init smp_init(void)
 	int err;
 
 	err = 0;
-	for_each_cpu_except(cpu, cpus_available, this_cpu_id()) {
+	for_each_available_cpu_except_this(cpu) {
 		err = arch_boot_cpu(cpu);
 		if (err)
 			return err;
