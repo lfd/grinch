@@ -16,7 +16,8 @@
 #include <grinch/printk.h>
 #include <grinch/smp.h>
 
-unsigned long available_cpus[BITMAP_ELEMS(MAX_CPUS)];
+unsigned long cpus_available[BITMAP_ELEMS(MAX_CPUS)];
+unsigned long cpus_online[BITMAP_ELEMS(MAX_CPUS)];
 
 unsigned int next_cpu(unsigned int cpu, unsigned long *bitmap,
 		      unsigned int exception)
@@ -34,12 +35,12 @@ int __init smp_init(void)
 	int err;
 
 	err = 0;
-	for_each_cpu_except(cpu, available_cpus, this_cpu_id()) {
+	for_each_cpu_except(cpu, cpus_available, this_cpu_id()) {
 		err = arch_boot_cpu(cpu);
 		if (err)
 			return err;
 
-		while (!per_cpu(cpu)->online)
+		while (!test_bit(cpu, cpus_online))
 			cpu_relax();
 		pri("CPU %lu online!\n", cpu);
 	}

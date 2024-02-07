@@ -48,9 +48,6 @@ struct per_cpu {
 	bool schedule;
 	bool idling;
 
-	/* indicates if the CPU is online */
-	bool online;
-
 	struct task *current_task;
 } __attribute__((aligned(PAGE_SIZE)));
 

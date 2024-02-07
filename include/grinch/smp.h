@@ -23,7 +23,8 @@
 	     (cpu) <= (MAX_CPUS - 1);	                        \
 	    )
 
-extern unsigned long available_cpus[BITMAP_ELEMS(MAX_CPUS)];
+extern unsigned long cpus_available[BITMAP_ELEMS(MAX_CPUS)];
+extern unsigned long cpus_online[BITMAP_ELEMS(MAX_CPUS)];
 
 unsigned int next_cpu(unsigned int cpu, unsigned long *bitmap,
 		      unsigned int exception);

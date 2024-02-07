@@ -46,7 +46,8 @@ void secondary_cmain(void)
 
 	pr("Hello world from CPU %lu\n", this_cpu_id());
 
-	this_per_cpu()->online = true;
+	bitmap_set(cpus_online, this_cpu_id(), 1);
+	mb();
 
 out:
 	if (err)
@@ -117,6 +118,8 @@ int __init platform_init(void)
 	int err, cpu, child;
 	const fdt32_t *reg;
 
+	bitmap_set(cpus_online, this_cpu_id(), 1);
+
 	cpu = fdt_path_offset(_fdt, "/cpus");
 	if (cpu < 0) {
 		pri("No CPUs found in device-tree. Halting.\n");
@@ -155,7 +158,7 @@ int __init platform_init(void)
 			continue;
 		}
 
-		bitmap_set(available_cpus, hart_id, 1);
+		bitmap_set(cpus_available, hart_id, 1);
 
 		pri("%s: HART %lu available\n", name, hart_id);
 
