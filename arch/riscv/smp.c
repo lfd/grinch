@@ -15,7 +15,6 @@
 #include <asm/irq.h>
 #include <asm/isa.h>
 
-#include <grinch/bitmap.h>
 #include <grinch/fdt.h>
 #include <grinch/gfp.h>
 #include <grinch/percpu.h>
@@ -23,15 +22,6 @@
 #include <grinch/smp.h>
 
 #include <grinch/arch/sbi.h>
-
-#define for_each_cpu(cpu, set)  for_each_cpu_except(cpu, set, -1)
-#define for_each_cpu_except(cpu, set, exception)                \
-	for ((cpu) = -1;                                        \
-	     (cpu) = next_cpu((cpu), (set), (exception)),       \
-	     (cpu) <= (MAX_CPUS - 1);	                        \
-	    )
-
-static unsigned long available_harts[BITMAP_ELEMS(MAX_CPUS)];
 
 /* Assembly entry point for secondary CPUs */
 void secondary_start(void);
@@ -63,17 +53,7 @@ out:
 		pr("Unable to bring up CPU %lu\n", this_cpu_id());
 }
 
-static unsigned int next_cpu(unsigned int cpu, unsigned long *bitmap,
-			     unsigned int exception)
-{
-	do
-		cpu++;
-	while (cpu <= MAX_CPUS &&
-	       (cpu == exception || !test_bit(cpu, bitmap)));
-	return cpu;
-}
-
-static int boot_cpu(unsigned long hart_id)
+int arch_boot_cpu(unsigned long hart_id)
 {
 	paddr_t paddr;
 	struct sbiret ret;
@@ -130,25 +110,6 @@ static int boot_cpu(unsigned long hart_id)
 	return 0;
 }
 
-int __init smp_init(void)
-{
-	unsigned long cpu;
-	int err;
-
-	err = 0;
-	for_each_cpu_except(cpu, available_harts, this_cpu_id()) {
-		err = boot_cpu(cpu);
-		if (err)
-			return err;
-
-		while (!per_cpu(cpu)->online)
-			cpu_relax();
-		pri("CPU %lu online!\n", cpu);
-	}
-
-	return err;
-}
-
 int __init platform_init(void)
 {
 	const char *name, *isa;
@@ -194,7 +155,7 @@ int __init platform_init(void)
 			continue;
 		}
 
-		bitmap_set(available_harts, hart_id, 1);
+		bitmap_set(available_cpus, hart_id, 1);
 
 		pri("%s: HART %lu available\n", name, hart_id);
 
