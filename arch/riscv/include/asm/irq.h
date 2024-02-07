@@ -36,6 +36,16 @@ static inline void ipi_disable(void)
 	csr_clear(sie, IE_SIE);
 }
 
+static inline void ipi_clear(void)
+{
+	csr_clear(sip, IE_SIE);
+}
+
+static inline bool ipi_pending(void)
+{
+	return !!(csr_read(sip) & IE_SIE);
+}
+
 static inline void timer_enable(void)
 {
 	csr_set(sie, IE_TIE);

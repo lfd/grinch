@@ -61,7 +61,7 @@ void arch_handle_irq(struct registers *regs, u64 scause)
 			err = 0;
 			this_per_cpu()->schedule = true;
 			/* IPIs need to be acknowledged */
-			csr_clear(sip, IE_SIE);
+			ipi_clear();
 			prepare_user = true;
 			break;
 
