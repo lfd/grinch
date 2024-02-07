@@ -28,10 +28,10 @@
 #define for_each_cpu_except(cpu, set, exception)                \
 	for ((cpu) = -1;                                        \
 	     (cpu) = next_cpu((cpu), (set), (exception)),       \
-	     (cpu) <= (MAX_HARTS - 1);	                        \
+	     (cpu) <= (MAX_CPUS - 1);	                        \
 	    )
 
-static unsigned long available_harts[BITMAP_ELEMS(MAX_HARTS)];
+static unsigned long available_harts[BITMAP_ELEMS(MAX_CPUS)];
 
 /* Assembly entry point for secondary CPUs */
 void secondary_start(void);
@@ -68,7 +68,7 @@ static unsigned int next_cpu(unsigned int cpu, unsigned long *bitmap,
 {
 	do
 		cpu++;
-	while (cpu <= MAX_HARTS &&
+	while (cpu <= MAX_CPUS &&
 	       (cpu == exception || !test_bit(cpu, bitmap)));
 	return cpu;
 }
@@ -173,8 +173,8 @@ int __init platform_init(void)
 			return -EINVAL;
 		}
 		hart_id = fdt32_to_cpu(reg[0]);
-		if (hart_id >= MAX_HARTS) {
-			pri("%s: HART %lu beyond MAX_HARTS\n", name, hart_id);
+		if (hart_id >= MAX_CPUS) {
+			pri("%s: HART %lu beyond MAX_CPUS\n", name, hart_id);
 			return -ERANGE;
 		}
 

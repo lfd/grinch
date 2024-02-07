@@ -20,7 +20,7 @@
 
 #define STACK_PAGES	1
 #define STACK_SIZE	(STACK_PAGES * PAGE_SIZE)
-#define MAX_HARTS	64
+#define MAX_CPUS	64
 
 #ifndef __ASSEMBLY__
 
