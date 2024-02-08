@@ -44,8 +44,6 @@ void secondary_cmain(void)
 	if (err)
 		goto out;
 
-	pr("Hello world from CPU %lu\n", this_cpu_id());
-
 	bitmap_set(cpus_online, this_cpu_id(), 1);
 	mb();
 

@@ -31,19 +31,23 @@ unsigned int next_cpu(unsigned int cpu, unsigned long *bitmap,
 
 int __init smp_init(void)
 {
-	unsigned long cpu;
+	unsigned long cpu, cpus;
 	int err;
 
-	err = 0;
+	cpus = 1;
 	for_each_available_cpu_except_this(cpu) {
 		err = arch_boot_cpu(cpu);
-		if (err)
-			return err;
+		if (err) {
+			pri("Unable to boot CPU %lu\n", cpu);
+			continue;
+		}
 
 		while (!test_bit(cpu, cpus_online))
 			cpu_relax();
 		pri("CPU %lu online!\n", cpu);
+		cpus++;
 	}
 
-	return err;
+	pri("Successfully brought up %lu CPUs\n", cpus);
+	return 0;
 }
