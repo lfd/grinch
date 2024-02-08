@@ -228,6 +228,7 @@ int do_fork(void)
 	}
 
 	sched_enqueue(new);
+	sched_all();
 
 	return new->pid;
 
@@ -353,6 +354,15 @@ retry:
 	}
 
 	task_restore();
+}
+
+void sched_all(void)
+{
+	unsigned long cpu;
+
+	for_each_online_cpu(cpu)
+		per_cpu(cpu)->schedule = true;
+	ipi_broadcast();
 }
 
 int __init task_init(void)

@@ -136,7 +136,6 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 
 	kheap_stats();
 
-	this_per_cpu()->schedule = true;
 	if (1) {
 		psi("Initialising userland\n");
 		err = init();
@@ -148,6 +147,8 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 	err = paging_discard_init();
 	if (err)
 		goto out;
+
+	sched_all();
 
 	prepare_user_return();
 out:

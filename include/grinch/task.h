@@ -80,6 +80,9 @@ void prepare_user_return(void);
 void sched_enqueue(struct task *task);
 void sched_dequeue(struct task *task);
 
+/* invoke scheduler on all CPUs */
+void sched_all(void);
+
 int do_fork(void);
 int do_execve(const char *pathname, char *const argv[], char *const envp[]);
 
