@@ -359,11 +359,8 @@ free_out:
 	return ERR_PTR(err);
 }
 
-int __init vmm_init(void)
+static void __init vmm_cpu_init(void *)
 {
-	if (!has_hypervisor())
-		return -ENOSYS;
-
 	/* These are always the same across VMs */
 	csr_write(CSR_HEDELEG, HEDELEG);
 	csr_write(CSR_HIDELEG, HIDELEG);
@@ -377,6 +374,14 @@ int __init vmm_init(void)
 	// What the heck?!
 	//csr_write(CSR_HTIMEDELTA, 0);
 	csr_write(CSR_HENVCFG, 0);
+}
+
+int __init vmm_init(void)
+{
+	if (!has_hypervisor())
+		return -ENOSYS;
+
+	on_each_cpu(vmm_cpu_init, NULL);
 
 	return 0;
 }
