@@ -24,6 +24,7 @@ struct vmachine {
 	} memregion;
 	page_table_t hv_page_table;
 
+	bool timer_pending;
 	struct {
 		unsigned long vsstatus;
 		unsigned long vsie;
@@ -54,6 +55,8 @@ enum vmm_trap_result
 vmm_handle_trap(struct trap_context *ctx, struct registers *regs);
 
 void vmachine_destroy(struct task *task);
+
+void vmachine_set_timer_pending(struct vmachine *vm);
 
 void arch_vmachine_activate(struct vmachine *vm);
 

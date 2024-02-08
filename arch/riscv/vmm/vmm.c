@@ -58,13 +58,15 @@
 	(1UL << EXC_LOAD_PAGE_FAULT) |		\
 	(1UL << EXC_STORE_PAGE_FAULT))
 
-void arch_vmachine_inject_timer(struct vmachine *vm)
+void vmachine_set_timer_pending(struct vmachine *vm)
 {
-	vm->vregs.hvip |= VIE_TIE;
+	vm->timer_pending = true;
 }
 
 void arch_vmachine_save(struct vmachine *vm)
 {
+	u64 sstatus;
+
 	vm->vregs.vsstatus = csr_read(CSR_VSSTATUS);
 	vm->vregs.vsie = csr_read(CSR_VSIE);
 	vm->vregs.vstvec = csr_read(CSR_VSTVEC);
@@ -74,8 +76,7 @@ void arch_vmachine_save(struct vmachine *vm)
 	vm->vregs.hvip = csr_read(CSR_HVIP);
 	vm->vregs.vsatp = csr_read(CSR_VSATP);
 
-	// FIXME: get sstatus via previous context
-	u64 sstatus = csr_read(sstatus);
+	sstatus = csr_read(sstatus);
 	vm->vregs.vs = !!(sstatus & SR_SPP);
 }
 
@@ -85,6 +86,11 @@ void arch_vmachine_restore(struct vmachine *vm)
 		csr_set(sstatus, SR_SPP);
 	else
 		csr_clear(sstatus, SR_SPP);
+
+	if (vm->timer_pending) {
+		vm->timer_pending = false;
+		vm->vregs.hvip |= VIE_TIE;
+	}
 
 	/* Restore shadowed VM registers */
 	csr_write(CSR_VSSTATUS, vm->vregs.vsstatus);
@@ -152,7 +158,9 @@ static int vmm_handle_inst(void)
 		return -ENOSYS;
 
 	/* we have a WFI instruction */
-	task_set_wfe(current_task());
+	if (!current_task()->vmachine->vregs.hvip)
+		task_set_wfe(current_task());
+
 	this_per_cpu()->schedule = true;
 
 	regs->pc += is_compressed ? 2 : 4;

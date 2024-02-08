@@ -282,6 +282,19 @@ void task_sleep_until(struct task *task, unsigned long long wall_ns)
 	spin_unlock(&task_lock);
 }
 
+void task_cancel_timer(struct task *task)
+{
+	spin_lock(&task_lock);
+
+	if (task->type != GRINCH_VMACHINE)
+		panic("Timer cancelation only supported for VMs\n");
+
+	list_del(&task->timer.timer_list);
+	INIT_LIST_HEAD(&task->timer.timer_list);
+
+	spin_unlock(&task_lock);
+}
+
 void task_handle_events(void)
 {
 	struct task *task, *tmp, *update;
@@ -296,7 +309,15 @@ void task_handle_events(void)
 
 		if (task->timer.expiration <= timer_get_wall()) {
 			if (task->type == GRINCH_VMACHINE) {
-				BUG();
+				vmachine_set_timer_pending(task->vmachine);
+				if (task->state == TASK_RUNNING) {
+					if (task->on_cpu != this_cpu_id()) {
+						ipi_send(task->on_cpu);
+						continue;
+					}
+				} else {
+					task->state = TASK_RUNNABLE;
+				}
 			} else { /* TASK_PROCESS */
 				task->state = TASK_RUNNABLE;
 			}

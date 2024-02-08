@@ -35,6 +35,8 @@ static inline struct sbiret handle_sbi_time(unsigned long fid, unsigned long a0)
 			if (a0 != (unsigned long)-1)
 				task_sleep_until(current_task(),
 						 timer_ticks_to_time(a0));
+			else
+				task_cancel_timer(current_task());
 			ret.error = 0;
 			ret.value = 0;
 			break;
