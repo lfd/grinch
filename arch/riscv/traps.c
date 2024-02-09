@@ -30,7 +30,6 @@
 void arch_handle_exception(struct registers *regs, u64 scause);
 void arch_handle_irq(struct registers *regs, u64 scause);
 
-
 static int handle_syscall(void)
 {
 	struct registers *regs;
@@ -71,7 +70,8 @@ void arch_handle_irq(struct registers *regs, u64 scause)
 			break;
 
 		case IRQ_S_EXT:
-			err = irqchip_fn->handle_irq();
+			err = 0;
+			irqchip_fn->handle_irq();
 			break;
 
 		default:

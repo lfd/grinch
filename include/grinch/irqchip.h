@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -20,7 +20,7 @@
 typedef int (*irq_handler_t)(void *userdata);
 
 struct irqchip_fn {
-	int (*handle_irq)(void);
+	void (*handle_irq)(void);
 	int (*enable_irq)(unsigned long cpuid, u32 irq, u32 prio, u32 thres);
 	int (*disable_irq)(unsigned long cpuid, u32 irq);
 };
@@ -28,7 +28,7 @@ struct irqchip_fn {
 extern const struct irqchip_fn *irqchip_fn;
 
 int irq_register_handler(u32 irq, irq_handler_t handler, void *userdata);
-int irqchip_handle_irq(unsigned int irq);
+void irqchip_handle_irq(unsigned int irq);
 int irqchip_init(void);
 
 static inline int

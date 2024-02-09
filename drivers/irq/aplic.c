@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -32,9 +32,8 @@ static int aplic_disable_irq(unsigned long hart, u32 irq)
 	return -ENOSYS;
 }
 
-static int aplic_handle_irq(void)
+static void aplic_handle_irq(void)
 {
-	return -EINVAL;
 }
 
 int aplic_init(void *vaddr)

@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -84,25 +84,22 @@ static int plic_enable_irq(unsigned long hart, u32 irq, u32 prio, u32 thres)
 	return 0;
 }
 
-static int plic_handle_irq(void)
+static void plic_handle_irq(void)
 {
-	int err = -ENOSYS;
 	u32 source;
 
 	/* read source */
 	source = plic_read_reg(0x200000 + 0x4 + 0x1000 * this_ctx());
 
-	if (source == 0)
-	{
+	if (source == 0) {
 		pr("Sprurious IRQ!\n");
-		return -EINVAL;
+		return;
 	}
 
-	err = irqchip_handle_irq(source);
+	irqchip_handle_irq(source);
 
 	/* indicate completion */
 	plic_write_reg(0x200000 + 0x4 + 0x1000 * this_ctx(), source);
-	return err;
 }
 
 int plic_init(void *vaddr)
