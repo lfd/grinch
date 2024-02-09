@@ -16,6 +16,12 @@
 #include <asm/csr.h>
 #include <grinch/types.h>
 
+/* Helpers for external IRQs */
+static inline bool ext_pending(void)
+{
+	return !!(csr_read(sip) & IE_EIE);
+}
+
 static inline void ext_enable(void)
 {
 	csr_set(sie, IE_EIE);
@@ -26,6 +32,7 @@ static inline void ext_disable(void)
 	csr_clear(sie, IE_EIE);
 }
 
+/* Helpers for IPIs */
 static inline void ipi_enable(void)
 {
 	csr_set(sie, IE_SIE);
@@ -46,6 +53,12 @@ static inline bool ipi_pending(void)
 	return !!(csr_read(sip) & IE_SIE);
 }
 
+/* Helpers for timers */
+static inline bool timer_pending(void)
+{
+	return !!(csr_read(sip) & IE_TIE);
+}
+
 static inline void timer_enable(void)
 {
 	csr_set(sie, IE_TIE);
@@ -56,6 +69,7 @@ static inline void timer_disable(void)
 	csr_clear(sie, IE_TIE);
 }
 
+/* Local IRQ control */
 static inline void irq_disable(void)
 {
 	csr_clear(sstatus, SR_SIE);
