@@ -48,9 +48,9 @@ static unsigned long sys_write(int fd, const char *buf, size_t count)
 	return 0;
 }
 
-static unsigned long sleep(unsigned long seconds)
+static unsigned long usleep(unsigned long us)
 {
-	task_sleep_for(current_task(), S_TO_NS(seconds));
+	task_sleep_for(current_task(), US_TO_NS(us));
 	this_per_cpu()->schedule = true;
 
 	return 0;
@@ -102,8 +102,8 @@ int syscall(unsigned long no, unsigned long arg1,
 			exit(arg1);
 			break;
 
-		case SYS_sleep:
-			ret = sleep(arg1);
+		case SYS_usleep:
+			ret = usleep(arg1);
 			break;
 
 		default:

@@ -41,15 +41,19 @@ pid_t getpid(void)
 	return ret;
 }
 
+int usleep(unsigned int usec)
+{
+	return syscall_1(SYS_usleep, usec);
+}
+
 unsigned int sleep(unsigned int seconds)
 {
 	int err;
 
-	err = syscall_1(SYS_sleep, seconds);
-	if (err < 0)
-		return 0;
-
-	return err;
+	err = usleep(seconds * 1000 * 1000);
+	if (!err)
+		return seconds;
+	return 0;
 }
 
 ssize_t write(int fd, const void *buf, size_t count)
