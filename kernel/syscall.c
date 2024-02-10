@@ -106,6 +106,10 @@ int syscall(unsigned long no, unsigned long arg1,
 			ret = usleep(arg1);
 			break;
 
+		case SYS_gettime:
+			ret = timer_get_wall();
+			break;
+
 		default:
 			ret = -ENOSYS;
 			break;

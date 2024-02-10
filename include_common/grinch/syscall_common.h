@@ -20,5 +20,6 @@
 #define SYS_execve		59
 #define SYS_exit		60
 #define SYS_usleep		1337
+#define SYS_gettime		1338
 
 #endif /* _SYSCALL_COMMON_H */
