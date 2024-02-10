@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -23,20 +23,29 @@ int main(void)
 	int forked;
 	pid_t p;
 
-	puts("Hello, world from userspace!\n");
+	puts("Starting Jittertest...\n");
+	p = fork();
+	if (p == 0) {
+		execve("initrd:/jittertest.echse", NULL, NULL);
+		printf("Execve returned\n");
+		exit(-1);
+	} else if (p == -1) {
+		printf("Fork error!\n");
+		exit(-1);
+	}
 
 	for (forked = 0; forked < 5; forked++) {
 		puts("Forking...\n");
 		p = fork();
 		if (p == 0) { /* child */
-			printf("PID %u: Calling execve...\n", getpid());
+			printf("Calling execve...\n");
 			execve("initrd:/hello.echse", NULL, NULL);
-			printf("PID %u: Execve Error occured!\n", getpid());
+			printf("Execve returned\n");
 		} else if (p == -1) { /* error */
-			printf("PID %u: Fork error!\n", getpid());
+			printf("Fork error!\n");
 			exit(-5);
 		} else { /* parent */
-			printf("PID %u: Parent returned. Created PID %u.\n", getpid(), p);
+			printf("Parent returned. Created PID %u.\n", p);
 		}
 	}
 
