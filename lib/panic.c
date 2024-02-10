@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -10,12 +10,18 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <asm/irq.h>
+
 #include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/percpu.h>
 
 void __noreturn panic_stop(void)
 {
+	irq_disable();
+	ipi_disable();
+	timer_disable();
+	ext_disable();
 	pr("Panic: CPU %lu HALTED\n", this_cpu_id());
 	cpu_halt();
 }
