@@ -51,7 +51,7 @@ unsigned long long timer_get_wall(void)
 	return arch_timer_get() - wall_base;
 }
 
-int handle_timer(void)
+void handle_timer(void)
 {
 	unsigned long long now;
 
@@ -64,8 +64,6 @@ int handle_timer(void)
 	task_handle_events();
 
 	this_per_cpu()->schedule = true;
-
-	return 0;
 }
 
 int __init timer_init(void)

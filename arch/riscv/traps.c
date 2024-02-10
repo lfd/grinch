@@ -47,9 +47,8 @@ static int handle_syscall(void)
 
 void arch_handle_irq(struct registers *regs, u64 scause)
 {
-	int err;
-	u64 irq;
 	bool prepare_user = false;
+	u64 irq;
 
 	if (!this_per_cpu()->idling)
 		task_save(regs);
@@ -57,7 +56,6 @@ void arch_handle_irq(struct registers *regs, u64 scause)
 	irq = to_irq(scause);
 	switch (irq) {
 		case IRQ_S_SOFT:
-			err = 0;
 			this_per_cpu()->schedule = true;
 			/* IPIs need to be acknowledged */
 			ipi_clear();
@@ -65,23 +63,19 @@ void arch_handle_irq(struct registers *regs, u64 scause)
 			break;
 
 		case IRQ_S_TIMER:
-			err = arch_handle_timer();
+			handle_timer();
 			prepare_user = true;
 			break;
 
 		case IRQ_S_EXT:
-			err = 0;
 			irqchip_fn->handle_irq();
 			break;
 
 		default:
-			printk("No Handler for IRQ %llu\n", irq);
-			err = -EINVAL;
+			panic("No Handler for IRQ %llu\n", irq);
 			break;
 	}
 
-	if (err)
-		panic("Error handling IRQ!\n");
 
 	if (prepare_user && !this_per_cpu()->idling)
 		prepare_user_return();

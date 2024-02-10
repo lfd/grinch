@@ -29,15 +29,6 @@ static inline u64 get_time(void)
 	return csr_read(time);
 }
 
-int arch_handle_timer(void)
-{
-	int err;
-
-	err = handle_timer();
-
-	return err;
-}
-
 unsigned long long arch_timer_ticks_to_time(unsigned long long ticks)
 {
 	return NS * ticks / timebase_frequency;

@@ -26,8 +26,9 @@
 #define PR_TIME_FMT		"%04llu.%03llu"
 #define PR_TIME_PARAMS(x)	((x) / NS), ((((x) * 1000) / NS) % 1000)
 
-int handle_timer(void);
 int timer_init(void);
+
+void handle_timer(void);
 
 unsigned long long timer_get_wall(void);
 unsigned long long arch_timer_ticks_to_time(unsigned long long ticks);
@@ -35,7 +36,6 @@ unsigned long long timer_ticks_to_time(unsigned long long ticks);
 
 /* Architecture specific routines */
 int arch_timer_init(void);
-int arch_handle_timer(void);
 
 unsigned long long arch_timer_get(void);
 void arch_timer_set(unsigned long long ns);
