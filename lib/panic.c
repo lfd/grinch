@@ -16,6 +16,14 @@
 #include <grinch/printk.h>
 #include <grinch/percpu.h>
 
+bool is_panic;
+
+void check_panic(void)
+{
+	if (is_panic)
+		panic_stop();
+}
+
 void __noreturn panic_stop(void)
 {
 	irq_disable();

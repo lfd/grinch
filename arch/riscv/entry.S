@@ -44,6 +44,8 @@ save_ctx:
 	/* Pass registers */
 	mv	a0, sp
 
+	jal	check_panic
+
 	la	ra, return_to_user
 	csrr	a1, scause
 	bge	a1, zero, 1f

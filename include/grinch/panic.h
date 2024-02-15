@@ -13,6 +13,9 @@
 #ifndef _PANIC_H
 #define _PANIC_H
 
+extern bool is_panic;
+
+void check_panic(void);
 void __attribute__((noreturn)) panic_stop(void);
 
 #endif /* _PANIC_H */

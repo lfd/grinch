@@ -34,6 +34,7 @@
 #include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/serial.h>
+#include <grinch/smp.h>
 #include <grinch/string.h>
 #include <grinch/timer.h>
 
@@ -302,6 +303,9 @@ void __noreturn __printf(1, 2) panic(const char *fmt, ...)
 	spin_unlock(&print_lock);
 	va_end(ap);
 
+	is_panic = true;
+	mb();
+	ipi_broadcast();
 	panic_stop();
 }
 
