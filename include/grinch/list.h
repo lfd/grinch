@@ -126,6 +126,12 @@ static inline int list_is_singular(const struct list_head *head)
 	     !list_entry_is_head(pos, head, member);			\
 	     pos = list_next_entry(pos, member))
 
+#define list_for_each_entry_safe(pos, n, head, member)			\
+	for (pos = list_first_entry(head, typeof(*pos), member),	\
+		n = list_next_entry(pos, member);			\
+	     !list_entry_is_head(pos, head, member); 			\
+	     pos = n, n = list_next_entry(n, member))
+
 static inline void
 list_add_sorted(struct list_head *head, struct list_head *entry,
 		bool (*comp)(struct list_head *, struct list_head*))
