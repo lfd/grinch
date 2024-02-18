@@ -52,30 +52,30 @@ void dump_regs(struct registers *a)
 
 	satp = csr_read(CSR_SATP);
 
-	printk("\nSATP -- Mode: %llu, PFN: 0x%016llx     STVAL: 0x%016lx\n"
-	       " PC: 0x%016lx RA: 0x%016lx  SP: 0x%016lx\n"
-	       " GP: 0x%016lx TP: 0x%016lx  T0: 0x%016lx\n"
-	       " T1: 0x%016lx T2: 0x%016lx  S0: 0x%016lx\n"
-	       " S1: 0x%016lx A0: 0x%016lx  A1: 0x%016lx\n"
-	       " A2: 0x%016lx A3: 0x%016lx  A4: 0x%016lx\n"
-	       " A5: 0x%016lx A6: 0x%016lx  A7: 0x%016lx\n"
-	       " S2: 0x%016lx S3: 0x%016lx  S4: 0x%016lx\n"
-	       " S5: 0x%016lx S6: 0x%016lx  S7: 0x%016lx\n"
-	       " S8: 0x%016lx S9: 0x%016lx S10: 0x%016lx\n"
-	       "S11: 0x%016lx T3: 0x%016lx  T4: 0x%016lx\n"
-	       " T5: 0x%016lx T6: 0x%016lx\n",
+	pr("SATP -- Mode: %llu, PFN: 0x%016llx     STVAL: 0x%016lx\n",
 			satp >> 60, (satp & SATP_PPN) << PAGE_SHIFT,
-			csr_read(stval),
-			a->pc, a->ra, a->sp,
-			a->gp, a->tp, a->t0,
-			a->t1, a->t2, a->s0,
-			a->s1, a->a0, a->a1,
-			a->a2, a->a3, a->a4,
-			a->a5, a->a6, a->a7,
-			a->s2, a->s3, a->s4,
-			a->s5, a->s6, a->s7,
-			a->s8, a->s9, a->s10,
-			a->s11, a->t3, a->t4,
+			csr_read(stval));
+	pr(" PC: 0x%016lx RA: 0x%016lx  SP: 0x%016lx\n",
+			a->pc, a->ra, a->sp);
+	pr(" GP: 0x%016lx TP: 0x%016lx  T0: 0x%016lx\n",
+			a->gp, a->tp, a->t0);
+	pr(" T1: 0x%016lx T2: 0x%016lx  S0: 0x%016lx\n",
+			a->t1, a->t2, a->s0);
+	pr(" S1: 0x%016lx A0: 0x%016lx  A1: 0x%016lx\n",
+			a->s1, a->a0, a->a1);
+	pr(" A2: 0x%016lx A3: 0x%016lx  A4: 0x%016lx\n",
+			a->a2, a->a3, a->a4);
+	pr(" A5: 0x%016lx A6: 0x%016lx  A7: 0x%016lx\n",
+			a->a5, a->a6, a->a7);
+	pr(" S2: 0x%016lx S3: 0x%016lx  S4: 0x%016lx\n",
+			a->s2, a->s3, a->s4);
+	pr(" S5: 0x%016lx S6: 0x%016lx  S7: 0x%016lx\n",
+			a->s5, a->s6, a->s7);
+	pr(" S8: 0x%016lx S9: 0x%016lx S10: 0x%016lx\n",
+			a->s8, a->s9, a->s10);
+	pr("S11: 0x%016lx T3: 0x%016lx  T4: 0x%016lx\n",
+			a->s11, a->t3, a->t4);
+	pr(" T5: 0x%016lx T6: 0x%016lx\n",
 			a->t5, a->t6);
 }
 
