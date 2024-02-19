@@ -82,6 +82,7 @@ con:
 
 	/* Boot secondary CPUs */
 	pri("Booting secondary CPUs\n");
+	ipi_enable();
 	err = smp_init();
 	if (err)
 		goto out;
