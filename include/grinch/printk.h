@@ -31,7 +31,8 @@ void printk_init(void);
 #define pr(fmt, ...) printk(dbg_fmt(fmt), ##__VA_ARGS__)
 #define ps(str) puts(dbg_fmt(str))
 
-#define prg(fmt, ...) if (grinch_is_guest) { pr(fmt, ##__VA_ARGS__); }
+#define prg(fmt, ...) do { if (grinch_is_guest) { pr(fmt, ##__VA_ARGS__); } } while (false)
+#define prh(fmt, ...) do { if (!grinch_is_guest) { pr(fmt, ##__VA_ARGS__); } } while (false)
 
 #define pri(fmt, ...) printk(ISTR(dbg_fmt(fmt)), ##__VA_ARGS__)
 #define psi(str) puts(ISTR(dbg_fmt(str)))
