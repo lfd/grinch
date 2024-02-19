@@ -26,14 +26,13 @@ struct vmachine {
 
 	struct {
 		unsigned long vsstatus;
-		unsigned long vsatp;
-		unsigned long vsscratch;
-		unsigned long vstvec;
-		unsigned long vscause;
 		unsigned long vsie;
-		unsigned long vsip;
-		unsigned long hvip;
+		unsigned long vstvec;
+		unsigned long vsscratch;
+		unsigned long vscause;
 		unsigned long vstval;
+		unsigned long hvip;
+		unsigned long vsatp;
 
 		/* executes in vs mode? */
 		bool vs;

@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -36,7 +36,6 @@
 
 #define RISCV_INST_WFI	0x10500073
 
-/* forward no IRQs. We have no guest IRQs at the moment */
 #define HIDELEG					\
 	((IE_SIE << VSIP_TO_HVIP_SHIFT) |	\
 	(IE_TIE << VSIP_TO_HVIP_SHIFT) |	\
@@ -64,14 +63,13 @@ void arch_vmachine_inject_timer(struct vmachine *vm)
 void arch_vmachine_save(struct vmachine *vm)
 {
 	vm->vregs.vsstatus = csr_read(CSR_VSSTATUS);
-	vm->vregs.vsatp = csr_read(CSR_VSATP);
-	vm->vregs.vsscratch = csr_read(CSR_VSSCRATCH);
-	vm->vregs.vstvec = csr_read(CSR_VSTVEC);
-	vm->vregs.vscause = csr_read(CSR_VSCAUSE);
 	vm->vregs.vsie = csr_read(CSR_VSIE);
-	vm->vregs.vsip = csr_read(CSR_VSIP);
-	vm->vregs.hvip = csr_read(CSR_HVIP);
+	vm->vregs.vstvec = csr_read(CSR_VSTVEC);
+	vm->vregs.vsscratch = csr_read(CSR_VSSCRATCH);
+	vm->vregs.vscause = csr_read(CSR_VSCAUSE);
 	vm->vregs.vstval = csr_read(CSR_VSTVAL);
+	vm->vregs.hvip = csr_read(CSR_HVIP);
+	vm->vregs.vsatp = csr_read(CSR_VSATP);
 
 	// FIXME: get sstatus via previous context
 	u64 sstatus = csr_read(sstatus);
@@ -87,14 +85,13 @@ void arch_vmachine_restore(struct vmachine *vm)
 
 	/* Restore shadowed VM registers */
 	csr_write(CSR_VSSTATUS, vm->vregs.vsstatus);
-	csr_write(CSR_VSATP, vm->vregs.vsatp);
-	csr_write(CSR_VSSCRATCH, vm->vregs.vsscratch);
-	csr_write(CSR_VSTVEC, vm->vregs.vstvec);
-	csr_write(CSR_VSCAUSE, vm->vregs.vscause);
 	csr_write(CSR_VSIE, vm->vregs.vsie);
-	csr_write(CSR_VSIP, vm->vregs.vsip);
-	csr_write(CSR_HVIP, vm->vregs.hvip);
+	csr_write(CSR_VSTVEC, vm->vregs.vstvec);
+	csr_write(CSR_VSSCRATCH, vm->vregs.vsscratch);
+	csr_write(CSR_VSCAUSE, vm->vregs.vscause);
 	csr_write(CSR_VSTVAL, vm->vregs.vstval);
+	csr_write(CSR_HVIP, vm->vregs.hvip);
+	csr_write(CSR_VSATP, vm->vregs.vsatp);
 }
 
 void arch_vmachine_activate(struct vmachine *vm)
