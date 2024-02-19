@@ -129,16 +129,30 @@ int __init serial_init(const struct uart_driver *d, paddr_t uart_base,
 int __init serial_init_fdt(void)
 {
 	const struct of_device_id *match;
+	int off, err, node, io_width = 1;
 	const struct uart_driver *d;
-	int off, err, io_width = 1;
+	const char *stdoutpath;
 	paddr_t uart_base;
 	const int *res;
 	u64 uart_size;
 	u32 irq;
 
-	off = fdt_find_device(_fdt, "/soc", of_match, &match);
+	node = fdt_path_offset(_fdt, "/chosen");
+	if (node < 0) {
+		pri("No chosen node in device-tree.\n");
+		return -ENOENT;
+	}
+
+	stdoutpath = fdt_getprop(_fdt, node, "stdout-path", &err);
+	if (!stdoutpath) {
+		pri("No stdout-path in chosen node\n");
+		return -ENOENT;
+	}
+	pri("stdout-path: %s\n", stdoutpath);
+
+	off = fdt_match_device(_fdt, stdoutpath, of_match, &match);
 	if (off <= 0) {
-		pr("WARNING: No UART found. Remaining on SBI console\n");
+		pri("Warning: No console found. Remaining on SBI console\n");
 		return -ENOENT;
 	}
 
@@ -151,7 +165,7 @@ int __init serial_init_fdt(void)
 	res = fdt_getprop(_fdt, off, "reg-io-width", &err);
 	if (err > 0)
 		io_width = fdt32_to_cpu(*res);
-	pr("Found %s UART@0x%llx\n", match->compatible, uart_base);
+	pri("Found %s UART@0x%llx\n", match->compatible, uart_base);
 
 	res = fdt_getprop(_fdt, off, "interrupts", &err);
 	if (IS_ERR(res))
