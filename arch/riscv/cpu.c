@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -11,13 +11,17 @@
  */
 
 #include <asm/cpu.h>
+#include <asm/irq.h>
 
 #include <grinch/errno.h>
 #include <grinch/boot.h>
 #include <grinch/hypercall.h>
+#include <grinch/irqchip.h>
 #include <grinch/paging.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
+#include <grinch/smp.h>
+#include <grinch/timer.h>
 
 #include <grinch/arch/sbi.h>
 
@@ -89,6 +93,26 @@ int hypercall(unsigned long no, unsigned long arg1)
 		return -EINVAL;
 
 	return ret.value;
+}
+
+void arch_do_idle(void)
+{
+	cpu_do_idle();
+
+	check_panic();
+
+	if (ipi_pending()) {
+		ipi_clear();
+		check_events();
+	}
+
+	if (timer_pending()) {
+		handle_timer();
+		this_per_cpu()->handle_events = true;
+	}
+
+	if (ext_pending())
+		irqchip_fn->handle_irq();
 }
 
 void __init guest_init(void)
