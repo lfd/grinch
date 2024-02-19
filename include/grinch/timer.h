@@ -30,14 +30,14 @@ int timer_init(void);
 
 void handle_timer(void);
 
-unsigned long long timer_get_wall(void);
-unsigned long long arch_timer_ticks_to_time(unsigned long long ticks);
-unsigned long long timer_ticks_to_time(unsigned long long ticks);
+unsigned long timer_get_wall(void);
+unsigned long arch_timer_ticks_to_time(unsigned long ticks);
+unsigned long timer_ticks_to_time(unsigned long ticks);
 
 /* Architecture specific routines */
 int arch_timer_init(void);
 
-unsigned long long arch_timer_get(void);
-void arch_timer_set(unsigned long long ns);
+unsigned long arch_timer_get(void);
+void arch_timer_set(unsigned long ns);
 
 #endif /* _TIMER_H */

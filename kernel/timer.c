@@ -22,8 +22,8 @@
 #include <grinch/timer.h>
 
 static unsigned int timer_hz = 50;
-static unsigned long long wall_base;
-static unsigned long long timer_expected;
+static unsigned long wall_base;
+static unsigned long timer_expected;
 
 static void __init timer_hz_parse(const char *arg)
 {
@@ -39,12 +39,12 @@ static void __init timer_hz_parse(const char *arg)
 }
 bootparam(timer_hz, timer_hz_parse);
 
-unsigned long long timer_ticks_to_time(unsigned long long ticks)
+unsigned long timer_ticks_to_time(unsigned long ticks)
 {
 	return arch_timer_ticks_to_time(ticks) - wall_base;
 }
 
-unsigned long long timer_get_wall(void)
+unsigned long timer_get_wall(void)
 {
 	if (!wall_base)
 		return 0;
@@ -53,7 +53,7 @@ unsigned long long timer_get_wall(void)
 
 void handle_timer(void)
 {
-	unsigned long long now;
+	unsigned long now;
 
 	now = arch_timer_get();
 	timer_expected += HZ_TO_NS(timer_hz);

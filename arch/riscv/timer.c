@@ -34,17 +34,17 @@ static inline u64 get_time(void)
 	return csr_read(time);
 }
 
-unsigned long long arch_timer_ticks_to_time(unsigned long long ticks)
+unsigned long arch_timer_ticks_to_time(unsigned long ticks)
 {
 	return NS * ticks / timebase_frequency;
 }
 
-unsigned long long arch_timer_get(void)
+unsigned long arch_timer_get(void)
 {
 	return arch_timer_ticks_to_time(get_time());
 }
 
-void arch_timer_set(unsigned long long ns)
+void arch_timer_set(unsigned long ns)
 {
 	struct sbiret ret;
 	u64 then;
