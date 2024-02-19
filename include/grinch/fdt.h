@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -46,5 +46,9 @@ bool fdt_device_is_available(const void *fdt, unsigned long node);
 int fdt_find_device(const void *fdt, const char *path,
 		    const struct of_device_id *compats,
 		    const struct of_device_id **match);
+
+int fdt_match_device(const void *fdt, const char *path,
+		     const struct of_device_id *compats,
+		     const struct of_device_id **match);
 
 #endif /* _FDT_H */

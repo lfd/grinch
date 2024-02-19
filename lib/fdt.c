@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -41,31 +41,54 @@ static const struct of_device_id
 	return NULL;
 }
 
+static int fdt_match_device_off(const void *fdt, int offset,
+				const struct of_device_id *compats,
+				const struct of_device_id **match)
+{
+	const char *compatible;
+	int res;
+	const struct of_device_id *compat;
+
+	compatible = fdt_getprop(_fdt, offset, "compatible", &res);
+	if (res < 0)
+		return -EINVAL;
+
+	compat = fdt_find_compat(compatible, compats);
+	if (compat && fdt_device_is_available(_fdt, offset)) {
+		if (match)
+			*match = compat;
+		return offset; /* we found it */
+	}
+
+	return -ENOENT;
+}
+
+int fdt_match_device(const void *fdt, const char *path,
+		     const struct of_device_id *compats,
+		     const struct of_device_id **match)
+{
+	int off;
+
+	off = fdt_path_offset(fdt, path);
+	if (off <= 0)
+		return -ENOENT;
+
+	return fdt_match_device_off(fdt, off, compats, match);
+}
+
 int fdt_find_device(const void *fdt, const char *path,
 		    const struct of_device_id *compats,
 		    const struct of_device_id **match)
 {
-	const struct of_device_id *compat;
-	const char *compatible;
-	int off, sub, res;
+	int off, sub;
 
-	off = fdt_path_offset(_fdt, path);
+	off = fdt_path_offset(fdt, path);
 	if (off <= 0)
 		return -ENOENT;
 
-	fdt_for_each_subnode(sub, _fdt, off) {
-		compatible = fdt_getprop(_fdt, sub, "compatible", &res);
-		if (res < 0)
-			continue;
-
-		compat = fdt_find_compat(compatible, compats);
-		if (compat && fdt_device_is_available(_fdt, sub)) {
-			if (match)
-				*match = compat;
-			return sub; /* we found it */
-		}
-
-	}
+	fdt_for_each_subnode(sub, _fdt, off)
+		if (fdt_match_device_off(fdt, sub, compats, match) > 0)
+			return sub;
 
 	return -ENOENT;
 }
