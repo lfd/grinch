@@ -318,6 +318,71 @@ void task_save(struct registers *regs)
 		arch_vmachine_save(task->vmachine);
 }
 
+#if 0
+static const char *task_type_to_string(enum task_type type)
+{
+	switch (type) {
+		case GRINCH_UNDEF:
+			return "undef  ";
+		case GRINCH_PROCESS:
+			return "process";
+		case GRINCH_VMACHINE:
+			return "VM     ";
+		default:
+			return "unknown";
+	};
+}
+
+static const char *task_state_to_string(enum task_state state)
+{
+	switch (state) {
+		case TASK_RUNNABLE:
+			return "runnable";
+		case TASK_RUNNING:
+			return "running ";
+		case TASK_WFE:
+			return "wfe     ";
+		default:
+			return "unkn    ";
+	}
+}
+
+static void dump_tasks(void)
+{
+	struct task *task;
+	const char *timer_str;
+
+	spin_lock(&task_lock);
+
+	list_for_each_entry(task, &task_list, tasks) {
+		if (list_empty(&task->timer.timer_list))
+			timer_str = "not set";
+		else
+			timer_str = "active ";
+		pr("PID: %u Type: %s State: %s On CPU: %lu Timer: %s "
+		   "Expiration: " PR_TIME_FMT "\n",
+		   task->pid, task_type_to_string(task->type),
+		   task_state_to_string(task->state), task->on_cpu, timer_str,
+		   PR_TIME_PARAMS(task->timer.expiration));
+	}
+
+	spin_unlock(&task_lock);
+}
+
+static void dump_timers(void)
+{
+	struct task *task;
+
+	spin_lock(&task_lock);
+
+	list_for_each_entry(task, &timer_list, timer.timer_list)
+		pr("PID: %u, Expiration: " PR_TIME_FMT "\n", task->pid,
+		   PR_TIME_PARAMS(task->timer.expiration));
+
+	spin_unlock(&task_lock);
+}
+#endif
+
 void prepare_user_return(void)
 {
 	struct per_cpu *tpcpu;
