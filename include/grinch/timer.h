@@ -40,4 +40,8 @@ int arch_timer_init(void);
 unsigned long arch_timer_get(void);
 void arch_timer_set(unsigned long ns);
 
+/* task_lock must be held */
+#include <grinch/task.h>
+void timer_update(struct task *task);
+
 #endif /* _TIMER_H */

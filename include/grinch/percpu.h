@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -50,6 +50,10 @@ struct per_cpu {
 	bool schedule;
 	bool idling;
 	bool handle_events;
+
+	struct {
+		unsigned long next;
+	} timer;
 
 	struct {
 		spinlock_t lock;

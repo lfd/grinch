@@ -23,14 +23,13 @@
 
 static unsigned int timer_hz = 50;
 static unsigned long wall_base;
-static unsigned long timer_expected;
 
 static void __init timer_hz_parse(const char *arg)
 {
 	unsigned long ret;
 
 	ret = strtoul(arg, NULL, 10);
-	if (ret > 100000 || !ret) {
+	if (ret > 100000) {
 		pri("Invalid timer frequency: %ld\n", ret);
 		return;
 	}
@@ -51,19 +50,49 @@ unsigned long timer_get_wall(void)
 	return arch_timer_get() - wall_base;
 }
 
+void timer_update(struct task *task)
+{
+	unsigned long *next;
+
+	next = &this_per_cpu()->timer.next;
+	if (task && task->timer.expiration < *next)
+		*next = task->timer.expiration;
+
+	if (*next != (unsigned long)-1)
+		arch_timer_set(*next + wall_base);
+	else
+		arch_timer_set(-1);
+}
+
 void handle_timer(void)
 {
-	unsigned long now;
+	struct per_cpu *tpcpu;
+	unsigned long next;
 
-	now = arch_timer_get();
-	timer_expected += HZ_TO_NS(timer_hz);
-	if (timer_expected < now)
-		pr("Overrun!\n");
+	tpcpu = this_per_cpu();
 
-	arch_timer_set(timer_expected);
-	task_handle_events();
+	tpcpu->schedule = true;
+	tpcpu->handle_events = true;
 
-	this_per_cpu()->schedule = true;
+	// FIXME: make me cyclic
+	if (timer_hz)
+		next = timer_get_wall() + HZ_TO_NS(timer_hz);
+	else
+		next = -1;
+	tpcpu->timer.next = next;
+}
+
+static void __init timer_cpu_init(void *)
+{
+	unsigned long *next;
+
+	next = &this_per_cpu()->timer.next;
+	if (timer_hz)
+		*next = HZ_TO_NS(timer_hz);
+	else
+		*next = -1;
+	arch_timer_set(*next + wall_base);
+	timer_enable();
 }
 
 int __init timer_init(void)
@@ -76,11 +105,9 @@ int __init timer_init(void)
 
 	pri("Timer Frequency: %uHz\n", timer_hz);
 	wall_base = arch_timer_get();
-	timer_expected = wall_base + HZ_TO_NS(timer_hz);
 
 	pri("Wall base: " PR_TIME_FMT "\n", PR_TIME_PARAMS(wall_base));
-	arch_timer_set(timer_expected);
-	timer_enable();
+	on_each_cpu(timer_cpu_init, NULL);
 
 	return err;
 }
