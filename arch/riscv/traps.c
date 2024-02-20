@@ -52,6 +52,8 @@ void arch_handle_irq(struct registers *regs, u64 scause)
 
 	if (!this_per_cpu()->idling)
 		task_save(regs);
+	else
+		BUG();
 
 	irq = to_irq(scause);
 	switch (irq) {
@@ -75,7 +77,6 @@ void arch_handle_irq(struct registers *regs, u64 scause)
 			panic("No Handler for IRQ %llu\n", irq);
 			break;
 	}
-
 
 	if (prepare_user && !this_per_cpu()->idling)
 		prepare_user_return();
