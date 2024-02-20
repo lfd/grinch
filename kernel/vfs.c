@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -156,15 +156,15 @@ int __init initrd_init_early(void)
 	int err, offset;
 	u64 start, end;
 
-	offset = fdt_path_offset(_fdt, "/chosen");
+	offset = fdt_path_offset(_fdt, ISTR("/chosen"));
 	if (offset <= 0)
 		return -ENOENT;
 
-	err = fdt_read_u64(_fdt, offset, "linux,initrd-start", &start);
+	err = fdt_read_u64(_fdt, offset, ISTR("linux,initrd-start"), &start);
 	if (err)
 		return -ENOENT;
 
-	err = fdt_read_u64(_fdt, offset, "linux,initrd-end", &end);
+	err = fdt_read_u64(_fdt, offset, ISTR("linux,initrd-end"), &end);
 	if (err)
 		return -ENOENT;
 

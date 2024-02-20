@@ -78,11 +78,11 @@ int __init arch_timer_init(void)
 	if (_err)
 		return _err;
 
-	nodeoffset = fdt_path_offset(_fdt, "/cpus");
+	nodeoffset = fdt_path_offset(_fdt, ISTR("/cpus"));
 	if (nodeoffset <= 0)
 		return -ENOENT;
 
-	err = fdt_read_u32(_fdt, nodeoffset, "timebase-frequency",
+	err = fdt_read_u32(_fdt, nodeoffset, ISTR("timebase-frequency"),
 			   &timebase_frequency);
 	if (err) {
 		psi("No valid timebase frequency found\n");

@@ -105,18 +105,18 @@ int __init fdt_init(paddr_t pfdt)
 
 	err = fdt_check_header(fdt);
 	if (err) {
-		pr("No valid FDT header behind 0x%llx\n", pfdt);
+		pri("No valid FDT header behind 0x%llx\n", pfdt);
 		err = -EINVAL;
 		goto unmap;
 	}
 
 	err = fdt_totalsize(fdt);
 	if (err <= 0) {
-		ps("FDT totalsize\n");
+		psi("FDT totalsize\n");
 		err = -EINVAL;
 		goto unmap;
 	}
-	pr("FDT size: %u\n", err);
+	pri("FDT size: %u\n", err);
 
 	_fdt = alloc_pages(PAGES(page_up(err)));
 	if (IS_ERR(_fdt)) {
@@ -126,11 +126,11 @@ int __init fdt_init(paddr_t pfdt)
 
 	err = fdt_move(fdt, _fdt, err);
 	if (err)
-		ps("FDT move failed\n");
+		psi("FDT move failed\n");
 
 unmap:
 	if (iounmap(fdt, MEGA_PAGE_SIZE))
-		pr("iounmap failed\n");
+		pri("iounmap failed\n");
 	return err;
 }
 

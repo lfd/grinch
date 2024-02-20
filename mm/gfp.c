@@ -409,7 +409,7 @@ int __init phys_mem_init_fdt(void)
 	paddr_t addrp;
 	size_t sizep;
 
-	memory = fdt_path_offset(_fdt, "/memory");
+	memory = fdt_path_offset(_fdt, ISTR("/memory"));
 	if (memory <= 0) {
 		pri("NO MEMORY NODE FOUND! TRYING TO CONTINUE\n");
 		return 0;
@@ -445,7 +445,7 @@ int __init phys_mem_init_fdt(void)
 		return trace_error(err);
 
 	/* search for reserved regions in the device tree */
-	memory = fdt_path_offset(_fdt, "/reserved-memory");
+	memory = fdt_path_offset(_fdt, ISTR("/reserved-memory"));
 	if (memory <= 0)
 		return 0;
 

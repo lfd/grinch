@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -59,12 +59,12 @@ static void __init kheap_size_parse(const char *arg)
 
 	err = bootparam_parse_size(arg, &sz);
 	if (err) {
-		pr("Warning: Unable to parse kheap_size=%s\n", arg);
+		pri("Warning: Unable to parse kheap_size=%s\n", arg);
 		return;
 	}
 
 	if (sz < 4 * KIB) {
-		pr("Warning: kheap_size too small\n");
+		pri("Warning: kheap_size too small\n");
 		return;
 	}
 

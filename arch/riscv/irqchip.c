@@ -49,12 +49,12 @@ int __init irqchip_init(void)
 	const struct of_device_id *match;
 
 	/* Probe for PLIC */
-	off = fdt_find_device(_fdt, "/soc", plic_compats, &match);
+	off = fdt_find_device(_fdt, ISTR("/soc"), plic_compats, &match);
 	if (off >= 0)
 		goto init;
 
 	/* Probe for APLIC */
-	off = fdt_find_device(_fdt, "/soc", aplic_compats, &match);
+	off = fdt_find_device(_fdt, ISTR("/soc"), aplic_compats, &match);
 	if (off < 0)
 		return -ENOENT;
 

@@ -31,7 +31,7 @@ static void __init timer_hz_parse(const char *arg)
 
 	ret = strtoul(arg, NULL, 10);
 	if (ret > 100000 || !ret) {
-		pr("Invalid timer frequency: %ld\n", ret);
+		pri("Invalid timer frequency: %ld\n", ret);
 		return;
 	}
 

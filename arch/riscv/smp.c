@@ -150,10 +150,10 @@ int __init platform_init(void)
 
 	fdt_for_each_subnode(child, _fdt, cpu) {
 		name = fdt_get_name(_fdt, child, NULL);
-		if (strcmp(name, "cpu-map") == 0)
+		if (strcmp(name, ISTR("cpu-map")) == 0)
 			continue;
 
-		reg = fdt_getprop(_fdt, child, "reg", &err);
+		reg = fdt_getprop(_fdt, child, ISTR("reg"), &err);
 		if (err < 0) {
 			pri("%s: Error reading reg\n", name);
 			return -EINVAL;
@@ -164,7 +164,7 @@ int __init platform_init(void)
 			return -ERANGE;
 		}
 
-		isa = fdt_getprop(_fdt, child, "riscv,isa", &err);
+		isa = fdt_getprop(_fdt, child, ISTR("riscv,isa"), &err);
 		if (!isa || err < 0) {
 			pri("CPU %lu: No ISA specification found\n", hart_id);
 		} else {

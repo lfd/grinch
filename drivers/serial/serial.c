@@ -137,13 +137,13 @@ int __init serial_init_fdt(void)
 	u64 uart_size;
 	u32 irq;
 
-	node = fdt_path_offset(_fdt, "/chosen");
+	node = fdt_path_offset(_fdt, ISTR("/chosen"));
 	if (node < 0) {
 		pri("No chosen node in device-tree.\n");
 		return -ENOENT;
 	}
 
-	stdoutpath = fdt_getprop(_fdt, node, "stdout-path", &err);
+	stdoutpath = fdt_getprop(_fdt, node, ISTR("stdout-path"), &err);
 	if (!stdoutpath) {
 		pri("No stdout-path in chosen node\n");
 		return -ENOENT;
@@ -162,12 +162,12 @@ int __init serial_init_fdt(void)
 	if (err)
 		return err;
 
-	res = fdt_getprop(_fdt, off, "reg-io-width", &err);
+	res = fdt_getprop(_fdt, off, ISTR("reg-io-width"), &err);
 	if (err > 0)
 		io_width = fdt32_to_cpu(*res);
 	pri("Found %s UART@0x%llx\n", match->compatible, uart_base);
 
-	res = fdt_getprop(_fdt, off, "interrupts", &err);
+	res = fdt_getprop(_fdt, off, ISTR("interrupts"), &err);
 	if (IS_ERR(res))
 		irq = 0;
 	else

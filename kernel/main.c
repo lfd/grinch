@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -74,7 +74,7 @@ static int __init init(void)
 	if (IS_ERR(task))
 		return PTR_ERR(task);
 
-	err = process_from_fs(task, "initrd:/init.echse");
+	err = process_from_fs(task, ISTR("initrd:/init.echse"));
 	if (err) {
 		task_destroy(task);
 		return err;
