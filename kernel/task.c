@@ -117,6 +117,7 @@ static void task_activate(struct task *task)
 		panic("Activating non-runnable task: PID %u state: %x\n",
 		      task->pid, task->state);
 	task->state = TASK_RUNNING;
+	task->on_cpu = this_cpu_id();
 
 	switch (task->type) {
 	case GRINCH_PROCESS:

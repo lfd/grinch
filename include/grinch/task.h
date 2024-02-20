@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -43,6 +43,7 @@ struct task {
 	struct registers regs;
 	pid_t pid;
 	enum task_state state;
+	unsigned long on_cpu; /* only valid if state == TASK_RUNNING */
 
 	struct {
 		bool active;
