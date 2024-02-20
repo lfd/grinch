@@ -30,6 +30,8 @@
 #define GRINCH_VM_PID_OFFSET	10000
 
 static LIST_HEAD(task_list);
+static LIST_HEAD(timer_list);
+
 static DEFINE_SPINLOCK(task_lock);
 static pid_t next_pid = 1;
 
@@ -88,6 +90,7 @@ struct task *task_alloc_new(void)
 	task->state = TASK_RUNNABLE;
 	task->type = GRINCH_UNDEF;
 	INIT_LIST_HEAD(&task->tasks);
+	INIT_LIST_HEAD(&task->timer.timer_list);
 
 	return task;
 }
@@ -169,7 +172,7 @@ static void schedule(void)
 
 	if (list_is_singular(&task_list)) {
 		task = list_first_entry(&task_list, struct task, tasks);
-		if (task->state != TASK_RUNNABLE)
+		if (task->state == TASK_WFE)
 			task = NULL;
 		goto out;
 	}
@@ -251,51 +254,71 @@ void task_set_wfe(struct task *task)
 	spin_unlock(&task_lock);
 }
 
+static bool timer_comp(struct list_head *_a, struct list_head *_b)
+{
+	struct task *a = list_entry(_a, struct task, timer.timer_list);
+	struct task *b = list_entry(_b, struct task, timer.timer_list);
+
+	return a->timer.expiration > b->timer.expiration;
+}
+
 void task_sleep_until(struct task *task, unsigned long long wall_ns)
 {
 	spin_lock(&task_lock);
+
 	/* VMs remain runnable */
 	if (task->type == GRINCH_PROCESS)
 		_task_set_wfe(task);
 
 	task->timer.expiration = wall_ns;
-	task->timer.active = true;
+
+	/* If the timer is already queued, remove it first */
+	if (!list_empty(&task->timer.timer_list))
+		list_del(&task->timer.timer_list);
+
+	list_add_sorted(&timer_list, &task->timer.timer_list, timer_comp);
+	this_per_cpu()->handle_events = true;
+
 	spin_unlock(&task_lock);
 }
 
 void task_handle_events(void)
 {
-
-	struct task *task;
+	struct task *task, *tmp, *update;
 
 	spin_lock(&task_lock);
-	list_for_each_entry(task, &task_list, tasks) {
-		if (!task->timer.active)
-			continue;
 
-		/* we hit a sleeping task */
-		if (timer_get_wall() >= task->timer.expiration) {
-			if (task->state != TASK_RUNNING)
+	update = NULL;
+	list_for_each_entry_safe(task, tmp, &timer_list, timer.timer_list) {
+		/* sanity check */
+		if (task->state != TASK_WFE && task->type != GRINCH_VMACHINE)
+			BUG();
+
+		if (task->timer.expiration <= timer_get_wall()) {
+			if (task->type == GRINCH_VMACHINE) {
+				BUG();
+			} else { /* TASK_PROCESS */
 				task->state = TASK_RUNNABLE;
-			task->timer.active = false;
-
-			if (task->type == GRINCH_VMACHINE)
-				arch_vmachine_inject_timer(task->vmachine);
+			}
+			if (task->state == TASK_WFE)
+				BUG();
+			list_del(&task->timer.timer_list);
+			INIT_LIST_HEAD(&task->timer.timer_list);
+			continue;
 		}
+
+		update = task;
+		break;
 	}
+
+	timer_update(update);
 	spin_unlock(&task_lock);
 }
 
 static void do_idle(void)
 {
 	this_per_cpu()->idling = true;
-	irq_enable();
-	cpu_do_idle();
-	irq_disable();
-
-	/* We might have received an IPI, so check events */
-	check_events();
-
+	arch_do_idle();
 	this_per_cpu()->idling = false;
 	mb();
 }
@@ -391,6 +414,11 @@ void prepare_user_return(void)
 
 	tpcpu = this_per_cpu();
 retry:
+	if (tpcpu->handle_events) {
+		tpcpu->handle_events = false;
+		task_handle_events();
+	}
+
 	if (tpcpu->schedule)
 		schedule();
 

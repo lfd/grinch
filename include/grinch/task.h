@@ -46,7 +46,7 @@ struct task {
 	unsigned long on_cpu; /* only valid if state == TASK_RUNNING */
 
 	struct {
-		bool active;
+		struct list_head timer_list;
 		unsigned long long expiration;
 	} timer;
 
