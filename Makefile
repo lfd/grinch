@@ -37,7 +37,8 @@ OPT?=-O0
 AFLAGS_COMMON=-D__ASSEMBLY__
 
 CFLAGS_COMMON=-nostdinc -ffreestanding -g -ggdb $(OPT) \
-              -fno-strict-aliasing -fno-stack-protector \
+              -fno-strict-aliasing \
+              -fno-omit-frame-pointer -fno-stack-protector \
               -ffunction-sections \
               -Wall -Wextra -Wno-unused-parameter \
               -Wstrict-prototypes -Wtype-limits \

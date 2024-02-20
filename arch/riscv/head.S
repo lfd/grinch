@@ -80,6 +80,9 @@ start:
 	ld	a1, 0(sp) /* fdt */
 	addi	sp, sp, 8
 
+	/* Terminate stack frame */
+	mv	s0, sp
+
 	/* Hand over to C */
 	jal	cmain
 	bne	a0, zero, _cpu_halt
@@ -110,6 +113,9 @@ secondary_virt_entry:
 	/* setup stack */
 	li	sp, STACK_TOP
 	addi	sp, sp, -STRUCT_REGISTERS_SIZE
+
+	/* Terminate stack frame */
+	mv	s0, sp
 
 	/* Setup exception trap vector. Exception stack is yet uninitialised. */
 	la	t0, excp_handler

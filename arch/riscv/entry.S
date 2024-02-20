@@ -44,6 +44,9 @@ save_ctx:
 	/* Pass registers */
 	mv	a0, sp
 
+	/* Terminate stack frame */
+	mv	s0, sp
+
 	jal	check_panic
 
 	la	ra, return_to_user
