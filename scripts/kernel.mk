@@ -61,6 +61,12 @@ ifdef V
 	$(VERBOSE) $(SZ) --format=SysV -x $@
 endif
 
+.SECONDARY:
+%.dts: %.dts.S
+	$(QUIET) "[DTS]   $@"
+	$(VERBOSE) $(CC) $(CFLAGS_KERNEL) $(AFLAGS_KERNEL) -E -undef -o $@ $^
+	$(VERBOSE) sed -e '/^#/d' -i $@
+
 %.dtb: %.dts
 	$(QUIET) "[DTC]   $@"
 	$(VERBOSE) $(DTC) -I dts -O dtb -o $@ $^

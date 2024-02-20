@@ -12,13 +12,12 @@
 		 */
 		linux,initrd-start = <0xa0100000>;
 		linux,initrd-end = <0xa0140000>;
-		bootargs = "earlycon=sbi timer_hz=10";
+		bootargs = "earlycon=sbi timer_hz=0";
 	};
 
 	cpus {
 		#address-cells = <1>;
 		#size-cells = <0>;
-		timebase-frequency = <0x989680>;
 
 		cpu@0 {
 			riscv,isa = "rv64imafdc";

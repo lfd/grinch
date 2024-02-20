@@ -15,4 +15,5 @@ user/initrd.cpio
 .gdbinit
 .gdb_history
 
+user/dts/*.dts
 qemu.dts
