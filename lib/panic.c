@@ -12,6 +12,7 @@
 
 #include <asm/irq.h>
 
+#include <grinch/hypercall.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/percpu.h>
@@ -31,5 +32,7 @@ void __noreturn panic_stop(void)
 	timer_disable();
 	ext_disable();
 	pr("Panic: CPU %lu HALTED\n", this_cpu_id());
+	if (grinch_is_guest)
+		hypercall_vmquit(-1);
 	cpu_halt();
 }
