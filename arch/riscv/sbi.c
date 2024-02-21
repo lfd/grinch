@@ -55,13 +55,13 @@ static inline long sbi_get_spec_version(void)
 
 int __init sbi_init(void)
 {
-	psi("Initialising SBI\n");
+	pri("Initialising SBI\n");
 
 	sbi_spec_version = sbi_get_spec_version();
 	pri("SBI version v%lu.%lu detected\n", sbi_major_version(), sbi_minor_version());
 
 	if (sbi_major_version() == 0 && sbi_minor_version() <= 1) {
-		psi("SBI too old! Consider upgrading your firmware.\n");
+		pri("SBI too old! Consider upgrading your firmware.\n");
 		return -1;
 	}
 

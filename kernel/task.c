@@ -396,7 +396,7 @@ retry:
 	if (!tpcpu->current_task) {
 		if (list_empty(&task_list)) {
 			if (tpcpu->primary) {
-				ps("Nothing to schedule!\n");
+				pr("Nothing to schedule!\n");
 				arch_shutdown(-ENOENT);
 			}
 		} else {

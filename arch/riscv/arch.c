@@ -60,7 +60,7 @@ int __init arch_init(void)
 		goto out;
 
 	/* Initialise external interrupts */
-	psi("Initialising irqchip...\n");
+	pri("Initialising irqchip...\n");
 	err = irqchip_init();
 	if (err == -ENOENT)
 		pri("No irqchip found!\n");
@@ -69,7 +69,7 @@ int __init arch_init(void)
 	else
 		ext_enable();
 
-	psi("Initialising Serial...\n");
+	pri("Initialising Serial...\n");
 	err = serial_init_fdt();
 	if (err)
 	{
@@ -77,11 +77,11 @@ int __init arch_init(void)
 			goto con;
 		goto out;
 	}
-	psi("Switched over from SBI to UART\n");
+	pri("Switched over from SBI to UART\n");
 con:
 
 	/* Boot secondary CPUs */
-	psi("Booting secondary CPUs\n");
+	pri("Booting secondary CPUs\n");
 	err = smp_init();
 	if (err)
 		goto out;
@@ -92,7 +92,7 @@ con:
 
 	err = vmm_init();
 	if (err == -ENOSYS) {
-		psi("H-Extensions not available\n");
+		pri("H-Extensions not available\n");
 		err = 0;
 	}
 

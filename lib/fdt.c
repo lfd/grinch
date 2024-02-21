@@ -112,7 +112,7 @@ int __init fdt_init(paddr_t pfdt)
 
 	err = fdt_totalsize(fdt);
 	if (err <= 0) {
-		psi("FDT totalsize\n");
+		pri("FDT totalsize\n");
 		err = -EINVAL;
 		goto unmap;
 	}
@@ -126,7 +126,7 @@ int __init fdt_init(paddr_t pfdt)
 
 	err = fdt_move(fdt, _fdt, err);
 	if (err)
-		psi("FDT move failed\n");
+		pri("FDT move failed\n");
 
 unmap:
 	if (iounmap(fdt, MEGA_PAGE_SIZE))

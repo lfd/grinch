@@ -100,23 +100,11 @@ static void ___puts(const char *msg)
 	}
 }
 
-static inline void __puts(const char *msg, bool prefixed)
-{
-	spin_lock(&print_lock);
-	if (prefixed)
-		print_prefix();
-	___puts(msg);
-	spin_unlock(&print_lock);
-}
-
-void puts(const char *msg)
-{
-	__puts(msg, true);
-}
-
 void _puts(const char *msg)
 {
-	__puts(msg, false);
+	spin_lock(&print_lock);
+	___puts(msg);
+	spin_unlock(&print_lock);
 }
 
 static char *uint2str(unsigned long long value, char *buf)

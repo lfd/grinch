@@ -120,7 +120,7 @@ int __init serial_init(const struct uart_driver *d, paddr_t uart_base,
 			return err;
 		}
 	} else {
-		ps("No IRQ found!\n");
+		pr("No IRQ found!\n");
 	}
 
 	return err;

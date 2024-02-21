@@ -137,10 +137,10 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 	kheap_stats();
 
 	if (1) {
-		psi("Initialising userland\n");
+		pri("Initialising userland\n");
 		err = init();
 		if (err)
-			psi("Error initialising userland\n");
+			pri("Error initialising userland\n");
 		err = 0;
 	}
 

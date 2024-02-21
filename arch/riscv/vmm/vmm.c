@@ -208,7 +208,7 @@ vmm_handle_trap(struct trap_context *ctx, struct registers *regs)
 out:
 	vsatp = csr_read(vsatp);
 
-	ps("Hypervisor Context:\n");
+	pr("Hypervisor Context:\n");
 	pr("SSTATUS: %016lx SCAUSE: %016lx\n", ctx->sstatus, ctx->scause);
 	pr("HSTATUS: %016lx  HTVAL: %016lx\n",
 		ctx->hstatus, csr_read(CSR_HTVAL));
@@ -311,17 +311,17 @@ static struct task *vmm_alloc_new(void)
 		goto vmfree_out;
 	vm->memregion.size = VM_PAGES * PAGE_SIZE;
 
-	ps("Copying kernel...\n");
+	pr("Copying kernel...\n");
 	err = vm_load_file(vm, "initrd:/kernel.bin", 0);
 	if (err)
 		goto vmfree_out;
 
-	ps("Copying VM device tree...\n");
+	pr("Copying VM device tree...\n");
 	err = vm_load_file(vm, "initrd:/vm.dtb", VM_FDT_OFFSET);
 	if (err)
 		goto vmfree_out;
 
-	ps("Copying initrd...\n");
+	pr("Copying initrd...\n");
 	err = vm_memcpy(vm, 1 * MIB, initrd.vbase, initrd.size);
 	if (err)
 		goto vmfree_out;
@@ -388,7 +388,7 @@ int vm_create_grinch(void)
 {
 	struct task *task;
 
-	ps("Creating a Grinch VM\n");
+	pr("Creating a Grinch VM\n");
 	task = vmm_alloc_new();
 	if (IS_ERR(task))
 		return PTR_ERR(task);

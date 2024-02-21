@@ -49,7 +49,7 @@ int __init riscv_isa_update(unsigned long hart_id, const char *_isa)
 
 	if (isa_seen) {
 		if ((riscv_isa & this_isa) != riscv_isa) {
-			ps("Error: different ISA extensions across CPUs!\n");
+			pr("Error: different ISA extensions across CPUs!\n");
 			return -EINVAL;
 		}
 	} else {

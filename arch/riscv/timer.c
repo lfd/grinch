@@ -86,7 +86,7 @@ int __init arch_timer_init(void)
 	err = fdt_read_u32(_fdt, nodeoffset, ISTR("timebase-frequency"),
 			   &timebase_frequency);
 	if (err) {
-		psi("No valid timebase frequency found\n");
+		pri("No valid timebase frequency found\n");
 		return err;
 	}
 
