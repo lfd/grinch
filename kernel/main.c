@@ -21,6 +21,7 @@
 #include <grinch/fdt.h>
 #include <grinch/gfp.h>
 #include <grinch/memtest.h>
+#include <grinch/paging.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/smp.h>

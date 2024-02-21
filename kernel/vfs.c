@@ -15,6 +15,7 @@
 #include <grinch/alloc.h>
 #include <grinch/fdt.h>
 #include <grinch/gfp.h>
+#include <grinch/paging.h>
 #include <grinch/printk.h>
 #include <grinch/vfs.h>
 

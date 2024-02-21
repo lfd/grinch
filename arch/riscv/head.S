@@ -13,7 +13,6 @@
 #include <asm_generic/grinch_layout.h>
 #include <asm/asm_defines.h>
 
-#include <grinch/paging.h>
 #include <grinch/percpu.h>
 
 .section .header, "ax"

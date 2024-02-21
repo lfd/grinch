@@ -18,7 +18,6 @@
 #include <grinch/alloc.h>
 #include <grinch/bootparam.h>
 #include <grinch/errno.h>
-#include <grinch/paging.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/vma.h>

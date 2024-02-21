@@ -14,9 +14,8 @@
 #define _PERCPU_H
 
 #include <asm_generic/grinch_layout.h>
+#include <asm/paging_common.h>
 #include <asm/percpu.h>
-
-#include <grinch/paging.h>
 
 #define STACK_PAGES	1
 #define STACK_SIZE	(STACK_PAGES * PAGE_SIZE)

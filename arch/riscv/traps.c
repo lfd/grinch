@@ -15,7 +15,6 @@
 #include <asm/isa.h>
 
 #include <grinch/irqchip.h>
-#include <grinch/paging.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/percpu.h>

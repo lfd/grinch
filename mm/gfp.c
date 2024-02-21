@@ -19,6 +19,7 @@
 #include <grinch/fdt.h>
 #include <grinch/gfp.h>
 #include <grinch/mm.h>
+#include <grinch/paging.h>
 #include <grinch/percpu.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>

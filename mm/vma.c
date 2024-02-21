@@ -17,6 +17,7 @@
 #include <grinch/alloc.h>
 #include <grinch/gfp.h>
 #include <grinch/percpu.h>
+#include <grinch/paging.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/task.h>

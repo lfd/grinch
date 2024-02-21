@@ -12,6 +12,8 @@
 
 #define dbg_fmt(x)	"vmm ecall: " x
 
+#include <asm/csr.h>
+
 #include <grinch/errno.h>
 #include <grinch/hypercall.h>
 #include <grinch/percpu.h>

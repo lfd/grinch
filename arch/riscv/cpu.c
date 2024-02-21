@@ -17,7 +17,6 @@
 #include <grinch/boot.h>
 #include <grinch/hypercall.h>
 #include <grinch/irqchip.h>
-#include <grinch/paging.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/smp.h>

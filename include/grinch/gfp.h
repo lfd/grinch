@@ -22,8 +22,9 @@
 
 #include <string.h>
 
+#include <asm/paging_common.h>
+
 #include <grinch/errno.h>
-#include <grinch/paging.h>
 
 /* Physical Page allocation */
 int phys_pages_alloc_aligned(paddr_t *res, size_t pages, unsigned int alignment);

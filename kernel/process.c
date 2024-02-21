@@ -17,7 +17,6 @@
 #include <grinch/alloc.h>
 #include <grinch/elf.h>
 #include <grinch/errno.h>
-#include <grinch/paging.h>
 #include <grinch/printk.h>
 #include <grinch/task.h>
 #include <grinch/uaccess.h>

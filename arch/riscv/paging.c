@@ -2,7 +2,7 @@
  * Jailhouse, a Linux-based partitioning hypervisor
  *
  * Copyright (c) Siemens AG, 2020
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Konrad Schwarz <konrad.schwarz@siemens.com>
@@ -13,6 +13,7 @@
  */
 
 #include <grinch/gfp.h>
+#include <grinch/paging.h>
 #include <grinch/percpu.h>
 
 #define	PAGE_BITS	12

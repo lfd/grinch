@@ -14,6 +14,7 @@
 
 #include <grinch/gfp.h>
 #include <grinch/panic.h>
+#include <grinch/paging.h>
 #include <grinch/printk.h>
 #include <grinch/types.h>
 #include <grinch/task.h>
