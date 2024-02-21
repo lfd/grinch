@@ -19,8 +19,10 @@
 #include <grinch/gfp.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
+#include <grinch/platform.h>
 #include <grinch/task.h>
 #include <grinch/vfs.h>
+#include <grinch/vsprintf.h>
 
 #include <grinch/arch/vmm.h>
 
@@ -288,8 +290,9 @@ static int vm_load_file(struct vmachine *vm, const char *filename, size_t offset
 
 static struct task *vmm_alloc_new(void)
 {
-	struct task *task;
 	struct vmachine *vm;
+	struct task *task;
+	char buf[128];
 	int err;
 
 	/* Allocate basic structures */
@@ -317,7 +320,8 @@ static struct task *vmm_alloc_new(void)
 		goto vmfree_out;
 
 	pr("Copying VM device tree...\n");
-	err = vm_load_file(vm, "initrd:/vm.dtb", VM_FDT_OFFSET);
+	snprintf(buf, sizeof(buf), "initrd:/%s.dtb", platform_model);
+	err = vm_load_file(vm, buf, VM_FDT_OFFSET);
 	if (err)
 		goto vmfree_out;
 
