@@ -28,8 +28,18 @@ extern const unsigned char _ctype[];
 
 #define __ismask(x) (_ctype[(int)(unsigned char)(x)])
 
+#define isalnum(c)	((__ismask(c)&(_U|_L|_D)) != 0)
 #define isxdigit(c)	((__ismask(c)&(_D|_X)) != 0)
 #define isprint(c)	((__ismask(c)&(_P|_U|_L|_D|_SP)) != 0)
+
+#if __has_builtin(__builtin_isdigit)
+#define isdigit(c)	__builtin_isdigit(c)
+#else
+static inline int isdigit(int c)
+{
+	return '0' <= c && c <= '9';
+}
+#endif
 
 static inline char _tolower(const char c)
 {
