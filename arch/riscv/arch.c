@@ -22,9 +22,9 @@
 #include <grinch/irqchip.h>
 #include <grinch/percpu.h>
 #include <grinch/panic.h>
+#include <grinch/platform.h>
 #include <grinch/printk.h>
 #include <grinch/serial.h>
-#include <grinch/smp.h>
 #include <grinch/timer.h>
 #include <grinch/vfs.h>
 

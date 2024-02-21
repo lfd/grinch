@@ -14,6 +14,7 @@
 #define _SMP_H
 
 #include <grinch/bitmap.h>
+#include <grinch/init.h>
 
 #define for_each_cpu_except(cpu, set, exception)                \
 	for ((cpu) = -1;                                        \
@@ -51,8 +52,7 @@ unsigned int next_cpu(unsigned int cpu, unsigned long *bitmap,
 
 int arch_boot_cpu(unsigned long cpu);
 
-int platform_init(void);
-int smp_init(void);
+int __init smp_init(void);
 
 void ipi_send(unsigned long cpu_id);
 void ipi_broadcast(void);
