@@ -13,10 +13,10 @@
 #ifndef _INIT_H
 #define _INIT_H
 
-#define __init			__attribute__((section(".init.text"), used))
-#define __initconst		__attribute__((section(".init.rodata"), used))
-#define __initdata		__attribute__((section(".init.data"), used))
-#define __initbootparams	__attribute__((section(".init.bootparams"), used))
+#define __init			__used __section(".init.text")
+#define __initconst		__used __section(".init.rodata")
+#define __initdata		__used __section(".init.data")
+#define __initbootparams	__used __section(".init.bootparams")
 
 /* Constant init string */
 #define ISTR(X)			({static const char __c[] __initconst = (X); &__c[0];})

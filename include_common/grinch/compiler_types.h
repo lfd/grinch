@@ -34,4 +34,6 @@
 			 __scalar_type_to_expr_cases(long long),	\
 			 default: (x)))
 
+#define noinline_for_stack noinline
+
 #endif /* _COMPILER_TYPES_H */

@@ -39,8 +39,7 @@ struct per_cpu {
 		};
 	} stack;
 
-	unsigned long root_table_page[PTES_PER_PT]
-		__attribute__((aligned(PAGE_SIZE)));
+	unsigned long root_table_page[PTES_PER_PT] __aligned(PAGE_SIZE);
 
 	ARCH_PER_CPU_FIELDS
 
@@ -61,7 +60,7 @@ struct per_cpu {
 	} remote_call;
 
 	struct task *current_task;
-} __attribute__((aligned(PAGE_SIZE)));
+} __aligned(PAGE_SIZE);
 
 static inline struct per_cpu *this_per_cpu(void)
 {

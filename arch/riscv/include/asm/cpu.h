@@ -15,6 +15,7 @@
 
 #ifndef __ASSEMBLY__
 
+#include <grinch/compiler_attributes.h>
 #include <grinch/types.h>
 
 extern const char *causes[];
@@ -53,7 +54,7 @@ struct registers {
 	unsigned long t6;
 
 	unsigned long pc;
-} __attribute__((packed));
+} __packed;
 
 struct trap_context {
 	/* Privileged registers */
@@ -106,7 +107,7 @@ static inline void flush_tlb_page(paddr_t page_addr)
 		     : : [addr] "r" (page_addr));
 }
 
-static inline void __attribute__((noreturn, always_inline)) cpu_halt(void)
+static __always_inline void __noreturn cpu_halt(void)
 {
 	asm volatile("j _cpu_halt");
 	__builtin_unreachable();

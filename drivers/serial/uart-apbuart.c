@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -11,6 +11,8 @@
  */
 
 #include <asm/cpu.h>
+
+#include <grinch/compiler_attributes.h>
 #include <grinch/errno.h>
 #include <grinch/mmio.h>
 #include <grinch/serial.h>
@@ -38,7 +40,7 @@ struct apbuart {
 	u32 status;
 	u32 ctrl;
 	u32 scaler;
-} __attribute__((packed));
+} __packed;
 
 static void apbuart_write_byte(struct uart_chip *chip, unsigned char ch)
 {

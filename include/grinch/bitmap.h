@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -13,6 +13,7 @@
 #ifndef _BITMAP_H
 #define _BITMAP_H
 
+#include <grinch/compiler_attributes.h>
 #include <grinch/types.h>
 
 #define BITMAP_ELEMS(BITS)	(((BITS) + BITS_PER_LONG - 1) / BITS_PER_LONG)
@@ -23,7 +24,7 @@ struct bitmap {
 	unsigned long bit_max;
 };
 
-static inline __attribute__((always_inline)) int
+static __always_inline int
 test_bit(unsigned int nr, const volatile unsigned long *addr)
 {
 	return ((1UL << (nr % BITS_PER_LONG)) &
