@@ -31,8 +31,16 @@ void __noreturn panic_stop(void)
 	ipi_disable();
 	timer_disable();
 	ext_disable();
-	pr("Panic: CPU %lu HALTED\n", this_cpu_id());
+	pr(PANIC_PREFIX "CPU %lu HALTED\n", this_cpu_id());
 	if (grinch_is_guest)
 		hypercall_vmquit(-1);
 	cpu_halt();
+}
+
+void __noreturn do_panic(void)
+{
+	is_panic = true;
+	mb();
+	ipi_broadcast();
+	panic_stop();
 }

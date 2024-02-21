@@ -21,6 +21,7 @@
 #include <grinch/hypercall.h>
 #include <grinch/irqchip.h>
 #include <grinch/percpu.h>
+#include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/serial.h>
 #include <grinch/smp.h>
@@ -115,7 +116,7 @@ void __noreturn arch_shutdown(int err)
 {
 	if (grinch_is_guest) {
 		hypercall_vmquit(err);
-		panic("Unreachable!\n");
+		BUG();
 	}
 
 	panic("Shutdown. Reason: %d\n", err);

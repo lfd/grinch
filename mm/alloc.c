@@ -19,6 +19,7 @@
 #include <grinch/bootparam.h>
 #include <grinch/errno.h>
 #include <grinch/paging.h>
+#include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/vma.h>
 
@@ -191,7 +192,7 @@ void *kmalloc(size_t size)
 				flags = 0;
 				tmp = next_chunk(this);
 				if (!tmp)
-					panic("must not happen\n");
+					BUG();
 				check_chunk(tmp);
 				tmp->before = other;
 			}

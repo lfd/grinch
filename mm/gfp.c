@@ -20,6 +20,7 @@
 #include <grinch/gfp.h>
 #include <grinch/mm.h>
 #include <grinch/percpu.h>
+#include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/symbols.h>
 

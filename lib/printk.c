@@ -298,15 +298,12 @@ void __noreturn __printf(1, 2) panic(const char *fmt, ...)
 	va_start(ap, fmt);
 	spin_lock(&print_lock);
 	print_prefix();
-	___puts("KERNEL PANIC: ");
+	___puts(PANIC_PREFIX);
 	__vprintk(fmt, ap);
 	spin_unlock(&print_lock);
 	va_end(ap);
 
-	is_panic = true;
-	mb();
-	ipi_broadcast();
-	panic_stop();
+	do_panic();
 }
 
 void __init printk_init(void)

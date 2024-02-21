@@ -17,6 +17,7 @@
 
 #include <grinch/alloc.h>
 #include <grinch/gfp.h>
+#include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/task.h>
 #include <grinch/vfs.h>
@@ -173,7 +174,7 @@ vmm_handle_trap(struct trap_context *ctx, struct registers *regs)
 	/* Was the VM in VU-Mode? */
 	if (!(ctx->sstatus & SR_SPP))
 		// Why does sfence.vma trap from VU->HS directly?
-		panic("VU-Mode should not trap\n");
+		BUG();
 
 	task = current_task();
 	/* Save regular registers */

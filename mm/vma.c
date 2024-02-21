@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -17,6 +17,7 @@
 #include <grinch/alloc.h>
 #include <grinch/gfp.h>
 #include <grinch/percpu.h>
+#include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/task.h>
 #include <grinch/uaccess.h>
@@ -125,7 +126,7 @@ void uvmas_destroy(struct process *p)
 		tmp = list_entry(pos, struct vma, vmas);
 		err = uvma_destroy(p, tmp);
 		if (err)
-			panic("Destroying VMA\n");
+			BUG();
 		list_del(pos);
 		kfree(tmp);
 	}

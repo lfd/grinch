@@ -21,6 +21,7 @@
 #include <grinch/boot.h>
 #include <grinch/errno.h>
 #include <grinch/hypercall.h>
+#include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/task.h>
 #include <grinch/percpu.h>
@@ -44,7 +45,7 @@ void task_destroy(struct task *task)
 		break;
 
 	default:
-		panic("Unknown task type\n");
+		BUG();
 		break;
 	}
 
@@ -127,7 +128,7 @@ static void task_activate(struct task *task)
 		break;
 
 	default:
-		panic("Unknown task type!\n");
+		BUG();
 		break;
 	}
 }
@@ -400,7 +401,7 @@ retry:
 			}
 		} else {
 			if (tpcpu->idling)
-				panic("Double idling.\n");
+				BUG();
 		}
 		do_idle();
 		goto retry;
@@ -412,8 +413,9 @@ retry:
 			case GRINCH_PROCESS:
 				arch_process_activate(current_task()->process);
 				break;
+
 			default:
-				panic("Not implemented\n");
+				BUG();
 				break;
 		}
 	}

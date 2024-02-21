@@ -18,6 +18,7 @@
 #include <grinch/errno.h>
 #include <grinch/fdt.h>
 #include <grinch/init.h>
+#include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/smp.h>
 #include <grinch/timer.h>
