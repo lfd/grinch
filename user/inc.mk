@@ -1,6 +1,6 @@
 APPS=init jittertest hello
 
-INCLUDES_USER = -Iuser/include -Iinclude_common -Iuser/lib/$(ARCH)/include
+INCLUDES_USER = -Iuser/include -Icommon/include -Iuser/lib/$(ARCH)/include
 CFLAGS_USER = $(CFLAGS_COMMON) $(CFLAGS_ARCH) $(INCLUDES_USER)
 LDFLAGS_USER = $(LDFLAGS_COMMON) $(LDFLAGS_ARCH)
 
