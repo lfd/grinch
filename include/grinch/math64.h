@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -20,9 +20,13 @@ static inline u64 div_u64(u64 dividend, u32 divisor)
 	return dividend / divisor;
 }
 
-static inline u64 div_u64_u64(u64 dividend, u64 divisor)
-{
-	return dividend / divisor;
-}
+
+#define do_div(n,base) ({					\
+	u32 __base = (base);					\
+	u32 __rem;						\
+	__rem = ((u64)(n)) % __base;				\
+	(n) = ((u64)(n)) / __base;				\
+	__rem;							\
+ })
 
 #endif /* _MATH64_H */

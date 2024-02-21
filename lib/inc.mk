@@ -1,5 +1,5 @@
-LIB_OBJS = panic.o printk.o string.o bitmap.o fdt.o strtox.o ctype.o
-LIB_OBJS += hexdump.o
+LIB_OBJS = bitmap.o ctype.o fdt.o hexdump.o panic.o printk.o string.o strtox.o
+LIB_OBJS += vsprintf.o
 LIBFDT_OBJS = libfdt/fdt.o libfdt/fdt_ro.o libfdt/fdt_addresses.o
 
 LIB_OBJS := $(addprefix lib/, $(LIB_OBJS))
