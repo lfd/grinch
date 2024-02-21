@@ -22,4 +22,4 @@ vsnprintf(char *buf, size_t size, const char *fmt, va_list args);
 
 int __printf(3, 4) snprintf(char *buf, size_t size, const char *fmt, ...);
 
-#endif /* _VSRINTF_H */
+#endif /* _VSPRINTF_H */
