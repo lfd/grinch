@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -17,7 +17,6 @@
 #include <grinch/const.h>
 #include <grinch/fdt.h>
 #include <grinch/printk.h>
-#include <grinch/string.h>
 #include <grinch/symbols.h>
 
 int bootparam_parse_size(const char *str, size_t *sz)

@@ -13,9 +13,9 @@
 /* Partly copied from the Linux kernel */
 
 #include <ctype.h>
+#include <string.h>
 
 #include <grinch/compiler_attributes.h>
-#include <grinch/string.h>
 #include <grinch/math64.h>
 
 #define KSTRTOX_OVERFLOW	(1U << 31)

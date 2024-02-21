@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -10,8 +10,9 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <string.h>
+
 #include <grinch/compiler_attributes.h>
-#include <grinch/string.h>
 
 int memcmp(const void *dst, const void *src, size_t count)
 {

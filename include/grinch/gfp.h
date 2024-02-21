@@ -20,8 +20,9 @@
  * pmm (physical pages).
  */
 
+#include <string.h>
+
 #include <grinch/errno.h>
-#include <grinch/string.h>
 #include <grinch/paging.h>
 
 /* Physical Page allocation */

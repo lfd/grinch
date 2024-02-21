@@ -18,7 +18,6 @@
 #include <grinch/gfp.h>
 #include <grinch/printk.h>
 #include <grinch/platform.h>
-#include <grinch/string.h>
 
 const char *platform_model = "PLATFORM,UNKNOWN";
 

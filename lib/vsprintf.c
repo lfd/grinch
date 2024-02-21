@@ -13,13 +13,14 @@
 /* Taken and adapted from the Linux kernel sources */
 
 #include <ctype.h>
+#include <string.h>
 
 #include <grinch/compiler_types.h>
 #include <grinch/errno.h>
 #include <grinch/math64.h>
 #include <grinch/minmax.h>
+
 #include <grinch/paging.h>
-#include <grinch/string.h>
 #include <grinch/vsprintf.h>
 
 #define cpu_to_le16(x)	(x)

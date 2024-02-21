@@ -16,7 +16,6 @@
 #include <grinch/fdt.h>
 #include <grinch/gfp.h>
 #include <grinch/printk.h>
-#include <grinch/string.h>
 #include <grinch/vfs.h>
 
 #define CPIO_MAGIC	"070701"

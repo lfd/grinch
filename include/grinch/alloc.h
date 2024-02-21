@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -13,8 +13,7 @@
 #ifndef _ALLOC_H
 #define _ALLOC_H
 
-#include <grinch/types.h>
-#include <grinch/string.h>
+#include <string.h>
 
 int kheap_init(void);
 void kheap_stats(void);

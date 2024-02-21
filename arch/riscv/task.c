@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -13,11 +13,12 @@
 #include <asm/csr.h>
 #include <asm/isa.h>
 
+#include <string.h>
+
 #include <grinch/task.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/paging.h>
-#include <grinch/string.h>
 
 void task_set_context(struct task *task, unsigned long pc, unsigned long sp)
 {
