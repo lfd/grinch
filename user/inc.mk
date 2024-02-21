@@ -4,8 +4,8 @@ INCLUDES_USER = -Iuser/include -Icommon/include -Iuser/lib/$(ARCH)/include
 CFLAGS_USER = $(CFLAGS_COMMON) $(CFLAGS_ARCH) $(INCLUDES_USER)
 LDFLAGS_USER = $(LDFLAGS_COMMON) $(LDFLAGS_ARCH)
 
-LIBC_OBJS = user/lib/stdio.o user/lib/string.o user/lib/unistd.o
-LIBC_OBJS += user/lib/sched.o
+LIBC_OBJS = user/lib/ctype.o user/lib/stdio.o user/lib/string.o
+LIBC_OBJS += user/lib/sched.o user/lib/unistd.o
 LIBC_OBJS += user/lib/$(ARCH)/entry.o
 
 LIBC_BUILTIN = user/lib/built-in.a

@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -10,7 +10,8 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <grinch/ctype.h>
+#include <ctype.h>
+
 #include <grinch/hexdump.h>
 #include <grinch/printk.h>
 

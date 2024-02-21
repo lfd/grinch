@@ -12,8 +12,9 @@
 
 /* Taken and adapted from the Linux kernel sources */
 
+#include <ctype.h>
+
 #include <grinch/compiler_types.h>
-#include <grinch/ctype.h>
 #include <grinch/errno.h>
 #include <grinch/math64.h>
 #include <grinch/minmax.h>
