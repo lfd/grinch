@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -17,7 +17,7 @@
 #include <grinch/errno.h>
 #include <grinch/printk.h>
 
-static bool isa_seen;
+static __initdata bool isa_seen;
 riscv_isa_t riscv_isa;
 
 static riscv_isa_t
@@ -34,7 +34,7 @@ riscv_parse_isa_token(unsigned long hart_id, const char *token)
 	return 0;
 }
 
-int riscv_isa_update(unsigned long hart_id, const char *_isa)
+int __init riscv_isa_update(unsigned long hart_id, const char *_isa)
 {
 	char *token, *isa_str;
 	riscv_isa_t this_isa;

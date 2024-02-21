@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -13,6 +13,7 @@
 #ifndef _ISA_H
 
 #include <grinch/percpu.h>
+#include <grinch/init.h>
 
 #define RISCV_ISA_HYPERVISOR	(1 << 0)
 
@@ -27,7 +28,7 @@ static inline bool has_hypervisor(void)
 	return riscv_isa & RISCV_ISA_HYPERVISOR;
 }
 
-int riscv_isa_update(unsigned long hart, const char *string);
+int __init riscv_isa_update(unsigned long hart, const char *string);
 
 #endif /* __ASSEMBLY__ */
 
