@@ -20,14 +20,12 @@
 #include <grinch/vsprintf.h>
 
 static DEFINE_SPINLOCK(print_lock);
-static unsigned char vm[3] = {'V', 'M', 0};
+static char prefix_fmt[32];
 
 struct {
 	unsigned int tail;
 	char content[2048];
 } console;
-
-static void __printf(1, 2) _printk_raw(const char *fmt, ...);
 
 static inline void console_write(char c)
 {
@@ -50,12 +48,19 @@ void console_flush(void)
 	console.tail = 0;
 }
 
-static inline void print_prefix(void)
+static int sprint_prefix(char **str, char *end)
 {
 	unsigned long long wall;
+	int res;
 
 	wall = timer_get_wall();
-	_printk_raw("[Grinch%s %u " PR_TIME_FMT "] ", vm, grinch_id, PR_TIME_PARAMS(wall));
+	res = snprintf(*str, end - *str, prefix_fmt, PR_TIME_PARAMS(wall));
+	if (res < 0)
+		return res;
+
+	*str += res;
+
+	return res;
 }
 
 static void ___puts(const char *msg)
@@ -79,22 +84,33 @@ void _puts(const char *msg)
 	spin_unlock(&print_lock);
 }
 
-static void vprintk(const char *fmt, va_list ap)
+static void vprintk(const char *fmt, const char *infix, va_list ap)
 {
-	// FIXME
-	char buf[1024];
-	vsnprintf(buf, sizeof(buf), fmt, ap);
-	___puts(buf);
-	return;
-}
+	char buf[196];
+	char *str, *end;
+	int err;
 
-static void __printf(1, 2) _printk_raw(const char *fmt, ...)
-{
-	va_list ap;
+	str = buf;
+	end = str + sizeof(buf);
 
-	va_start(ap, fmt);
-	vprintk(fmt, ap);
-	va_end(ap);
+	err = sprint_prefix(&str, end);
+	if (err < 0)
+		return;
+
+	if (infix) {
+		err = snprintf(str, end - str, "%s", infix);
+		if (err < 0)
+			return;
+		str += err;
+	}
+
+	err = vsnprintf(str, end - str, fmt, ap);
+	if (err < 0)
+		return;
+
+	//str += err;
+
+	_puts(buf);
 }
 
 void __printf(1, 2) printk(const char *fmt, ...)
@@ -102,10 +118,7 @@ void __printf(1, 2) printk(const char *fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
-	spin_lock(&print_lock);
-	print_prefix();
-	vprintk(fmt, ap);
-	spin_unlock(&print_lock);
+	vprintk(fmt, NULL, ap);
 	va_end(ap);
 }
 
@@ -114,11 +127,7 @@ void __noreturn __printf(1, 2) panic(const char *fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
-	spin_lock(&print_lock);
-	print_prefix();
-	___puts(PANIC_PREFIX);
-	vprintk(fmt, ap);
-	spin_unlock(&print_lock);
+	vprintk(fmt, PANIC_PREFIX, ap);
 	va_end(ap);
 
 	do_panic();
@@ -126,6 +135,7 @@ void __noreturn __printf(1, 2) panic(const char *fmt, ...)
 
 void __init printk_init(void)
 {
-	if (!grinch_is_guest)
-		vm[0] = 0;
+	snprintf(prefix_fmt, sizeof(prefix_fmt), ISTR("[Grinch%s %u %s] "),
+			grinch_is_guest ? ISTR("VM") : ISTR(""), grinch_id,
+			PR_TIME_FMT);
 }
