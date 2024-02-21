@@ -21,6 +21,7 @@
 #define EIO		5
 #define E2BIG		7
 #define ENOMEM		12
+#define EFAULT		14
 #define EBUSY		16
 #define EEXIST		17
 #define ENODEV		19
