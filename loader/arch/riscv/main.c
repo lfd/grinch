@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -17,6 +17,7 @@
 #include <grinch/paging.h>
 #include <grinch/percpu.h>
 #include <grinch/symbols.h>
+#include <grinch/string.h>
 #include <grinch/loader.h>
 
 /* Set PTE access bits to RWX + AD to prevent page faults */

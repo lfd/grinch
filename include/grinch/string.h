@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -14,9 +14,6 @@
 #define _STRING_H
 
 #include <grinch/types.h>
-
-#define __stringify_1(x...)	#x
-#define __stringify(x...)	__stringify_1(x)
 
 #ifndef __ASSEMBLY__
 

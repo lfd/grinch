@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -13,7 +13,7 @@
 /* party copied from the Linux kernel sources */
 
 #include <grinch/const.h>
-#include <grinch/string.h>
+#include <grinch/stringify.h>
 
 /* Definition for CSR register numbers, that are not available for RISC-V
  * binutils < 2.38

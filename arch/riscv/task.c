@@ -17,6 +17,7 @@
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/paging.h>
+#include <grinch/string.h>
 
 void task_set_context(struct task *task, unsigned long pc, unsigned long sp)
 {
