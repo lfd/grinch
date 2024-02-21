@@ -37,10 +37,6 @@ int __init arch_init(void)
 
 	irq_disable();
 
-	err = platform_init();
-	if (err)
-		goto out;
-
 	err = phys_mem_init_fdt();
 	if (err)
 		goto out;
@@ -52,6 +48,10 @@ int __init arch_init(void)
 		goto out;
 
 	err = kheap_init();
+	if (err)
+		goto out;
+
+	err = platform_init();
 	if (err)
 		goto out;
 

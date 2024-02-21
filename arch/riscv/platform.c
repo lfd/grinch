@@ -18,23 +18,36 @@
 #include <grinch/gfp.h>
 #include <grinch/printk.h>
 #include <grinch/platform.h>
+#include <grinch/string.h>
+
+const char *platform_model = "PLATFORM,UNKNOWN";
 
 int __init platform_init(void)
 {
 	const char *name, *isa;
 	unsigned long hart_id;
-	int err, cpu, child;
+	int err, off, child;
 	const fdt32_t *reg;
 
 	bitmap_set(cpus_online, this_cpu_id(), 1);
 
-	cpu = fdt_path_offset(_fdt, "/cpus");
-	if (cpu < 0) {
+	off = fdt_path_offset(_fdt, "/");
+	if (off < 0)
+		goto no_model;
+
+	name = fdt_getprop(_fdt, off, ISTR("model"), &err);
+	if (name)
+		platform_model = name;
+no_model:
+	pri("Found platform: %s\n", platform_model);
+
+	off = fdt_path_offset(_fdt, "/cpus");
+	if (off < 0) {
 		pri("No CPUs found in device-tree. Halting.\n");
 		return -ENOSYS;
 	}
 
-	fdt_for_each_subnode(child, _fdt, cpu) {
+	fdt_for_each_subnode(child, _fdt, off) {
 		name = fdt_get_name(_fdt, child, NULL);
 		if (strcmp(name, ISTR("cpu-map")) == 0)
 			continue;
