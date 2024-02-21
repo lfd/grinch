@@ -22,6 +22,6 @@
 extern const char __app_name_fmt[];
 
 int puts(const char *s);
-void __printf(1, 2) printf(const char *fmt, ...);
+int __printf(1, 2) printf(const char *fmt, ...);
 
 #endif /* _STDIO_H */
