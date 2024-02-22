@@ -19,6 +19,7 @@
 #include <grinch/arch.h>
 #include <grinch/boot.h>
 #include <grinch/bootparam.h>
+#include <grinch/driver.h>
 #include <grinch/fdt.h>
 #include <grinch/gfp.h>
 #include <grinch/memtest.h>
@@ -201,6 +202,10 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 	}
 
 	kheap_stats();
+
+	err = driver_init();
+	if (err)
+		goto out;
 
 	err = vm_init();
 	if (err)
