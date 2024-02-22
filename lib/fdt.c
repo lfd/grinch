@@ -41,9 +41,9 @@ static const struct of_device_id
 	return NULL;
 }
 
-static int fdt_match_device_off(const void *fdt, int offset,
-				const struct of_device_id *compats,
-				const struct of_device_id **match)
+int fdt_match_device_off(const void *fdt, int offset,
+			 const struct of_device_id *compats,
+			 const struct of_device_id **match)
 {
 	const struct of_device_id *compat;
 	const char *compatible;

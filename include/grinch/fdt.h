@@ -51,4 +51,8 @@ int fdt_match_device(const void *fdt, const char *path,
 		     const struct of_device_id *compats,
 		     const struct of_device_id **match);
 
+int fdt_match_device_off(const void *fdt, int offset,
+			 const struct of_device_id *compats,
+			 const struct of_device_id **match);
+
 #endif /* _FDT_H */
