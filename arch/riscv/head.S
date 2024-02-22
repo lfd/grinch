@@ -84,8 +84,6 @@ start:
 
 	/* Hand over to C */
 	jal	cmain
-	bne	a0, zero, _cpu_halt
-
 	j	return_to_user
 
 .globl _cpu_halt

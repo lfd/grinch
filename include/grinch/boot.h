@@ -14,4 +14,4 @@
 
 extern unsigned int grinch_id;
 
-int cmain(unsigned long boot_cpu, paddr_t fdt);
+void cmain(unsigned long boot_cpu, paddr_t fdt);

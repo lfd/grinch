@@ -123,7 +123,7 @@ static int __init vm_init(void)
 	return err;
 }
 
-int cmain(unsigned long boot_cpu, paddr_t __fdt)
+void cmain(unsigned long boot_cpu, paddr_t __fdt)
 {
 	int err;
 
@@ -192,7 +192,6 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 
 out:
 	pr("End reached: %pe\n", ERR_PTR(err));
-	if (grinch_is_guest && err)
+	if (err)
 		arch_shutdown(err);
-	return err;
 }
