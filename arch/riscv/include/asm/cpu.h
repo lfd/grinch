@@ -15,6 +15,8 @@
 
 #ifndef __ASSEMBLY__
 
+#include <asm/irq.h>
+
 #include <grinch/compiler_attributes.h>
 #include <grinch/types.h>
 
@@ -109,6 +111,10 @@ static inline void flush_tlb_page(paddr_t page_addr)
 
 static __always_inline void __noreturn cpu_halt(void)
 {
+	irq_disable();
+	ipi_disable();
+	timer_disable();
+	ext_disable();
 	asm volatile("j _cpu_halt");
 	__builtin_unreachable();
 }
