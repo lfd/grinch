@@ -323,18 +323,18 @@ static struct task *vmm_alloc_new(void)
 		goto vmfree_out;
 	vm->memregion.size = VM_PAGES * PAGE_SIZE;
 
-	pr("Copying kernel...\n");
+	pd("Copying kernel...\n");
 	err = vm_load_file(vm, "initrd:/kernel.bin", 0);
 	if (err)
 		goto vmfree_out;
 
-	pr("Copying VM device tree...\n");
+	pd("Copying VM device tree...\n");
 	snprintf(buf, sizeof(buf), "initrd:/%s.dtb", platform_model);
 	err = vm_load_file(vm, buf, VM_FDT_OFFSET);
 	if (err)
 		goto vmfree_out;
 
-	pr("Copying initrd...\n");
+	pd("Copying initrd...\n");
 	err = vm_memcpy(vm, 1 * MIB, initrd.vbase, initrd.size);
 	if (err)
 		goto vmfree_out;
@@ -401,7 +401,6 @@ int vm_create_grinch(void)
 {
 	struct task *task;
 
-	pr("Creating a Grinch VM\n");
 	task = vmm_alloc_new();
 	if (IS_ERR(task))
 		return PTR_ERR(task);

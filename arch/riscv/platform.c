@@ -65,8 +65,6 @@ no_model:
 		isa = fdt_getprop(_fdt, child, ISTR("riscv,isa"), &err);
 		if (!isa || err < 0) {
 			pri("CPU %lu: No ISA specification found\n", hart_id);
-		} else {
-			pri("CPU %lu: Found ISA level: %s\n", hart_id, isa);
 		}
 		err = riscv_isa_update(hart_id, isa);
 		if (err)
