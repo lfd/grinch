@@ -28,7 +28,7 @@ static inline bool has_hypervisor(void)
 	return riscv_isa & RISCV_ISA_HYPERVISOR;
 }
 
-int __init riscv_isa_update(unsigned long hart, const char *string);
+int riscv_isa_update(unsigned long hart, const char *string);
 
 #endif /* __ASSEMBLY__ */
 

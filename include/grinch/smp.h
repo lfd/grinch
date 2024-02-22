@@ -52,7 +52,7 @@ unsigned int next_cpu(unsigned int cpu, unsigned long *bitmap,
 
 int arch_boot_cpu(unsigned long cpu);
 
-int __init smp_init(void);
+int smp_init(void);
 
 void ipi_send(unsigned long cpu_id);
 void ipi_broadcast(void);

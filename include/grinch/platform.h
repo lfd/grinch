@@ -17,6 +17,6 @@
 
 extern const char *platform_model;
 
-int __init platform_init(void);
+int platform_init(void);
 
 #endif /* _PLATFORM_H */

@@ -13,6 +13,8 @@
 #ifndef _INIT_H
 #define _INIT_H
 
+#include <grinch/compiler_attributes.h>
+
 #define __init			__used __section(".init.text")
 #define __initconst		__used __section(".init.rodata")
 #define __initdata		__used __section(".init.data")
