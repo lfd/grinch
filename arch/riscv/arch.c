@@ -13,7 +13,6 @@
 #define dbg_fmt(x)	"arch: " x
 
 #include <asm/irq.h>
-#include <asm/isa.h>
 
 #include <grinch/arch.h>
 #include <grinch/alloc.h>
@@ -29,7 +28,6 @@
 #include <grinch/vfs.h>
 
 #include <grinch/arch/sbi.h>
-#include <grinch/arch/vmm.h>
 
 int __init arch_init(void)
 {
@@ -95,18 +93,6 @@ con:
 	if (err == -ENOSYS) {
 		pri("H-Extensions not available\n");
 		err = 0;
-	}
-
-	if (1 && has_hypervisor()) {
-		/* create two test instances */
-		err = vm_create_grinch();
-		if (err)
-			goto out;
-#if 0
-		err = vm_create_grinch();
-		if (err)
-			goto out;
-#endif
 	}
 
 out:
