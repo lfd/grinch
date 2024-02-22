@@ -418,6 +418,6 @@ int __init paging_init(unsigned long this_cpu)
 	return 0;
 
 out:
-	pri("Mapping error: %d\n", err);
+	pri("Mapping error: %pe\n", ERR_PTR(err));
 	return err;
 }

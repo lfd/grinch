@@ -152,8 +152,9 @@ int cmain(unsigned long boot_cpu, paddr_t __fdt)
 	sched_all();
 
 	prepare_user_return();
+
 out:
-	pr("End reached: %d\n", err);
+	pr("End reached: %pe\n", ERR_PTR(err));
 	if (grinch_is_guest && err)
 		arch_shutdown(err);
 	return err;

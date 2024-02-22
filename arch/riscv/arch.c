@@ -120,5 +120,5 @@ void __noreturn arch_shutdown(int err)
 		BUG();
 	}
 
-	panic("Shutdown. Reason: %d\n", err);
+	panic("Shutdown. Reason: %pe\n", ERR_PTR(err));
 }

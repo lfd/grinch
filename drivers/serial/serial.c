@@ -111,12 +111,14 @@ int __init serial_init(const struct uart_driver *d, paddr_t uart_base,
 		err = irq_register_handler(irq, (void*)uart_default.driver->rcv_handler,
 					   &uart_default);
 		if (err) {
-			pr("Unable to register IRQ %d (%d)\n", irq, err);
+			pr("Unable to register IRQ %d (%pe)\n",
+			   irq, ERR_PTR(err));
 			return err;
 		}
 		err = irqchip_enable_irq(this_cpu_id(), irq, 5, 4);
 		if (err) {
-			pr("Unable to enable IRQ %d\n", irq);
+			pr("Unable to enable IRQ %d (%pe)\n",
+			   irq, ERR_PTR(err));
 			return err;
 		}
 	} else {

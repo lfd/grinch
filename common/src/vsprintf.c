@@ -464,11 +464,37 @@ static char *pointer_string(char *buf, char *end,
 	return number(buf, end, (unsigned long int)ptr, spec);
 }
 
+static char *err_ptr(char *buf, char *end, void *ptr,
+		     struct printf_spec spec)
+{
+	int err = PTR_ERR(ptr);
+	const char *sym = errname(err);
+
+	if (sym)
+		return string_nocheck(buf, end, sym, spec);
+
+	/*
+	 * Somebody passed ERR_PTR(-1234) or some other non-existing
+	 * Efoo - or perhaps CONFIG_SYMBOLIC_ERRNAME=n. Fall back to
+	 * printing it as its decimal representation.
+	 */
+	spec.flags |= SIGN;
+	spec.base = 10;
+	return number(buf, end, err, spec);
+}
+
 static noinline_for_stack
 char *pointer(const char *fmt, char *buf, char *end, void *ptr,
 	      struct printf_spec spec)
 {
 	switch (*fmt) {
+	case 'e':
+		/* %pe with a non-ERR_PTR gets treated as plain %p */
+		if (!ptr)
+			return string_nocheck(buf, end, "success", spec);
+		if (!IS_ERR(ptr))
+			return pointer_string(buf, end, ptr, spec);
+		return err_ptr(buf, end, ptr, spec);
 	case 'x':
 	default:
 		return pointer_string(buf, end, ptr, spec);

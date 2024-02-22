@@ -33,9 +33,10 @@ void printk_init(void);
 
 #define pri(fmt, ...) printk(ISTR(dbg_fmt(fmt)), ##__VA_ARGS__)
 
-#define trace_error(code) ({						  \
-	printk("%s:%d: returning error %d\n", __FILE__, __LINE__, code); \
-	code;								  \
+#define trace_error(code) ({						\
+	printk("%s:%d: returning error %pe\n",				\
+	       __FILE__, __LINE__, ERR_PTR(code));			\
+	code;								\
 })
 
 #ifdef DEBUG

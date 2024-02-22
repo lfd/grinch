@@ -48,4 +48,6 @@ static inline bool IS_ERR(const void *ptr)
 	return IS_ERR_VALUE((unsigned long)ptr);
 }
 
+const char *errname(int err);
+
 #endif /* _ERRNO_H */

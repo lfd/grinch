@@ -42,7 +42,8 @@ void irqchip_handle_irq(unsigned int irq)
 	if (handler) {
 		err = handler(irq_handlers_userdata[irq]);
 		if (err)
-			pr("Handler error for IRQ %u: %d\n", irq, err);
+			pr("Handler error for IRQ %u: %pe\n",
+			   irq, ERR_PTR(err));
 	} else
 		pr("No Handler for IRQ %u\n", irq);
 }

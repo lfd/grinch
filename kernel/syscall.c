@@ -61,7 +61,7 @@ void exit(int code)
 	struct task *task;
 
 	task = current_task();
-	pr("PID %u exited: %d\n", task->pid, code);
+	pr("PID %u exited: %pe\n", task->pid, ERR_PTR(code));
 	task_destroy(task);
 }
 

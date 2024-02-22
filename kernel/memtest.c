@@ -55,7 +55,7 @@ static void memtest_kmem(void)
 		pr("Freeing %p\n", pages[tmp]);
 		err = free_pages(pages[tmp], 1);
 		if (err) {
-			pr("Err: %d\n", err);
+			pr("Error: %pe\n", ERR_PTR(err));
 			break;
 		}
 	}
