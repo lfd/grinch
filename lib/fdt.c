@@ -70,19 +70,6 @@ int fdt_match_device_off(const void *fdt, int offset,
 	return -ENOENT;
 }
 
-int fdt_match_device(const void *fdt, const char *path,
-		     const struct of_device_id *compats,
-		     const struct of_device_id **match)
-{
-	int off;
-
-	off = fdt_path_offset(fdt, path);
-	if (off <= 0)
-		return -ENOENT;
-
-	return fdt_match_device_off(fdt, off, compats, match);
-}
-
 int fdt_find_device(const void *fdt, const char *path,
 		    const struct of_device_id *compats,
 		    const struct of_device_id **match)
