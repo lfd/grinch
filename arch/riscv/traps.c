@@ -146,7 +146,7 @@ out:
 		if (!(ctx.sstatus & SR_SPP))
 			pr("PID: %u\n", current_task()->pid);
 		dump_regs(regs);
-		panic_stop();
+		panic("System halted\n");
 	}
 
 	if (vmtr == VMM_HANDLED || !(ctx.sstatus & SR_SPP))
