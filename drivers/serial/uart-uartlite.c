@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -47,9 +47,19 @@ static void uart_uartlite_write_byte(struct uart_chip *chip, unsigned char c)
 	chip->reg_out(chip, UARTLITE_TX, c);
 }
 
-const struct uart_driver uart_uartlite = {
+static const struct uart_driver uart_uartlite = {
 	.init = uart_uartlite_init,
 	.write_byte = uart_uartlite_write_byte,
 	.is_busy = uart_uartlite_is_busy,
 	.rcv_handler = uart_uartlite_rcv_handler,
 };
+
+static const struct of_device_id uart_uartlite_matches[] = {
+	{ .compatible = "riscv,axi-uart-1.0", .data = &uart_uartlite, },
+	{ .compatible = "xlnx,opb-uartlite-1.00.b", .data = &uart_uartlite, },
+	{ .compatible = "xlnx,opb-uartlite-1.00.a", .data = &uart_uartlite, },
+	{ /* Sentinel */ }
+};
+
+DECLARE_DRIVER(uartlite, PRIO_1, NULL, uart_probe_generic,
+	       uart_uartlite_matches);

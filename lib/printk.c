@@ -51,17 +51,22 @@ static inline void console_write(char c)
 	console.tail++;
 }
 
+static inline void stdout_putc(char c)
+{
+	uart_write_char(uart_stdout, c);
+}
+
 void console_flush(void)
 {
 	unsigned int pos;
 
 	if (console.tail > sizeof(console.content)) {
 		for (pos = console.tail % sizeof(console.content); pos < sizeof(console.content); pos++)
-			uart_write_char(&uart_default, console.content[pos]);
+			stdout_putc(console.content[pos]);
 	}
 
 	for (pos = 0; pos < console.tail % sizeof(console.content); pos++)
-		uart_write_char(&uart_default, console.content[pos]);
+		stdout_putc(console.content[pos]);
 
 	console.tail = 0;
 }
@@ -90,7 +95,7 @@ static void ___puts(const char *msg)
 		if (!c)
 			break;
 
-		uart_write_char(&uart_default, c);
+		stdout_putc(c);
 		console_write(c);
 	}
 }

@@ -28,6 +28,7 @@ struct uart_driver {
 struct uart_chip {
 	const struct uart_driver *driver;
 	void *base;
+	size_t size;
 	u32 irq;
 
 	void (*reg_out)(struct uart_chip *chip, unsigned int reg, u32 value);
@@ -49,17 +50,18 @@ static inline void uart_write_char(struct uart_chip *chip, char c)
 	uart_write_byte(chip, c);
 }
 
-extern struct uart_chip uart_default;
+extern struct uart_chip *uart_stdout;
 
 extern const struct uart_driver uart_dummy;
-extern const struct uart_driver uart_apbuart;
-extern const struct uart_driver uart_8250;
 #ifdef ARCH_RISCV
 extern const struct uart_driver uart_sbi;
-extern const struct uart_driver uart_uartlite;
-#elif defined(ARCH_ARM64)
-extern const struct uart_driver uart_bcm2835_aux;
 #endif
+
+#include <grinch/driver.h>
+int uart_init(struct device *dev);
+void uart_deinit(struct device *dev);
+
+int uart_probe_generic(struct device *dev);
 
 void serial_in(char ch);
 int serial_init(const struct uart_driver *d, paddr_t uart_base, u64 uart_size,

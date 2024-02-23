@@ -93,9 +93,16 @@ static int apbuart_init(struct uart_chip *chip)
 	return 0;
 }
 
-const struct uart_driver uart_apbuart = {
+static const struct uart_driver uart_apbuart = {
 	.init = apbuart_init,
 	.write_byte = apbuart_write_byte,
 	.is_busy = apbuart_is_busy,
 	.rcv_handler = apbuart_rcv,
 };
+
+static const struct of_device_id uart_apbuart_matches[] = {
+	{ .compatible = "gaisler,apbuart", .data = &uart_apbuart, },
+	{ /* Sentinel */ }
+};
+
+DECLARE_DRIVER(APBUART, PRIO_1, NULL, uart_probe_generic, uart_apbuart_matches);

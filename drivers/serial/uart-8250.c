@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -53,9 +53,18 @@ static void uart_8250_write_byte(struct uart_chip *chip, unsigned char c)
 	chip->reg_out(chip, UART_TX, c);
 }
 
-const struct uart_driver uart_8250 = {
+static const struct uart_driver uart_8250 = {
 	.init = uart_8250_init,
 	.write_byte = uart_8250_write_byte,
 	.is_busy = uart_8250_is_busy,
 	.rcv_handler = uart_8250_rcv_handler,
 };
+
+static const struct of_device_id uart_8250_matches[] = {
+	{ .compatible = "ns16550a", .data = &uart_8250, },
+	{ .compatible = "uart8250", .data = &uart_8250, },
+        { .compatible = "snps,dw-apb-uart", .data = &uart_8250, },
+	{},
+};
+
+DECLARE_DRIVER(UART8250, PRIO_1, NULL, uart_probe_generic, uart_8250_matches);

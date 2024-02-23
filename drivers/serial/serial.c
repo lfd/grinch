@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -13,6 +13,7 @@
 #define dbg_fmt(x) "serial: " x
 
 #include <asm/cpu.h>
+#include <grinch/alloc.h>
 #include <grinch/errno.h>
 #include <grinch/fdt.h>
 #include <grinch/ioremap.h>
@@ -22,7 +23,7 @@
 #include <grinch/printk.h>
 #include <grinch/serial.h>
 
-struct uart_chip uart_default = {
+static struct uart_chip uart_default = {
 #if defined(ARCH_RISCV)
 	.driver = &uart_sbi,
 #elif defined(ARCH_ARM64)
@@ -30,23 +31,12 @@ struct uart_chip uart_default = {
 #endif
 };
 
+struct uart_chip *uart_stdout = &uart_default;
+
 void serial_in(char ch)
 {
 	pr("STDIN rcvd: %c\n", ch);
 }
-
-static const struct of_device_id of_match[] = {
-	{ .compatible = "ns16550a", .data = &uart_8250, },
-	{ .compatible = "uart8250", .data = &uart_8250, },
-	{ .compatible = "snps,dw-apb-uart", .data = &uart_8250, },
-	{ .compatible = "gaisler,apbuart", .data = &uart_apbuart, },
-#if defined(ARCH_RISCV)
-	{ .compatible = "riscv,axi-uart-1.0", .data = &uart_uartlite, },
-	{ .compatible = "xlnx,opb-uartlite-1.00.b", .data = &uart_uartlite, },
-	{ .compatible = "xlnx,opb-uartlite-1.00.a", .data = &uart_uartlite, },
-#endif
-	{ /* sentinel */}
-};
 
 static void reg_out_mmio8(struct uart_chip *chip, unsigned int reg, u32 value)
 {
@@ -68,113 +58,165 @@ static u32 reg_in_mmio32(struct uart_chip *chip, unsigned int reg)
 	return mmio_read32(chip->base + reg * 4);
 }
 
-int __init serial_init(const struct uart_driver *d, paddr_t uart_base,
-		       u64 uart_size, int io_width, u32 irq)
+static int serial_rcv(void *_c)
 {
+	struct uart_chip *c = _c;
 	int err;
-	struct uart_chip c;
-	bool flush;
 
-	c.driver = d;
-	c.irq = irq;
+	err = c->driver->rcv_handler(c);
 
-	switch (io_width) {
-		case 1:
-			c.reg_in = reg_in_mmio8;
-			c.reg_out = reg_out_mmio8;
-			break;
-		case 4:
-			c.reg_in = reg_in_mmio32;
-			c.reg_out = reg_out_mmio32;
-			break;
+	return err;
+}
 
-		default:
-			pr("Invalid IO width: %d\n", io_width);
-			return -EINVAL;
-	}
+int __init uart_probe_generic(struct device *dev)
+{
+	const struct uart_driver *d;
+	struct uart_chip *c;
+	int err;
 
-	c.base = ioremap(uart_base, uart_size);
-	if (IS_ERR(c.base))
-		return PTR_ERR(c.base);
-
-	err = d->init(&c);
+	err = uart_init(dev);
 	if (err)
 		return err;
 
-	/* activate as default chip */
-	flush = uart_default.driver == &uart_dummy;
-	uart_default = c;
-	if (flush)
-		console_flush();
+	d = dev->of.match->data;
 
-	if (irq != IRQ_INVALID) {
-		pr("UART: using IRQ %d\n", irq);
-		err = irq_register_handler(irq, (void*)uart_default.driver->rcv_handler,
-					   &uart_default);
-		if (err) {
-			pr("Unable to register IRQ %d (%pe)\n",
-			   irq, ERR_PTR(err));
-			return err;
-		}
-		err = irqchip_enable_irq(this_cpu_id(), irq, 5, 4);
-		if (err) {
-			pr("Unable to enable IRQ %d (%pe)\n",
-			   irq, ERR_PTR(err));
-			return err;
-		}
-	} else {
-		pr("No IRQ found!\n");
+	c = dev->data;
+	c->driver = d;
+	err = d->init(c);
+	if (err) {
+		uart_deinit(dev);
+		return err;
 	}
 
 	return err;
 }
 
-int __init serial_init_fdt(void)
+void __init uart_deinit(struct device *dev)
 {
-	const struct of_device_id *match;
-	int off, err, node, io_width = 1;
-	const struct uart_driver *d;
-	const char *stdoutpath;
+	struct uart_chip *c;
+	int err;
+
+	c = dev->data;
+	dev->data = NULL;
+	if (!c)
+		return;
+
+	if (c->base) {
+		err = iounmap(c->base, c->size);
+		if (err)
+			pr("Error during unmap\n");
+	}
+
+	kfree(c);
+}
+
+int __init uart_init(struct device *dev)
+{
+	int err;
+
 	paddr_t uart_base;
-	const int *res;
 	u64 uart_size;
 	u32 irq;
+	int io_width = 1;
+	const int *res;
+	struct uart_chip *c;
 
-	node = fdt_path_offset(_fdt, ISTR("/chosen"));
-	if (node < 0) {
-		pri("No chosen node in device-tree.\n");
-		return -ENOENT;
-	}
-
-	stdoutpath = fdt_getprop(_fdt, node, ISTR("stdout-path"), &err);
-	if (!stdoutpath) {
-		pri("No stdout-path in chosen node\n");
-		return -ENOENT;
-	}
-	pri("stdout-path: %s\n", stdoutpath);
-
-	off = fdt_match_device(_fdt, stdoutpath, of_match, &match);
-	if (off <= 0) {
-		pri("Warning: No console found. Remaining on SBI console\n");
-		return -ENOENT;
-	}
-
-	d = match->data;
-
-	err = fdt_read_reg(_fdt, off, 0, &uart_base, &uart_size);
+	err = fdt_read_reg(_fdt, dev->of.node, 0, &uart_base, &uart_size);
 	if (err)
 		return err;
 
-	res = fdt_getprop(_fdt, off, ISTR("reg-io-width"), &err);
+	res = fdt_getprop(_fdt, dev->of.node, ISTR("reg-io-width"), &err);
 	if (err > 0)
 		io_width = fdt32_to_cpu(*res);
-	pri("Found %s UART@0x%llx\n", match->compatible, uart_base);
 
-	res = fdt_getprop(_fdt, off, ISTR("interrupts"), &err);
+	res = fdt_getprop(_fdt, dev->of.node, ISTR("interrupts"), &err);
 	if (IS_ERR(res))
 		irq = 0;
 	else
 		irq = fdt32_to_cpu(*res);
 
-	return serial_init(d, uart_base, uart_size, io_width, irq);
+	c = kzalloc(sizeof(*c));
+	if (!c)
+		return -ENOMEM;
+	dev->data = c;
+
+	switch (io_width) {
+		case 1:
+			c->reg_in = reg_in_mmio8;
+			c->reg_out = reg_out_mmio8;
+			break;
+		case 4:
+			c->reg_in = reg_in_mmio32;
+			c->reg_out = reg_out_mmio32;
+			break;
+
+		default:
+			pri("Invalid IO width: %d\n", io_width);
+			err = -EINVAL;
+			goto error_out;
+	}
+
+	c->base = ioremap(uart_base, uart_size);
+	c->size = uart_size;
+	if (IS_ERR(c->base)) {
+		err = PTR_ERR(c->base);
+		goto error_out;
+	}
+
+	c->irq = irq;
+	if (irq != IRQ_INVALID) {
+		pri("UART: using IRQ %d\n", irq);
+		err = irq_register_handler(irq, serial_rcv, c);
+		if (err) {
+			pri("Unable to register IRQ %d (%pe)\n",
+			   irq, ERR_PTR(err));
+			goto error_out;
+		}
+		err = irqchip_enable_irq(this_cpu_id(), irq, 5, 4);
+		if (err) {
+			pri("Unable to enable IRQ %d (%pe)\n",
+			   irq, ERR_PTR(err));
+			goto error_out;
+		}
+	} else
+		pri("No IRQ found!\n");
+
+	return 0;
+
+error_out:
+	uart_deinit(dev);
+	return err;
+}
+
+int __init serial_init_fdt(void)
+{
+	int err, node;
+	struct device *dev;
+	const char *stdoutpath;
+
+	node = fdt_path_offset(_fdt, "/chosen");
+	if (node < 0) {
+		pri("No chosen node in device-tree.\n");
+		goto remain;
+	}
+
+	stdoutpath = fdt_getprop(_fdt, node, ISTR("stdout-path"), &err);
+	if (!stdoutpath) {
+		pri("No stdout-path in chosen node\n");
+		goto remain;
+	}
+	pri("stdout-path: %s\n", stdoutpath);
+
+	// FIXME: _this_ is hacky.
+	dev = device_find_of_path(stdoutpath);
+	if (!dev)
+		goto remain;
+	pri("Switch stdout to UART %s\n", dev->of.path);
+	uart_stdout = dev->data;
+
+	return 0;
+
+remain:
+	pri("Remaining on default console\n");
+	return -ENOENT;
 }

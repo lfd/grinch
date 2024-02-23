@@ -160,7 +160,7 @@ int vmm_handle_ecall(void)
 	fid = regs->a6;
 	switch (eid) { /* EID - Extension ID*/
 		case SBI_EXT_0_1_CONSOLE_PUTCHAR:
-			uart_write_char(&uart_default, regs->a0);
+			uart_write_char(uart_stdout, regs->a0);
 			ret.error = ret.value = 0;
 			break;
 
