@@ -19,7 +19,7 @@ int kheap_init(void);
 void kheap_stats(void);
 
 void *kmalloc(size_t size);
-void kfree(void *p);
+void kfree(const void *p);
 
 static inline void *kzalloc(size_t size)
 {

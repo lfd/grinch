@@ -110,7 +110,7 @@ static inline void *chunk_data(struct memchunk *m)
 	return (void*)m + sizeof(struct memchunk);
 }
 
-static inline struct memchunk *chunk_of(void *ptr)
+static inline struct memchunk *chunk_of(const void *ptr)
 {
 	return (struct memchunk *)(ptr - sizeof(struct memchunk));
 }
@@ -210,7 +210,7 @@ out:
 	return ret;
 }
 
-void kfree(void *ptr)
+void kfree(const void *ptr)
 {
 	struct memchunk *m, *before, *after, *tmp;
 
