@@ -85,6 +85,5 @@ void sched_dequeue(struct task *task);
 void sched_all(void);
 
 int do_fork(void);
-int do_execve(const char *pathname, char *const argv[], char *const envp[]);
 
 #endif /* _TASK_H */

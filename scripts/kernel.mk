@@ -1,5 +1,6 @@
 ARCH_DIR = arch/$(ARCH)
 include $(ARCH_DIR)/inc.mk
+include fs/inc.mk
 include kernel/inc.mk
 include lib/inc.mk
 include mm/inc.mk
@@ -50,7 +51,7 @@ arch/$(ARCH)/asm_defines.S: arch/$(ARCH)/asm_defines.c
 	$(QUIET) "[GEN]   $@"
 	$(VERBOSE) $(CC) $(CFLAGS_KERNEL) -S -o $@ $^
 
-vmgrinch.o: $(ARCH_DIR)/built-in.a kernel/built-in.a lib/built-in.a mm/built-in.a drivers/built-in.a
+vmgrinch.o: $(ARCH_DIR)/built-in.a drivers/built-in.a fs/built-in.a kernel/built-in.a lib/built-in.a mm/built-in.a
 	$(QUIET) "[LD]    $@"
 	$(VERBOSE) $(LD) $(LDFLAGS_KERNEL) --whole-archive -relocatable -o $@ $^
 
@@ -84,7 +85,7 @@ clean_kernel:
 	$(RMRF) vmgrinch.o
 	$(RMRF) $(GENERATED)
 	$(RMRF) arch/$(ARCH)/asm_defines.S
-	$(RMRF) kernel/*.{o,a,ld}
+	$(RMRF) fs/*.{o,a} kernel/*.{o,a,ld}
 	$(RMRF) lib/*.{o,a} lib/libfdt/*.{o,a}
 	$(RMRF) drivers/*.{o,a} drivers/irq/*.{o,a} drivers/serial/*.{o,a}
 	$(RMRF) mm/*.{o,a}

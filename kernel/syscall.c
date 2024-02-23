@@ -22,32 +22,6 @@
 #include <grinch/timer.h>
 #include <grinch/uaccess.h>
 
-static unsigned long sys_write(int fd, const char *buf, size_t count)
-{
-#define BLEN	63
-
-	char tmp[BLEN + 1];
-	unsigned long sz;
-	int err;
-
-	if (fd != 1)
-		return -ENOENT;
-
-	while (count) {
-		sz = count < BLEN ? count : BLEN;
-		err = copy_from_user(&current_task()->process->mm, tmp, buf, sz);
-		if (err < 0)
-			return err;
-		tmp[sz] = 0;
-		_puts(tmp);
-
-		count -= err;
-		buf += err;
-	}
-
-	return 0;
-}
-
 static unsigned long usleep(unsigned long us)
 {
 	task_sleep_for(current_task(), US_TO_NS(us));
@@ -91,7 +65,7 @@ int syscall(unsigned long no, unsigned long arg1,
 			break;
 
 		case SYS_execve:
-			ret = do_execve((void *)arg1, (void *)arg2, (void *)arg3);
+			ret = sys_execve((void *)arg1, (void *)arg2, (void *)arg3);
 			if (ret) {
 				pr("execve failed on task %u. Exiting.\n", current_task()->pid);
 				exit(ret);

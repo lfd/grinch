@@ -131,18 +131,3 @@ free_out:
 	kfree(task);
 	return ERR_PTR(-ENOMEM);
 }
-
-int do_execve(const char *pathname, char *const argv[], char *const envp[])
-{
-	struct task *this;
-	char buf[128];
-
-	this = current_task();
-	copy_from_user(&this->process->mm, buf, pathname, sizeof(buf));
-	buf[sizeof(buf) - 1] = 0;
-
-	uvmas_destroy(this->process);
-	this_per_cpu()->pt_needs_update = true;
-
-	return process_from_fs(this, buf);
-}

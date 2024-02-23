@@ -20,4 +20,7 @@ int syscall(unsigned long no, unsigned long arg1,
 
 void exit(int code);
 
+unsigned long sys_write(int fd, const char *buf, size_t count);
+int sys_execve(const char *pathname, char *const argv[], char *const envp[]);
+
 #endif /* _SYSCALL_H */

@@ -1,0 +1,61 @@
+/*
+ * Grinch, a minimalist operating system
+ *
+ * Copyright (c) OTH Regensburg, 2024
+ *
+ * Authors:
+ *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
+ *
+ * This work is licensed under the terms of the GNU GPL, version 2.  See
+ * the COPYING file in the top-level directory.
+ */
+
+#include <grinch/errno.h>
+#include <grinch/syscall.h>
+#include <grinch/types.h>
+#include <grinch/percpu.h>
+#include <grinch/printk.h>
+#include <grinch/task.h>
+#include <grinch/vma.h>
+#include <grinch/uaccess.h>
+
+unsigned long sys_write(int fd, const char *buf, size_t count)
+{
+#define BLEN	63
+
+	char tmp[BLEN + 1];
+	unsigned long sz;
+	int err;
+
+	if (fd != 1)
+		return -ENOENT;
+
+	while (count) {
+		sz = count < BLEN ? count : BLEN;
+		err = copy_from_user(&current_task()->process->mm, tmp, buf, sz);
+		if (err < 0)
+			return err;
+		tmp[sz] = 0;
+		_puts(tmp);
+
+		count -= err;
+		buf += err;
+	}
+
+	return 0;
+}
+
+int sys_execve(const char *pathname, char *const argv[], char *const envp[])
+{
+	struct task *this;
+	char buf[128];
+
+	this = current_task();
+	copy_from_user(&this->process->mm, buf, pathname, sizeof(buf));
+	buf[sizeof(buf) - 1] = 0;
+
+	uvmas_destroy(this->process);
+	this_per_cpu()->pt_needs_update = true;
+
+	return process_from_fs(this, buf);
+}
