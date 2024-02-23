@@ -20,7 +20,6 @@
 #include <grinch/percpu.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
-#include <grinch/serial.h>
 #include <grinch/timer.h>
 
 #include <grinch/arch/sbi.h>
@@ -42,17 +41,6 @@ int __init arch_init(void)
 		goto out;
 	else
 		ext_enable();
-
-	pri("Initialising Serial...\n");
-	err = serial_init_fdt();
-	if (err)
-	{
-		if (err == -ENOENT)
-			goto con;
-		goto out;
-	}
-	pri("Switched over from SBI to UART\n");
-con:
 
 	/* Boot secondary CPUs */
 	pri("Booting secondary CPUs\n");

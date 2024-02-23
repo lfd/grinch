@@ -27,6 +27,7 @@
 #include <grinch/percpu.h>
 #include <grinch/platform.h>
 #include <grinch/printk.h>
+#include <grinch/serial.h>
 #include <grinch/smp.h>
 #include <grinch/task.h>
 #include <grinch/version.h>
@@ -204,7 +205,11 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 	kheap_stats();
 
 	err = driver_init();
-	if (err)
+	if (err && err != -ENOENT)
+		goto out;
+
+	err = serial_init_fdt();
+	if (err && err != -ENOENT)
 		goto out;
 
 	err = vm_init();
