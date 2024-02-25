@@ -10,6 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <errno.h>
 #include <unistd.h>
 #include <syscall.h>
 
@@ -25,9 +26,10 @@ pid_t fork(void)
 	pid_t ret;
 
 	ret = syscall_0(SYS_fork);
-	if (ret < 0)
+	if (ret < 0) {
+		errno = ret;
 		ret = -1;
-	/* TODO: Set errno */
+	}
 
 	return ret;
 }

@@ -10,8 +10,8 @@
  * the COPYING file in the top-level directory.
  */
 
-#ifndef _ERRNO_H
-#define _ERRNO_H
+#ifndef _GRINCH_ERRNO_H
+#define _GRINCH_ERRNO_H
 
 #include <grinch/compiler_attributes.h>
 #include <grinch/types.h>
@@ -51,4 +51,4 @@ static inline bool IS_ERR(const void *ptr)
 
 const char *errname(int err);
 
-#endif /* _ERRNO_H */
+#endif /* _GRINCH_ERRNO_H */
