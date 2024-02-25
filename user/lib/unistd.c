@@ -27,7 +27,7 @@ pid_t fork(void)
 
 	ret = syscall_0(SYS_fork);
 	if (ret < 0) {
-		errno = ret;
+		errno = -ret;
 		ret = -1;
 	}
 
@@ -60,16 +60,25 @@ unsigned int sleep(unsigned int seconds)
 
 ssize_t write(int fd, const void *buf, size_t count)
 {
-	unsigned long ret;
+	ssize_t ret;
 
 	ret = syscall_3(SYS_write, (unsigned long)fd, (unsigned long)buf,
 		      (unsigned long)count);
+	if (ret < 0) {
+		errno = -ret;
+		ret = -1;
+	}
 
 	return (ssize_t)ret;
 }
 
 int execve(const char *pathname, char *const argv[], char *const envp[])
 {
-	return syscall_3(SYS_execve, (unsigned long)pathname,
-			 (unsigned long)argv, (unsigned long)envp);
+	int ret;
+	ret = syscall_3(SYS_execve, (unsigned long)pathname,
+			(unsigned long)argv, (unsigned long)envp);
+
+	errno = -ret;
+
+	return -1;
 }
