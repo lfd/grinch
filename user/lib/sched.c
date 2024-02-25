@@ -10,11 +10,19 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <errno.h>
 #include <sched.h>
 #include <syscall.h>
 
 int sched_yield(void)
 {
-	syscall_0(SYS_sched_yield);
-	return 0;
+	int err;
+	err = syscall_0(SYS_sched_yield);
+	if (!err)
+		return 0;
+
+	if (err < 0)
+		errno = -err;
+
+	return -1;
 }
