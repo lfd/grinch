@@ -10,12 +10,19 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
 
 #include <grinch/vsprintf.h>
+
+// FIXME: perror should go to stderr later
+void perror(const char *s)
+{
+	printf("%s: %pe\n", s, ERR_PTR(-errno));
+}
 
 static int _puts(const char *s)
 {

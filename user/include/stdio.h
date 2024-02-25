@@ -25,4 +25,6 @@ extern const char __app_name_fmt[];
 int puts(const char *s);
 int __printf(1, 2) printf(const char *fmt, ...);
 
+void perror(const char *s);
+
 #endif /* _STDIO_H */

@@ -10,7 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <grinch/errno.h>
+#include <errno.h>
 #include <sched.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -30,8 +30,8 @@ static int start_background(const char *path)
 	if (child == 0) {
 		err = execve(path, NULL, NULL);
 	} else if (child == -1) {
-		printf("Fork error!\n");
-		err = -EINVAL;
+		perror("fork");
+		err = -errno;
 	}
 
 	return err;
