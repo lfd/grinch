@@ -67,7 +67,8 @@ int syscall(unsigned long no, unsigned long arg1,
 		case SYS_execve:
 			ret = sys_execve((void *)arg1, (void *)arg2, (void *)arg3);
 			if (ret) {
-				pr("execve failed on task %u. Exiting.\n", current_task()->pid);
+				pr("execve failed on task %u: %pe\n",
+				   current_task()->pid, ERR_PTR(ret));
 				exit(ret);
 			}
 			break;

@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -19,4 +19,6 @@ void umemset(struct mm *mm, void *s, int c, size_t n);
 void copy_to_user(struct mm *mm, void *d, const void *s, size_t n);
 unsigned long copy_from_user(struct mm *mm, void *to, const void *from,
 			     unsigned long n);
+
+long ustrncpy(char *dst, const char *src, long count);
 #endif

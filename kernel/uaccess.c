@@ -118,3 +118,40 @@ void copy_to_user(struct mm *mm, void *d, const void *s, size_t n)
 		d += written;
 	}
 }
+
+long ustrncpy(char *dst, const char *src, long count)
+{
+	unsigned int remaining;
+	struct task *task;
+	char *direct;
+	long copied;
+
+	task = current_task();
+	if (task->type != GRINCH_PROCESS)
+		return -EINVAL;
+
+	copied = 0;
+	while (1) {
+		direct = user_to_direct(&task->process->mm, src);
+		if (!direct)
+			return -EFAULT;
+
+		remaining = bytes_in_page(direct);
+		while (remaining) {
+			if (count == 0)
+				return copied;
+
+			*dst = *direct;
+			if (*dst == '\0')
+				return copied;
+
+			copied++;
+			src++;
+			dst++;
+			direct++;
+
+			count--;
+			remaining--;
+		}
+	}
+}

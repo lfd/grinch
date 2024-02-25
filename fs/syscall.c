@@ -19,6 +19,8 @@
 #include <grinch/vma.h>
 #include <grinch/uaccess.h>
 
+#define MAX_PATHLEN	64
+
 unsigned long sys_write(int fd, const char *buf, size_t count)
 {
 #define BLEN	63
@@ -48,11 +50,16 @@ unsigned long sys_write(int fd, const char *buf, size_t count)
 int sys_execve(const char *pathname, char *const argv[], char *const envp[])
 {
 	struct task *this;
-	char buf[128];
+	char buf[MAX_PATHLEN];
+	long ret;
 
 	this = current_task();
-	copy_from_user(&this->process->mm, buf, pathname, sizeof(buf));
-	buf[sizeof(buf) - 1] = 0;
+	ret = ustrncpy(buf, pathname, sizeof(buf));
+	/* pathname too long */
+	if (unlikely(ret == sizeof(buf)))
+		return -ERANGE;
+	else if (unlikely(ret < 0))
+		return ret;
 
 	uvmas_destroy(this->process);
 	this_per_cpu()->pt_needs_update = true;
