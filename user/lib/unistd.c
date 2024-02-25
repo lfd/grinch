@@ -11,8 +11,8 @@
  */
 
 #include <errno.h>
-#include <unistd.h>
 #include <syscall.h>
+#include <unistd.h>
 
 void __noreturn exit(int status)
 {
@@ -58,6 +58,20 @@ unsigned int sleep(unsigned int seconds)
 	return 0;
 }
 
+ssize_t read(int fd, void *buf, size_t count)
+{
+	ssize_t ret;
+
+	ret = syscall_3(SYS_read, (unsigned long)fd, (unsigned long)buf,
+			(unsigned long)count);
+	if (ret < 0) {
+		errno = -ret;
+		ret = -1;
+	}
+
+	return ret;
+}
+
 ssize_t write(int fd, const void *buf, size_t count)
 {
 	ssize_t ret;
@@ -69,7 +83,7 @@ ssize_t write(int fd, const void *buf, size_t count)
 		ret = -1;
 	}
 
-	return (ssize_t)ret;
+	return ret;
 }
 
 int execve(const char *pathname, char *const argv[], char *const envp[])
@@ -79,6 +93,22 @@ int execve(const char *pathname, char *const argv[], char *const envp[])
 			(unsigned long)argv, (unsigned long)envp);
 
 	errno = -ret;
+
+	return -1;
+}
+
+int close(int fd)
+{
+	int ret;
+
+	ret = syscall_1(SYS_close, (unsigned long)fd);
+	if (!ret)
+		return 0;
+
+	if (ret < 0)
+		errno = -ret;
+	else
+		errno = -EINVAL;
 
 	return -1;
 }

@@ -19,7 +19,6 @@
 typedef int pid_t;
 
 void __noreturn exit(int status);
-ssize_t write(int fd, const void *buf, size_t count);
 pid_t getpid(void);
 pid_t fork(void);
 
@@ -27,5 +26,9 @@ int execve(const char *pathname, char *const argv[], char *const envp[]);
 
 unsigned int sleep(unsigned int seconds);
 int usleep(unsigned int usec);
+
+int close(int fd);
+ssize_t write(int fd, const void *buf, size_t count);
+ssize_t read(int fd, void *buf, size_t count);
 
 #endif /* _UNISTD_H */

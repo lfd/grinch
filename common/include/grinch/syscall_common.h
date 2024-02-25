@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -13,7 +13,10 @@
 #ifndef _SYSCALL_COMMON_H
 #define _SYSCALL_COMMON_H
 
+#define SYS_read		0
 #define SYS_write		1
+#define SYS_open		2
+#define SYS_close		3
 #define SYS_sched_yield		24
 #define SYS_getpid		39
 #define SYS_fork		57
