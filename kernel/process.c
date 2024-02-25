@@ -28,10 +28,11 @@
 static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr)
 {
 	unsigned int vma_flags;
+	unsigned long copied;
 	Elf64_Phdr *phdr;
+	void *src, *base;
 	struct vma *vma;
 	unsigned int d;
-	void *src, *base;
 
 	if (memcmp(ehdr->e_ident, ELFMAG, SELFMAG))
 		return trace_error(-EINVAL);
@@ -59,12 +60,16 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr)
 		if (phdr->p_flags & PF_X)
 			vma_flags |= VMA_FLAG_EXEC;
 
-		vma = uvma_create(task->process, base, page_up(phdr->p_memsz), vma_flags);
+		vma = uvma_create(task->process, base, page_up(phdr->p_memsz),
+				  vma_flags);
 		if (IS_ERR(vma))
 			return PTR_ERR(vma);
 
 		src = (void *)ehdr + phdr->p_offset;
-		copy_to_user(&task->process->mm, base, src, phdr->p_memsz);
+		copied = copy_to_user(&task->process->mm, base, src,
+				      phdr->p_memsz);
+		if (copied != phdr->p_memsz)
+			return -ERANGE;
 	}
 
 	vma = uvma_create(task->process, (void *)USER_STACK_BASE, USER_STACK_SIZE,

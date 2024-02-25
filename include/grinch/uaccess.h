@@ -16,7 +16,7 @@
 void *user_to_direct(struct mm *mm, const void *s);
 
 void umemset(struct mm *mm, void *s, int c, size_t n);
-void copy_to_user(struct mm *mm, void *d, const void *s, size_t n);
+unsigned long copy_to_user(struct mm *mm, void *d, const void *s, size_t n);
 unsigned long copy_from_user(struct mm *mm, void *to, const void *from,
 			     unsigned long n);
 

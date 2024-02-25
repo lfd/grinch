@@ -93,16 +93,18 @@ unsigned long copy_from_user(struct mm *mm, void *to, const void *from,
 	return sum;
 }
 
-void copy_to_user(struct mm *mm, void *d, const void *s, size_t n)
+unsigned long copy_to_user(struct mm *mm, void *d, const void *s, size_t n)
 {
 	unsigned int remaining;
+	unsigned long copied;
 	size_t written;
 	void *direct;
 
+	copied = 0;
 	while (n) {
 		direct = user_to_direct(mm, d);
 		if (!direct)
-			panic("Invalid user address: %p\n", s);
+			return copied;
 
 		remaining = bytes_in_page(direct);
 		if (n > remaining) {
@@ -116,7 +118,10 @@ void copy_to_user(struct mm *mm, void *d, const void *s, size_t n)
 		n -= written;
 		s += written;
 		d += written;
+		copied += written;
 	}
+
+	return copied;
 }
 
 long ustrncpy(char *dst, const char *src, long count)
