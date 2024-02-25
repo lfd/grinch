@@ -15,6 +15,8 @@
 
 #include <grinch/types.h>
 
+#define MAX_PATHLEN	64
+
 struct file;
 struct file_system;
 
@@ -54,5 +56,12 @@ struct file_system_operations {
 struct file_system {
 	const struct file_system_operations *fs_ops;
 };
+
+/* Routines */
+int check_path(const char *path);
+struct fs_flags get_flags(int oflag);
+
+struct file *file_open(const char *path, struct fs_flags flags);
+void file_close(struct file_handle *handle);
 
 #endif /* _FS_H */

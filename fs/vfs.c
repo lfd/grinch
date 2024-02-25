@@ -12,12 +12,170 @@
 
 #define dbg_fmt(x)	"vfs: " x
 
+#include <asm-generic/fcntl.h>
+#include <asm/spinlock.h>
+
 #include <string.h>
 
+#include <grinch/alloc.h>
 #include <grinch/errno.h>
+#include <grinch/fs.h>
 #include <grinch/initrd.h>
+#include <grinch/list.h>
+#include <grinch/kstr.h>
+#include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/vfs.h>
+
+static LIST_HEAD(open_files);
+static DEFINE_SPINLOCK(files_lock);
+
+struct files {
+	struct list_head files;
+
+	const char *pathname;
+	struct file fp;
+	unsigned int refs;
+};
+
+/* must hold files_lock */
+static struct file *search_file(const char *path, struct fs_flags flags)
+{
+	struct files *files;
+
+	list_for_each_entry(files, &open_files, files) {
+		if (strcmp(path, files->pathname))
+			continue;
+
+		files->refs++;
+		return &files->fp;
+	}
+
+	return NULL;
+}
+
+/* must hold files_lock */
+static struct file *_file_open(const char *pathname, struct fs_flags flags)
+{
+	const struct file_system *fs;
+	struct files *files;
+	const char *fsname;
+	int err;
+
+	fsname = pathname;
+	fs = NULL;
+
+	if (!fs)
+		return ERR_PTR(-ENOENT);
+
+	files = kzalloc(sizeof(*files));
+	if (!files)
+		return ERR_PTR(-ENOMEM);
+
+	files->pathname = kstrdup(pathname);
+	if (!files->pathname) {
+		kfree(files);
+	}
+
+	err = fs->fs_ops->open_file(fs, &files->fp, fsname, flags);
+	if (err) {
+		kfree(files->pathname);
+		kfree(files);
+		return ERR_PTR(err);
+	}
+
+	files->refs = 1;
+	list_add(&files->files, &open_files);
+
+	return &files->fp;
+}
+
+struct file *file_open(const char *path, struct fs_flags flags)
+{
+	struct file *filep;
+
+	spin_lock(&files_lock);
+	filep = search_file(path, flags);
+	if (filep)
+		goto unlock_out;
+
+	filep = _file_open(path, flags);
+
+unlock_out:
+	spin_unlock(&files_lock);
+
+	return filep;
+}
+
+void file_close(struct file_handle *handle)
+{
+	struct files *files;
+	struct file *fp;
+
+	fp = handle->fp;
+	files = container_of(fp, struct files, fp);
+
+	if (!fp->fops)
+		BUG();
+
+	spin_lock(&files_lock);
+	files->refs--;
+	if (files->refs == 0) {
+		if (fp->fops->close)
+			fp->fops->close(fp);
+		kfree(files->pathname);
+		list_del(&files->files);
+		kfree(files);
+	}
+	spin_unlock(&files_lock);
+
+	handle->fp = NULL;
+}
+
+int check_path(const char *path)
+{
+	unsigned int no;
+
+	/* no relative paths supported */
+	if (path[0] != '/')
+		return -EINVAL;
+
+	for (no = 1; path[no]; no++) {
+		/* no double slashes */
+		if (path[no] == '/' && path[no - 1] == '/')
+			return -EINVAL;
+		/* no . files */
+		else if (path[no] == '.' && path[no - 1] == '/')
+			return -EINVAL;
+	}
+
+	return 0;
+}
+
+struct fs_flags get_flags(int oflag)
+{
+	struct fs_flags ret;
+
+	ret.is_kernel = false;
+	switch (oflag & O_ACCMODE) {
+		case O_RDONLY:
+			ret.may_read = true;
+			ret.may_write = false;
+			break;
+
+		case O_WRONLY:
+			ret.may_read = false;
+			ret.may_write = true;
+			break;
+
+		case O_RDWR:
+			ret.may_read = true;
+			ret.may_write = true;
+			break;
+	}
+
+	return ret;
+}
 
 void *vfs_read_file(const char *pathname, size_t *len)
 {

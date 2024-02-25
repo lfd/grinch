@@ -15,6 +15,7 @@
 #include <grinch/alloc.h>
 #include <grinch/elf.h>
 #include <grinch/errno.h>
+#include <grinch/fs.h>
 #include <grinch/printk.h>
 #include <grinch/task.h>
 #include <grinch/uaccess.h>
@@ -100,8 +101,13 @@ int process_from_fs(struct task *task, const char *pathname)
 void process_destroy(struct task *task)
 {
 	struct process *process;
+	unsigned int i;
 
 	process = task->process;
+	for (i = 0; i < MAX_FDS; i++)
+		if (process->fds[i].fp)
+			file_close(&process->fds[i]);
+
 	uvmas_destroy(process);
 
 	if (process->mm.page_table)
@@ -117,7 +123,7 @@ struct task *process_alloc_new(void)
 		return task;
 
 	task->type = GRINCH_PROCESS;
-	task->process = kmalloc(sizeof(*task->process));
+	task->process = kzalloc(sizeof(*task->process));
 	if (!task->process)
 		goto free_out;
 
