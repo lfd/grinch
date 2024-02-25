@@ -10,6 +10,8 @@
  * the COPYING file in the top-level directory.
  */
 
+#define dbg_fmt(x)	"fs-syscall: " x
+
 #include <grinch/errno.h>
 #include <grinch/syscall.h>
 #include <grinch/types.h>
