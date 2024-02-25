@@ -23,6 +23,21 @@
 
 #define MAX_PATHLEN	64
 
+unsigned long sys_open(const char __user *path, int oflag)
+{
+	return -EPERM;
+}
+
+unsigned long sys_close(int fd)
+{
+	return -EPERM;
+}
+
+unsigned long sys_read(int fd, char __user *buf, size_t count)
+{
+	return -EPERM;
+}
+
 unsigned long sys_write(int fd, const char __user *buf, size_t count)
 {
 #define BLEN	63

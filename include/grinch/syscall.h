@@ -20,7 +20,10 @@ int syscall(unsigned long no, unsigned long arg1,
 
 void exit(int code);
 
+unsigned long sys_open(const char __user *path, int oflag);
+unsigned long sys_close(int fd);
 unsigned long sys_write(int fd, const char __user *buf, size_t count);
+unsigned long sys_read(int fd, char __user *buf, size_t count);
 int sys_execve(const char __user *pathname, char *const __user argv[],
 	       char *const __user envp[]);
 

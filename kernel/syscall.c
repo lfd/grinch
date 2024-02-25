@@ -47,6 +47,18 @@ int syscall(unsigned long no, unsigned long arg1,
 	unsigned long ret;
 
 	switch (no) {
+		case SYS_read:
+			ret = sys_read(arg1, (char *)arg2, arg3);
+			break;
+
+		case SYS_open:
+			ret = sys_open((const char *)arg1, arg2);
+			break;
+
+		case SYS_close:
+			ret = sys_close(arg1);
+			break;
+
 		case SYS_write:
 			ret = sys_write(arg1, (const char *)arg2, arg3);
 			break;
