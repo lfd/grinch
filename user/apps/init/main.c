@@ -10,6 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <grinch/errno.h>
 #include <sched.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -18,35 +19,36 @@ int main(void);
 
 APP_NAME(init);
 
-int main(void)
+static int start_background(const char *path)
 {
-	int forked;
-	pid_t p;
+	pid_t child;
+	int err;
 
-	puts("Starting Jittertest...\n");
-	p = fork();
-	if (p == 0) {
-		execve("initrd:/jittertest.echse", NULL, NULL);
-		printf("Execve returned\n");
-		exit(-1);
-	} else if (p == -1) {
+	printf("Starting %s\n", path);
+	err = 0;
+	child = fork();
+	if (child == 0) {
+		err = execve(path, NULL, NULL);
+	} else if (child == -1) {
 		printf("Fork error!\n");
-		exit(-1);
+		err = -EINVAL;
 	}
 
+	return err;
+}
+
+int main(void)
+{
+	int err, forked;
+
+	err = start_background("initrd:/jittertest.echse");
+	if (err)
+		return err;
+
 	for (forked = 0; forked < 5; forked++) {
-		puts("Forking...\n");
-		p = fork();
-		if (p == 0) { /* child */
-			printf("Calling execve...\n");
-			execve("initrd:/hello.echse", NULL, NULL);
-			printf("Execve returned\n");
-		} else if (p == -1) { /* error */
-			printf("Fork error!\n");
-			exit(-5);
-		} else { /* parent */
-			printf("Parent returned. Created PID %u.\n", p);
-		}
+		err = start_background("initrd:/hello.echse");
+		if (err)
+			return err;
 	}
 
 	return 0;
