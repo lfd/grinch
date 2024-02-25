@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -11,8 +11,6 @@
  */
 
 #define dbg_fmt(x)	"process: " x
-
-#include <asm_generic/grinch_layout.h>
 
 #include <grinch/alloc.h>
 #include <grinch/elf.h>

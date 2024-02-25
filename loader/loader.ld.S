@@ -10,8 +10,8 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <asm_generic/grinch_layout.h>
-#include <asm/paging_common.h>
+#include <asm-generic/grinch_layout.h>
+#include <asm-generic/paging.h>
 
 ENTRY(_loader_start)
 

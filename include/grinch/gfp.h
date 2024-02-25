@@ -22,7 +22,7 @@
 
 #include <string.h>
 
-#include <asm/paging_common.h>
+#include <asm-generic/paging.h>
 
 #include <grinch/errno.h>
 

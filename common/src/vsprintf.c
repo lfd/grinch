@@ -12,7 +12,7 @@
 
 /* Taken and adapted from the Linux kernel sources */
 
-#include <asm/paging_common.h>
+#include <asm-generic/paging.h>
 
 #include <ctype.h>
 #include <string.h>

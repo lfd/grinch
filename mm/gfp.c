@@ -12,7 +12,6 @@
 
 #define dbg_fmt(x)	"gfp: " x
 
-#include <asm_generic/grinch_layout.h>
 #include <asm/spinlock.h>
 
 #include <grinch/bitmap.h>

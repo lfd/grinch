@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -15,7 +15,7 @@
 #ifndef _LIST_H
 #define _LIST_H
 
-#include <asm_generic/rwonce.h>
+#include <asm-generic/rwonce.h>
 
 #include <grinch/container_of.h>
 

@@ -12,8 +12,6 @@
 
 #define dbg_fmt(x) "ioremap: " x
 
-#include <asm_generic/grinch_layout.h>
-
 #include <grinch/bitmap.h>
 #include <grinch/errno.h>
 #include <grinch/ioremap.h>

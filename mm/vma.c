@@ -12,8 +12,6 @@
 
 #define dbg_fmt(x)	"vma: " x
 
-#include <asm_generic/grinch_layout.h>
-
 #include <grinch/alloc.h>
 #include <grinch/gfp.h>
 #include <grinch/percpu.h>

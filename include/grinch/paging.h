@@ -13,7 +13,7 @@
 #ifndef _PAGING_H
 #define _PAGING_H
 
-#include <asm/paging_common.h>
+#include <asm-generic/paging.h>
 
 #include <grinch/const.h>
 #include <grinch/types.h>

@@ -12,7 +12,6 @@
 
 #define dbg_fmt(x) "alloc: " x
 
-#include <asm_generic/grinch_layout.h>
 #include <asm/spinlock.h>
 
 #include <grinch/alloc.h>

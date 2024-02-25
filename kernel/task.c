@@ -14,7 +14,6 @@
 
 #include <asm/irq.h>
 #include <asm/spinlock.h>
-#include <asm_generic/grinch_layout.h>
 
 #include <grinch/alloc.h>
 #include <grinch/arch.h>

@@ -10,8 +10,6 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <asm_generic/grinch_layout.h>
-
 #include <string.h>
 
 #include <grinch/compiler_attributes.h>
