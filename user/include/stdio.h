@@ -16,6 +16,7 @@
 #include <grinch/compiler_attributes.h>
 
 #define stdout	1
+#define EOF	(-1)
 
 #define APP_NAME(x)	const char __app_name_fmt[] = "[" #x " %u] "
 

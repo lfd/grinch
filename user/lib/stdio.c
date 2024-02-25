@@ -77,5 +77,11 @@ int __printf(1, 2) printf(const char *fmt, ...)
 
 int puts(const char *s)
 {
-	return printf("%s", s);
+	int err;
+
+	err = printf("%s", s);
+	if (err < 0)
+		return EOF;
+
+	return err;
 }
