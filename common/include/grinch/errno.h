@@ -19,6 +19,7 @@
 #define EPERM		1
 #define ENOENT		2
 #define EIO		5
+#define EBADF		9
 #define E2BIG		7
 #define ENOMEM		12
 #define EFAULT		14
