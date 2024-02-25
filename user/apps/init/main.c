@@ -41,6 +41,10 @@ int main(void)
 {
 	int err, forked;
 
+	err = start_background("initrd:/test.echse");
+	if (err)
+		return err;
+
 	err = start_background("initrd:/jittertest.echse");
 	if (err)
 		return err;
