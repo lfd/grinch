@@ -20,6 +20,11 @@
 #include <grinch/task.h>
 #include <grinch/uaccess.h>
 
+static inline unsigned int bytes_in_page(const void *p)
+{
+	return PAGE_SIZE - ((uintptr_t)p & PAGE_OFFS_MASK);
+}
+
 void *user_to_direct(struct mm *mm, const void *s)
 {
 	paddr_t pa;
@@ -33,21 +38,19 @@ void *user_to_direct(struct mm *mm, const void *s)
 
 void umemset(struct mm *mm, void *s, int c, size_t n)
 {
-	void *direct;
+	unsigned int remaining;
 	size_t written;
-
-	unsigned int remaining_in_page;
+	void *direct;
 
 	while (n) {
 		direct = user_to_direct(mm, s);
 		if (!direct)
 			panic("Invalid user address: %p\n", s);
 
-		remaining_in_page = PAGE_SIZE - ((uintptr_t)direct & PAGE_OFFS_MASK);
-
-		if (n > remaining_in_page) {
-			memset(direct, c, remaining_in_page);
-			written = remaining_in_page;
+		remaining = bytes_in_page(direct);
+		if (n > remaining) {
+			memset(direct, c, remaining);
+			written = remaining;
 		} else {
 			memset(direct, c, n);
 			written = n;
@@ -61,10 +64,10 @@ void umemset(struct mm *mm, void *s, int c, size_t n)
 unsigned long copy_from_user(struct mm *mm, void *to, const void *from,
 			     unsigned long n)
 {
-	void *direct;
-	size_t written;
+	unsigned int remaining;
 	unsigned long sum;
-	unsigned int remaining_in_page;
+	size_t written;
+	void *direct;
 
 	sum = 0;
 	while (n) {
@@ -72,11 +75,10 @@ unsigned long copy_from_user(struct mm *mm, void *to, const void *from,
 		if (!direct)
 			break;
 
-		remaining_in_page = PAGE_SIZE - ((uintptr_t)direct & PAGE_OFFS_MASK);
-
-		if (n > remaining_in_page) {
-			memcpy(to, direct, remaining_in_page);
-			written = remaining_in_page;
+		remaining = bytes_in_page(direct);
+		if (n > remaining) {
+			memcpy(to, direct, remaining);
+			written = remaining;
 		} else {
 			memcpy(to, direct, n);
 			written = n;
@@ -93,21 +95,19 @@ unsigned long copy_from_user(struct mm *mm, void *to, const void *from,
 
 void copy_to_user(struct mm *mm, void *d, const void *s, size_t n)
 {
-	void *direct;
+	unsigned int remaining;
 	size_t written;
-
-	unsigned int remaining_in_page;
+	void *direct;
 
 	while (n) {
 		direct = user_to_direct(mm, d);
 		if (!direct)
 			panic("Invalid user address: %p\n", s);
 
-		remaining_in_page = PAGE_SIZE - ((uintptr_t)direct & PAGE_OFFS_MASK);
-
-		if (n > remaining_in_page) {
-			memcpy(direct, s, remaining_in_page);
-			written = remaining_in_page;
+		remaining = bytes_in_page(direct);
+		if (n > remaining) {
+			memcpy(direct, s, remaining);
+			written = remaining;
 		} else {
 			memcpy(direct, s, n);
 			written = n;
