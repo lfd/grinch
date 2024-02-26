@@ -13,7 +13,7 @@
 #include <asm-generic/grinch_layout.h>
 #include <asm-generic/paging.h>
 
-ENTRY(_loader_start)
+ENTRY(_start)
 
 SECTIONS
 {

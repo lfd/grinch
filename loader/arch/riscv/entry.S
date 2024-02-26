@@ -30,6 +30,7 @@
  * This adds the Linux boot header. We're compatible with both: we're bootable
  * as simple SBI payload, and we're bootable via U-Boot.
  */
+.globl _start
 _start:
 	j _loader_start
 	.balign 8
@@ -46,7 +47,6 @@ _start:
 	.ascii RISCV_IMAGE_MAGIC2
 	.word 0
 
-.globl _loader_start
 _loader_start:
 	lpc	sp, __stack_end
 
