@@ -25,7 +25,6 @@
 #include <grinch/printk.h>
 #include <grinch/serial.h>
 #include <grinch/timer.h>
-#include <grinch/vfs.h>
 
 #include <grinch/arch/sbi.h>
 
@@ -34,12 +33,6 @@ int __init arch_init(void)
 	int err;
 
 	irq_disable();
-
-	err = initrd_init_early();
-	if (err == -ENOENT)
-		pri("No ramdisk found\n");
-	else if (err)
-		goto out;
 
 	err = kheap_init();
 	if (err)

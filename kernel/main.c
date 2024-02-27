@@ -28,6 +28,7 @@
 #include <grinch/smp.h>
 #include <grinch/task.h>
 #include <grinch/version.h>
+#include <grinch/vfs.h>
 
 static const char __initconst logo[] =
 "\n\n"
@@ -163,6 +164,12 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 
 	err = phys_mem_init_fdt();
 	if (err)
+		goto out;
+
+	err = initrd_init_early();
+	if (err == -ENOENT)
+		pri("No ramdisk found\n");
+	else if (err)
 		goto out;
 
 	err = arch_init();
