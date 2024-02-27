@@ -66,6 +66,5 @@ void *p2v(paddr_t phys);
 /* Initialisation */
 int kernel_mem_init(void);
 int phys_mem_init_fdt(void);
-int phys_mem_init(paddr_t addrp, size_t sizep);
 
 #endif /* _GFP_H */

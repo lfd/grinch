@@ -35,10 +35,6 @@ int __init arch_init(void)
 
 	irq_disable();
 
-	err = phys_mem_init_fdt();
-	if (err)
-		goto out;
-
 	err = initrd_init_early();
 	if (err == -ENOENT)
 		pri("No ramdisk found\n");

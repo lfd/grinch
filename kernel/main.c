@@ -161,6 +161,10 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 	if (err)
 		goto out;
 
+	err = phys_mem_init_fdt();
+	if (err)
+		goto out;
+
 	err = arch_init();
 	if (err)
 		goto out;

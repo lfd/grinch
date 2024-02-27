@@ -381,7 +381,7 @@ err_out:
 
 }
 
-int __init phys_mem_init(paddr_t addrp, size_t sizep)
+static int __init phys_mem_init(paddr_t addrp, size_t sizep)
 {
 	int err;
 
