@@ -19,26 +19,12 @@
 #include <grinch/printk.h>
 #include <grinch/platform.h>
 
-const char *platform_model = "PLATFORM,UNKNOWN";
-
-int __init platform_init(void)
+int __init arch_platform_init(void)
 {
 	const char *name, *isa;
 	unsigned long hart_id;
 	int err, off, child;
 	const fdt32_t *reg;
-
-	bitmap_set(cpus_online, this_cpu_id(), 1);
-
-	off = fdt_path_offset(_fdt, "/");
-	if (off < 0)
-		goto no_model;
-
-	name = fdt_getprop(_fdt, off, ISTR("model"), &err);
-	if (name)
-		platform_model = name;
-no_model:
-	pri("Found platform: %s\n", platform_model);
 
 	off = fdt_path_offset(_fdt, "/cpus");
 	if (off < 0) {
