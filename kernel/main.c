@@ -24,6 +24,7 @@
 #include <grinch/memtest.h>
 #include <grinch/paging.h>
 #include <grinch/percpu.h>
+#include <grinch/platform.h>
 #include <grinch/printk.h>
 #include <grinch/smp.h>
 #include <grinch/task.h>
@@ -170,6 +171,14 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 	if (err == -ENOENT)
 		pri("No ramdisk found\n");
 	else if (err)
+		goto out;
+
+	err = kheap_init();
+	if (err)
+		goto out;
+
+	err = platform_init();
+	if (err)
 		goto out;
 
 	err = arch_init();

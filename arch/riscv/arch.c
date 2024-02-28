@@ -15,13 +15,10 @@
 #include <asm/irq.h>
 
 #include <grinch/arch.h>
-#include <grinch/alloc.h>
-#include <grinch/gfp.h>
 #include <grinch/hypercall.h>
 #include <grinch/irqchip.h>
 #include <grinch/percpu.h>
 #include <grinch/panic.h>
-#include <grinch/platform.h>
 #include <grinch/printk.h>
 #include <grinch/serial.h>
 #include <grinch/timer.h>
@@ -33,14 +30,6 @@ int __init arch_init(void)
 	int err;
 
 	irq_disable();
-
-	err = kheap_init();
-	if (err)
-		goto out;
-
-	err = platform_init();
-	if (err)
-		goto out;
 
 	err = sbi_init();
 	if (err)
