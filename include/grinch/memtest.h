@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -13,6 +13,6 @@
 #ifndef _MEMTEST_H
 #define _MEMTEST_H
 
-void memtest(void);
+int memtest(void);
 
 #endif /* _MEMTEST_H */

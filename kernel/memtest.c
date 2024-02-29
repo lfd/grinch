@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -19,82 +19,92 @@
 
 #define PTRS	1024
 
-static void memtest_kmem(void)
+static int __init memtest_kmem(void)
 {
 	unsigned int ctr, tmp;
-	void *page;
+	void *page, **pages;
 	int err;
 	u64 *i;
 
-	void **pages = kzalloc(PTRS * sizeof(void *));
-	if (!pages) {
-		pr("No memory\n");
-		return;
-	}
+	pages = kzalloc(PTRS * sizeof(void *));
+	if (!pages)
+		return -ENOMEM;
 
-	pr("Running Memtest...\n");
+	pri("Running Memtest...\n");
 	for (ctr = 0; ctr < PTRS; ctr++) {
 		page = alloc_pages(1);
 		if (!page) {
-			pr("Err: %ld\n", PTR_ERR(page));
+			pri("Out of memory in run %u\n", ctr);
 			break;
 		}
-		pr("Allocated %p -> 0x%llx\n", page, v2p(page));
+
+		pri("Allocated %p -> 0x%llx\n", page, v2p(page));
 		for (i = page; (void*)i < page + PAGE_SIZE; i++) {
 			if (*i) {
-				pr("  -> Page not zero: %p = 0x%llx\n", i, *i);
+				pri("  -> Page not zero: %p = 0x%llx\n", i, *i);
 				break;
 			}
 		}
 
 		pages[ctr] = page;
 	}
-	pr("Allocated %u pages\n", ctr);
+	pri("Allocated %u pages\n", ctr);
 
 	for (tmp = 0; tmp < ctr; tmp++) {
-		pr("Freeing %p\n", pages[tmp]);
+		pri("Freeing %p\n", pages[tmp]);
 		err = free_pages(pages[tmp], 1);
 		if (err) {
-			pr("Error: %pe\n", ERR_PTR(err));
-			break;
+			pri("Error: %pe\n", ERR_PTR(err));
+			return err;
 		}
 	}
-	pr("Freed %u pages\n", ctr);
-	pr("Success.\n");
+
+	return 0;
 }
 
-static void memtest_kmalloc(void)
+static int __init memtest_kmalloc(void)
 {
-	size_t sz = 5;
 	unsigned int i;
+	size_t sz = 5;
 	void **ptrs;
 
 	ptrs = kzalloc(PTRS * sizeof(*ptrs));
-	if (!ptrs) {
-		pr("No memory :-(\n");
-		return;
-	}
+	if (!ptrs)
+		return -ENOMEM;
+
 	for (i = 0; i < PTRS; i++) {
-		pr("i %u, sz: %lu\n", i, sz);
+		pri("i %u, sz: %lu\n", i, sz);
 		ptrs[i] = kmalloc(sz);
 		if (!ptrs[i]) {
-			pr("Malloc error!\n");
+			pr("Out of memory in run %u!\n", i);
 			break;
 		}
 		sz += 12;
 	}
 
 	for (i = 0; i < PTRS; i++) {
-		pr("i %u, ptr: %p\n", i, ptrs[i]);
+		pri("i %u, ptr: %p\n", i, ptrs[i]);
 		if (!ptrs[i])
 			break;
 		kfree(ptrs[i]);
 	}
 	kfree(ptrs);
+
+	return 0;
 }
 
-void memtest(void)
+int __init memtest(void)
 {
-	memtest_kmem();
-	memtest_kmalloc();
+	int err;
+
+	err = memtest_kmem();
+	if (err)
+		return err;
+
+	err = memtest_kmalloc();
+	if (err)
+		return err;
+
+	pri("Memtest run was successful.\n");
+	return 0;
 }

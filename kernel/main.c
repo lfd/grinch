@@ -189,8 +189,11 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 	if (err)
 		goto out;
 
-	if (do_memtest)
-		memtest();
+	if (do_memtest) {
+		err = memtest();
+		if (err)
+			goto out;
+	}
 
 	kheap_stats();
 
