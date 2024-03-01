@@ -82,9 +82,13 @@ int fdt_find_device(const void *fdt, const char *path,
 {
 	int off, sub;
 
-	off = fdt_path_offset(fdt, path);
-	if (off <= 0)
-		return -ENOENT;
+	if (!path)
+		off = 0;
+	else {
+		off = fdt_path_offset(fdt, path);
+		if (off <= 0)
+			return -ENOENT;
+	}
 
 	fdt_for_each_subnode(sub, _fdt, off)
 		if (fdt_match_device_off(fdt, sub, compats, match) > 0)
