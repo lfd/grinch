@@ -29,8 +29,6 @@ int __init arch_init(void)
 {
 	int err;
 
-	irq_disable();
-
 	err = sbi_init();
 	if (err)
 		goto out;
