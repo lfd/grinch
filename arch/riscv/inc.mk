@@ -21,11 +21,6 @@ ARCH_OBJS := $(addprefix $(ARCH_DIR)/, $(ARCH_OBJS))
 
 arch/riscv/built-in.a: $(ARCH_OBJS)
 
-qemu.dts:
-	$(QEMU_CMD_DIRECT) $(QEMU_MACHINE),dumpdtb=/tmp/qemu_tmp.dtb
-	dtc -I dtb -O dts /tmp/qemu_tmp.dtb -o $@
-	rm -f /tmp/qemu_tmp.dtb
-
 clean_arch:
 	$(RMRF) $(ARCH_DIR)/*.{o,a}
 	$(RMRF) $(ARCH_DIR)/vmm/*.{o,a}

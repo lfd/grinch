@@ -78,6 +78,11 @@ qemudb: all
 qemuu: all $(UBOOT_BIN)
 	$(QEMU_CMD_UBOOT)
 
+qemu.dts: kernel.bin user/initrd.cpio
+	$(QEMU_CMD_DIRECT) $(QEMU_MACHINE),dumpdtb=/tmp/qemu_tmp.dtb
+	dtc -I dtb -O dts /tmp/qemu_tmp.dtb -o $@
+	rm -f /tmp/qemu_tmp.dtb
+
 $(UBOOT_BIN):
 	cp -av res/u-boot/$(UBOOT_CFG) res/u-boot/u-boot/.config
 	$(MAKE) $(MAKEARGS_UBOOT) u-boot-nodtb.bin
