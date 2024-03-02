@@ -20,18 +20,18 @@
 
 const struct irqchip_fn *irqchip_fn;
 
-static const struct of_device_id plic_compats[] = {
+static __initconst const struct of_device_id plic_compats[] = {
 	{ .compatible = "riscv,plic0", .data = &irqchip_fn_plic, },
 	{ .compatible = "sifive,plic-1.0.0", .data = &irqchip_fn_plic, },
 	{ /* sentinel */ }
 };
 
-static const struct of_device_id aplic_compats[] = {
+static __initconst const struct of_device_id aplic_compats[] = {
 	{ .compatible = "riscv,aplic", .data = &irqchip_fn_aplic, },
 	{ /* sentinel */ }
 };
 
-static int fdt_irqchip_get_extended(const void *fdt, int off)
+static int __init fdt_irqchip_get_extended(const void *fdt, int off)
 {
 	const fdt32_t *reg;
 	int res;
