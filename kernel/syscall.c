@@ -75,6 +75,7 @@ int syscall(unsigned long no, unsigned long arg1,
 
 		case SYS_exit:
 			exit(arg1);
+			ret = 0;
 			break;
 
 		case SYS_usleep:
