@@ -20,9 +20,10 @@ RMRF=rm -rf
 
 CMDLINE ?= ""
 
-D_UBOOT=res/u-boot/u-boot
-UBOOT_BIN=$(D_UBOOT)/u-boot-nodtb.bin
-MAKEARGS_UBOOT=-j 8 -C $(D_UBOOT) CROSS_COMPILE=$(CROSS_COMPILE)
+D_UBOOT=$(realpath res/u-boot)
+UBOOT_PFX=$(D_UBOOT)/u-boot-$(ARCH)-$(PLATFORM)
+UBOOT_BIN=$(UBOOT_PFX)/u-boot-nodtb.bin
+MAKEARGS_UBOOT=-j 8 CROSS_COMPILE=$(CROSS_COMPILE)
 
 ifdef V
 QUIET := @true
@@ -84,8 +85,10 @@ qemu.dts: kernel.bin user/initrd.cpio
 	rm -f /tmp/qemu_tmp.dtb
 
 $(UBOOT_BIN):
-	cp -av res/u-boot/$(UBOOT_CFG) res/u-boot/u-boot/.config
-	$(MAKE) $(MAKEARGS_UBOOT) u-boot-nodtb.bin
+	mkdir -p $(UBOOT_PFX)
+	cp -av res/u-boot/$(UBOOT_CFG) $(UBOOT_PFX)/.config
+	$(MAKE) -C $(D_UBOOT)/u-boot $(MAKEARGS_UBOOT) O=$(UBOOT_PFX) oldconfig
+	$(MAKE) -C $(UBOOT_PFX) $(MAKEARGS_UBOOT) u-boot-nodtb.bin
 
 debug: kernel.bin
 	$(GDB) $^

@@ -10,6 +10,8 @@ include/generated/
 arch/riscv/asm_defines.S
 arch/riscv/include/asm/asm_defines.h
 
+res/u-boot/u-boot-*
+
 user/initrd.cpio
 
 .gdbinit

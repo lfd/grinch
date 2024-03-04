@@ -1,4 +1,5 @@
 CROSS_COMPILE ?= riscv64-linux-gnu-
+PLATFORM ?= any
 
 UBOOT_CFG=riscv-qemu.config
 
