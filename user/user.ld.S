@@ -16,7 +16,7 @@ ENTRY(_user_start)
 
 SECTIONS
 {
-	. = 0x80000000;
+	. = 0x90000000;
 	__start = .;
 	.text : {
 		KEEP(*(.text.boot))
