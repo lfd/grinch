@@ -111,10 +111,17 @@ void arch_handle_exception(struct registers *regs, u64 scause)
 
 	task_save(regs);
 	switch (ctx.scause) {
+		case EXC_INST_ILLEGAL:
+		case EXC_INST_PAGE_FAULT:
+			dump_exception(&ctx);
+			//dump_regs(regs);
+			exit(-EFAULT);
+			err = 0;
+			break;
+
 		case EXC_INST_ACCESS:
 		case EXC_LOAD_ACCESS:
 		case EXC_STORE_ACCESS:
-		case EXC_INST_PAGE_FAULT:
 		case EXC_LOAD_PAGE_FAULT:
 		case EXC_STORE_PAGE_FAULT:
 		case EXC_INST_MISALIGNED:
