@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -23,6 +23,6 @@ extern struct initrd initrd;
 
 void *vfs_read_file(const char *pathname, size_t *len);
 
-int initrd_init_early(void);
+int vfs_init(void);
 
 #endif /* _VFS_H */

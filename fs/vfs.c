@@ -149,7 +149,7 @@ void *vfs_read_file(const char *pathname, size_t *len)
 	return initrd_read_file(pathname + strlen(ird), len);
 }
 
-int __init initrd_init_early(void)
+static int __init initrd_init(void)
 {
 	size_t initrd_pages;
 	paddr_t page_start;
@@ -185,6 +185,19 @@ int __init initrd_init_early(void)
 		pri("Error reserving memory for ramdisk\n");
 		return err;
 	}
+
+	return 0;
+}
+
+int __init vfs_init(void)
+{
+	int err;
+
+	err = initrd_init();
+	if (err == -ENOENT)
+		pri("No ramdisk found\n");
+	else if (err)
+		return err;
 
 	return 0;
 }

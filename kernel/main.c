@@ -167,12 +167,6 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 	if (err)
 		goto out;
 
-	err = initrd_init_early();
-	if (err == -ENOENT)
-		pri("No ramdisk found\n");
-	else if (err)
-		goto out;
-
 	err = kheap_init();
 	if (err)
 		goto out;
@@ -196,6 +190,10 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 	}
 
 	kheap_stats();
+
+	err = vfs_init();
+	if (err)
+		goto out;
 
 	err = vm_init();
 	if (err)
