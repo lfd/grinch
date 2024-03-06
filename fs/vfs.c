@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include <grinch/alloc.h>
+#include <grinch/devfs.h>
 #include <grinch/errno.h>
 #include <grinch/fs.h>
 #include <grinch/initrd.h>
@@ -64,6 +65,10 @@ static struct file *_file_open(const char *pathname, struct fs_flags flags)
 
 	fsname = pathname;
 	fs = NULL;
+	if (!strncmp(pathname, DEVFS_MOUNTPOINT, DEVFS_MOUNTPOINT_LEN)) {
+		fs = &devfs;
+		fsname += 5;
+	}
 
 	if (!fs)
 		return ERR_PTR(-ENOENT);
@@ -196,6 +201,10 @@ int __init vfs_init(void)
 	if (err == -ENOENT)
 		pri("No ramdisk found\n");
 	else if (err)
+		return err;
+
+	err = devfs_init();
+	if (err)
 		return err;
 
 	return 0;
