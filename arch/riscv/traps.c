@@ -83,7 +83,6 @@ void arch_handle_irq(struct registers *regs, u64 scause)
 
 void arch_handle_exception(struct registers *regs, u64 scause)
 {
-	const char *cause_str = "UNKNOWN";
 	enum vmm_trap_result vmtr;
 	struct trap_context ctx;
 	int err;
@@ -139,12 +138,7 @@ void arch_handle_exception(struct registers *regs, u64 scause)
 
 out:
 	if (err) {
-		if (ctx.scause <= 23)
-			cause_str = causes[ctx.scause];
-		pr("FATAL: Exception on CPU %lu. Cause: %lu (%s)\n",
-		   this_cpu_id(), to_irq(ctx.scause), cause_str);
-		if (!(ctx.sstatus & SR_SPP))
-			pr("PID: %u\n", current_task()->pid);
+		dump_exception(&ctx);
 		dump_regs(regs);
 		panic("System halted\n");
 	}

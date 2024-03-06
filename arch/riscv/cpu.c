@@ -83,6 +83,18 @@ void dump_regs(struct registers *a)
 			a->t5, a->t6);
 }
 
+void dump_exception(struct trap_context *ctx)
+{
+	const char *cause_str = "UNKNOWN";
+
+	if (ctx->scause <= 23)
+		cause_str = causes[ctx->scause];
+	pr("FATAL: Exception on CPU %lu. Cause: %lu (%s)\n",
+	   this_cpu_id(), to_irq(ctx->scause), cause_str);
+	if (!(ctx->sstatus & SR_SPP))
+		pr("Active PID: %u\n", current_task()->pid);
+}
+
 int hypercall(unsigned long no, unsigned long arg1)
 {
 	struct sbiret ret;

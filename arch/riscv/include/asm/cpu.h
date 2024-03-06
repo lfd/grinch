@@ -120,6 +120,7 @@ static __always_inline void __noreturn cpu_halt(void)
 }
 
 void dump_regs(struct registers *a);
+void dump_exception(struct trap_context *ctx);
 
 void guest_init(void);
 
