@@ -36,16 +36,18 @@ void *user_to_direct(struct mm *mm, const void *s)
 	return p2v(pa);
 }
 
-void umemset(struct mm *mm, void *s, int c, size_t n)
+unsigned long umemset(struct mm *mm, void *s, int c, size_t n)
 {
 	unsigned int remaining;
+	unsigned long ret;
 	size_t written;
 	void *direct;
 
+	ret = 0;
 	while (n) {
 		direct = user_to_direct(mm, s);
 		if (!direct)
-			panic("Invalid user address: %p\n", s);
+			break;
 
 		remaining = bytes_in_page(direct);
 		if (n > remaining) {
@@ -56,9 +58,12 @@ void umemset(struct mm *mm, void *s, int c, size_t n)
 			written = n;
 		}
 
+		ret += written;
 		n -= written;
 		s += written;
 	}
+
+	return ret;
 }
 
 unsigned long copy_from_user(struct mm *mm, void *to, const void *from,
