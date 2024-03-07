@@ -22,6 +22,8 @@ int main(void);
 
 APP_NAME(test);
 
+static const char hello[] = "Hello, world!";
+
 static int test_zero(void)
 {
 	int err, fd;
@@ -112,6 +114,38 @@ static int test_null(void)
 	return err;
 }
 
+static int test_ttyS(void)
+{
+	int err, fd;
+	ssize_t r;
+
+	fd = open("/dev/ttyS0", O_WRONLY);
+	if (fd == -1) {
+		perror("open");
+		return -errno;
+	}
+
+	r = write(fd, hello, sizeof(hello));
+	if (r != sizeof(hello)) {
+		if (r == -1) {
+			perror("write");
+			return -errno;
+		} else {
+			printf("invalid write: %ld!\n", r);
+			return -EINVAL;
+		}
+	}
+
+	err = close(fd);
+	if (err) {
+		perror("close");
+		return -errno;
+	}
+
+	return 0;
+}
+
+
 int main(void)
 {
 	int err;
@@ -123,6 +157,11 @@ int main(void)
 
 	printf("Testing null device\n");
 	err = test_null();
+	if (err)
+		goto out;
+
+	printf("Testing ttyS0\n");
+	err = test_ttyS();
 	if (err)
 		goto out;
 
