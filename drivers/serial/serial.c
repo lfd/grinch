@@ -14,6 +14,7 @@
 
 #include <asm/cpu.h>
 #include <grinch/alloc.h>
+#include <grinch/devfs.h>
 #include <grinch/errno.h>
 #include <grinch/fdt.h>
 #include <grinch/ioremap.h>
@@ -22,6 +23,9 @@
 #include <grinch/mmio.h>
 #include <grinch/printk.h>
 #include <grinch/serial.h>
+#include <grinch/vsprintf.h>
+
+#include <grinch/fs.h>
 
 static struct uart_chip uart_default = {
 #if defined(ARCH_RISCV)
@@ -30,6 +34,8 @@ static struct uart_chip uart_default = {
 	.driver = &uart_dummy,
 #endif
 };
+
+static unsigned int uart_no;
 
 struct uart_chip *uart_stdout = &uart_default;
 
@@ -72,6 +78,7 @@ int __init uart_probe_generic(struct device *dev)
 {
 	const struct uart_driver *d;
 	struct uart_chip *c;
+	struct devfs_node *node;
 	int err;
 
 	err = uart_init(dev);
@@ -83,11 +90,25 @@ int __init uart_probe_generic(struct device *dev)
 	c = dev->data;
 	c->driver = d;
 	err = d->init(c);
-	if (err) {
-		uart_deinit(dev);
-		return err;
-	}
+	if (err)
+		goto error_out;
 
+	node = &c->node;
+
+	snprintf(node->name, sizeof(node->name), ISTR("ttyS%u"), uart_no);
+	node->fops = &serial_fops;
+	node->drvdata = dev;
+	err = devfs_register_node(node);
+	if (err)
+		goto error_out;
+
+	pri("Registered as %s\n", node->name);
+	uart_no++;
+
+	return 0;
+
+error_out:
+	uart_deinit(dev);
 	return err;
 }
 

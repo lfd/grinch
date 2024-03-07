@@ -16,6 +16,7 @@
 #include <asm/cpu.h>
 #include <asm/spinlock.h>
 
+#include <grinch/devfs.h>
 #include <grinch/types.h>
 
 struct uart_chip;
@@ -32,6 +33,8 @@ struct uart_chip {
 	void *base;
 	size_t size;
 	u32 irq;
+
+	struct devfs_node node;
 
 	void (*reg_out)(struct uart_chip *chip, unsigned int reg, u32 value);
 	u32 (*reg_in)(struct uart_chip *chip, unsigned int reg);
@@ -62,6 +65,8 @@ extern const struct uart_driver uart_dummy;
 #ifdef ARCH_RISCV
 extern const struct uart_driver uart_sbi;
 #endif
+
+extern const struct file_operations serial_fops;
 
 #include <grinch/driver.h>
 int uart_init(struct device *dev);

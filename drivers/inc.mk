@@ -1,6 +1,6 @@
 DRIVERS_OBJS = driver.o
 DRIVERS_IRQ_OBJS = irq/irqchip.o
-DRIVERS_SERIAL_OBJS = serial/serial.o serial/uart-dummy.o
+DRIVERS_SERIAL_OBJS = serial/chardev.o serial/serial.o serial/uart-dummy.o
 DRIVERS_SERIAL_OBJS += serial/uart-8250.o serial/uart-apbuart.o
 
 ifeq ($(ARCH),riscv)
