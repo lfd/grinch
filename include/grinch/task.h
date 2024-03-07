@@ -17,6 +17,7 @@
 
 #include <grinch/compiler_attributes.h>
 #include <grinch/list.h>
+#include <grinch/panic.h>
 #include <grinch/process.h>
 #include <grinch/types.h>
 #include <grinch/timer.h>
@@ -56,6 +57,22 @@ struct task {
 		struct vmachine *vmachine;
 	};
 };
+
+static inline struct task *current_task(void)
+{
+	return this_per_cpu()->current_task;
+}
+
+static inline struct process *current_process(void)
+{
+	struct task *cur;
+
+	cur = current_task();
+	if (cur->type != GRINCH_PROCESS)
+		BUG();
+
+	return cur->process;
+}
 
 struct task *task_alloc_new(void);
 

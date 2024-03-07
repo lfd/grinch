@@ -86,11 +86,6 @@ static inline page_table_t this_root_table_page(void)
 	return this_per_cpu()->root_table_page;
 }
 
-static inline struct task *current_task(void)
-{
-	return this_per_cpu()->current_task;
-}
-
 #endif /* __ASSEMBLY__ */
 
 #endif
