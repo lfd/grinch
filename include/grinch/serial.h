@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -13,8 +13,10 @@
 #ifndef _SERIAL_H
 #define _SERIAL_H
 
-#include <grinch/types.h>
 #include <asm/cpu.h>
+#include <asm/spinlock.h>
+
+#include <grinch/types.h>
 
 struct uart_chip;
 
@@ -33,13 +35,17 @@ struct uart_chip {
 
 	void (*reg_out)(struct uart_chip *chip, unsigned int reg, u32 value);
 	u32 (*reg_in)(struct uart_chip *chip, unsigned int reg);
+
+	spinlock_t lock;
 };
 
 static inline void uart_write_byte(struct uart_chip *chip, unsigned char b)
 {
+	spin_lock(&chip->lock);
 	while (chip->driver->is_busy(chip))
 		cpu_relax();
 	chip->driver->write_byte(chip, b);
+	spin_unlock(&chip->lock);
 }
 
 static inline void uart_write_char(struct uart_chip *chip, char c)

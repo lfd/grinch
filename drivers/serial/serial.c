@@ -140,6 +140,8 @@ int __init uart_init(struct device *dev)
 		return -ENOMEM;
 	dev->data = c;
 
+	spin_init(&c->lock);
+
 	switch (io_width) {
 		case 1:
 			c->reg_in = reg_in_mmio8;
