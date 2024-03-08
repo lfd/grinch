@@ -1,4 +1,4 @@
-FS_OBJS = syscall.o vfs.o
+FS_OBJS = initrd.o syscall.o vfs.o
 
 FS_OBJS := $(addprefix fs/, $(FS_OBJS))
 
