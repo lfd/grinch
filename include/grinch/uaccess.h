@@ -13,6 +13,8 @@
 #ifndef _UACCESS_H
 #define _UACCESS_H
 
+struct mm;
+
 void *user_to_direct(struct mm *mm, const void *s);
 
 unsigned long umemset(struct mm *mm, void __user *s, int c, size_t n);
