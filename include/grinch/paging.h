@@ -64,6 +64,9 @@ int paging_discard_init(void);
 
 paddr_t paging_get_phys(page_table_t pt, const void *virt);
 
+int paging_duplicate(page_table_t dst, page_table_t src,
+		     void *vaddr, size_t size);
+
 /* Versatile mapper */
 int map_range(page_table_t pt, const void *vaddr, paddr_t paddr, size_t size,
 	      mem_flags_t grinch_flags);

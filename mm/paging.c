@@ -420,3 +420,71 @@ out:
 	pri("Mapping error: %pe\n", ERR_PTR(err));
 	return err;
 }
+
+/*
+ * Warning: In case of errors, this routine does no housekeeping at the moment,
+ * and may leak memory!
+ */
+int paging_duplicate(page_table_t dst, page_table_t src,
+		     void *_vaddr, size_t size)
+{
+	struct paging_structures pg = {
+		.root_paging = root_paging,
+		.root_table = src,
+	};
+	page_table_t pt_dst[MAX_PAGE_TABLE_LEVELS];
+	page_table_t pt_src[MAX_PAGE_TABLE_LEVELS];
+	pt_entry_t pte_src, pte_dst;
+	const struct paging *paging;
+	unsigned long vaddr;
+	unsigned int n;
+
+	vaddr = (unsigned long)_vaddr;
+	if (vaddr & PAGE_OFFS_MASK)
+		return -EINVAL;
+
+	if (size & PAGE_OFFS_MASK)
+		return -EINVAL;
+
+	while (size > 0) {
+		paging = pg.root_paging;
+		n = 0;
+		pt_src[n] = src;
+		pt_dst[n] = dst;
+		while (1) {
+			pte_src = paging->get_entry(pt_src[n], vaddr);
+			if (!paging->entry_valid(pte_src, PAGE_PRESENT_FLAGS))
+				return -EINVAL;
+
+			if ((vaddr & ~PMASK(paging->page_size)) == 0) {
+				if (size >= paging->page_size) {
+					pte_dst = paging->get_entry(pt_dst[n],
+								    vaddr);
+					*pte_dst = *pte_src;
+
+					vaddr += paging->page_size;
+					size -= paging->page_size;
+					break;
+				}
+			}
+
+			/* Walk deeper */
+			pte_dst = paging->get_entry(pt_dst[n], vaddr);
+			page_table_t next;
+			if (paging->entry_valid(pte_dst, PAGE_PRESENT_FLAGS)) {
+				next = p2v(paging->get_next_pt(pte_dst));
+			} else {
+				next = zalloc_pages(1);
+				if (!next)
+					return -ENOMEM;
+				paging->set_next_pt(pte_dst, v2p(next));
+			}
+			pt_dst[n + 1] = next;
+			pt_src[n + 1] = p2v(paging->get_next_pt(pte_src));
+			n++;
+			paging++;
+		}
+	}
+
+	return 0;
+}

@@ -69,7 +69,6 @@ int arch_boot_cpu(unsigned long hart_id)
 	struct sbiret ret;
 	unsigned long opaque;
 	struct per_cpu *pcpu;
-	unsigned int index;
 	int err;
 
 	pr("Bringing up HART %lu\n", hart_id);
@@ -81,20 +80,20 @@ int arch_boot_cpu(unsigned long hart_id)
 	pcpu->cpuid = hart_id;
 	spin_init(&pcpu->remote_call.lock);
 
-	/* Copy over kernel page tables */
-
-	/*
-	 * FIXME: This is done by handwork at the moment, and only works with
-	 * SV39. This must be improved, if we ever use some other pagers
-	 */
+	/* Duplicate kernel page tables */
 
 	/* Hook in the whole kernel. */
-	index = vaddr2vpn(_load_addr, satp_mode == SATP_MODE_39 ? 2 : 3);
-	pcpu->root_table_page[index] = this_root_table_page()[index];
+	err = paging_duplicate(pcpu->root_table_page, this_root_table_page(),
+			       (void *)VMGRINCH_BASE, GIGA_PAGE_SIZE);
+	if (err)
+		return err;
 
-	/* Hook in the direct physical area */
-	index = vaddr2vpn((void *)DIR_PHYS_BASE, satp_mode == SATP_MODE_39 ? 2 : 3);
-	pcpu->root_table_page[index] = this_root_table_page()[index];
+	err = paging_duplicate(pcpu->root_table_page,
+			       this_root_table_page(),
+			       (void *)DIR_PHYS_BASE,
+			       giga_page_up(memory_size()));
+	if (err)
+		return err;
 
 	/*
 	 * Hook in the percpu stack. Take care, SV48 is not supported, Stack
