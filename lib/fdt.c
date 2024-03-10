@@ -45,20 +45,27 @@ static int fdt_match_device_off(const void *fdt, int offset,
 				const struct of_device_id *compats,
 				const struct of_device_id **match)
 {
-	const char *compatible;
-	int res;
 	const struct of_device_id *compat;
+	const char *compatible;
+	size_t len;
+	int res;
 
 	compatible = fdt_getprop(_fdt, offset, "compatible", &res);
 	if (res < 0)
 		return -EINVAL;
 
-	compat = fdt_find_compat(compatible, compats);
-	if (compat && fdt_device_is_available(_fdt, offset)) {
-		if (match)
-			*match = compat;
-		return offset; /* we found it */
-	}
+	do {
+		compat = fdt_find_compat(compatible, compats);
+		if (compat && fdt_device_is_available(_fdt, offset)) {
+			if (match)
+				*match = compat;
+			return offset; /* we found it */
+		}
+
+		len = strlen(compatible) + 1;
+		compatible += len;
+		res -= len;
+	} while (res);
 
 	return -ENOENT;
 }
