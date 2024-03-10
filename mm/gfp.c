@@ -329,7 +329,7 @@ int __init kernel_mem_init(void)
 	return 0;
 }
 
-static int create_memory_area(paddr_t addrp, size_t sizep, void *virt)
+static int __init create_memory_area(paddr_t addrp, size_t sizep, void *virt)
 {
 	struct memory_area *area;
 	paddr_t pgrinch;
