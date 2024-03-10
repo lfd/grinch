@@ -38,6 +38,7 @@ void serial_in(char ch)
 static const struct of_device_id of_match[] = {
 	{ .compatible = "ns16550a", .data = &uart_8250, },
 	{ .compatible = "uart8250", .data = &uart_8250, },
+	{ .compatible = "snps,dw-apb-uart", .data = &uart_8250, },
 	{ .compatible = "gaisler,apbuart", .data = &uart_apbuart, },
 #if defined(ARCH_RISCV)
 	{ .compatible = "riscv,axi-uart-1.0", .data = &uart_uartlite, },
