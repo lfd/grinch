@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -10,7 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
-#define IRQ_MAX		32
+#define IRQ_MAX		64
 
 extern const struct irqchip_fn irqchip_fn_plic;
 extern const struct irqchip_fn irqchip_fn_aplic;
