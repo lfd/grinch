@@ -12,20 +12,38 @@
 
 #include <asm/spinlock.h>
 
+#include <ctype.h>
+#include <string.h>
+
 #include <grinch/boot.h>
+#include <grinch/bootparam.h>
+#include <grinch/minmax.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/serial.h>
 #include <grinch/timer.h>
 #include <grinch/vsprintf.h>
 
+#ifdef DEBUG
+#define LOGLEVEL_DEFAULT	9
+#else
+#define LOGLEVEL_DEFAULT	1
+#endif
+
 static DEFINE_SPINLOCK(print_lock);
 static char prefix_fmt[32];
+static unsigned int loglevel = LOGLEVEL_DEFAULT;
 
 struct {
 	unsigned int tail;
 	char content[2048];
 } console;
+
+static void __init loglevel_parse(const char *arg)
+{
+	loglevel = min(strtoul(arg, NULL, 10), 10UL);
+}
+bootparam(loglevel, loglevel_parse);
 
 static inline void console_write(char c)
 {
@@ -86,16 +104,39 @@ void _puts(const char *msg)
 
 static void vprintk(const char *fmt, const char *infix, va_list ap)
 {
-	char buf[196];
 	char *str, *end;
+	char buf[196];
+	bool prefix;
 	int err;
+	unsigned int this_loglevel;
+
+	this_loglevel = 0;
+	prefix = true;
+	while (*fmt == PR_SOH_ASCII) {
+		fmt++;
+		if (!*fmt)
+			return;
+
+		if (*fmt == PR_NOPREFIX_ASCII)
+			prefix = false;
+
+		if (isdigit(*fmt))
+			this_loglevel = *fmt - '0';
+
+		fmt++;
+	}
+
+	if (this_loglevel > loglevel)
+		return;
 
 	str = buf;
 	end = str + sizeof(buf);
 
-	err = sprint_prefix(&str, end);
-	if (err < 0)
-		return;
+	if (prefix) {
+		err = sprint_prefix(&str, end);
+		if (err < 0)
+			return;
+	}
 
 	if (infix) {
 		err = snprintf(str, end - str, "%s", infix);

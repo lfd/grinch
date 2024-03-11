@@ -140,7 +140,7 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 		_puts(logo);
 	_puts(hello);
 	printk_init();
-	pdi("Compiler CFLAGS:" COMPILE_CFLAGS "\n");
+	pr_dbg_i("Compiler CFLAGS:" COMPILE_CFLAGS "\n");
 
 	err = kernel_mem_init();
 	if (err)

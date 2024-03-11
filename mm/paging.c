@@ -212,8 +212,7 @@ static int paging_create(const struct paging_structures *pg_structs,
 
 static int _unmap_range(struct paging_structures *pg, const void *vaddr, size_t size)
 {
-	pd("Unmapping VA: 0x%llx (SZ: 0x%lx)\n",
-	   (u64)vaddr, size);
+	pr_dbg("Unmapping VA: 0x%llx (SZ: 0x%lx)\n", (u64)vaddr, size);
 
 	return paging_destroy(pg, (unsigned long)vaddr, size, 0);
 }
@@ -223,14 +222,14 @@ static int _map_range(struct paging_structures *pg, const void *vaddr,
 {
 	unsigned long flags;
 
-	pd("Create mapping VA: 0x%llx PA: 0x%llx (%c%c%c%c%c SZ: 0x%lx)\n",
-	   (u64)vaddr, (u64)paddr,
-	   grinch_flags & GRINCH_MEM_R ? 'R' : '-',
-	   grinch_flags & GRINCH_MEM_W ? 'W' : '-',
-	   grinch_flags & GRINCH_MEM_X ? 'X' : '-',
-	   grinch_flags & GRINCH_MEM_U ? 'U' : '-',
-	   grinch_flags & GRINCH_MEM_DEVICE ? 'D' : '-',
-	   size);
+	pr_dbg("Create mapping VA: 0x%llx PA: 0x%llx (%c%c%c%c%c SZ: 0x%lx)\n",
+	       (u64)vaddr, (u64)paddr,
+	       grinch_flags & GRINCH_MEM_R ? 'R' : '-',
+	       grinch_flags & GRINCH_MEM_W ? 'W' : '-',
+	       grinch_flags & GRINCH_MEM_X ? 'X' : '-',
+	       grinch_flags & GRINCH_MEM_U ? 'U' : '-',
+	       grinch_flags & GRINCH_MEM_DEVICE ? 'D' : '-',
+	       size);
 	flags = arch_paging_access_flags(grinch_flags);
 
 	return paging_create(pg, paddr, size, (unsigned long)vaddr, flags, PAGING_HUGE);
