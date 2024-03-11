@@ -22,7 +22,7 @@
 
 static unsigned long ioremap_bitmap[BITMAP_ELEMS(IOREMAP_PAGES)];
 
-void *ioremap(paddr_t paddr, size_t size)
+void __init *ioremap(paddr_t paddr, size_t size)
 {
 	unsigned int start;
 	unsigned int pages;
@@ -46,6 +46,7 @@ void *ioremap(paddr_t paddr, size_t size)
 	if (err)
 		return ERR_PTR(err);
 
+	/* FIXME: could be more fine-granular */
 	flush_tlb_all();
 
 	bitmap_set(ioremap_bitmap, start, pages);
@@ -53,7 +54,7 @@ void *ioremap(paddr_t paddr, size_t size)
 	return ret;
 }
 
-static bool is_ioremap(const void *vaddr, size_t pages)
+static bool __init is_ioremap(const void *vaddr, size_t pages)
 {
 	uintptr_t addr = (uintptr_t)vaddr;
 	if (addr < IOREMAP_BASE || addr >= IOREMAP_END)
@@ -65,7 +66,7 @@ static bool is_ioremap(const void *vaddr, size_t pages)
 	return true;
 }
 
-int iounmap(const void *vaddr, size_t size)
+int __init iounmap(const void *vaddr, size_t size)
 {
 	unsigned int start, pages;
 	int err;
@@ -77,10 +78,12 @@ int iounmap(const void *vaddr, size_t size)
 	if (!is_ioremap(vaddr, pages))
 		return -ERANGE;
 
-
 	err = unmap_range(this_root_table_page(), vaddr, size);
 	if (err)
 		return err;
+
+	/* FIXME: could be more fine-granular */
+	flush_tlb_all();
 
 	start = (vaddr - (void*)IOREMAP_BASE) / PAGE_SIZE;
 	bitmap_clear(ioremap_bitmap, start, pages);

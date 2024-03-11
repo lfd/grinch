@@ -40,6 +40,6 @@ void arch_process_activate(struct process *process)
 	memcpy(tpcpu->root_table_page, process->mm.page_table, PAGE_SIZE / 2);
 	/* Let's make our life easy */
 	// FIXME: think again about precise cache flushes
-	flush_tlb_all();
+	local_flush_tlb_all();
 	asm volatile("fence.i");
 }

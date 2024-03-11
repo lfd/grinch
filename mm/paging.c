@@ -138,7 +138,7 @@ static int paging_destroy(const struct paging_structures *pg_structs,
 			pte = paging->get_entry(pt[--n], virt);
 		}
 
-		flush_tlb_page(virt);
+		local_flush_tlb_page(virt);
 
 		if (page_size > size)
 			break;
@@ -201,7 +201,7 @@ static int paging_create(const struct paging_structures *pg_structs,
 			paging++;
 		}
 
-		flush_tlb_page(virt);
+		local_flush_tlb_page(virt);
 
 		phys += paging->page_size;
 		virt += paging->page_size;

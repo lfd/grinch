@@ -98,16 +98,18 @@ static inline void local_hfence_vvma_all(void)
 	asm volatile(".insn 0x22000073"); /* hfence.vvma zero, zero */
 }
 
-static inline void flush_tlb_all(void)
+static inline void local_flush_tlb_all(void)
 {
 	asm volatile("sfence.vma" : : : "memory");
 }
 
-static inline void flush_tlb_page(paddr_t page_addr)
+static inline void local_flush_tlb_page(paddr_t page_addr)
 {
 	asm volatile("sfence.vma /* rd, */ zero, %[addr]"
 		     : : [addr] "r" (page_addr));
 }
+
+void flush_tlb_all(void);
 
 static __always_inline void __noreturn cpu_halt(void)
 {

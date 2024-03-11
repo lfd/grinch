@@ -137,3 +137,25 @@ void __init guest_init(void)
 	grinch_is_guest = true;
 	grinch_id = ret;
 }
+
+void flush_tlb_all(void)
+{
+	unsigned long hmask;
+	struct sbiret ret;
+	unsigned int cpu;
+
+	local_flush_tlb_all();
+
+	hmask = 0;
+	for_each_online_cpu_except_this(cpu) {
+		if (cpu > 63)
+			BUG();
+		hmask |= (1UL << cpu);
+	}
+
+	if (hmask) {
+		ret = sbi_rfence_sfence_vma(hmask, 0, 0, 0);
+		if (ret.error != SBI_SUCCESS)
+			BUG();
+	}
+}

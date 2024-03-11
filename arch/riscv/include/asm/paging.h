@@ -75,9 +75,9 @@ static inline paddr_t pte2table(u64 pte)
 
 static inline void enable_mmu_satp(u64 mode, paddr_t pt)
 {
-	flush_tlb_all();
+	local_flush_tlb_all();
 	csr_write(satp, ATP(mode, pt));
-	flush_tlb_all();
+	local_flush_tlb_all();
 }
 
 static inline void enable_mmu_hgatp(u64 mode, paddr_t pt)
