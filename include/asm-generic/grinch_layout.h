@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -9,8 +9,6 @@
  * This work is licensed under the terms of the GNU GPL, version 2.  See
  * the COPYING file in the top-level directory.
  */
-
-#include <grinch/const.h>
 
 #define LOADER_BASE	_UL(0x40000000)
 #define VMGRINCH_BASE	_UL(0xffffffc000000000)
@@ -26,11 +24,11 @@
 
 #define VMGRINCH_END	(VMGRINCH_BASE + GRINCH_SIZE)
 
-#define IOREMAP_BASE	((VMGRINCH_END + MEGA_PAGE_SIZE - 1) & MEGA_PAGE_MASK)
-#define IOREMAP_END	(IOREMAP_BASE + 128 * MIB)
+#define IOREMAP_BASE	(VMGRINCH_BASE + 256 * MIB)
+#define IOREMAP_END	(IOREMAP_BASE + 256 * MIB)
 #define IOREMAP_SIZE	(IOREMAP_END - IOREMAP_BASE)
 
-#define KHEAP_BASE      (IOREMAP_END + MEGA_PAGE_SIZE)
+#define KHEAP_BASE      (IOREMAP_END)
 
 #define DIR_PHYS_BASE	(VMGRINCH_BASE + GIGA_PAGE_SIZE)
 

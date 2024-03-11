@@ -19,3 +19,5 @@ user/initrd.cpio
 
 user/dts/*.dts
 qemu.dts
+
+tools/dump_layout

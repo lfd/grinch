@@ -5,7 +5,9 @@ VERSION=3
 PATCHLEVEL=14
 EXTRAVERSION=-rc0
 
-all: kernel.bin user/initrd.cpio
+all: kernel.bin user/initrd.cpio tools
+
+HOSTCC=gcc
 
 DTC=dtc
 GDB=$(CROSS_COMPILE)gdb
@@ -37,7 +39,9 @@ OPT?=-O0
 
 AFLAGS_COMMON=-D__ASSEMBLY__
 
-CFLAGS_COMMON=-nostdinc -ffreestanding -g -ggdb $(OPT) \
+CFLAGS_STANDALONE=-nostdinc -ffreestanding -g -ggdb
+
+CFLAGS_COMMON=$(OPT) \
               -fno-strict-aliasing \
               -fno-omit-frame-pointer -fno-stack-protector \
               -ffunction-sections \
@@ -55,6 +59,7 @@ endif
 
 include scripts/kernel.mk
 include user/inc.mk
+include tools/inc.mk
 
 %.bin: %.elf
 	$(QUIET) "[OBJC]  $@"
@@ -93,7 +98,7 @@ $(UBOOT_BIN):
 debug: kernel.bin
 	$(GDB) $^
 
-clean: clean_user clean_arch clean_kernel clean_loader
+clean: clean_user clean_arch clean_kernel clean_loader clean_tools
 	$(RMRF) *.dtb
 	$(RMRF) *.elf
 	$(RMRF) *.bin
