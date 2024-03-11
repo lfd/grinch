@@ -86,6 +86,15 @@ void kmm_set_base(paddr_t pbase)
 	KMM_AREA->p.end = pbase + KMM_PAGES * PAGE_SIZE;
 }
 
+size_t memory_size(void)
+{
+	const struct memory_area *a;
+
+	a = &memory_areas[1];
+
+	return a->p.end - a->p.base;
+}
+
 static inline paddr_t
 memory_area_v2p(struct memory_area *area, const void *virt)
 {

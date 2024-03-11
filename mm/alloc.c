@@ -311,3 +311,8 @@ int __init kheap_init(void)
 
 	return 0;
 }
+
+size_t kheap_size(void)
+{
+	return vma_kheap.size;
+}
