@@ -183,6 +183,10 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 	if (err)
 		goto out;
 
+	err = vfs_init();
+	if (err)
+		goto out;
+
 	if (do_memtest) {
 		err = memtest();
 		if (err)
@@ -190,10 +194,6 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 	}
 
 	kheap_stats();
-
-	err = vfs_init();
-	if (err)
-		goto out;
 
 	err = vm_init();
 	if (err)
