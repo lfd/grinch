@@ -67,6 +67,11 @@ static void __init kheap_size_parse(const char *arg)
 		return;
 	}
 
+	if (sz > 1 * GIB) {
+		pri("Warning: kheap_size too big\n");
+		return;
+	}
+
 	vma_kheap.size = sz;
 }
 bootparam(kheap_size, kheap_size_parse);
