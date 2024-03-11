@@ -17,41 +17,49 @@
 #include <grinch/printk.h>
 #include <grinch/memtest.h>
 
-#define PTRS	1024
-
 static int __init memtest_kmem(void)
 {
-	unsigned int ctr, tmp;
+	unsigned long ctr, num_ptrs;
 	void *page, **pages;
+	unsigned int tmp;
 	int err;
 	u64 *i;
 
-	pages = kzalloc(PTRS * sizeof(void *));
-	if (!pages)
+	num_ptrs = memory_size() / PAGE_SIZE;
+	pri("Allocating space for storing %lu pointers\n", num_ptrs);
+	pages = kzalloc(num_ptrs * sizeof(void *));
+	if (!pages) {
+		pri("Not enough space!\n");
 		return -ENOMEM;
+	}
 
 	pri("Running Memtest...\n");
-	for (ctr = 0; ctr < PTRS; ctr++) {
+	for (ctr = 0; ctr < num_ptrs; ctr++) {
+		pr_raw_dbg_i("\r#%lu", ctr);
 		page = alloc_pages(1);
 		if (!page) {
-			pri("Out of memory in run %u\n", ctr);
-			break;
+			pr_raw_i(" -> Out of memory");
+			goto allocated;
 		}
 
-		pri("Allocated %p -> 0x%llx\n", page, v2p(page));
 		for (i = page; (void*)i < page + PAGE_SIZE; i++) {
 			if (*i) {
-				pri("  -> Page not zero: %p = 0x%llx\n", i, *i);
+				pr_raw_i(" -> Page not zero: %p (phys: 0x%lx) = 0x%llx\n", i, v2p(i), *i);
 				break;
 			}
 		}
 
 		pages[ctr] = page;
 	}
+	pr_raw_i("\n");
+	pri("Too few space for pointers!\n");
+
+allocated:
+	pr_raw_i("\n");
 	pri("Allocated %u pages\n", ctr);
 
+	pri("Freeing pages...\n", ctr);
 	for (tmp = 0; tmp < ctr; tmp++) {
-		pri("Freeing %p\n", pages[tmp]);
 		err = free_pages(pages[tmp], 1);
 		if (err) {
 			pri("Error: %pe\n", ERR_PTR(err));
@@ -59,35 +67,39 @@ static int __init memtest_kmem(void)
 		}
 	}
 
+	kfree(pages);
+
 	return 0;
 }
 
 static int __init memtest_kmalloc(void)
 {
-	unsigned int i;
-	size_t sz = 5;
+	unsigned long num_ptrs, i;
+	size_t sz = 1000;
 	void **ptrs;
 
-	ptrs = kzalloc(PTRS * sizeof(*ptrs));
+	num_ptrs = kheap_size() / sz;
+	pri("Allocating space for storing %lu pointers\n", num_ptrs);
+	ptrs = kzalloc(num_ptrs * sizeof(*ptrs));
 	if (!ptrs)
 		return -ENOMEM;
 
-	for (i = 0; i < PTRS; i++) {
-		pri("i %u, sz: %lu\n", i, sz);
+	for (i = 0; i < num_ptrs; i++) {
+		pr_raw_dbg_i("A #%lu\r", i);
 		ptrs[i] = kmalloc(sz);
-		if (!ptrs[i]) {
-			pr("Out of memory in run %u!\n", i);
+		if (!ptrs[i])
 			break;
-		}
-		sz += 12;
 	}
+	pr_raw_dbg_i("\n");
 
-	for (i = 0; i < PTRS; i++) {
-		pri("i %u, ptr: %p\n", i, ptrs[i]);
+	for (i = 0; i < num_ptrs; i++) {
+		pr_raw_dbg_i("F #%u\r", i);
 		if (!ptrs[i])
 			break;
 		kfree(ptrs[i]);
 	}
+	pr_raw_dbg_i("\n");
+
 	kfree(ptrs);
 
 	return 0;
