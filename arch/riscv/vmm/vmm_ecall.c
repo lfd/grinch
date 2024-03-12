@@ -53,14 +53,35 @@ static inline struct sbiret handle_sbi_time(unsigned long fid, unsigned long a0)
 	return ret;
 }
 
-static inline struct sbiret handle_sbi_base(unsigned long fid)
+static inline struct sbiret sbi_probe_extension(long eid)
+{
+	struct sbiret ret;
+
+	ret.error = 0;
+	switch (eid) {
+		case SBI_EXT_TIME:
+		case SBI_EXT_RFENCE: /* not implemented */
+		case SBI_EXT_IPI: /* not implemented */
+		case SBI_EXT_HSM: /* not implemented */
+			ret.value = 1;
+			break;
+
+		default:
+			ret.value = 0;
+	}
+
+	return ret;
+}
+
+static inline struct sbiret
+handle_sbi_base(unsigned long fid, unsigned long arg0)
 {
 	struct sbiret ret;
 
 	ret.error = SBI_SUCCESS;
 	switch (fid) {
 		case SBI_EXT_BASE_GET_SPEC_VERSION:
-			ret.value = 0x1000000;
+			ret.value = sbi_version(2, 0);
 			break;
 
 		case SBI_EXT_BASE_GET_IMP_ID:
@@ -72,6 +93,9 @@ static inline struct sbiret handle_sbi_base(unsigned long fid)
 			break;
 
 		case SBI_EXT_BASE_PROBE_EXT:
+			ret = sbi_probe_extension(arg0);
+			break;
+
 		case SBI_EXT_BASE_GET_MVENDORID:
 		case SBI_EXT_BASE_GET_MARCHID:
 		case SBI_EXT_BASE_GET_MIMPID:
@@ -141,7 +165,7 @@ int vmm_handle_ecall(void)
 			break;
 
 		case SBI_EXT_BASE:
-			ret = handle_sbi_base(fid);
+			ret = handle_sbi_base(fid, regs->a0);
 			break;
 
 		case SBI_EXT_TIME:
