@@ -334,7 +334,7 @@ int paging_discard_init(void)
 
 	root = this_per_cpu()->root_table_page;
 	size = page_up(__init_rw_end - __init_text_start);
-	pri("Freeing %lu bytes init code freed\n", size);
+	pri("Freeing %lu bytes of init code\n", size);
 	err = map_osmem(root, __init_text_start, size, GRINCH_MEM_RW);
 	if (err)
 		return err;
