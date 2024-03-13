@@ -107,7 +107,7 @@ void arch_vmachine_restore(struct vmachine *vm)
 
 void arch_vmachine_activate(struct vmachine *vm)
 {
-	enable_mmu_hgatp(satp_mode, v2p(vm->hv_page_table));
+	enable_mmu_hgatp(hgatp_mode, v2p(vm->hv_page_table));
 
 	u64 hstatus =
 	        (2ULL << HSTATUS_VSXL_SHIFT) | /* Xlen 64 */

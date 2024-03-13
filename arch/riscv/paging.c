@@ -30,7 +30,8 @@
 #define	PAGE_TERMINAL_FLAGS \
 	(RISCV_PTE_FLAG(R) | RISCV_PTE_FLAG(W) | RISCV_PTE_FLAG(X))
 
-unsigned long satp_mode;
+unsigned long hgatp_mode;
+static unsigned long satp_mode;
 
 static inline unsigned long pte2phys(unsigned long pte)
 {
@@ -156,18 +157,34 @@ static const struct paging riscv_Sv48[] = {
 	RISCV_SVX_PAGING_LEVEL(0),
 };
 
-/* 4K*2 for level 2, in case of SV39, and for level 3, ind case of SV48 */
-DEF_GET_ENTRY(39x4, 2, true)
 
 /* For the rest (non-root tbls), reuse svX routines */
-#define sv39x4_vpn0_get_entry	svX_vpn0_get_entry
-#define sv39x4_vpn1_get_entry	svX_vpn1_get_entry
 
+/*** sv39x ***/
+/* 4K*2 for level 2 */
+DEF_GET_ENTRY(39x4, 2, true)
+#define sv39x4_vpn0_get_entry	svX_vpn0_get_entry
 #define sv39x4_vpn0_get_phys	svX_vpn0_get_phys
 
+#define sv39x4_vpn1_get_entry	svX_vpn1_get_entry
 #define sv39x4_vpn1_get_phys	svX_vpn1_get_phys
 
 #define sv39x4_vpn2_get_phys	svX_vpn2_get_phys
+
+/*** sv48x ***/
+/* 4K*2 for level 3 */
+DEF_GET_ENTRY(48x4, 3, true)
+#define sv48x4_vpn0_get_entry	svX_vpn0_get_entry
+#define sv48x4_vpn0_get_phys	svX_vpn0_get_phys
+
+#define sv48x4_vpn1_get_entry	svX_vpn1_get_entry
+#define sv48x4_vpn1_get_phys	svX_vpn1_get_phys
+
+#define sv48x4_vpn2_get_entry	svX_vpn2_get_entry
+#define sv48x4_vpn2_get_phys	svX_vpn2_get_phys
+
+#define sv48x4_vpn3_get_phys	svX_vpn3_get_phys
+
 
 #define RISCV_SVXx4_PAGING_LEVEL(WIDTH, LEVEL, ROOT)            \
 	{                                                       \
@@ -199,7 +216,14 @@ const struct paging riscv_Sv39x4[] = {
 	RISCV_SVXx4_PAGING_LEVEL(39, 0, false),
 };
 
-void arch_paging_init(void)
+const struct paging riscv_Sv48x4[] = {
+	RISCV_SVXx4_PAGING_LEVEL(48, 3, true),
+	RISCV_SVXx4_PAGING_LEVEL(48, 2, false),
+	RISCV_SVXx4_PAGING_LEVEL(48, 1, false),
+	RISCV_SVXx4_PAGING_LEVEL(48, 0, false),
+};
+
+void __init arch_paging_init(void)
 {
 	/* SV39 should suffice for everything */
 	if (1) {
@@ -207,11 +231,13 @@ void arch_paging_init(void)
 		satp_mode = SATP_MODE_39;
 
 		vm_paging = riscv_Sv39x4;
+		hgatp_mode = SATP_MODE_39;
 	} else {
 		root_paging = riscv_Sv48;
 		satp_mode = SATP_MODE_48;
 
-		//vm_paging = riscv_Sv48x4;
+		vm_paging = riscv_Sv48x4;
+		hgatp_mode = SATP_MODE_48;
 	}
 }
 

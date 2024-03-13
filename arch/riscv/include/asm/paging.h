@@ -94,7 +94,7 @@ static inline void disable_mmu_hgatp(void)
 	local_hfence_vvma_all();
 }
 
-extern unsigned long satp_mode;
+extern unsigned long hgatp_mode;
 
 #endif /* __ASSEMBLY__ */
 

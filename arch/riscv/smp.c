@@ -112,7 +112,7 @@ int arch_boot_cpu(unsigned long hart_id)
 
 	/* Make it easy for secondary_entry: provide the content of satp */
 	opaque = (v2p(per_cpu(hart_id)->root_table_page) >> PAGE_SHIFT)
-		| satp_mode;
+		| (csr_read(satp) & (SATP_MODE_MASK << SATP_MODE_SHIFT));
 
 	ret = sbi_hart_start(hart_id, paddr, opaque);
 	if (ret.error) {
