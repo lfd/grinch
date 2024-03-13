@@ -145,6 +145,66 @@ static int test_ttyS(void)
 	return 0;
 }
 
+static int test_initrd(void)
+{
+	int err, fd;
+	char buf[64];
+	ssize_t r;
+	char *tmp;
+
+	fd = open("/initrd/test.txt", O_RDONLY);
+	if (fd == -1) {
+		perror("open");
+		return -errno;
+	}
+
+	r = read(fd, buf, sizeof(buf));
+	if (r == -1) {
+		perror("read");
+		return -errno;
+	}
+
+	printf("Read %lu bytes\n", r);
+	printf("%s\n", buf);
+
+	err = close(fd);
+	if (err) {
+		perror("close");
+		return -errno;
+	}
+
+	/* And read 1 byte-wise */
+	fd = open("/initrd/test.txt", O_RDONLY);
+	if (fd == -1) {
+		perror("open");
+		return -errno;
+	}
+
+	tmp = buf;
+	memset(buf, 0, sizeof(buf));
+	while (true) {
+		r = read(fd, tmp, 1);
+		if (r == -1) {
+			perror("read");
+			return -errno;
+		} else if (r == 0)
+			break;
+		tmp++;
+	}
+
+	printf("Read %lu bytes\n", r);
+	printf("%s\n", buf);
+
+	err = close(fd);
+	if (err) {
+		perror("close");
+		return -errno;
+	}
+
+
+
+	return 0;
+}
 
 int main(void)
 {
@@ -162,6 +222,11 @@ int main(void)
 
 	printf("Testing ttyS0\n");
 	err = test_ttyS();
+	if (err)
+		goto out;
+
+	printf("Testing initrd\n");
+	err = test_initrd();
 	if (err)
 		goto out;
 
