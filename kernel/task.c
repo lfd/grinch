@@ -85,6 +85,7 @@ struct task *task_alloc_new(void)
 	if (!task)
 		return ERR_PTR(-ENOMEM);
 
+	spin_init(&task->lock);
 	task->pid = get_new_pid();
 	task->state = TASK_RUNNABLE;
 	task->type = GRINCH_UNDEF;

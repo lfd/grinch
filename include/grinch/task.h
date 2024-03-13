@@ -38,6 +38,7 @@ enum task_type {
 
 struct task {
 	struct list_head tasks;
+	spinlock_t lock;
 
 	struct registers regs;
 	pid_t pid;
