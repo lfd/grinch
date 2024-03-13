@@ -44,7 +44,7 @@ static int __init memtest_kmem(void)
 
 		for (i = page; (void*)i < page + PAGE_SIZE; i++) {
 			if (*i) {
-				pr_raw_i(" -> Page not zero: %p (phys: 0x%lx) = 0x%llx\n", i, v2p(i), *i);
+				pr_raw_i(" -> Page not zero: %p (phys: 0x%llx) = 0x%llx\n", i, v2p(i), *i);
 				break;
 			}
 		}
@@ -56,9 +56,9 @@ static int __init memtest_kmem(void)
 
 allocated:
 	pr_raw_i("\n");
-	pri("Allocated %u pages\n", ctr);
+	pri("Allocated %lu pages\n", ctr);
 
-	pri("Freeing pages...\n", ctr);
+	pri("Freeing pages...\n");
 	for (tmp = 0; tmp < ctr; tmp++) {
 		err = free_pages(pages[tmp], 1);
 		if (err) {
@@ -93,7 +93,7 @@ static int __init memtest_kmalloc(void)
 	pr_raw_dbg_i("\n");
 
 	for (i = 0; i < num_ptrs; i++) {
-		pr_raw_dbg_i("F #%u\r", i);
+		pr_raw_dbg_i("F #%lu\r", i);
 		if (!ptrs[i])
 			break;
 		kfree(ptrs[i]);
