@@ -1,6 +1,8 @@
 ARCH ?= riscv
 
 #DEBUG_OUTPUT=1
+#INITCONST_STR=1
+
 VERSION=3
 PATCHLEVEL=14
 EXTRAVERSION=-rc0
@@ -40,6 +42,11 @@ OPT?=-O0
 AFLAGS_COMMON=-D__ASSEMBLY__
 
 CFLAGS_STANDALONE=-nostdinc -ffreestanding -g -ggdb
+ifeq ($(INITCONST_STR), 1)
+CFLAGS_STANDALONE += -Wno-format-security -DINITCONST_STR
+else
+CFLAGS_STANDALONE += -Wformat-security
+endif
 
 CFLAGS_COMMON=$(OPT) \
               -fno-strict-aliasing \
