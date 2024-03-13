@@ -12,15 +12,16 @@ Therefore, grinch comes with its own minimalist libc implementation.
 
 Don't expect anything to work.
 
-![Grinch logo](res/logo.png "Grinch logo"){width=25%}
+<img src="res/logo.png" width="35%"/>
 
-Hardware support
+General features
 ----------------
-
-#### General support
 - Device Tree support
 - Simple scheduler
 - Userland applications (ECHSEs)
+
+Architectural support
+---------------------
 
 #### RISC-V architecture
 - RISC-V base platform:
@@ -62,9 +63,10 @@ Build & Installation
 It is recommended to compile everything on your local machine with a cross
 compiler. You will need a cross toolchain:
 
-- riscv64-linux-gnu-
+- dtc
 - cpio
 - qemu-system-riscv64
+- riscv64-linux-gnu-
 
 To clone grinch, run:
 
