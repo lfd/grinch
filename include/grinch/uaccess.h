@@ -15,10 +15,11 @@
 
 void *user_to_direct(struct mm *mm, const void *s);
 
-unsigned long umemset(struct mm *mm, void *s, int c, size_t n);
-unsigned long copy_to_user(struct mm *mm, void *d, const void *s, size_t n);
-unsigned long copy_from_user(struct mm *mm, void *to, const void *from,
+unsigned long umemset(struct mm *mm, void __user *s, int c, size_t n);
+unsigned long copy_to_user(struct mm *mm, void __user *d,
+			   const void *s, size_t n);
+unsigned long copy_from_user(struct mm *mm, void *to, const void __user *from,
 			     unsigned long n);
 
-long ustrncpy(char *dst, const char *src, long count);
+long ustrncpy(char *dst, const char __user *src, long count);
 #endif

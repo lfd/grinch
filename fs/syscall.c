@@ -23,7 +23,7 @@
 
 #define MAX_PATHLEN	64
 
-unsigned long sys_write(int fd, const char *buf, size_t count)
+unsigned long sys_write(int fd, const char __user *buf, size_t count)
 {
 #define BLEN	63
 
@@ -49,7 +49,8 @@ unsigned long sys_write(int fd, const char *buf, size_t count)
 	return 0;
 }
 
-int sys_execve(const char *pathname, char *const argv[], char *const envp[])
+int sys_execve(const char __user *pathname, char *const __user argv[],
+	       char *const __user envp[])
 {
 	struct task *this;
 	char buf[MAX_PATHLEN];

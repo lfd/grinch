@@ -60,6 +60,8 @@ typedef pt_entry_t page_table_t;
 /* Generic types */
 typedef enum { true = 1, false = 0 } bool;
 
+#define __user
+
 #include <stddef.h>
 
 #endif /* __ASSEMBLY__ */
