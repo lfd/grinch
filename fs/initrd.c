@@ -14,9 +14,13 @@
 
 #include <grinch/alloc.h>
 #include <grinch/fdt.h>
+#include <grinch/fs.h>
 #include <grinch/gfp.h>
 #include <grinch/initrd.h>
+#include <grinch/minmax.h>
 #include <grinch/printk.h>
+#include <grinch/task.h>
+#include <grinch/uaccess.h>
 #include <grinch/utils.h>
 
 #define CPIO_MAGIC	"070701"
@@ -177,3 +181,93 @@ int __init initrd_init(void)
 
 	return 0;
 }
+
+static ssize_t initrd_read(struct file_handle *handle, char *buf, size_t count)
+{
+	struct cpio_header *hdr;
+	unsigned long copied;
+	const void *src;
+	struct file *fp;
+	loff_t *off;
+	size_t sz;
+
+	fp = handle->fp;
+	off = &handle->position;
+	hdr = fp->drvdata;
+	if (*off >= hdr->body_len)
+		return 0;
+
+	if (*off < 0)
+		return -EINVAL;
+
+	src = hdr->body + *off;
+	sz = min((unsigned long)hdr->body_len - *off, count);
+	if (handle->flags.is_kernel) {
+		memcpy(buf, src, sz);
+		copied = sz;
+	} else {
+		copied = copy_to_user(&current_process()->mm, buf, src, sz);
+	}
+
+	*off += copied;
+
+	return copied;
+}
+
+static void initrd_close(struct file *fp)
+{
+	struct cpio_header *hdr;
+
+	hdr = fp->drvdata;
+	kfree(hdr);
+}
+
+static int initrd_stat(struct file *fp, struct stat *st)
+{
+	struct cpio_header *hdr;
+
+	hdr = fp->drvdata;
+	st->size = hdr->body_len;
+
+	return 0;
+}
+
+static const struct file_operations initrd_fops = {
+	.read = initrd_read,
+	.close = initrd_close,
+	.stat = initrd_stat,
+};
+
+static int initrd_open(const struct file_system *fs, struct file *filep, const char *path, struct fs_flags flags)
+{
+	struct cpio_header *hdr;
+	int err;
+
+	if (flags.may_write)
+		return -EPERM;
+
+	if (!flags.may_read)
+		return -EINVAL;
+
+	filep->fops = &initrd_fops;
+	filep->drvdata = kmalloc(sizeof(struct cpio_header));
+	if (!filep->drvdata)
+		return -ENOMEM;
+
+	hdr = filep->drvdata;
+	err = cpio_find_file(path, hdr);
+	if (err) {
+		kfree(hdr);
+		return err;
+	}
+
+	return 0;
+}
+
+static const struct file_system_operations fs_ops_initrd = {
+	.open_file = initrd_open,
+};
+
+const struct file_system initrdfs = {
+	.fs_ops = &fs_ops_initrd,
+};

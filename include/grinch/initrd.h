@@ -25,4 +25,7 @@ int initrd_init(void);
 
 void *initrd_read_file(const char *pathname, size_t *len);
 
+/* /initrd mountpoint */
+extern const struct file_system initrdfs;
+
 #endif /* _INITRD_H */

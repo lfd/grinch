@@ -68,6 +68,9 @@ static struct file *_file_open(const char *pathname, struct fs_flags flags)
 	if (!strncmp(pathname, DEVFS_MOUNTPOINT, DEVFS_MOUNTPOINT_LEN)) {
 		fs = &devfs;
 		fsname += 5;
+	} else if (!strncmp(fsname, "/initrd/", 8)) {
+		fs = &initrdfs;
+		fsname += 8;
 	}
 
 	if (!fs)
