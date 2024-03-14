@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -59,6 +59,8 @@ typedef pt_entry_t page_table_t;
 
 /* Generic types */
 typedef enum { true = 1, false = 0 } bool;
+
+typedef int pid_t;
 
 #define __user
 

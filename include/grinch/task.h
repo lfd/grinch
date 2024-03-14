@@ -24,8 +24,6 @@
 
 #include <grinch/arch/vmm.h>
 
-typedef int pid_t;
-
 enum task_state {
 	TASK_RUNNABLE = 0, /* Scheduleable */
 	TASK_WFE, /* Waits for Events */

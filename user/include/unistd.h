@@ -15,8 +15,7 @@
 
 #include <stddef.h>
 #include <grinch/compiler_attributes.h>
-
-typedef int pid_t;
+#include <grinch/types.h>
 
 void __noreturn exit(int status);
 pid_t getpid(void);
