@@ -61,6 +61,7 @@ typedef pt_entry_t page_table_t;
 typedef enum { true = 1, false = 0 } bool;
 
 typedef int pid_t;
+typedef long long loff_t;
 
 #define __user
 
