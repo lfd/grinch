@@ -325,12 +325,12 @@ static struct task *vmm_alloc_new(void)
 	vm->memregion.size = VM_PAGES * PAGE_SIZE;
 
 	pr_dbg("Copying kernel...\n");
-	err = vm_load_file(vm, "initrd:/kernel.bin", 0);
+	err = vm_load_file(vm, "/initrd/kernel.bin", 0);
 	if (err)
 		goto vmfree_out;
 
 	pr_dbg("Copying VM device tree...\n");
-	snprintf(buf, sizeof(buf), "initrd:/%s.dtb", platform_model);
+	snprintf(buf, sizeof(buf), "/initrd/%s.dtb", platform_model);
 	err = vm_load_file(vm, buf, VM_FDT_OFFSET);
 	if (err)
 		goto vmfree_out;

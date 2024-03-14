@@ -121,27 +121,6 @@ static int __init cpio_size(const void *base, size_t *size)
 	return 0;
 }
 
-void *initrd_read_file(const char *pathname, size_t *len)
-{
-	struct cpio_header hdr;
-	int err;
-	void *ret;
-
-	err = cpio_find_file(pathname, &hdr);
-	if (err)
-		return ERR_PTR(err);
-
-	ret = kmalloc(hdr.body_len);
-	if (!ret)
-		return ERR_PTR(-ENOMEM);
-
-	memcpy(ret, hdr.body, hdr.body_len);
-	if (len)
-		*len = hdr.body_len;
-
-	return ret;
-}
-
 int __init initrd_init(void)
 {
 	size_t initrd_pages;

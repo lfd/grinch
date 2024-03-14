@@ -41,16 +41,16 @@ int main(void)
 {
 	int err, forked;
 
-	err = start_background("initrd:/test.echse");
+	err = start_background("/initrd/test.echse");
 	if (err)
 		return err;
 
-	err = start_background("initrd:/jittertest.echse");
+	err = start_background("/initrd/jittertest.echse");
 	if (err)
 		return err;
 
 	for (forked = 0; forked < 5; forked++) {
-		err = start_background("initrd:/hello.echse");
+		err = start_background("/initrd/hello.echse");
 		if (err)
 			return err;
 	}

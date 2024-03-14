@@ -98,6 +98,7 @@ static struct file *_file_open(const char *pathname, struct fs_flags flags)
 	return &files->fp;
 }
 
+// Koennten hier auch das handle uebergeben und integer returnen.
 struct file *file_open(const char *path, struct fs_flags flags)
 {
 	struct file *filep;
@@ -187,13 +188,51 @@ struct fs_flags get_flags(int oflag)
 
 void *vfs_read_file(const char *pathname, size_t *len)
 {
-	const char *ird = "initrd:";
+	struct file_handle handle;
+	struct stat st;
+	ssize_t err;
+	void *ret;
 
-	/* We only support the initrd file system at the moment */
-	if (strncmp(pathname, ird, strlen(ird)))
-		return ERR_PTR(-ENOSYS);
+	handle.flags.may_read = true;
+	handle.flags.may_write = false;
+	handle.flags.is_kernel = true;
+	handle.position = 0;
 
-	return initrd_read_file(pathname + strlen(ird), len);
+	handle.fp = file_open(pathname, handle.flags);
+	if (IS_ERR(handle.fp))
+		return handle.fp;
+
+	if (!handle.fp->fops->stat) {
+		ret = ERR_PTR(-ENOSYS);
+		goto close_out;
+	}
+
+	err = handle.fp->fops->stat(handle.fp, &st);
+	if (err) {
+		ret = ERR_PTR(err);
+		goto close_out;
+	}
+
+	ret = kmalloc(st.size);
+	if (!ret) {
+		ret = ERR_PTR(-ENOMEM);
+		goto close_out;
+	}
+
+	err = handle.fp->fops->read(&handle, ret, st.size);
+	if (err < 0) {
+		kfree(ret);
+		ret = ERR_PTR(err);
+		goto close_out;
+	}
+
+	if (len)
+		*len = err;
+
+close_out:
+	file_close(&handle);
+
+	return ret;
 }
 
 int __init vfs_init(void)
