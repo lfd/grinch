@@ -114,12 +114,12 @@ static int test_null(void)
 	return err;
 }
 
-static int test_ttyS(void)
+static int test_tty(const char *pathname)
 {
 	int err, fd;
 	ssize_t r;
 
-	fd = open("/dev/ttyS0", O_WRONLY);
+	fd = open(pathname, O_WRONLY);
 	if (fd == -1) {
 		perror("open");
 		return -errno;
@@ -201,8 +201,6 @@ static int test_initrd(void)
 		return -errno;
 	}
 
-
-
 	return 0;
 }
 
@@ -221,7 +219,12 @@ int main(void)
 		goto out;
 
 	printf("Testing ttyS0\n");
-	err = test_ttyS();
+	err = test_tty("/dev/ttyS0");
+	if (err)
+		goto out;
+
+	printf("Testing ttySBI\n");
+	err = test_tty("/dev/ttySBI");
 	if (err)
 		goto out;
 
