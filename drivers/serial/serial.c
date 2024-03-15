@@ -27,17 +27,7 @@
 
 #include <grinch/fs.h>
 
-static struct uart_chip uart_default = {
-#if defined(ARCH_RISCV)
-	.driver = &uart_sbi,
-#elif defined(ARCH_ARM64)
-	.driver = &uart_dummy,
-#endif
-};
-
 static unsigned int uart_no;
-
-struct uart_chip *uart_stdout = &uart_default;
 
 void serial_in(char ch)
 {
@@ -209,37 +199,4 @@ int __init uart_init(struct device *dev)
 error_out:
 	uart_deinit(dev);
 	return err;
-}
-
-int __init serial_init_fdt(void)
-{
-	int err, node;
-	struct device *dev;
-	const char *stdoutpath;
-
-	node = fdt_path_offset(_fdt, "/chosen");
-	if (node < 0) {
-		pri("No chosen node in device-tree.\n");
-		goto remain;
-	}
-
-	stdoutpath = fdt_getprop(_fdt, node, ISTR("stdout-path"), &err);
-	if (!stdoutpath) {
-		pri("No stdout-path in chosen node\n");
-		goto remain;
-	}
-	pri("stdout-path: %s\n", stdoutpath);
-
-	// FIXME: _this_ is hacky.
-	dev = device_find_of_path(stdoutpath);
-	if (!dev)
-		goto remain;
-	pri("Switch stdout to UART %s\n", dev->of.path);
-	uart_stdout = dev->data;
-
-	return 0;
-
-remain:
-	pri("Remaining on default console\n");
-	return -ENOENT;
 }

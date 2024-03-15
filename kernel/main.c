@@ -19,6 +19,7 @@
 #include <grinch/arch.h>
 #include <grinch/boot.h>
 #include <grinch/bootparam.h>
+#include <grinch/console.h>
 #include <grinch/driver.h>
 #include <grinch/fdt.h>
 #include <grinch/gfp.h>
@@ -27,7 +28,6 @@
 #include <grinch/percpu.h>
 #include <grinch/platform.h>
 #include <grinch/printk.h>
-#include <grinch/serial.h>
 #include <grinch/smp.h>
 #include <grinch/task.h>
 #include <grinch/version.h>
@@ -208,7 +208,7 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 	if (err && err != -ENOENT)
 		goto out;
 
-	err = serial_init_fdt();
+	err = console_init();
 	if (err && err != -ENOENT)
 		goto out;
 

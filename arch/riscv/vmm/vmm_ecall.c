@@ -14,6 +14,7 @@
 
 #include <asm/csr.h>
 
+#include <grinch/console.h>
 #include <grinch/errno.h>
 #include <grinch/hypercall.h>
 #include <grinch/percpu.h>
@@ -152,6 +153,7 @@ int vmm_handle_ecall(void)
 	struct registers *regs;
 	unsigned long eid, fid;
 	struct sbiret ret;
+	char buf[2];
 
 	regs = &current_task()->regs;
 	regs->pc += 4;
@@ -160,7 +162,9 @@ int vmm_handle_ecall(void)
 	fid = regs->a6;
 	switch (eid) { /* EID - Extension ID*/
 		case SBI_EXT_0_1_CONSOLE_PUTCHAR:
-			uart_write_char(uart_stdout, regs->a0);
+			buf[0] = regs->a0;
+			buf[1] = 0;
+			console_puts(buf);
 			ret.error = ret.value = 0;
 			break;
 

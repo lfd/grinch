@@ -59,13 +59,6 @@ static inline void uart_write_char(struct uart_chip *chip, char c)
 	uart_write_byte(chip, c);
 }
 
-extern struct uart_chip *uart_stdout;
-
-extern const struct uart_driver uart_dummy;
-#ifdef ARCH_RISCV
-extern const struct uart_driver uart_sbi;
-#endif
-
 extern const struct file_operations serial_fops;
 
 #include <grinch/driver.h>
@@ -75,8 +68,5 @@ void uart_deinit(struct device *dev);
 int uart_probe_generic(struct device *dev);
 
 void serial_in(char ch);
-int serial_init(const struct uart_driver *d, paddr_t uart_base, u64 uart_size,
-		int io_width, u32 irq);
-int serial_init_fdt(void);
 
 #endif /* _SERIAL_H */

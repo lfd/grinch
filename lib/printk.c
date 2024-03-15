@@ -17,6 +17,7 @@
 
 #include <grinch/boot.h>
 #include <grinch/bootparam.h>
+#include <grinch/console.h>
 #include <grinch/minmax.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
@@ -34,42 +35,11 @@ static DEFINE_SPINLOCK(print_lock);
 static char prefix_fmt[32];
 static unsigned int loglevel = LOGLEVEL_DEFAULT;
 
-struct {
-	unsigned int tail;
-	char content[2048];
-} console;
-
 static void __init loglevel_parse(const char *arg)
 {
 	loglevel = min(strtoul(arg, NULL, 10), 10UL);
 }
 bootparam(loglevel, loglevel_parse);
-
-static inline void console_write(char c)
-{
-	console.content[console.tail % sizeof(console.content)] = c;
-	console.tail++;
-}
-
-static inline void stdout_putc(char c)
-{
-	uart_write_char(uart_stdout, c);
-}
-
-void console_flush(void)
-{
-	unsigned int pos;
-
-	if (console.tail > sizeof(console.content)) {
-		for (pos = console.tail % sizeof(console.content); pos < sizeof(console.content); pos++)
-			stdout_putc(console.content[pos]);
-	}
-
-	for (pos = 0; pos < console.tail % sizeof(console.content); pos++)
-		stdout_putc(console.content[pos]);
-
-	console.tail = 0;
-}
 
 static int sprint_prefix(char **str, char *end)
 {
@@ -86,24 +56,10 @@ static int sprint_prefix(char **str, char *end)
 	return res;
 }
 
-static void ___puts(const char *msg)
-{
-	char c;
-
-	while (1) {
-		c = *msg++;
-		if (!c)
-			break;
-
-		stdout_putc(c);
-		console_write(c);
-	}
-}
-
 void _puts(const char *msg)
 {
 	spin_lock(&print_lock);
-	___puts(msg);
+	console_puts(msg);
 	spin_unlock(&print_lock);
 }
 

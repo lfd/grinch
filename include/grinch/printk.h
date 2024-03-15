@@ -19,7 +19,6 @@
 void _puts(const char *msg); /* No prefix */
 void __printf(1, 2) printk(const char *fmt, ...);
 
-void console_flush(void);
 void printk_init(void);
 
 #define	PR_SOH			"\001"

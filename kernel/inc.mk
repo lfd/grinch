@@ -1,5 +1,5 @@
-KERNEL_OBJS = bootparam.o main.o memtest.o platform.o process.o syscall.o task.o
-KERNEL_OBJS += uaccess.o smp.o timer.o
+KERNEL_OBJS = bootparam.o console.o main.o memtest.o platform.o process.o
+KERNEL_OBJS += smp.o syscall.o task.o timer.o uaccess.o
 
 KERNEL_OBJS := $(addprefix kernel/, $(KERNEL_OBJS))
 
