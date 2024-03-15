@@ -6,7 +6,7 @@ DRIVERS_SERIAL_OBJS += serial/uart-8250.o serial/uart-apbuart.o
 ifeq ($(ARCH),riscv)
 	DRIVERS_OBJS += sbi-tty.o
 	DRIVERS_SERIAL_OBJS += serial/uart-uartlite.o
-	DRIVERS_IRQ_OBJS += irq/aplic.o irq/plic.o
+	DRIVERS_IRQ_OBJS += irq/aplic.o irq/plic.o irq/riscv.o
 endif
 
 DRIVERS_OBJS := $(addprefix drivers/, $(DRIVERS_OBJS))

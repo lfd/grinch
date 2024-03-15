@@ -29,7 +29,6 @@ extern const struct irqchip_fn *irqchip_fn;
 
 int irq_register_handler(u32 irq, irq_handler_t handler, void *userdata);
 void irqchip_handle_irq(unsigned int irq);
-int irqchip_init(void);
 
 static inline int
 irqchip_enable_irq(unsigned long cpuid, u32 irq, u32 prio, u32 thres)

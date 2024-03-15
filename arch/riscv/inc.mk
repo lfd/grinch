@@ -13,7 +13,7 @@ QEMU_UBOOT_ARGS=\
 CFLAGS_ARCH = -mcmodel=medany -march=rv64imafdc_zifencei -DARCH_RISCV=1
 LDFLAGS_ARCH = -melf64lriscv
 
-ARCH_OBJS = arch.o cpu.o entry.o head.o irqchip.o isa.o paging.o platform.o
+ARCH_OBJS = arch.o cpu.o entry.o head.o isa.o paging.o platform.o
 ARCH_OBJS += sbi.o smp.o stackdump.o task.o timer.o traps.o
 
 ARCH_OBJS += vmm/vmm.o vmm/vmm_ecall.o

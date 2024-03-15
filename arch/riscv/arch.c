@@ -15,8 +15,8 @@
 #include <asm/irq.h>
 
 #include <grinch/arch.h>
+#include <grinch/errno.h>
 #include <grinch/hypercall.h>
-#include <grinch/irqchip.h>
 #include <grinch/percpu.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
@@ -31,16 +31,6 @@ int __init arch_init(void)
 	err = sbi_init();
 	if (err)
 		goto out;
-
-	/* Initialise external interrupts */
-	pri("Initialising irqchip...\n");
-	err = irqchip_init();
-	if (err == -ENOENT)
-		pri("No irqchip found!\n");
-	else if (err)
-		goto out;
-	else
-		ext_enable();
 
 	/* Boot secondary CPUs */
 	pri("Booting secondary CPUs\n");
