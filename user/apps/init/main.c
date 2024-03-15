@@ -15,11 +15,13 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include <sys/wait.h>
+
 int main(void);
 
 APP_NAME(init);
 
-static int start_background(const char *path)
+static pid_t start_background(const char *path, bool wait)
 {
 	pid_t child;
 	int err;
@@ -29,30 +31,42 @@ static int start_background(const char *path)
 	child = fork();
 	if (child == 0) {
 		err = execve(path, NULL, NULL);
+		perror("execve");
+		exit(-errno);
 	} else if (child == -1) {
 		perror("fork");
-		err = -errno;
+		return -errno;
 	}
 
-	return err;
+	if (!wait)
+		return child;
+
+	err = waitpid(child, NULL, 0);
+	if (err == -1) {
+		perror("waitpid");
+		return -errno;
+	}
+
+	return 0;
 }
 
 int main(void)
 {
-	int err, forked;
+	int forked;
+	pid_t child;
 
-	err = start_background("/initrd/test.echse");
-	if (err)
-		return err;
+	child = start_background("/initrd/test.echse", true);
+	if (child < 0)
+		return child;
 
-	err = start_background("/initrd/jittertest.echse");
-	if (err)
-		return err;
+	child = start_background("/initrd/jittertest.echse", false);
+	if (child < 0)
+		return child;
 
 	for (forked = 0; forked < 5; forked++) {
-		err = start_background("/initrd/hello.echse");
-		if (err)
-			return err;
+		child = start_background("/initrd/hello.echse", false);
+		if (child < 0)
+			return child;
 	}
 
 	return 0;

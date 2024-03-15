@@ -6,7 +6,7 @@ LDFLAGS_USER = $(LDFLAGS_COMMON) $(LDFLAGS_ARCH)
 
 LIBC_OBJS = user/lib/ctype.o user/lib/errno.o user/lib/fcntl.o user/lib/stdio.o
 LIBC_OBJS += user/lib/sched.o user/lib/string.o user/lib/unistd.o
-LIBC_OBJS += user/lib/vsprintf.o
+LIBC_OBJS += user/lib/vsprintf.o user/lib/wait.o
 LIBC_OBJS += user/lib/$(ARCH)/entry.o
 
 LIBC_BUILTIN = user/lib/built-in.a
