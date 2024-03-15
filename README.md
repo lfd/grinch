@@ -19,6 +19,8 @@ General features
 - Device Tree support
 - Simple scheduler
 - Userland applications (ECHSEs)
+- Minimalist driver model
+- Minimalist VFS layer
 
 Architectural support
 ---------------------
@@ -43,10 +45,6 @@ Architectural support
   - AXI uartlite
   - 8250/16550 UART
   - apbuart
-
-#### Ongoing development
-- Driver Model
-- VFS layer
 
 Platform support
 ----------------
