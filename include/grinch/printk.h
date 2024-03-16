@@ -13,17 +13,21 @@
 #ifndef _PRINTK_H
 #define _PRINTK_H
 
+#include <stdarg.h>
+
 #include <grinch/compiler_attributes.h>
 #include <grinch/init.h>
 
 void _puts(const char *msg); /* No prefix */
 void __printf(1, 2) printk(const char *fmt, ...);
+void vprintk(const char *fmt, const char *infix, va_list ap);
 
 void printk_init(void);
 
 #define	PR_SOH			"\001"
-#define PR_WARN			PR_SOH "0"
-#define PR_INFO			PR_SOH "1"
+#define PR_CRIT			PR_SOH "0"
+#define PR_WARN			PR_SOH "1"
+#define PR_INFO			PR_SOH "2"
 #define PR_DEBUG		PR_SOH "9"
 #define	PR_NOPREFIX		PR_SOH "x"
 
@@ -48,6 +52,9 @@ void printk_init(void);
 #define pri(fmt, ...)		_pri(PR_DEFAULT, fmt, ##__VA_ARGS__)
 
 /* Other loglevels */
+#define pr_crit(fmt, ...)	_pr(PR_CRIT, fmt, ##__VA_ARGS__)
+#define pr_crit_i(fmt, ...)	_pri(PR_CRIT, fmt, ##__VA_ARGS__)
+
 #define pr_warn(fmt, ...)	_pr(PR_WARN, fmt, ##__VA_ARGS__)
 #define pr_warn_i(fmt, ...)	_pri(PR_WARN, fmt, ##__VA_ARGS__)
 

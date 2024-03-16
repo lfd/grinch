@@ -13,18 +13,14 @@
 #ifndef _PANIC_H
 #define _PANIC_H
 
-#include <grinch/compiler_attributes.h>
 #include <grinch/percpu.h>
-
-#define PANIC_PREFIX	"P A N I C: "
-
-extern bool is_panic;
+#include <grinch/printk.h>
 
 void check_panic(void);
-void __noreturn panic_stop(void);
-void __noreturn do_panic(void);
 
-void __printf(1, 2) panic(const char *fmt, ...) __noreturn;
+void __printf(1, 2) _panic(const char *fmt, ...) __noreturn;
+
+#define panic(fmt, ...)	_panic(PR_CRIT fmt, ##__VA_ARGS__)
 
 #define BUG()						\
 do {							\

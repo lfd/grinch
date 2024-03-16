@@ -11,13 +11,28 @@
  */
 
 #include <asm/irq.h>
+#include <asm/spinlock.h>
 
 #include <grinch/hypercall.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/percpu.h>
+#include <grinch/stackdump.h>
 
-bool is_panic;
+#define PANIC_PREFIX	"P A N I C: "
+
+static bool is_panic;
+static DEFINE_SPINLOCK(panic_lock);
+
+static void __noreturn panic_stop(void)
+{
+	spin_lock(&panic_lock);
+	pr(PANIC_PREFIX "CPU %lu HALTED\n", this_cpu_id());
+	spin_unlock(&panic_lock);
+	if (grinch_is_guest)
+		hypercall_vmquit(-1);
+	cpu_halt();
+}
 
 void check_panic(void)
 {
@@ -25,18 +40,21 @@ void check_panic(void)
 		panic_stop();
 }
 
-void __noreturn panic_stop(void)
+void __noreturn __printf(1, 2) _panic(const char *fmt, ...)
 {
-	pr(PANIC_PREFIX "CPU %lu HALTED\n", this_cpu_id());
-	if (grinch_is_guest)
-		hypercall_vmquit(-1);
-	cpu_halt();
-}
+	va_list ap;
 
-void __noreturn do_panic(void)
-{
+	spin_lock(&panic_lock);
 	is_panic = true;
 	mb();
 	ipi_broadcast();
+
+	va_start(ap, fmt);
+	vprintk(fmt, PANIC_PREFIX, ap);
+	va_end(ap);
+
+	stackdump();
+	spin_unlock(&panic_lock);
+
 	panic_stop();
 }

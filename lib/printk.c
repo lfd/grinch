@@ -28,7 +28,7 @@
 #ifdef DEBUG
 #define LOGLEVEL_DEFAULT	9
 #else
-#define LOGLEVEL_DEFAULT	1
+#define LOGLEVEL_DEFAULT	2
 #endif
 
 static DEFINE_SPINLOCK(print_lock);
@@ -63,7 +63,7 @@ void _puts(const char *msg)
 	spin_unlock(&print_lock);
 }
 
-static void vprintk(const char *fmt, const char *infix, va_list ap)
+void vprintk(const char *fmt, const char *infix, va_list ap)
 {
 	char *str, *end;
 	char buf[196];
@@ -122,17 +122,6 @@ void __printf(1, 2) printk(const char *fmt, ...)
 	va_start(ap, fmt);
 	vprintk(fmt, NULL, ap);
 	va_end(ap);
-}
-
-void __noreturn __printf(1, 2) panic(const char *fmt, ...)
-{
-	va_list ap;
-
-	va_start(ap, fmt);
-	vprintk(fmt, PANIC_PREFIX, ap);
-	va_end(ap);
-
-	do_panic();
 }
 
 void __init printk_init(void)
