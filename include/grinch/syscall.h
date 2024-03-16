@@ -18,8 +18,6 @@ int syscall(unsigned long no, unsigned long arg1,
 	    unsigned long arg4, unsigned long arg5,
 	    unsigned long arg6);
 
-void exit(int code);
-
 unsigned long sys_open(const char __user *path, int oflag);
 unsigned long sys_close(int fd);
 unsigned long sys_write(int fd, const char __user *buf, size_t count);

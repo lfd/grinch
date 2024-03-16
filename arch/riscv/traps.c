@@ -115,7 +115,7 @@ void arch_handle_exception(struct registers *regs, u64 scause)
 		case EXC_INST_PAGE_FAULT:
 			dump_exception(&ctx);
 			//dump_regs(regs);
-			exit(-EFAULT);
+			task_exit(-EFAULT);
 			err = 0;
 			break;
 

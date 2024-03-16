@@ -30,21 +30,15 @@ static unsigned long usleep(unsigned long us)
 	return 0;
 }
 
-void exit(int code)
-{
-	struct task *task;
-
-	task = current_task();
-	pr("PID %u exited: %pe\n", task->pid, ERR_PTR(code));
-	task_destroy(task);
-}
-
 int syscall(unsigned long no, unsigned long arg1,
 	    unsigned long arg2, unsigned long arg3,
 	    unsigned long arg4, unsigned long arg5,
 	    unsigned long arg6)
 {
-	unsigned long ret;
+	long ret;
+
+	if (current_task()->state != TASK_RUNNING)
+		BUG();
 
 	switch (no) {
 		case SYS_read:
@@ -71,6 +65,12 @@ int syscall(unsigned long no, unsigned long arg1,
 			ret = do_fork();
 			break;
 
+		case SYS_wait:
+			ret = task_wait(arg1, (void __user *)arg2, arg3);
+			if (ret < 0)
+				regs_set_retval(&current_task()->regs, ret);
+			break;
+
 		case SYS_sched_yield:
 			this_per_cpu()->schedule = true;
 			ret = 0;
@@ -81,12 +81,12 @@ int syscall(unsigned long no, unsigned long arg1,
 			if (ret) {
 				pr("execve failed on task %u: %pe\n",
 				   current_task()->pid, ERR_PTR(ret));
-				exit(ret);
+				task_exit(ret);
 			}
 			break;
 
 		case SYS_exit:
-			exit(arg1);
+			task_exit(arg1);
 			ret = 0;
 			break;
 
@@ -103,7 +103,7 @@ int syscall(unsigned long no, unsigned long arg1,
 			break;
 	}
 
-	if (no != SYS_exit && no != SYS_execve)
+	if (no != SYS_exit && no != SYS_execve && no != SYS_wait)
 		regs_set_retval(&current_task()->regs, ret);
 
 	return 0;

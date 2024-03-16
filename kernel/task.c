@@ -25,6 +25,7 @@
 #include <grinch/task.h>
 #include <grinch/percpu.h>
 #include <grinch/timer.h>
+#include <grinch/uaccess.h>
 
 #define GRINCH_VM_PID_OFFSET	10000
 
@@ -34,8 +35,147 @@ static LIST_HEAD(timer_list);
 static DEFINE_SPINLOCK(task_lock);
 static pid_t next_pid = 1;
 
-void task_destroy(struct task *task)
+static inline void _sched_dequeue(struct task *task)
 {
+	list_del(&task->tasks);
+}
+
+void sched_dequeue(struct task *task)
+{
+	spin_lock(&task_lock);
+	_sched_dequeue(task);
+	spin_unlock(&task_lock);
+}
+
+void sched_enqueue(struct task *task)
+{
+	spin_lock(&task_lock);
+	list_add(&task->tasks, &task_list);
+	spin_unlock(&task_lock);
+}
+
+/* must hold the parent's lock */
+static int task_notify_wait(struct task *parent, struct task *child)
+{
+	int status;
+
+	if (!parent->wait_for.waiting)
+		return -ECHILD;
+
+	if (parent->wait_for.pid != -1 && parent->wait_for.pid != child->pid)
+		return -ECHILD;
+
+	if (child->state != TASK_EXIT_DEAD)
+		BUG();
+
+	/* Forward status code */
+	if (parent->wait_for.status) {
+		status = (child->exit_code & 0xff) << 8;
+		copy_to_user(&parent->process->mm, parent->wait_for.status,
+			     &status, sizeof(status));
+	}
+
+	/*
+	 * Parent's state might also be TASK_RUNNING, if we have a direct
+	 * notification
+	 */
+	regs_set_retval(&parent->regs, child->pid);
+	if (parent->state == TASK_WAIT)
+		parent->state = TASK_RUNNABLE;
+
+	task_destroy(child);
+	parent->wait_for.waiting = false;
+
+	return 0;
+}
+
+long task_wait(pid_t pid, int __user *wstatus, int options)
+{
+	struct task *task, *child;
+	int err;
+
+	/* not supported at the moment */
+	if (options)
+		return -EINVAL;
+
+	/* not supported at the moment */
+	if (pid == 0 || pid < -1)
+		return -ENOSYS;
+
+	task = current_task();
+	spin_lock(&task->lock);
+
+	if (list_empty(&task->children)) {
+		err = -ECHILD;
+		goto unlock_out;
+	}
+
+	if (pid == -1) {
+		list_for_each_entry(child, &task->children, sibling) {
+			spin_lock(&child->lock);
+			if (child->state == TASK_EXIT_DEAD)
+				goto found;
+			spin_unlock(&child->lock);
+		}
+		child = NULL;
+		goto found;
+	} else {
+		list_for_each_entry(child, &task->children, sibling) {
+			spin_lock(&child->lock);
+			if (child->pid == pid)
+				goto found;
+			spin_unlock(&child->lock);
+		}
+	}
+
+	spin_unlock(&task->lock);
+	return -ECHILD;
+
+found:
+	task->wait_for.pid = pid;
+	task->wait_for.waiting = true;
+	task->wait_for.status = wstatus;
+
+	if (child) {
+		if (child->state == TASK_EXIT_DEAD) {
+			err = task_notify_wait(task, child);
+			if (err)
+				BUG();
+			goto unlock_out;
+		} else
+			spin_unlock(&child->lock);
+	}
+
+	task->state = TASK_WAIT;
+	this_per_cpu()->schedule = true;
+	this_per_cpu()->current_task = NULL;
+	err = 0;
+
+unlock_out:
+	spin_unlock(&task->lock);
+	return err;
+}
+
+void task_exit(int code)
+{
+	struct task *task, *parent;
+
+	task = current_task();
+	parent = task->parent;
+	if (!parent) {
+		pr_warn("Exit from init task!\n");
+		BUG();
+	}
+
+	/*
+	 * The task is no scheduleable entry any longer, so remove it from the
+	 * scheduler list
+	 */
+	sched_dequeue(task);
+
+	/* Take the parent's lock first to prevent deadlock situations */
+	spin_lock(&parent->lock);
+	spin_lock(&task->lock);
 	switch (task->type) {
 	case GRINCH_PROCESS:
 		process_destroy(task);
@@ -50,18 +190,32 @@ void task_destroy(struct task *task)
 		break;
 	}
 
+	task->state = TASK_EXIT_DEAD;
+	task->exit_code = code;
+
 	/*
-	 * Once we have proper SMP, this won't work like that any longer. We
-	 * first have to make sure, that a Task got suspended before being
-	 * dequeued
+	 * Once we have proper support for threads, this won't work like that
+	 * any longer. We first have to make sure, that a task got suspended
+	 * before being dequeued.
 	 */
-	if (!list_empty(&task->tasks))
-		sched_dequeue(task);
 
 	if (this_per_cpu()->current_task == task) {
 		this_per_cpu()->schedule = true;
 		this_per_cpu()->current_task = NULL;
 	}
+
+	task_notify_wait(parent, task);
+	spin_unlock(&parent->lock);
+	spin_unlock(&task->lock);
+}
+
+/* must hold the parent's lock */
+void task_destroy(struct task *task)
+{
+	if (task->state != TASK_EXIT_DEAD && task->state != TASK_INIT)
+		BUG();
+
+	list_del(&task->sibling);
 
 	kfree(task);
 }
@@ -87,10 +241,12 @@ struct task *task_alloc_new(void)
 
 	spin_init(&task->lock);
 	task->pid = get_new_pid();
-	task->state = TASK_RUNNABLE;
+	task->state = TASK_INIT;
 	task->type = GRINCH_UNDEF;
 	INIT_LIST_HEAD(&task->tasks);
 	INIT_LIST_HEAD(&task->timer.timer_list);
+	INIT_LIST_HEAD(&task->sibling);
+	INIT_LIST_HEAD(&task->children);
 
 	return task;
 }
@@ -122,6 +278,10 @@ static void task_activate(struct task *task)
 	task->state = TASK_RUNNING;
 	task->on_cpu = this_cpu_id();
 
+#ifdef DEBUG
+	pr_dbg("CPU %lu took PID %d\n", this_cpu_id(), task->pid);
+#endif
+
 	switch (task->type) {
 	case GRINCH_PROCESS:
 		arch_process_activate(task->process);
@@ -135,20 +295,6 @@ static void task_activate(struct task *task)
 		BUG();
 		break;
 	}
-}
-
-void sched_dequeue(struct task *task)
-{
-	spin_lock(&task_lock);
-	list_del(&task->tasks);
-	spin_unlock(&task_lock);
-}
-
-void sched_enqueue(struct task *task)
-{
-	spin_lock(&task_lock);
-	list_add(&task->tasks, &task_list);
-	spin_unlock(&task_lock);
 }
 
 static void schedule(void)
@@ -233,6 +379,7 @@ int do_fork(void)
 	this = current_task();
 	spin_lock(&this->lock);
 	new->regs = this->regs;
+	new->parent = this;
 	regs_set_retval(&new->regs, 0);
 
 	list_for_each_entry(vma, &this->process->mm.vmas, vmas) {
@@ -242,6 +389,8 @@ int do_fork(void)
 	}
 
 	new->state = TASK_RUNNABLE;
+
+	list_add(&new->sibling, &this->children);
 
 	spin_unlock(&this->lock);
 	spin_unlock(&new->lock);
@@ -253,8 +402,9 @@ int do_fork(void)
 
 destroy_out:
 	spin_unlock(&new->lock);
-	spin_unlock(&this->lock);
 	task_destroy(new);
+	spin_unlock(&this->lock);
+
 	return err;
 }
 
@@ -460,12 +610,15 @@ retry:
 		schedule();
 
 	if (!tpcpu->current_task) {
+		spin_lock(&task_lock);
 		if (list_empty(&task_list)) {
+			spin_unlock(&task_lock);
 			if (tpcpu->primary) {
 				pr("Nothing to schedule!\n");
 				arch_shutdown(-ENOENT);
 			}
 		} else {
+			spin_unlock(&task_lock);
 			if (tpcpu->idling)
 				BUG();
 		}

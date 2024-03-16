@@ -25,9 +25,12 @@
 #include <grinch/arch/vmm.h>
 
 enum task_state {
-	TASK_RUNNABLE = 0, /* Scheduleable */
+	TASK_INIT = 0,
+	TASK_RUNNABLE, /* Scheduleable */
 	TASK_WFE, /* Waits for Events */
 	TASK_RUNNING,
+	TASK_WAIT, /* Wait for children */
+	TASK_EXIT_DEAD,
 };
 
 enum task_type {
@@ -44,6 +47,18 @@ struct task {
 	pid_t pid;
 	enum task_state state;
 	unsigned long on_cpu; /* only valid if state == TASK_RUNNING */
+
+	struct task *parent;
+	struct list_head children;
+	/* working on siblings always requires the parent's lock */
+	struct list_head sibling;
+	struct {
+		bool waiting;
+		pid_t pid;
+		int __user *status;
+	} wait_for; /* wait for child */
+
+	int exit_code;
 
 	struct {
 		struct list_head timer_list;
@@ -77,6 +92,8 @@ struct task *task_alloc_new(void);
 
 void task_set_context(struct task *task, unsigned long pc, unsigned long sp);
 void task_destroy(struct task *task);
+void task_exit(int code);
+long task_wait(pid_t pid, int __user *wstatus, int options);
 void task_handle_events(void);
 void task_save(struct registers *regs);
 
