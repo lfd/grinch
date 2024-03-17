@@ -133,7 +133,6 @@ void uvmas_destroy(struct process *p)
 
 struct vma *uvma_create(struct process *p, void *base, size_t size, unsigned int vma_flags)
 {
-	struct list_head *item;
 	struct vma *vma;
 	int err;
 
@@ -141,11 +140,9 @@ struct vma *uvma_create(struct process *p, void *base, size_t size, unsigned int
 		return ERR_PTR(-ERANGE);
 
 	/* Check that the VMA won't collide with any other VMA */
-	list_for_each(item, &p->mm.vmas) {
-		vma = list_entry(item, struct vma, vmas);
+	list_for_each_entry(vma, &p->mm.vmas, vmas)
 		if (vma_collides(vma, base, size))
 			return ERR_PTR(-EINVAL);
-	}
 
 	vma = kmalloc(sizeof(*vma));
 	if (!vma)
