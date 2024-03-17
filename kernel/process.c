@@ -112,6 +112,9 @@ void process_destroy(struct task *task)
 
 	if (process->mm.page_table)
 		kfree(process->mm.page_table);
+
+	kfree(task->process);
+	task->process = NULL;
 }
 
 struct task *process_alloc_new(void)

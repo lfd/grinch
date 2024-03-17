@@ -256,6 +256,7 @@ void vmachine_destroy(struct task *task)
 	}
 
 	kfree(vm);
+	task->vmachine = NULL;
 }
 
 static int vm_memcpy(struct vmachine *vm, unsigned long offset,
