@@ -234,5 +234,6 @@ int main(void)
 		goto out;
 
 out:
+	printf("%pe\n", ERR_PTR(err));
 	return err;
 }

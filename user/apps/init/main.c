@@ -47,10 +47,13 @@ static pid_t start_background(const char *path, bool wait)
 		return -errno;
 	}
 
+	if (err != child)
+		return -EINVAL;
+
 	return 0;
 }
 
-int main(void)
+static int init(void)
 {
 	int forked;
 	pid_t child;
@@ -69,5 +72,23 @@ int main(void)
 			return child;
 	}
 
+	return 0;
+}
+
+int main(void)
+{
+	int err;
+	pid_t child;
+
+	err = init();
+	printf("Init finished with %pe. Waiting.\n", ERR_PTR(err));
+
+	while (true) {
+		child = wait(NULL);
+		if (child == -1)
+			perror("wait");
+		else
+			printf("Collected child %d\n", child);
+	}
 	return 0;
 }
