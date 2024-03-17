@@ -301,8 +301,8 @@ static int vm_load_file(struct vmachine *vm, const char *filename, size_t offset
 
 static struct task *vmm_alloc_new(void)
 {
+	struct task *task, *parent;
 	struct vmachine *vm;
-	struct task *task;
 	char buf[128];
 	int err;
 
@@ -311,11 +311,17 @@ static struct task *vmm_alloc_new(void)
 	if (IS_ERR(task))
 		return task;
 
+	parent = current_task();
+	spin_lock(&parent->lock);
+
+	list_add(&task->sibling, &parent->children);
+	task->parent = parent;
+
 	task->type = GRINCH_VMACHINE;
 	task->vmachine = kzalloc(sizeof(*task->vmachine));
 	if (!task->vmachine) {
 		err = -ENOMEM;
-		goto free_out;
+		goto vmfree_out;
 	}
 	vm = task->vmachine;
 
@@ -357,18 +363,17 @@ static struct task *vmm_alloc_new(void)
 	err = vm_map_range(vm->hv_page_table, (void *)VM_GPHYS_BASE,
 			   vm->memregion.base, vm->memregion.size,
 			   GRINCH_MEM_RWXU);
-	if (err) {
-		task_destroy(task);
-		return ERR_PTR(err);
-	}
+	if (err)
+		goto vmfree_out;
 
+	spin_unlock(&parent->lock);
 	return task;
 
 vmfree_out:
-	vmachine_destroy(task);
+	spin_unlock(&parent->lock);
+	task_exit(task, err);
+	task_destroy(task);
 
-free_out:
-	kfree(task);
 	return ERR_PTR(err);
 }
 
@@ -403,12 +408,16 @@ int vm_create_grinch(void)
 {
 	struct task *task;
 
+	if (!has_hypervisor())
+		return -ENOSYS;
+
 	task = vmm_alloc_new();
 	if (IS_ERR(task))
 		return PTR_ERR(task);
 
 	task->regs.pc = VM_GPHYS_BASE;
+	task->state = TASK_RUNNABLE;
 	sched_enqueue(task);
 
-	return 0;
+	return task->pid;
 }

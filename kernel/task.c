@@ -156,11 +156,10 @@ unlock_out:
 	return err;
 }
 
-void task_exit(int code)
+void task_exit(struct task *task, int code)
 {
-	struct task *task, *parent;
+	struct task *parent;
 
-	task = current_task();
 	parent = task->parent;
 	if (!parent) {
 		pr_warn("Exit from init task!\n");
@@ -171,7 +170,8 @@ void task_exit(int code)
 	 * The task is no scheduleable entry any longer, so remove it from the
 	 * scheduler list
 	 */
-	sched_dequeue(task);
+	if (!list_empty(&task->tasks))
+		sched_dequeue(task);
 
 	/* Take the parent's lock first to prevent deadlock situations */
 	spin_lock(&parent->lock);

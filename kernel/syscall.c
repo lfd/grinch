@@ -35,9 +35,12 @@ int syscall(unsigned long no, unsigned long arg1,
 	    unsigned long arg4, unsigned long arg5,
 	    unsigned long arg6)
 {
+	struct task *cur;
 	long ret;
 
-	if (current_task()->state != TASK_RUNNING)
+	cur = current_task();
+
+	if (cur->state != TASK_RUNNING)
 		BUG();
 
 	switch (no) {
@@ -58,7 +61,7 @@ int syscall(unsigned long no, unsigned long arg1,
 			break;
 
 		case SYS_getpid:
-			ret = current_task()->pid;
+			ret = cur->pid;
 			break;
 
 		case SYS_fork:
@@ -68,7 +71,7 @@ int syscall(unsigned long no, unsigned long arg1,
 		case SYS_wait:
 			ret = task_wait(arg1, (void __user *)arg2, arg3);
 			if (ret < 0)
-				regs_set_retval(&current_task()->regs, ret);
+				regs_set_retval(&cur->regs, ret);
 			break;
 
 		case SYS_sched_yield:
@@ -80,13 +83,13 @@ int syscall(unsigned long no, unsigned long arg1,
 			ret = sys_execve((void *)arg1, (void *)arg2, (void *)arg3);
 			if (ret) {
 				pr("execve failed on task %u: %pe\n",
-				   current_task()->pid, ERR_PTR(ret));
-				task_exit(ret);
+				   cur->pid, ERR_PTR(ret));
+				task_exit(cur, ret);
 			}
 			break;
 
 		case SYS_exit:
-			task_exit(arg1);
+			task_exit(cur, arg1);
 			ret = 0;
 			break;
 
@@ -98,13 +101,17 @@ int syscall(unsigned long no, unsigned long arg1,
 			ret = timer_get_wall();
 			break;
 
+		case SYS_create_grinch_vm:
+			ret = vm_create_grinch();
+			break;
+
 		default:
 			ret = -ENOSYS;
 			break;
 	}
 
 	if (no != SYS_exit && no != SYS_execve && no != SYS_wait)
-		regs_set_retval(&current_task()->regs, ret);
+		regs_set_retval(&cur->regs, ret);
 
 	return 0;
 }
