@@ -63,7 +63,6 @@ static const char __initconst hello[] =
 
 static bool __initdata do_memtest;
 static bool __initdata do_init = true;
-static unsigned int num_vms;
 
 unsigned int grinch_id;
 
@@ -78,20 +77,6 @@ static void __init noinit_parse(const char *)
 	do_init = false;
 }
 bootparam(noinit, noinit_parse);
-
-static void __init num_vms_parse(const char *arg)
-{
-	unsigned long ret;
-
-	ret = strtoul(arg, NULL, 10);
-	if (ret > 10) {
-		pri("Limiting to 10 VMs\n");
-		ret = 10;
-	}
-
-	num_vms = ret;
-}
-bootparam(num_vms, num_vms_parse);
 
 static int __init init(void)
 {
@@ -112,26 +97,6 @@ static int __init init(void)
 	sched_enqueue(task);
 
 	return 0;
-}
-
-static int __init vm_init(void)
-{
-	unsigned int vm;
-	int err;
-
-	if (!num_vms)
-		return 0;
-
-	if (!has_hypervisor())
-		return -ENOSYS;
-
-	for (vm = 0; vm < num_vms; vm++) {
-		err = vm_create_grinch();
-		if (err)
-			return err;
-	}
-
-	return err;
 }
 
 void cmain(unsigned long boot_cpu, paddr_t __fdt)
@@ -210,10 +175,6 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 
 	err = console_init();
 	if (err && err != -ENOENT)
-		goto out;
-
-	err = vm_init();
-	if (err)
 		goto out;
 
 	if (do_init) {

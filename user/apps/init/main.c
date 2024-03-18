@@ -17,6 +17,8 @@
 
 #include <sys/wait.h>
 
+#include <grinch/vm.h>
+
 int main(void);
 
 APP_NAME(init);
@@ -71,6 +73,15 @@ static int init(void)
 	child = start_background("/initrd/jittertest.echse", false);
 	if (child < 0)
 		return child;
+
+	if (1) {
+		child = create_grinch_vm();
+		if (child == -1) {
+			perror("create_grinch_vm");
+			return -errno;
+		} else
+			printf("Created grinch VM with PID %d\n", child);
+	}
 
 	return 0;
 }
