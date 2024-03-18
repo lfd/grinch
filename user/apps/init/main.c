@@ -58,6 +58,12 @@ static int init(void)
 	int forked;
 	pid_t child;
 
+	for (forked = 0; forked < 5; forked++) {
+		child = start_background("/initrd/hello.echse", false);
+		if (child < 0)
+			return child;
+	}
+
 	child = start_background("/initrd/test.echse", true);
 	if (child < 0)
 		return child;
@@ -65,12 +71,6 @@ static int init(void)
 	child = start_background("/initrd/jittertest.echse", false);
 	if (child < 0)
 		return child;
-
-	for (forked = 0; forked < 5; forked++) {
-		child = start_background("/initrd/hello.echse", false);
-		if (child < 0)
-			return child;
-	}
 
 	return 0;
 }

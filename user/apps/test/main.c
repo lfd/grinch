@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 #define TEST_SZ	64
 
@@ -204,9 +205,48 @@ static int test_initrd(void)
 	return 0;
 }
 
+#define NO_FORKS	50
+
+static int test_fork(void)
+{
+	unsigned int i;
+	pid_t child;
+	int err;
+
+	for (i = 0; i < NO_FORKS; i++) {
+		child = fork();
+		if (child == 0) {
+			err = execve("/initrd/true.echse", NULL, NULL);
+			perror("execve");
+			break;
+		} else if (child == -1) {
+			perror("fork!");
+			break;
+		}
+	}
+
+	for (i = 0; ; i++) {
+		child = wait(NULL);
+		if (child == -1) {
+			if (errno != ECHILD)
+				perror("wait");
+			break;
+		}
+	}
+
+	err = (i == NO_FORKS) ? 0 : -EINVAL;
+
+	return err;
+}
+
 int main(void)
 {
 	int err;
+
+	printf("Testing fork+wait\n");
+	err = test_fork();
+	if (err)
+		goto out;
 
 	printf("Testing zero device\n");
 	err = test_zero();
