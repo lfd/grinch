@@ -106,6 +106,10 @@ int main(void)
 		child = wait(&wstatus);
 		if (child == -1) {
 			perror("wait");
+			if (errno == ECHILD) {
+				printf("No more children!\n");
+				break;
+			}
 			continue;
 		}
 
