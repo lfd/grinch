@@ -15,6 +15,10 @@
 
 #include <grinch/types.h>
 
+#define WTERMSIG(status)	((status) & 0x7f)
+#define WEXITSTATUS(status)	(((status) & 0xff00) >> 8)
+#define WIFEXITED(status)	(WTERMSIG(status) == 0)
+
 pid_t waitpid(pid_t pid, int *wstatus, int options);
 
 static inline pid_t wait(int *wstatus)

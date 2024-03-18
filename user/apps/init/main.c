@@ -26,7 +26,7 @@ APP_NAME(init);
 static pid_t start_background(const char *path, bool wait)
 {
 	pid_t child;
-	int err;
+	int err, wstatus;
 
 	printf("Starting %s\n", path);
 	err = 0;
@@ -43,14 +43,22 @@ static pid_t start_background(const char *path, bool wait)
 	if (!wait)
 		return child;
 
-	err = waitpid(child, NULL, 0);
+	err = waitpid(child, &wstatus, 0);
 	if (err == -1) {
 		perror("waitpid");
 		return -errno;
 	}
 
-	if (err != child)
+	if (err != child) {
+		printf("waitpid: incorrect result\n");
 		return -EINVAL;
+	}
+
+	if (WIFEXITED(wstatus))
+		printf("Child %d: Exit code %d\n",
+		       child, WEXITSTATUS(wstatus));
+	else
+		printf("Child %d: no regular exit\n", child);
 
 	return 0;
 }
@@ -74,7 +82,7 @@ static int init(void)
 	if (child < 0)
 		return child;
 
-	if (1) {
+	if (0) {
 		child = create_grinch_vm();
 		if (child == -1) {
 			perror("create_grinch_vm");
@@ -88,18 +96,24 @@ static int init(void)
 
 int main(void)
 {
-	int err;
+	int err, wstatus;
 	pid_t child;
 
 	err = init();
 	printf("Init finished with %pe. Waiting.\n", ERR_PTR(err));
 
 	while (true) {
-		child = wait(NULL);
-		if (child == -1)
+		child = wait(&wstatus);
+		if (child == -1) {
 			perror("wait");
+			continue;
+		}
+
+		if (WIFEXITED(wstatus))
+			printf("Child %d: Exit code %d\n",
+			       child, WEXITSTATUS(wstatus));
 		else
-			printf("Collected child %d\n", child);
+			printf("Child %d: no regular exit\n", child);
 	}
 	return 0;
 }
