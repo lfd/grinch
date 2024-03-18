@@ -33,7 +33,10 @@ struct {
 static char console_device[DEVFS_MAX_LEN_NAME];
 
 static struct file_handle kstdout = {
-	.flags.is_kernel = true,
+	.flags = {
+		.is_kernel = true,
+		.may_write = true,
+	},
 };
 
 static void console_parse(const char *str)

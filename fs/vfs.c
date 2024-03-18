@@ -48,11 +48,16 @@ static struct file *search_file(const char *path, struct fs_flags flags)
 		if (strcmp(path, files->pathname))
 			continue;
 
+		if ((flags.may_read && !files->fp.fops->read) ||
+		    (flags.may_write && !files->fp.fops->write)) {
+			return ERR_PTR(-EINVAL);
+		}
+
 		files->refs++;
 		return &files->fp;
 	}
 
-	return NULL;
+	return ERR_PTR(-ENOENT);
 }
 
 /* must hold files_lock */
@@ -98,14 +103,16 @@ static struct file *_file_open(const char *pathname, struct fs_flags flags)
 	return &files->fp;
 }
 
-// Koennten hier auch das handle uebergeben und integer returnen.
 struct file *file_open(const char *path, struct fs_flags flags)
 {
 	struct file *filep;
 
+	if (!flags.may_read && !flags.may_write)
+		return ERR_PTR(-EINVAL);
+
 	spin_lock(&files_lock);
 	filep = search_file(path, flags);
-	if (filep)
+	if (filep != ERR_PTR(-ENOENT))
 		goto unlock_out;
 
 	filep = _file_open(path, flags);

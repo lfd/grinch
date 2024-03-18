@@ -72,7 +72,11 @@ static int devfs_open(const struct file_system *fs, struct file *filep,
 	goto unlock_out;
 
 found:
-	/* No flags to check at the moment */
+	if ((flags.may_read && !node->fops->read) ||
+	    (flags.may_write && !node->fops->write)) {
+		err = -EBADF;
+		goto unlock_out;
+	}
 
 	filep->fops = node->fops;
 	filep->drvdata = node->drvdata;
