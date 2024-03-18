@@ -30,7 +30,7 @@ static int uart_8250_rcv_handler(struct uart_chip *chip)
 	unsigned char ch;
 
 	ch = chip->reg_in(chip, UART_RX);
-	serial_in(ch);
+	serial_in(chip, ch);
 
 	return 0;
 }

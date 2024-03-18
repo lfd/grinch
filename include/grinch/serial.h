@@ -18,6 +18,7 @@
 
 #include <grinch/devfs.h>
 #include <grinch/types.h>
+#include <grinch/ringbuf.h>
 
 struct uart_chip;
 
@@ -35,6 +36,7 @@ struct uart_chip {
 	u32 irq;
 
 	struct devfs_node node;
+	struct ringbuf rb;
 
 	void (*reg_out)(struct uart_chip *chip, unsigned int reg, u32 value);
 	u32 (*reg_in)(struct uart_chip *chip, unsigned int reg);
@@ -67,6 +69,6 @@ void uart_deinit(struct device *dev);
 
 int uart_probe_generic(struct device *dev);
 
-void serial_in(char ch);
+void serial_in(struct uart_chip *c, char ch);
 
 #endif /* _SERIAL_H */

@@ -27,11 +27,15 @@
 
 #include <grinch/fs.h>
 
+#define SERIAL_RINGBUF_SIZE	32
+
 static unsigned int uart_no;
 
-void serial_in(char ch)
+void serial_in(struct uart_chip *c, char ch)
 {
-	pr("STDIN rcvd: %c\n", ch);
+	spin_lock(&c->lock);
+	ringbuf_write(&c->rb, ch);
+	spin_unlock(&c->lock);
 }
 
 static void reg_out_mmio8(struct uart_chip *chip, unsigned int reg, u32 value)
@@ -67,8 +71,8 @@ static int serial_rcv(void *_c)
 int __init uart_probe_generic(struct device *dev)
 {
 	const struct uart_driver *d;
-	struct uart_chip *c;
 	struct devfs_node *node;
+	struct uart_chip *c;
 	int err;
 
 	err = uart_init(dev);
@@ -83,8 +87,11 @@ int __init uart_probe_generic(struct device *dev)
 	if (err)
 		goto error_out;
 
-	node = &c->node;
+	err = ringbuf_init(&c->rb, SERIAL_RINGBUF_SIZE);
+	if (err)
+		goto error_out;
 
+	node = &c->node;
 	snprintf(node->name, sizeof(node->name), ISTR("ttyS%u"), uart_no);
 	node->fops = &serial_fops;
 	node->drvdata = dev;
@@ -117,6 +124,8 @@ void __init uart_deinit(struct device *dev)
 		if (err)
 			pr("Error during unmap\n");
 	}
+
+	ringbuf_free(&c->rb);
 
 	kfree(c);
 }

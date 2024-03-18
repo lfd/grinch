@@ -70,7 +70,7 @@ static int apbuart_rcv(struct uart_chip *chip)
 		mmio_write32(&uart->status, 0);
 
 		ch = mmio_read32(&uart->data);
-		serial_in(ch);
+		serial_in(chip, ch);
 
 		status = mmio_read32(&uart->status);
 	}
