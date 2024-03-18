@@ -179,8 +179,10 @@ static void schedule(void)
 
 	task = tpcpu->current_task;
 	list_for_each_entry_from(task, &task_list, tasks) {
+		spin_lock(&task->lock);
 		if (task->state == TASK_RUNNABLE)
 			goto out;
+		spin_unlock(&task->lock);
 	}
 
 begin:
@@ -191,8 +193,10 @@ begin:
 		if (task == tpcpu->current_task)
 			break;
 
+		spin_lock(&task->lock);
 		if (task->state == TASK_RUNNABLE)
 			goto out;
+		spin_unlock(&task->lock);
 	}
 
 nothing:
@@ -200,37 +204,47 @@ nothing:
 	 * We have nothing to schedule. But is the current task running and may
 	 * continue?
 	 */
-	if (current_task() && current_task()->state == TASK_RUNNING)
+	if (current_task() && current_task()->state == TASK_RUNNING) {
 		task = current_task();
-	else
+		spin_lock(&task->lock);
+	} else
 		task = NULL;
 
 out:
+	/* If task is set, we arrive here with the task->lock hold */
 	task_activate(task);
+	if (task)
+		spin_unlock(&task->lock);
+
 	spin_unlock(&task_lock);
 }
 
 int do_fork(void)
 {
 	struct task *this, *new;
-	struct list_head *pos;
 	struct vma *vma;
 	int err;
 
-	this = current_task();
 	new = process_alloc_new();
 	if (IS_ERR(new))
 		return PTR_ERR(new);
+	spin_lock(&new->lock);
 
+	this = current_task();
+	spin_lock(&this->lock);
 	new->regs = this->regs;
 	regs_set_retval(&new->regs, 0);
 
-	list_for_each(pos, &this->process->mm.vmas) {
-		vma = list_entry(pos, struct vma, vmas);
+	list_for_each_entry(vma, &this->process->mm.vmas, vmas) {
 		err = uvma_duplicate(new->process, this->process, vma);
 		if (err)
 			goto destroy_out;
 	}
+
+	new->state = TASK_RUNNABLE;
+
+	spin_unlock(&this->lock);
+	spin_unlock(&new->lock);
 
 	sched_enqueue(new);
 	sched_all();
@@ -238,6 +252,8 @@ int do_fork(void)
 	return new->pid;
 
 destroy_out:
+	spin_unlock(&new->lock);
+	spin_unlock(&this->lock);
 	task_destroy(new);
 	return err;
 }
