@@ -97,6 +97,8 @@ static int __init init(void)
 
 	task->state = TASK_RUNNABLE;
 
+	init_task = task;
+
 	sched_enqueue(task);
 
 	return 0;

@@ -88,6 +88,8 @@ static inline struct process *current_process(void)
 	return cur->process;
 }
 
+extern struct task *init_task;
+
 struct task *task_alloc_new(void);
 
 void task_set_context(struct task *task, unsigned long pc, unsigned long sp);

@@ -29,12 +29,13 @@
 
 #define GRINCH_VM_PID_OFFSET	10000
 
+struct task *init_task;
+
 static LIST_HEAD(task_list);
 static LIST_HEAD(timer_list);
 
 static DEFINE_SPINLOCK(task_lock);
 static pid_t next_pid = 1;
-static struct task *init;
 
 static inline void _sched_dequeue(struct task *task)
 {
@@ -200,19 +201,19 @@ void task_exit(struct task *task, int code)
 	 * Do reparenting. Check if the task has children. If so, they go to
 	 * PID 1
 	 */
-	if (parent != init)
-		spin_lock(&init->lock);
+	if (parent != init_task)
+		spin_lock(&init_task->lock);
 	list_for_each_entry_safe(child, tmp, &task->children, sibling) {
 		spin_lock(&child->lock);
 
 		list_del(&child->sibling);
-		child->parent = init;
-		list_add(&child->sibling, &init->children);
+		child->parent = init_task;
+		list_add(&child->sibling, &init_task->children);
 
 		spin_unlock(&child->lock);
 	}
-	if (parent != init)
-		spin_unlock(&init->lock);
+	if (parent != init_task)
+		spin_unlock(&init_task->lock);
 
 	/*
 	 * Once we have proper support for threads, this won't work like that
@@ -268,9 +269,6 @@ struct task *task_alloc_new(void)
 	INIT_LIST_HEAD(&task->timer.timer_list);
 	INIT_LIST_HEAD(&task->sibling);
 	INIT_LIST_HEAD(&task->children);
-
-	if (task->pid == 1)
-		init = task;
 
 	return task;
 }
