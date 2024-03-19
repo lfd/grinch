@@ -22,13 +22,15 @@
 #include <grinch/fs.h>
 #include <grinch/init.h>
 #include <grinch/printk.h>
+#include <grinch/ringbuf.h>
 #include <grinch/serial.h>
 #include <grinch/vsprintf.h>
 
-struct {
-	unsigned int tail;
-	char content[2048];
-} ringbuf;
+static char __console_buffer[2048];
+static struct ringbuf console_ringbuf = {
+	.buf = __console_buffer,
+	.size = sizeof(__console_buffer),
+};
 
 static char console_device[DEVFS_MAX_LEN_NAME];
 
@@ -50,27 +52,22 @@ static inline void kstdout_write(const char *str, unsigned int len)
 	kstdout.fp->fops->write(&kstdout, str, len);
 }
 
-static inline void ringbuf_write(char c)
+static inline void rb_write(char c)
 {
-	ringbuf.content[ringbuf.tail % sizeof(ringbuf.content)] = c;
-	ringbuf.tail++;
+	ringbuf_write(&console_ringbuf, c);
 }
 
 #if 0
 static void ringbuf_flush(void)
 {
-	unsigned int len;
+	unsigned int sz;
+	char *src;
 
-	if (ringbuf.tail > sizeof(ringbuf.content)) {
-		len = ringbuf.tail % sizeof(ringbuf.content);
-		kstdout_write(ringbuf.content + len,
-			      sizeof(ringbuf.content) - len);
-	}
-
-	len = ringbuf.tail % sizeof(ringbuf.content);
-	kstdout_write(ringbuf.content, len);
-
-	ringbuf.tail = 0;
+	do {
+		src = ringbuf_read(&console_ringbuf, &sz);
+		kstdout_write(src, sz);
+		ringbuf_consume(&console_ringbuf, sz);
+	} while (sz);
 }
 #endif
 
@@ -80,12 +77,12 @@ void console_puts(const char *str)
 
 	if (!kstdout.fp)
 		for (i = 0; str[i]; i++) {
-			ringbuf_write(str[i]);
+			rb_write(str[i]);
 			arch_early_dbg(str[i]);
 		}
 	else {
 		for (i = 0; str[i]; i++)
-			ringbuf_write(str[i]);
+			rb_write(str[i]);
 		kstdout_write(str, i);
 	}
 }
