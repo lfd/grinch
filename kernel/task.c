@@ -167,6 +167,8 @@ void task_exit(struct task *task, int code)
 		BUG();
 	}
 
+	task_cancel_timer(task);
+
 	/*
 	 * The task is no scheduleable entry any longer, so remove it from the
 	 * scheduler list
@@ -481,9 +483,6 @@ void task_sleep_until(struct task *task, unsigned long long wall_ns)
 void task_cancel_timer(struct task *task)
 {
 	spin_lock(&task_lock);
-
-	if (task->type != GRINCH_VMACHINE)
-		panic("Timer cancelation only supported for VMs\n");
 
 	list_del(&task->timer.timer_list);
 	INIT_LIST_HEAD(&task->timer.timer_list);
