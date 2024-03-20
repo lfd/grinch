@@ -12,7 +12,7 @@
 		 */
 		linux,initrd-start = <0xa0100000>;
 		linux,initrd-end = <0xa0140000>;
-		bootargs = "earlycon=sbi timer_hz=0";
+		bootargs = "console=ttySBI timer_hz=0";
 	};
 
 	cpus {
