@@ -14,6 +14,7 @@
 #define _STDIO_H
 
 #include <grinch/compiler_attributes.h>
+#include <grinch/types.h>
 
 #define stdin	0
 #define stdout	1
@@ -28,6 +29,8 @@ extern const char __app_name_fmt[];
 int puts(const char *s);
 int __printf(2, 3) dprintf(int fd, const char *fmt, ...);
 int __printf(1, 2) printf(const char *fmt, ...);
+
+void printf_set_prefix(bool on);
 
 void perror(const char *s);
 
