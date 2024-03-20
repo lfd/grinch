@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -15,7 +15,10 @@
 
 #include <grinch/compiler_attributes.h>
 
+#define stdin	0
 #define stdout	1
+#define stderr	2
+
 #define EOF	(-1)
 
 #define APP_NAME(x)	const char __app_name_fmt[] = "[" #x " %u] "
@@ -23,6 +26,7 @@
 extern const char __app_name_fmt[];
 
 int puts(const char *s);
+int __printf(2, 3) dprintf(int fd, const char *fmt, ...);
 int __printf(1, 2) printf(const char *fmt, ...);
 
 void perror(const char *s);

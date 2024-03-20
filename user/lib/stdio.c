@@ -18,17 +18,11 @@
 
 #include <grinch/vsprintf.h>
 
-// FIXME: perror should go to stderr later
-void perror(const char *s)
-{
-	printf("%s: %pe\n", s, ERR_PTR(-errno));
-}
-
-static int _puts(const char *s)
+static int _puts(int fd, const char *s)
 {
 	ssize_t ret;
 
-	ret = write(stdout, s, strlen(s));
+	ret = write(fd, s, strlen(s));
 
 	return ret;
 }
@@ -46,7 +40,7 @@ static int sprint_prefix(char **str, char *end)
 	return res;
 }
 
-static int vprintf(const char *fmt, va_list ap)
+static int vdprintf(int fd, const char *fmt, va_list ap)
 {
 	char buf[196];
 	char *str, *end;
@@ -65,9 +59,21 @@ static int vprintf(const char *fmt, va_list ap)
 
 	//str += err;
 
-	_puts(buf);
+	_puts(fd, buf);
 
 	return str - buf;
+}
+
+int __printf(2, 3) dprintf(int fd, const char *fmt, ...)
+{
+	va_list ap;
+	int err;
+
+	va_start(ap, fmt);
+	err = vdprintf(fd , fmt, ap);
+	va_end(ap);
+
+	return err;
 }
 
 int __printf(1, 2) printf(const char *fmt, ...)
@@ -76,7 +82,7 @@ int __printf(1, 2) printf(const char *fmt, ...)
 	int err;
 
 	va_start(ap, fmt);
-	err = vprintf(fmt, ap);
+	err = vdprintf(stdout, fmt, ap);
 	va_end(ap);
 
 	return err;
@@ -91,4 +97,9 @@ int puts(const char *s)
 		return EOF;
 
 	return err;
+}
+
+void perror(const char *s)
+{
+	dprintf(stderr, "%s: %pe\n", s, ERR_PTR(-errno));
 }
