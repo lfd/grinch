@@ -38,6 +38,7 @@ static struct file_handle kstdout = {
 	.flags = {
 		.is_kernel = true,
 		.may_write = true,
+		.may_read = true,
 	},
 };
 
@@ -133,7 +134,7 @@ open_console:
 	if (err)
 		return err;
 
-	fp = file_open(DEVFS_MOUNTPOINT "console", kstdout.flags);
+	fp = file_open(ISTR(DEVICE_NAME("console")), kstdout.flags);
 	if (IS_ERR(fp)) {
 		pri("Error opening console %s: %pe\n", src, fp);
 		return PTR_ERR(fp);

@@ -61,11 +61,9 @@ unsigned long sys_open(const char *_path, int oflag)
 	task = current_task();
 	spin_lock(&task->lock);
 	process = task->process;
-	for (d = 0; d < MAX_FDS; d++) {
-		if (d == 1) continue; // KEEP STDOUT FREE AT THE MOMENT!!
+	for (d = 0; d < MAX_FDS; d++)
 		if (process->fds[d].fp == NULL)
 			goto found;
-	}
 
 	d = -ENOENT;
 	goto unlock_out;
@@ -130,35 +128,10 @@ unsigned long sys_read(int fd, char __user *buf, size_t count)
 	return file->fops->read(handle, buf, count);
 }
 
-static int stdout_hack(const char __user *buf, size_t count)
-{
-#define BLEN	63
-	char tmp[BLEN + 1];
-	unsigned long sz;
-	int err;
-
-	while (count) {
-		sz = count < BLEN ? count : BLEN;
-		err = copy_from_user(&current_process()->mm, tmp, buf, sz);
-		if (err < 0)
-			return err;
-		tmp[sz] = 0;
-		_puts(tmp);
-
-		count -= err;
-		buf += err;
-	}
-
-	return 0;
-}
-
 unsigned long sys_write(int fd, const char __user *buf, size_t count)
 {
 	struct file_handle *handle;
 	struct file *file;
-
-	if (fd == 1)
-		return stdout_hack(buf, count);
 
 	handle = get_handle(fd);
 	if (IS_ERR(handle))

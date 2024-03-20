@@ -20,6 +20,7 @@
 #include <grinch/boot.h>
 #include <grinch/bootparam.h>
 #include <grinch/console.h>
+#include <grinch/devfs.h>
 #include <grinch/driver.h>
 #include <grinch/fdt.h>
 #include <grinch/gfp.h>
@@ -80,7 +81,9 @@ bootparam(noinit, noinit_parse);
 
 static int __init init(void)
 {
+	struct file_handle *fh;
 	struct task *task;
+	unsigned int i;
 	int err;
 
 	pri("Initialising userland\n");
@@ -93,6 +96,26 @@ static int __init init(void)
 		task_exit(task, err);
 		task_destroy(task);
 		return err;
+	}
+
+	/* stdin */
+	fh = &task->process->fds[0];
+	fh->flags.may_read = true;
+	fh->flags.may_write = false;
+	fh->flags.is_kernel = false;
+
+	/* stdout + stderr */
+	fh = &task->process->fds[1];
+	fh->flags.may_read = false;
+	fh->flags.may_write = true;
+	fh->flags.is_kernel = false;
+	task->process->fds[2].flags = fh->flags;
+
+	for (i = 0; i < 3; i++) {
+		fh = &task->process->fds[i];
+		fh->fp = file_open(ISTR(DEVICE_NAME("console")), fh->flags);
+		if (IS_ERR(fh->fp))
+			return PTR_ERR(fh->fp);
 	}
 
 	task->state = TASK_RUNNABLE;

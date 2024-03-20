@@ -21,6 +21,8 @@
 #define DEVFS_MOUNTPOINT	"/dev/"
 #define DEVFS_MOUNTPOINT_LEN	(sizeof(DEVFS_MOUNTPOINT) - 1)
 
+#define DEVICE_NAME(X)		DEVFS_MOUNTPOINT X
+
 enum devfs_type {
 	DEVFS_REGULAR = 0, /* regular devfs node */
 	DEVFS_SYMLINK, /* devfs symlink */
