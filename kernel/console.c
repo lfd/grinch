@@ -26,6 +26,10 @@
 #include <grinch/serial.h>
 #include <grinch/vsprintf.h>
 
+#ifdef ARCH_RISCV
+#define DEFAULT_CONSOLE	"ttySBI"
+#endif
+
 static char __console_buffer[2048];
 static struct ringbuf console_ringbuf = {
 	.buf = __console_buffer,
@@ -126,7 +130,12 @@ int __init console_init(void)
 
 remain:
 	pri("Remaining on default console\n");
+#ifdef ARCH_RISCV
+	src = DEFAULT_CONSOLE;
+	goto open_console;
+#else
 	return -ENOENT;
+#endif
 
 open_console:
 	pri("Switching kernel console to %s\n", src);
