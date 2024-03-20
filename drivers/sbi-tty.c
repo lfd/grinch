@@ -54,8 +54,32 @@ sbi_write(struct file_handle *h, const char *buf, size_t count)
 	return written;
 }
 
+static ssize_t
+sbi_read(struct file_handle *h, char *buf, size_t count)
+{
+	struct sbiret ret;
+	char c;
+
+	if (!count)
+		return 0;
+
+	ret = sbi_console_getchar();
+	if (ret.error < 0)
+		return 0;
+
+	c = (char)ret.error;
+
+	if (h->flags.is_kernel)
+		*buf = c;
+	else
+		copy_to_user(&current_process()->mm, buf, &c, 1);
+
+	return 1;
+}
+
 static const struct file_operations sbi_fops = {
 	.write = sbi_write,
+	.read = sbi_read,
 };
 
 static struct devfs_node sbi_node = {

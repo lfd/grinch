@@ -17,6 +17,7 @@
 #define SBI_SPEC_VERSION_MINOR_MASK	0xffffff
 
 #define SBI_EXT_0_1_CONSOLE_PUTCHAR	0x1
+#define SBI_EXT_0_1_CONSOLE_GETCHAR	0x2
 
 #define SBI_EXT_BASE			0x10
 #define SBI_EXT_BASE_GET_SPEC_VERSION	0
@@ -79,6 +80,11 @@ static inline struct sbiret sbi_ecall(int ext, int fid, unsigned long arg0,
 static inline void sbi_console_putchar(int ch)
 {
 	sbi_ecall(SBI_EXT_0_1_CONSOLE_PUTCHAR, 0, ch, 0, 0, 0, 0, 0);
+}
+
+static inline struct sbiret sbi_console_getchar(void)
+{
+	return sbi_ecall(SBI_EXT_0_1_CONSOLE_GETCHAR, 0, 0, 0, 0, 0, 0, 0);
 }
 
 static inline struct sbiret sbi_send_ipi(unsigned long hmask,
