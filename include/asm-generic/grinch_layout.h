@@ -22,7 +22,7 @@
 #define USER_STACK_BOTTOM	(USER_STACK_TOP - USER_STACK_SIZE)
 
 /* Must be a multiple of 256 KiB */
-#define GRINCH_SIZE	(1 * 256 * KIB)
+#define GRINCH_SIZE	(8 * 256 * KIB)
 
 #define VMGRINCH_END	(VMGRINCH_BASE + GRINCH_SIZE)
 
