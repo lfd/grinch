@@ -68,6 +68,10 @@ static int init(void)
 	int forked;
 	pid_t child;
 
+	child = start_background("/initrd/gsh.echse", true);
+	if (child < 0)
+		return child;
+
 	for (forked = 0; forked < 5; forked++) {
 		child = start_background("/initrd/hello.echse", false);
 		if (child < 0)
