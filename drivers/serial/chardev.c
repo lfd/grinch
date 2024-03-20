@@ -77,7 +77,22 @@ serial_write(struct file_handle *h, const char *buf, size_t count)
 	return written;
 }
 
+static int
+serial_register_reader(struct file_handle *h, char __user *ubuf, size_t count)
+{
+	struct uart_chip *c;
+	struct device *dev;
+	struct file *fp;
+
+	fp = h->fp;
+	dev = fp->drvdata;
+	c = dev->data;
+
+	return devfs_register_reader(h, &c->node, ubuf, count);
+}
+
 const struct file_operations serial_fops = {
 	.write = serial_write,
 	.read = serial_read,
+	.register_reader = serial_register_reader,
 };

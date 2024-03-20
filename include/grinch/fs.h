@@ -42,6 +42,7 @@ struct file_operations {
 	ssize_t (*write)(struct file_handle *, const char *ubuf, size_t count);
 	void (*close)(struct file *);
 	int (*stat)(struct file *, struct stat *st);
+	int (*register_reader)(struct file_handle *h, char *ubuf, size_t count);
 };
 
 struct file {

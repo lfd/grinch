@@ -136,12 +136,36 @@ unlock_out:
 
 void devfs_chardev_write(struct devfs_node *node, char c)
 {
+	struct wfe_read *wfe;
+	struct task *task;
+	ssize_t ret;
+
 	if (node->type != DEVFS_CHARDEV)
 		BUG();
 
 	spin_lock(&node->lock);
 	ringbuf_write(&node->rb, c);
+
+	if (!node->reader) {
+		spin_unlock(&node->lock);
+		return;
+	}
+
+	/* Notify first blocking asynchronous reader */
+	task = container_of(node->reader, struct task, wfe.read);
+	spin_lock(&task->lock);
+	wfe = node->reader;
+	node->reader = NULL;
 	spin_unlock(&node->lock);
+
+	ret = devfs_chardev_read(task, node, wfe->fh, wfe->ubuf, wfe->count);
+
+	regs_set_retval(&task->regs, ret);
+	task->wfe.type = WFE_NONE;
+	task->state = TASK_RUNNABLE;
+	this_per_cpu()->schedule = true;
+
+	spin_unlock(&task->lock);
 }
 
 ssize_t devfs_chardev_read(struct task *task, struct devfs_node *node,
@@ -196,6 +220,9 @@ void __init devfs_node_deinit(struct devfs_node *node)
 	spin_lock(&node->lock);
 	if (node->type == DEVFS_CHARDEV)
 		ringbuf_free(&node->rb);
+
+	if (node->reader)
+		BUG();
 }
 
 int __init devfs_node_init(struct devfs_node *node)
@@ -291,4 +318,41 @@ int __init devfs_init(void)
 	}
 
 	return 0;
+}
+
+int devfs_register_reader(struct file_handle *h, struct devfs_node *node,
+			  char __user *ubuf, size_t count)
+{
+	struct wfe_read *reader;
+	struct task *task;
+	int err;
+
+	task = current_task();
+	if (task->wfe.type != WFE_NONE)
+		BUG();
+
+	spin_lock(&node->lock);
+
+	if (node->reader) {
+		err = -EBUSY;
+		goto unlock_out;
+	}
+
+	task->wfe.type = WFE_READ;
+
+	reader = &task->wfe.read;
+	reader->fh = h;
+	reader->ubuf = ubuf;
+	reader->count = count;
+
+	node->reader = reader;
+
+	task_set_wfe(task);
+	this_per_cpu()->schedule = true;
+
+	err = 0;
+
+unlock_out:
+	spin_unlock(&node->lock);
+	return err;
 }

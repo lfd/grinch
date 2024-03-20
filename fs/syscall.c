@@ -127,14 +127,17 @@ unsigned long sys_read(int fd, char __user *buf, size_t count)
 		return -EBADF;
 
 	bread = file->fops->read(handle, buf, count);
-	if (bread == -EWOULDBLOCK) {
-		if (handle->flags.nonblock)
-			return 0;
-		else
-			BUG();
-	}
+	if (bread != -EWOULDBLOCK)
+		return bread;
 
-	return bread;
+	/* we have a blocking read */
+	if (handle->flags.nonblock)
+		return 0;
+
+	if (!file->fops->register_reader)
+		return -EWOULDBLOCK;
+
+	return file->fops->register_reader(handle, buf, count);
 }
 
 unsigned long sys_write(int fd, const char __user *buf, size_t count)

@@ -36,6 +36,7 @@ enum task_wfe {
 	WFE_NONE = 0,
 	WFE_CHILD,
 	WFE_TIMER,
+	WFE_READ,
 };
 
 enum task_type {
@@ -51,6 +52,13 @@ struct wfe_child {
 
 struct wfe_timer {
 	unsigned long long expiration;
+};
+
+/* Blocking read from file descriptor */
+struct wfe_read {
+	struct file_handle *fh;
+	char __user *ubuf;
+	size_t count;
 };
 
 struct task {
@@ -74,6 +82,7 @@ struct task {
 		union {
 			struct wfe_child child;
 			struct wfe_timer timer;
+			struct wfe_read read;
 		};
 	} wfe; /* wait for event */
 

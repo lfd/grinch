@@ -45,6 +45,8 @@ struct devfs_node {
 	 */
 	void *drvdata;
 
+	struct wfe_read *reader;
+
 	struct ringbuf rb;
 };
 
@@ -56,6 +58,9 @@ int devfs_create_symlink(const char *dst, const char *src);
 
 int devfs_node_init(struct devfs_node *node);
 void devfs_node_deinit(struct devfs_node *node);
+
+int devfs_register_reader(struct file_handle *h, struct devfs_node *node,
+			  char __user *ubuf, size_t count);
 
 /* /dev mountpoint */
 extern struct file_system devfs;
