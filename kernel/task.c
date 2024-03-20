@@ -390,6 +390,7 @@ out:
 int do_fork(void)
 {
 	struct task *this, *new;
+	struct file_handle *fh;
 	struct vma *vma;
 	int fd, err;
 
@@ -400,12 +401,13 @@ int do_fork(void)
 
 	this = current_task();
 	spin_lock(&this->lock);
-	for (fd = 0; fd < MAX_FDS; fd++)
-		if (this->process->fds[fd].fp) {
-			pr_warn("fork: open file handles not supported\n");
-			err = -ENOSYS;
-			goto destroy_out;
+	for (fd = 0; fd < MAX_FDS; fd++) {
+		fh = &this->process->fds[fd];
+		if (fh->fp) {
+			file_get(fh->fp);
+			new->process->fds[fd] = *fh;
 		}
+	}
 
 	new->regs = this->regs;
 	new->parent = this;

@@ -64,4 +64,6 @@ struct fs_flags get_flags(int oflag);
 struct file *file_open(const char *path, struct fs_flags flags);
 void file_close(struct file_handle *handle);
 
+void file_get(struct file *file);
+
 #endif /* _FS_H */

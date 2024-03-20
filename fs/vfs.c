@@ -39,6 +39,16 @@ struct files {
 	unsigned int refs;
 };
 
+void file_get(struct file *file)
+{
+	struct files *files;
+
+	files = container_of(file, struct files, fp);
+	spin_lock(&files_lock);
+	files->refs++;
+	spin_unlock(&files_lock);
+}
+
 /* must hold files_lock */
 static struct file *search_file(const char *path, struct fs_flags flags)
 {
