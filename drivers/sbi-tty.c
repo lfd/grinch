@@ -60,6 +60,7 @@ static const struct file_operations sbi_fops = {
 
 static struct devfs_node sbi_node = {
 	.name = "ttySBI",
+	.type = DEVFS_REGULAR,
 	.fops = &sbi_fops,
 };
 

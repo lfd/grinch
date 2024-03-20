@@ -72,6 +72,9 @@ static int devfs_open(const struct file_system *fs, struct file *filep,
 	goto unlock_out;
 
 found:
+	if (node->type == DEVFS_SYMLINK)
+		node = node->drvdata;
+
 	if ((flags.may_read && !node->fops->read) ||
 	    (flags.may_write && !node->fops->write)) {
 		err = -EBADF;
@@ -80,6 +83,45 @@ found:
 
 	filep->fops = node->fops;
 	filep->drvdata = node->drvdata;
+	err = 0;
+
+unlock_out:
+	spin_unlock(&devfs_lock);
+	return err;
+}
+
+int __init devfs_create_symlink(const char *dst, const char *src)
+{
+	struct devfs_node *node, *src_node;
+	int err;
+
+	src_node = NULL;
+
+	spin_lock(&devfs_lock);
+	list_for_each_entry(node, &devfs_nodes, nodes) {
+		if (!strcmp(node->name, dst)) {
+			err = -EEXIST;
+			goto unlock_out;
+		}
+		if (!strcmp(node->name, src))
+			src_node = node;
+	}
+	if (!src_node) {
+		err = -ENOENT;
+		goto unlock_out;
+	}
+
+	node = kzalloc(sizeof(*node));
+	if (!node) {
+		err = -ENOMEM;
+		goto unlock_out;
+	}
+
+	node->type = DEVFS_SYMLINK;
+	strncpy(node->name, dst, sizeof(node->name) - 1);
+	node->drvdata = src_node;
+	list_add(&node->nodes, &devfs_nodes);
+
 	err = 0;
 
 unlock_out:
@@ -120,10 +162,12 @@ struct file_system devfs = {
 static struct devfs_node devfs_constants[] = {
 	{
 		.name = "zero",
+		.type = DEVFS_REGULAR,
 		.fops = &dev_zero_fops,
 	},
 	{
 		.name = "null",
+		.type = DEVFS_REGULAR,
 		.fops = &dev_null_fops,
 	},
 };

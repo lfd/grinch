@@ -89,7 +89,6 @@ void console_puts(const char *str)
 
 int __init console_init(void)
 {
-	char buf[DEVFS_MAX_LEN_NAME + DEVFS_MOUNTPOINT_LEN + 1];
 	const char *stdoutpath, *src;
 	struct uart_chip *chip;
 	struct device *dev;
@@ -130,10 +129,13 @@ remain:
 
 open_console:
 	pri("Switching kernel console to %s\n", src);
-	snprintf(buf, sizeof(buf), DEVFS_MOUNTPOINT "%s", src);
-	fp = file_open(buf, kstdout.flags);
+	err = devfs_create_symlink(ISTR("console"), src);
+	if (err)
+		return err;
+
+	fp = file_open(DEVFS_MOUNTPOINT "console", kstdout.flags);
 	if (IS_ERR(fp)) {
-		pri("Error opening console %s: %pe\n", buf, fp);
+		pri("Error opening console %s: %pe\n", src, fp);
 		return PTR_ERR(fp);
 	}
 

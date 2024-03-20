@@ -92,6 +92,7 @@ int __init uart_probe_generic(struct device *dev)
 		goto error_out;
 
 	node = &c->node;
+	node->type = DEVFS_REGULAR;
 	snprintf(node->name, sizeof(node->name), ISTR("ttyS%u"), uart_no);
 	node->fops = &serial_fops;
 	node->drvdata = dev;
