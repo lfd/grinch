@@ -24,50 +24,15 @@
 static ssize_t
 serial_read(struct file_handle *h, char *buf, size_t count)
 {
-	struct process *process;
-	struct uart_chip *chip;
-	unsigned long copied;
+	struct uart_chip *c;
 	struct device *dev;
-	struct ringbuf *rb;
-	unsigned int cnt;
 	struct file *fp;
-	ssize_t ret;
-	char *src;
-
-	if (!count)
-		return 0;
-
-	if (h->flags.is_kernel)
-		BUG();
-
-	process = current_process();
 
 	fp = h->fp;
 	dev = fp->drvdata;
-	chip = dev->data;
+	c = dev->data;
 
-	ret = 0;
-	rb = &chip->rb;
-
-	spin_lock(&chip->lock);
-	do {
-		src = ringbuf_read(rb, &cnt);
-		if (!cnt)
-			break;
-		cnt = min(cnt, count);
-		ringbuf_consume(rb, cnt);
-
-		copied = copy_to_user(&process->mm, buf, src, cnt);
-
-		buf += cnt;
-		count -= cnt;
-		ret += copied;
-		if (copied != cnt)
-			break;
-	} while (count);
-	spin_unlock(&chip->lock);
-
-	return ret;
+	return devfs_chardev_read(&c->node, h, buf, count);
 }
 
 static ssize_t

@@ -20,10 +20,15 @@
 #include <grinch/devfs.h>
 #include <grinch/errno.h>
 #include <grinch/kstr.h>
+#include <grinch/minmax.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/task.h>
 #include <grinch/uaccess.h>
+
+// FIXME: We have no reference counting of objects
+
+#define CHARDEV_RINGBUF_SIZE	32
 
 static LIST_HEAD(devfs_nodes);
 static DEFINE_SPINLOCK(devfs_lock);
@@ -129,13 +134,102 @@ unlock_out:
 	return err;
 }
 
-int __init devfs_register_node(struct devfs_node *node)
+void devfs_chardev_write(struct devfs_node *node, char c)
+{
+	if (node->type != DEVFS_CHARDEV)
+		BUG();
+
+	spin_lock(&node->lock);
+	ringbuf_write(&node->rb, c);
+	spin_unlock(&node->lock);
+}
+
+ssize_t devfs_chardev_read(struct devfs_node *node, struct file_handle *h,
+			   char *buf, size_t count)
+{
+	struct process *process;
+	unsigned long copied;
+	struct ringbuf *rb;
+	unsigned int cnt;
+	ssize_t ret;
+	char *src;
+
+	if (node->type != DEVFS_CHARDEV)
+		BUG();
+
+	if (!count)
+		return 0;
+
+	if (h->flags.is_kernel)
+		BUG();
+
+	process = current_process();
+
+	rb = &node->rb;
+	ret = 0;
+	spin_lock(&node->lock);
+	do {
+		src = ringbuf_read(rb, &cnt);
+		if (!cnt)
+			break;
+		cnt = min(cnt, count);
+		ringbuf_consume(rb, cnt);
+
+		copied = copy_to_user(&process->mm, buf, src, cnt);
+
+		buf += cnt;
+		count -= cnt;
+		ret += copied;
+		if (copied != cnt)
+			break;
+	} while (count);
+	spin_unlock(&node->lock);
+
+	return ret;
+}
+
+void __init devfs_node_deinit(struct devfs_node *node)
+{
+	spin_lock(&node->lock);
+	if (node->type == DEVFS_CHARDEV)
+		ringbuf_free(&node->rb);
+}
+
+int __init devfs_node_init(struct devfs_node *node)
+{
+	int err;
+
+	spin_init(&node->lock);
+	INIT_LIST_HEAD(&node->nodes);
+
+	if (node->type == DEVFS_SYMLINK)
+		return -EINVAL;
+
+	if (node->type == DEVFS_REGULAR)
+		return 0;
+
+	if (node->type == DEVFS_CHARDEV)
+		err = ringbuf_init(&node->rb, CHARDEV_RINGBUF_SIZE);
+
+	return err;
+}
+
+void __init devfs_node_unregister(struct devfs_node *node)
+{
+	spin_lock(&devfs_lock);
+	list_del(&node->nodes);
+	spin_unlock(&devfs_lock);
+}
+
+int __init devfs_node_register(struct devfs_node *node)
 {
 	struct devfs_node *tmp;
 	int err;
 
-	spin_lock(&devfs_lock);
+	if (node->type == DEVFS_SYMLINK)
+		return -EINVAL;
 
+	spin_lock(&devfs_lock);
 	list_for_each_entry(tmp, &devfs_nodes, nodes)
 		if (!strcmp(node->name, tmp->name)) {
 			err = -EEXIST;
@@ -143,6 +237,7 @@ int __init devfs_register_node(struct devfs_node *node)
 		}
 
 	list_add(&node->nodes, &devfs_nodes);
+
 	err = 0;
 
 unlock_out:
@@ -174,13 +269,21 @@ static struct devfs_node devfs_constants[] = {
 
 int __init devfs_init(void)
 {
-	int err;
+	struct devfs_node *node;
 	unsigned int i;
+	int err;
 
 	for (i = 0; i < ARRAY_SIZE(devfs_constants); i++) {
-		err = devfs_register_node(&devfs_constants[i]);
+		node = &devfs_constants[i];
+		err = devfs_node_init(node);
 		if (err)
 			return err;
+
+		err = devfs_node_register(node);
+		if (err) {
+			devfs_node_deinit(node);
+			return err;
+		}
 	}
 
 	return 0;

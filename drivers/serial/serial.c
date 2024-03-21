@@ -27,15 +27,11 @@
 
 #include <grinch/fs.h>
 
-#define SERIAL_RINGBUF_SIZE	32
-
 static unsigned int uart_no;
 
 void serial_in(struct uart_chip *c, char ch)
 {
-	spin_lock(&c->lock);
-	ringbuf_write(&c->rb, ch);
-	spin_unlock(&c->lock);
+	devfs_chardev_write(&c->node, ch);
 }
 
 static void reg_out_mmio8(struct uart_chip *chip, unsigned int reg, u32 value)
@@ -68,50 +64,9 @@ static int serial_rcv(void *_c)
 	return err;
 }
 
-int __init uart_probe_generic(struct device *dev)
+static void __init uart_deinit(struct device *dev)
 {
-	const struct uart_driver *d;
 	struct devfs_node *node;
-	struct uart_chip *c;
-	int err;
-
-	err = uart_init(dev);
-	if (err)
-		return err;
-
-	d = dev->of.match->data;
-
-	c = dev->data;
-	c->driver = d;
-	err = d->init(c);
-	if (err)
-		goto error_out;
-
-	err = ringbuf_init(&c->rb, SERIAL_RINGBUF_SIZE);
-	if (err)
-		goto error_out;
-
-	node = &c->node;
-	node->type = DEVFS_REGULAR;
-	snprintf(node->name, sizeof(node->name), ISTR("ttyS%u"), uart_no);
-	node->fops = &serial_fops;
-	node->drvdata = dev;
-	err = devfs_register_node(node);
-	if (err)
-		goto error_out;
-
-	pri("Registered as %s\n", node->name);
-	uart_no++;
-
-	return 0;
-
-error_out:
-	uart_deinit(dev);
-	return err;
-}
-
-void __init uart_deinit(struct device *dev)
-{
 	struct uart_chip *c;
 	int err;
 
@@ -126,21 +81,23 @@ void __init uart_deinit(struct device *dev)
 			pr("Error during unmap\n");
 	}
 
-	ringbuf_free(&c->rb);
+	node = &c->node;
+	devfs_node_unregister(node);
+	devfs_node_deinit(node);
 
 	kfree(c);
 }
 
-int __init uart_init(struct device *dev)
+int __init uart_probe_generic(struct device *dev)
 {
-	int err;
-
+	const struct uart_driver *d;
+	struct devfs_node *node;
+	int err, io_width = 1;
+	struct uart_chip *c;
 	paddr_t uart_base;
+	const int *res;
 	u64 uart_size;
 	u32 irq;
-	int io_width = 1;
-	const int *res;
-	struct uart_chip *c;
 
 	err = fdt_read_reg(_fdt, dev->of.node, 0, &uart_base, &uart_size);
 	if (err)
@@ -162,6 +119,15 @@ int __init uart_init(struct device *dev)
 	dev->data = c;
 
 	spin_init(&c->lock);
+
+	node = &c->node;
+	node->type = DEVFS_CHARDEV;
+	snprintf(node->name, sizeof(node->name), ISTR("ttyS%u"), uart_no);
+	node->fops = &serial_fops;
+	node->drvdata = dev;
+	err = devfs_node_init(node);
+	if (err)
+		goto error_out;
 
 	switch (io_width) {
 		case 1:
@@ -203,6 +169,21 @@ int __init uart_init(struct device *dev)
 		}
 	} else
 		pri("No IRQ found!\n");
+
+	d = dev->of.match->data;
+	c = dev->data;
+	c->driver = d;
+
+	err = d->init(c);
+	if (err)
+		goto error_out;
+
+	err = devfs_node_register(node);
+	if (err)
+		goto error_out;
+
+	pri("Registered as %s\n", node->name);
+	uart_no++;
 
 	return 0;
 

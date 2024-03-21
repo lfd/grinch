@@ -16,6 +16,7 @@
 #include <grinch/fs.h>
 #include <grinch/init.h>
 #include <grinch/list.h>
+#include <grinch/ringbuf.h>
 
 #define DEVFS_MAX_LEN_NAME	16
 #define DEVFS_MOUNTPOINT	"/dev/"
@@ -25,6 +26,7 @@
 
 enum devfs_type {
 	DEVFS_REGULAR = 0, /* regular devfs node */
+	DEVFS_CHARDEV, /* character device with a ringbuffer */
 	DEVFS_SYMLINK, /* devfs symlink */
 };
 
@@ -33,6 +35,7 @@ struct devfs_node {
 
 	char name[DEVFS_MAX_LEN_NAME];
 	enum devfs_type type;
+	spinlock_t lock;
 
 	const struct file_operations *fops;
 	/*
@@ -40,14 +43,23 @@ struct devfs_node {
 	 * type == DEVFS_SYMLINK -> drvdata points to destination node
 	 */
 	void *drvdata;
+
+	struct ringbuf rb;
 };
 
 int devfs_init(void);
 
-int __init devfs_register_node(struct devfs_node *node);
+int devfs_node_register(struct devfs_node *node);
+void devfs_node_unregister(struct devfs_node *node);
 int devfs_create_symlink(const char *dst, const char *src);
+
+int devfs_node_init(struct devfs_node *node);
+void devfs_node_deinit(struct devfs_node *node);
 
 /* /dev mountpoint */
 extern struct file_system devfs;
+
+void devfs_chardev_write(struct devfs_node *node, char c);
+ssize_t devfs_chardev_read(struct devfs_node *node, struct file_handle *h, char *buf, size_t count);
 
 #endif /* _DEVFS_H */

@@ -66,7 +66,17 @@ static struct devfs_node sbi_node = {
 
 static int __init tty_sbi_init(void)
 {
-	return devfs_register_node(&sbi_node);
+	int err;
+
+	err = devfs_node_init(&sbi_node);
+	if (err)
+		return err;
+
+	err = devfs_node_register(&sbi_node);
+	if (err)
+		devfs_node_deinit(&sbi_node);
+
+	return err;
 }
 
 DECLARE_DRIVER(TTYSBI, PRIO_1, tty_sbi_init, NULL, NULL)
