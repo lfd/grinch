@@ -18,5 +18,7 @@
 #define O_RDWR		00000002
 #define O_ACCMODE	00000003
 #define O_NONBLOCK	00004000
+/* not required and supported at the moment */
+/* #define O_DIRECTORY	00200000 */
 
 #endif /* _ASM_GENERIC_FCNTL_H */

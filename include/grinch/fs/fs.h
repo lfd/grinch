@@ -13,6 +13,7 @@
 #ifndef _FS_FS_H
 #define _FS_FS_H
 
+#include <grinch/dirent.h>
 #include <grinch/types.h>
 #include <grinch/stat.h>
 
@@ -40,6 +41,8 @@ struct file_operations {
 	ssize_t (*write)(struct file_handle *, const char *ubuf, size_t count);
 	void (*close)(struct file *);
 	int (*register_reader)(struct file_handle *h, char *ubuf, size_t count);
+	int (*getdents)(struct file_handle *h, struct grinch_dirent *udents,
+			unsigned int size);
 };
 
 struct file {

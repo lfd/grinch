@@ -98,6 +98,10 @@ int syscall(unsigned long no, unsigned long arg1,
 			ret = 0;
 			break;
 
+		case SYS_getdents:
+			ret = sys_getdents(arg1, (void *)arg2, arg3);
+			break;
+
 		case SYS_usleep:
 			ret = usleep(arg1);
 			break;

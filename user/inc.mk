@@ -4,10 +4,20 @@ INCLUDES_USER = -Iuser/include -Icommon/include -Iuser/lib/$(ARCH)/include
 CFLAGS_USER = $(CFLAGS_COMMON) $(CFLAGS_ARCH) $(CFLAGS_STANDALONE) $(INCLUDES_USER)
 LDFLAGS_USER = $(LDFLAGS_COMMON) $(LDFLAGS_ARCH)
 
-LIBC_OBJS = user/lib/ctype.o user/lib/errno.o user/lib/fcntl.o user/lib/grinch.o
-LIBC_OBJS += user/lib/stdio.o user/lib/sched.o user/lib/stat.o user/lib/string.o
-LIBC_OBJS += user/lib/unistd.o user/lib/vsprintf.o user/lib/wait.o
-LIBC_OBJS += user/lib/$(ARCH)/entry.o
+LIBC_OBJS = $(ARCH)/entry.o
+LIBC_OBJS += ctype.o
+LIBC_OBJS += dirent.o
+LIBC_OBJS += errno.o
+LIBC_OBJS += fcntl.o
+LIBC_OBJS += grinch.o
+LIBC_OBJS += stdio.o
+LIBC_OBJS += sched.o
+LIBC_OBJS += stat.o
+LIBC_OBJS += string.o
+LIBC_OBJS += unistd.o
+LIBC_OBJS += vsprintf.o
+LIBC_OBJS += wait.o
+LIBC_OBJS := $(addprefix user/lib/, $(LIBC_OBJS))
 
 LIBC_BUILTIN = user/lib/built-in.a
 

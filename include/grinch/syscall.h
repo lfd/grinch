@@ -13,6 +13,7 @@
 #ifndef _SYSCALL_H
 #define _SYSCALL_H
 
+#include <grinch/dirent.h>
 #include <grinch/stat.h>
 
 int syscall(unsigned long no, unsigned long arg1,
@@ -27,5 +28,6 @@ unsigned long sys_read(int fd, char __user *buf, size_t count);
 int sys_execve(const char __user *pathname, char *const __user argv[],
 	       char *const __user envp[]);
 int sys_stat(const char __user *pathname, struct stat __user *st);
+int sys_getdents(int fd, struct grinch_dirent __user *dents, unsigned int size);
 
 #endif /* _SYSCALL_H */

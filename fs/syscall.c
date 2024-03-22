@@ -195,3 +195,22 @@ int sys_stat(const char __user *_pathname, struct stat __user *_st)
 
 	return err;
 }
+
+int sys_getdents(int fd, struct grinch_dirent __user *dents, unsigned int size)
+{
+	struct file_handle *handle;
+	struct file *file;
+
+	handle = get_handle(fd);
+	if (IS_ERR(handle))
+		return PTR_ERR(handle);
+
+	file = handle->fp;
+	if (!file->fops)
+		return -EBADF;
+
+	if (!file->fops->getdents)
+		return -EBADF;
+
+	return file->fops->getdents(handle, dents, size);
+}
