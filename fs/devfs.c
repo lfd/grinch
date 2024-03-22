@@ -202,6 +202,7 @@ int __init devfs_node_init(struct devfs_node *node)
 	spin_init(&node->lock);
 	INIT_LIST_HEAD(&node->nodes);
 
+	err = 0;
 	if (node->type == DEVFS_SYMLINK)
 		return -EINVAL;
 
