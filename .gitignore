@@ -14,8 +14,8 @@ gcov/
 
 include/generated/
 common/include/generated/
-arch/riscv/asm_defines.S
-arch/riscv/include/asm/asm_defines.h
+arch/*/asm_defines.S
+arch/*/include/asm/asm_defines.h
 kernel/syscall_table.c
 
 res/u-boot/u-boot-*
