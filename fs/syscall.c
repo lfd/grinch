@@ -24,7 +24,7 @@ static struct file_handle *get_handle(int fd)
 {
 	struct file_handle *handle;
 
-	if (fd >= MAX_FDS)
+	if (fd >= MAX_FDS || fd < 0)
 		return ERR_PTR(-EBADF);
 
 	handle = &current_process()->fds[fd];
