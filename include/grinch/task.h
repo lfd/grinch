@@ -33,10 +33,20 @@ enum task_state {
 	TASK_EXIT_DEAD,
 };
 
+enum task_wfe {
+	WFE_NONE = 0,
+	WFE_CHILD,
+};
+
 enum task_type {
 	GRINCH_UNDEF = 0,
 	GRINCH_PROCESS,
 	GRINCH_VMACHINE,
+};
+
+struct wfe_child {
+	pid_t pid;
+	int __user *status;
 };
 
 struct task {
@@ -52,11 +62,15 @@ struct task {
 	struct list_head children;
 	/* working on siblings always requires the parent's lock */
 	struct list_head sibling;
+
+
 	struct {
-		bool waiting;
-		pid_t pid;
-		int __user *status;
-	} wait_for; /* wait for child */
+		enum task_wfe type;
+
+		union {
+			struct wfe_child child;
+		};
+	} wfe; /* wait for event */
 
 	int exit_code;
 

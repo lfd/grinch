@@ -59,21 +59,24 @@ void sched_enqueue(struct task *task)
 /* must hold the parent's lock */
 static int task_notify_wait(struct task *parent, struct task *child)
 {
+	struct wfe_child *wfe;
 	int status;
 
-	if (!parent->wait_for.waiting)
+	if (parent->wfe.type != WFE_CHILD)
 		return -ECHILD;
 
-	if (parent->wait_for.pid != -1 && parent->wait_for.pid != child->pid)
+	wfe = &parent->wfe.child;
+
+	if (wfe->pid != -1 && wfe->pid != child->pid)
 		return -ECHILD;
 
 	if (child->state != TASK_EXIT_DEAD)
 		BUG();
 
 	/* Forward status code */
-	if (parent->wait_for.status) {
+	if (wfe->status) {
 		status = (child->exit_code & 0xff) << 8;
-		copy_to_user(&parent->process->mm, parent->wait_for.status,
+		copy_to_user(&parent->process->mm, wfe->status,
 			     &status, sizeof(status));
 	}
 
@@ -86,7 +89,7 @@ static int task_notify_wait(struct task *parent, struct task *child)
 		parent->state = TASK_RUNNABLE;
 
 	task_destroy(child);
-	parent->wait_for.waiting = false;
+	parent->wfe.type = WFE_NONE;
 
 	return 0;
 }
@@ -134,9 +137,12 @@ long task_wait(pid_t pid, int __user *wstatus, int options)
 	return -ECHILD;
 
 found:
-	task->wait_for.pid = pid;
-	task->wait_for.waiting = true;
-	task->wait_for.status = wstatus;
+	if (task->wfe.type != WFE_NONE)
+		BUG();
+
+	task->wfe.type = WFE_CHILD;
+	task->wfe.child.pid = pid;
+	task->wfe.child.status = wstatus;
 
 	if (child) {
 		if (child->state == TASK_EXIT_DEAD) {
