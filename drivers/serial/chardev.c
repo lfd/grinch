@@ -32,7 +32,7 @@ serial_read(struct file_handle *h, char *buf, size_t count)
 	dev = fp->drvdata;
 	c = dev->data;
 
-	return devfs_chardev_read(&c->node, h, buf, count);
+	return devfs_chardev_read(current_task(), &c->node, h, buf, count);
 }
 
 static ssize_t

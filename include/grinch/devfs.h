@@ -17,6 +17,7 @@
 #include <grinch/init.h>
 #include <grinch/list.h>
 #include <grinch/ringbuf.h>
+#include <grinch/task.h>
 
 #define DEVFS_MAX_LEN_NAME	16
 #define DEVFS_MOUNTPOINT	"/dev/"
@@ -60,6 +61,7 @@ void devfs_node_deinit(struct devfs_node *node);
 extern struct file_system devfs;
 
 void devfs_chardev_write(struct devfs_node *node, char c);
-ssize_t devfs_chardev_read(struct devfs_node *node, struct file_handle *h, char *buf, size_t count);
+ssize_t devfs_chardev_read(struct task *task, struct devfs_node *node,
+			   struct file_handle *h, char *buf, size_t count);
 
 #endif /* _DEVFS_H */

@@ -144,8 +144,8 @@ void devfs_chardev_write(struct devfs_node *node, char c)
 	spin_unlock(&node->lock);
 }
 
-ssize_t devfs_chardev_read(struct devfs_node *node, struct file_handle *h,
-			   char *buf, size_t count)
+ssize_t devfs_chardev_read(struct task *task, struct devfs_node *node,
+			   struct file_handle *h, char *buf, size_t count)
 {
 	struct process *process;
 	unsigned long copied;
@@ -163,7 +163,7 @@ ssize_t devfs_chardev_read(struct devfs_node *node, struct file_handle *h,
 	if (h->flags.is_kernel)
 		BUG();
 
-	process = current_process();
+	process = task->process;
 
 	rb = &node->rb;
 	ret = 0;
