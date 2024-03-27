@@ -110,6 +110,7 @@ unsigned long sys_read(int fd, char __user *buf, size_t count)
 {
 	struct file_handle *handle;
 	struct file *file;
+	ssize_t bread;
 
 	handle = get_handle(fd);
 	if (IS_ERR(handle))
@@ -125,7 +126,15 @@ unsigned long sys_read(int fd, char __user *buf, size_t count)
 	if (!file->fops->read)
 		return -EBADF;
 
-	return file->fops->read(handle, buf, count);
+	bread = file->fops->read(handle, buf, count);
+	if (bread == -EWOULDBLOCK) {
+		if (handle->flags.nonblock)
+			return 0;
+		else
+			BUG();
+	}
+
+	return bread;
 }
 
 unsigned long sys_write(int fd, const char __user *buf, size_t count)

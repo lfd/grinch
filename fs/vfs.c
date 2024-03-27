@@ -200,6 +200,9 @@ struct fs_flags get_flags(int oflag)
 			break;
 	}
 
+	if (oflag & O_NONBLOCK)
+		ret.nonblock = true;
+
 	return ret;
 }
 

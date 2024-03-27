@@ -185,6 +185,9 @@ ssize_t devfs_chardev_read(struct devfs_node *node, struct file_handle *h,
 	} while (count);
 	spin_unlock(&node->lock);
 
+	if (!ret)
+		return -EWOULDBLOCK;
+
 	return ret;
 }
 
