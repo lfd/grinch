@@ -82,6 +82,9 @@ static inline struct process *current_process(void)
 	struct task *cur;
 
 	cur = current_task();
+	if (!cur)
+		BUG();
+
 	if (cur->type != GRINCH_PROCESS)
 		BUG();
 
