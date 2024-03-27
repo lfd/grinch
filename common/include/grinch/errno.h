@@ -22,6 +22,8 @@
 #define E2BIG		7
 #define EBADF		9
 #define ECHILD		10
+#define EAGAIN		11
+#define EWOULDBLOCK	EAGAIN
 #define ENOMEM		12
 #define EFAULT		14
 #define EBUSY		16
