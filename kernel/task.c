@@ -56,6 +56,25 @@ void sched_enqueue(struct task *task)
 	spin_unlock(&task_lock);
 }
 
+static inline void _task_set_wfe(struct task *task)
+{
+	if (task->state == TASK_WFE)
+		BUG();
+
+	/* Ensure that the WFE type is really set */
+	if (task->wfe.type == WFE_NONE)
+		BUG();
+
+	task->state = TASK_WFE;
+}
+
+void task_set_wfe(struct task *task)
+{
+	spin_lock(&task_lock);
+	_task_set_wfe(task);
+	spin_unlock(&task_lock);
+}
+
 /* must hold the parent's lock */
 static int task_notify_wait(struct task *parent, struct task *child)
 {
@@ -85,7 +104,7 @@ static int task_notify_wait(struct task *parent, struct task *child)
 	 * notification
 	 */
 	regs_set_retval(&parent->regs, child->pid);
-	if (parent->state == TASK_WAIT)
+	if (parent->state == TASK_WFE)
 		parent->state = TASK_RUNNABLE;
 
 	task_destroy(child);
@@ -154,7 +173,7 @@ found:
 			spin_unlock(&child->lock);
 	}
 
-	task->state = TASK_WAIT;
+	_task_set_wfe(task);
 	this_per_cpu()->schedule = true;
 	this_per_cpu()->current_task = NULL;
 	err = 0;
@@ -272,7 +291,7 @@ struct task *task_alloc_new(void)
 	task->state = TASK_INIT;
 	task->type = GRINCH_UNDEF;
 	INIT_LIST_HEAD(&task->tasks);
-	INIT_LIST_HEAD(&task->timer.timer_list);
+	INIT_LIST_HEAD(&task->timer_list);
 	INIT_LIST_HEAD(&task->sibling);
 	INIT_LIST_HEAD(&task->children);
 
@@ -446,41 +465,33 @@ destroy_out:
 	return err;
 }
 
-static inline void _task_set_wfe(struct task *task)
-{
-	task->state = TASK_WFE;
-}
-
-void task_set_wfe(struct task *task)
-{
-	spin_lock(&task_lock);
-	_task_set_wfe(task);
-	spin_unlock(&task_lock);
-}
-
 static bool timer_comp(struct list_head *_a, struct list_head *_b)
 {
-	struct task *a = list_entry(_a, struct task, timer.timer_list);
-	struct task *b = list_entry(_b, struct task, timer.timer_list);
+	struct task *a = list_entry(_a, struct task, timer_list);
+	struct task *b = list_entry(_b, struct task, timer_list);
 
-	return a->timer.expiration > b->timer.expiration;
+	return a->wfe.timer.expiration > b->wfe.timer.expiration;
 }
 
 void task_sleep_until(struct task *task, unsigned long long wall_ns)
 {
 	spin_lock(&task_lock);
 
+	if (task->wfe.type != WFE_NONE)
+		BUG();
+
+	task->wfe.timer.expiration = wall_ns;
+	task->wfe.type = WFE_TIMER;
+
 	/* VMs remain runnable */
 	if (task->type == GRINCH_PROCESS)
 		_task_set_wfe(task);
 
-	task->timer.expiration = wall_ns;
-
 	/* If the timer is already queued, remove it first */
-	if (!list_empty(&task->timer.timer_list))
-		list_del(&task->timer.timer_list);
+	if (!list_empty(&task->timer_list))
+		list_del(&task->timer_list);
 
-	list_add_sorted(&timer_list, &task->timer.timer_list, timer_comp);
+	list_add_sorted(&timer_list, &task->timer_list, timer_comp);
 	this_per_cpu()->handle_events = true;
 
 	spin_unlock(&task_lock);
@@ -490,8 +501,8 @@ void task_cancel_timer(struct task *task)
 {
 	spin_lock(&task_lock);
 
-	list_del(&task->timer.timer_list);
-	INIT_LIST_HEAD(&task->timer.timer_list);
+	list_del(&task->timer_list);
+	INIT_LIST_HEAD(&task->timer_list);
 
 	spin_unlock(&task_lock);
 }
@@ -503,12 +514,15 @@ void task_handle_events(void)
 	spin_lock(&task_lock);
 
 	update = NULL;
-	list_for_each_entry_safe(task, tmp, &timer_list, timer.timer_list) {
+	list_for_each_entry_safe(task, tmp, &timer_list, timer_list) {
 		/* sanity check */
 		if (task->state != TASK_WFE && task->type != GRINCH_VMACHINE)
 			BUG();
 
-		if (task->timer.expiration <= timer_get_wall()) {
+		if (task->wfe.type != WFE_TIMER)
+			BUG();
+
+		if (task->wfe.timer.expiration <= timer_get_wall()) {
 			if (task->type == GRINCH_VMACHINE) {
 				vmachine_set_timer_pending(task->vmachine);
 				if (task->state == TASK_RUNNING) {
@@ -524,8 +538,9 @@ void task_handle_events(void)
 			}
 			if (task->state == TASK_WFE)
 				BUG();
-			list_del(&task->timer.timer_list);
-			INIT_LIST_HEAD(&task->timer.timer_list);
+			list_del(&task->timer_list);
+			INIT_LIST_HEAD(&task->timer_list);
+			task->wfe.type = WFE_NONE;
 			continue;
 		}
 

@@ -29,13 +29,13 @@ enum task_state {
 	TASK_RUNNABLE, /* Scheduleable */
 	TASK_WFE, /* Waits for Events */
 	TASK_RUNNING,
-	TASK_WAIT, /* Wait for children */
 	TASK_EXIT_DEAD,
 };
 
 enum task_wfe {
 	WFE_NONE = 0,
 	WFE_CHILD,
+	WFE_TIMER,
 };
 
 enum task_type {
@@ -47,6 +47,10 @@ enum task_type {
 struct wfe_child {
 	pid_t pid;
 	int __user *status;
+};
+
+struct wfe_timer {
+	unsigned long long expiration;
 };
 
 struct task {
@@ -62,22 +66,18 @@ struct task {
 	struct list_head children;
 	/* working on siblings always requires the parent's lock */
 	struct list_head sibling;
-
+	struct list_head timer_list;
 
 	struct {
 		enum task_wfe type;
 
 		union {
 			struct wfe_child child;
+			struct wfe_timer timer;
 		};
 	} wfe; /* wait for event */
 
 	int exit_code;
-
-	struct {
-		struct list_head timer_list;
-		unsigned long long expiration;
-	} timer;
 
 	enum task_type type;
 	union {

@@ -56,8 +56,8 @@ void timer_update(struct task *task)
 	unsigned long *next;
 
 	next = &this_per_cpu()->timer.next;
-	if (task && task->timer.expiration < *next)
-		*next = task->timer.expiration;
+	if (task && task->wfe.timer.expiration < *next)
+		*next = task->wfe.timer.expiration;
 
 	if (*next != (unsigned long)-1)
 		arch_timer_set(*next + wall_base);
