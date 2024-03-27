@@ -181,8 +181,10 @@ int vmm_handle_ecall(void)
 			break;
 
 		default:
-			pr("Extension 0x%lx not implemented\n", eid);
-			return -ENOSYS;
+			pr_dbg("Extension 0x%lx not implemented\n", eid);
+			ret.error = SBI_ERR_NOT_SUPPORTED;
+			ret.value = 0;
+			break;
 	}
 
 	if (eid == SBI_EXT_GRNC && fid == GRINCH_HYPERCALL_VMQUIT)

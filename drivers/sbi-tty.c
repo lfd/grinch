@@ -65,7 +65,7 @@ sbi_read(struct file_handle *h, char *buf, size_t count)
 
 	ret = sbi_console_getchar();
 	if (ret.error < 0)
-		return 0;
+		panic("sbi_console_getchar: %ld\n", ret.error);
 
 	c = (char)ret.error;
 
