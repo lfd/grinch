@@ -26,5 +26,6 @@
 #define SYS_usleep		1337
 #define SYS_gettime		1338
 #define SYS_create_grinch_vm	1339
+#define SYS_grinch_ps		1340
 
 #endif /* _SYSCALL_COMMON_H */

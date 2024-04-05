@@ -147,4 +147,7 @@ void sched_all(void);
 
 int do_fork(void);
 
+/* utilities */
+void tasks_dump(void);
+
 #endif /* _TASK_H */

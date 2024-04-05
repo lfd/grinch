@@ -105,6 +105,11 @@ int syscall(unsigned long no, unsigned long arg1,
 			ret = vm_create_grinch();
 			break;
 
+		case SYS_grinch_ps:
+			tasks_dump();
+			ret = 0;
+			break;
+
 		default:
 			ret = -ENOSYS;
 			break;

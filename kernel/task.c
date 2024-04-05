@@ -580,7 +580,6 @@ void task_save(struct registers *regs)
 		arch_vmachine_save(task->vmachine);
 }
 
-#if 0
 static const char *task_type_to_string(enum task_type type)
 {
 	switch (type) {
@@ -609,28 +608,21 @@ static const char *task_state_to_string(enum task_state state)
 	}
 }
 
-static void dump_tasks(void)
+static const char *task_wfe_to_string(enum task_wfe wfe)
 {
-	struct task *task;
-	const char *timer_str;
-
-	spin_lock(&task_lock);
-
-	list_for_each_entry(task, &task_list, tasks) {
-		if (list_empty(&task->timer.timer_list))
-			timer_str = "not set";
-		else
-			timer_str = "active ";
-		pr("PID: %u Type: %s State: %s On CPU: %lu Timer: %s "
-		   "Expiration: " PR_TIME_FMT "\n",
-		   task->pid, task_type_to_string(task->type),
-		   task_state_to_string(task->state), task->on_cpu, timer_str,
-		   PR_TIME_PARAMS(task->timer.expiration));
+	switch (wfe) {
+		case WFE_NONE:
+			return "none  ";
+		case WFE_CHILD:
+			return "child ";
+		case WFE_TIMER:
+			return "timer ";
+		default:
+			return "unkn  ";
 	}
-
-	spin_unlock(&task_lock);
 }
 
+#if 0
 static void dump_timers(void)
 {
 	struct task *task;
@@ -644,6 +636,23 @@ static void dump_timers(void)
 	spin_unlock(&task_lock);
 }
 #endif
+
+void tasks_dump(void)
+{
+	struct task *task;
+
+	spin_lock(&task_lock);
+
+	list_for_each_entry(task, &task_list, tasks) {
+		pr("PID: %u Type: %s State: %s WFE: %s On CPU: %lu\n",
+		   task->pid, task_type_to_string(task->type),
+		   task_state_to_string(task->state),
+		   task_wfe_to_string(task->wfe.type),
+		   task->on_cpu);
+	}
+
+	spin_unlock(&task_lock);
+}
 
 void prepare_user_return(void)
 {
