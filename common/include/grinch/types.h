@@ -22,6 +22,7 @@
 #define UINT32_MAX	((u32)~0U)
 #define INT32_MAX	((s32)(UINT32_MAX >> 1))
 #define ULLONG_MAX	(~0ULL)
+#define ULONG_MAX	(~0UL)
 
 #define MIN(a, b)		((a) <= (b) ? (a) : (b))
 #define __round_mask(x, y)	((__typeof__(x))((y)-1))
