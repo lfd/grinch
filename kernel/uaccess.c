@@ -129,7 +129,12 @@ unsigned long copy_to_user(struct mm *mm, void *d, const void *s, size_t n)
 	return copied;
 }
 
-long ustrncpy(char *dst, const char *src, long count)
+/*
+ * Does NOT pad with zeroes.
+ * Returns number of copied bytes including trailing zero.
+ * Accepts NULL as destination. In that case, it acts like strlen+1.
+ */
+ssize_t ustrncpy(char *dst, const char *src, unsigned long count)
 {
 	unsigned int remaining;
 	struct task *task;
@@ -151,13 +156,15 @@ long ustrncpy(char *dst, const char *src, long count)
 			if (count == 0)
 				return copied;
 
-			*dst = *direct;
-			if (*dst == '\0')
+			if (dst) {
+				*dst = *direct;
+				dst++;
+			}
+			copied++;
+			if (*direct == '\0')
 				return copied;
 
-			copied++;
 			src++;
-			dst++;
 			direct++;
 
 			count--;

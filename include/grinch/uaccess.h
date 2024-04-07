@@ -23,5 +23,5 @@ unsigned long copy_to_user(struct mm *mm, void __user *d,
 unsigned long copy_from_user(struct mm *mm, void *to, const void __user *from,
 			     unsigned long n);
 
-long ustrncpy(char *dst, const char __user *src, long count);
+ssize_t ustrncpy(char *dst, const char __user *src, unsigned long count);
 #endif

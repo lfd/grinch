@@ -42,7 +42,7 @@ unsigned long sys_open(const char *_path, int oflag)
 	struct file *file;
 	struct task *task;
 	unsigned int d;
-	long ret;
+	ssize_t ret;
 	int err;
 
 	ret = ustrncpy(path, _path, sizeof(path));
@@ -165,9 +165,9 @@ unsigned long sys_write(int fd, const char __user *buf, size_t count)
 int sys_execve(const char __user *pathname, char *const __user argv[],
 	       char *const __user envp[])
 {
-	struct task *this;
 	char buf[MAX_PATHLEN];
-	long ret;
+	struct task *this;
+	ssize_t ret;
 
 	this = current_task();
 	ret = ustrncpy(buf, pathname, sizeof(buf));
