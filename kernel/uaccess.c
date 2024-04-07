@@ -172,3 +172,8 @@ ssize_t ustrncpy(char *dst, const char *src, unsigned long count)
 		}
 	}
 }
+
+ssize_t ustrlen(const char __user *src)
+{
+	return ustrncpy(NULL, src, ULONG_MAX) - 1;
+}
