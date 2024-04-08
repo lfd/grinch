@@ -125,6 +125,8 @@ long task_wait(pid_t pid, int __user *wstatus, int options);
 void task_handle_events(void);
 void task_save(struct registers *regs);
 
+void task_handle_fault(void __user *addr, bool is_write);
+
 void task_set_wfe(struct task *task);
 void task_sleep_until(struct task *task, unsigned long long wall_ns);
 static inline void task_sleep_for(struct task *task, unsigned long long ns)

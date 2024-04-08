@@ -85,6 +85,7 @@ void arch_handle_exception(struct registers *regs, u64 scause)
 {
 	enum vmm_trap_result vmtr;
 	struct trap_context ctx;
+	void __user *stval;
 	int err;
 
 	ctx.scause = scause;
@@ -110,6 +111,7 @@ void arch_handle_exception(struct registers *regs, u64 scause)
 	}
 
 	task_save(regs);
+	stval = (void __user *)csr_read(stval);
 	switch (ctx.scause) {
 		case EXC_INST_ILLEGAL:
 		case EXC_INST_PAGE_FAULT:
@@ -119,15 +121,23 @@ void arch_handle_exception(struct registers *regs, u64 scause)
 			err = 0;
 			break;
 
+		case EXC_LOAD_PAGE_FAULT:
+			task_handle_fault(stval, false);
+			err = 0;
+			break;
+
+		case EXC_STORE_PAGE_FAULT:
+			task_handle_fault(stval, true);
+			err = 0;
+			break;
+
 		case EXC_INST_ACCESS:
 		case EXC_LOAD_ACCESS:
 		case EXC_STORE_ACCESS:
-		case EXC_LOAD_PAGE_FAULT:
-		case EXC_STORE_PAGE_FAULT:
 		case EXC_INST_MISALIGNED:
 		case EXC_LOAD_ACCESS_MISALIGNED:
 		case EXC_AMO_ADDRESS_MISALIGNED:
-			printk("Faulting Address: %016lx\n", csr_read(stval));
+			pr("Faulting Address: %p\n", stval);
 			break;
 
 		case EXC_SYSCALL:
@@ -135,7 +145,7 @@ void arch_handle_exception(struct registers *regs, u64 scause)
 			break;
 
 		case EXC_BREAKPOINT:
-			printk("BP occured @ PC: %016lx - Ignoring\n", regs->pc);
+			pr("BP occured @ PC: %016lx - Ignoring\n", regs->pc);
 			err = -1;
 			break;
 

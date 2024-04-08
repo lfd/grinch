@@ -198,3 +198,19 @@ int uvma_duplicate(struct process *dst, struct process *src, struct vma *vma)
 
 	return 0;
 }
+
+struct vma *uvma_find(struct process *p, void __user *base)
+{
+	struct vma *vma;
+
+	list_for_each_entry(vma, &p->mm.vmas, vmas)
+		if (vma_collides(vma, base, 1))
+			return vma;
+
+	return NULL;
+}
+
+int uvma_handle_fault(struct process *p, struct vma *vma, void __user *addr)
+{
+	return -ENOSYS;
+}

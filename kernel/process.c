@@ -155,6 +155,30 @@ free_out:
 	return ERR_PTR(-ENOMEM);
 }
 
+int process_handle_fault(struct task *task, void __user *addr, bool is_write)
+{
+	struct vma *vma;
+	int err;
+
+	vma = uvma_find(task->process, addr);
+	if (!vma) {
+		pr_warn("PID %d: No VMA found %p\n", task->pid, addr);
+		return -ENOENT;
+	}
+
+	err = uvma_handle_fault(task->process, vma, addr);
+	if (err) {
+		pr_warn("PID %d: Unable to handle fault: %pe\n",
+			task->pid, ERR_PTR(err));
+		return err;
+	}
+
+	if (task == current_task())
+		this_per_cpu()->pt_needs_update = true;
+
+	return err;
+}
+
 int sys_execve(const char __user *pathname, char *const __user argv[],
 	       char *const __user envp[])
 {

@@ -31,6 +31,7 @@ struct process {
 
 struct task *process_alloc_new(void);
 void process_destroy(struct task *task);
+int process_handle_fault(struct task *task, void __user *addr, bool is_write);
 
 int process_from_fs(struct task *task, const char *pathname);
 

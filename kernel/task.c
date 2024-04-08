@@ -717,3 +717,28 @@ int __init task_init(void)
 
 	return 0;
 }
+
+void task_handle_fault(void __user *addr, bool is_write)
+{
+	struct task *task;
+	int err;
+
+	task = current_task();
+	spin_lock(&task->lock);
+	/* not implemented yet */
+	if (task->type == GRINCH_VMACHINE)
+		BUG();
+	else if (task->type == GRINCH_PROCESS)
+		err = process_handle_fault(task, addr, is_write);
+	else
+		BUG();
+	spin_unlock(&task->lock);
+
+	if (err) {
+		/* We have a page fault. */
+		pr("PID %d: SEGFAULT at 0x%p (%s)\n", task->pid, addr,
+		   is_write ? "write" : "read");
+		task_exit(task, -EFAULT);
+		return;
+	}
+}
