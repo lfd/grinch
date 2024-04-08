@@ -65,13 +65,14 @@ static pid_t start_background(const char *path, bool wait)
 
 static int init(void)
 {
-	int forked;
 	pid_t child;
 
 	child = start_background("/initrd/gsh.echse", true);
 	if (child < 0)
 		return child;
 
+#if 0
+	int forked;
 	for (forked = 0; forked < 5; forked++) {
 		child = start_background("/initrd/hello.echse", false);
 		if (child < 0)
@@ -94,6 +95,7 @@ static int init(void)
 		} else
 			printf("Created grinch VM with PID %d\n", child);
 	}
+#endif
 
 	return 0;
 }
