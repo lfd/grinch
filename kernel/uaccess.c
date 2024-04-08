@@ -13,6 +13,7 @@
 #define dbg_fmt(x)	"uaccess: " x
 
 #include <grinch/align.h>
+#include <grinch/alloc.h>
 #include <grinch/gfp.h>
 #include <grinch/panic.h>
 #include <grinch/paging.h>
@@ -222,4 +223,83 @@ ssize_t ustrncpy(char *dst, const char *src, unsigned long count)
 ssize_t ustrlen(const char __user *src)
 {
 	return ustrncpy(NULL, src, ULONG_MAX) - 1;
+}
+
+int uenv_dup(struct task *t, char *const __user _user[],
+	     struct uenv_array *uenv)
+{
+	unsigned int elements, *cut;
+	char __user *const *user;
+	char __user *ustring;
+	size_t length;
+	ssize_t ret;
+	char *pos;
+	int err;
+
+	memset(uenv, 0, sizeof(*uenv));
+	if (!_user)
+		return 0;
+
+	/* determine length and number of arguments */
+	length = 0;
+	elements = 0;
+	for (user = _user; ; user++) {
+		err = uptr_from_user(t, &ustring, user);
+		if (err)
+			return err;
+		if (!ustring)
+			break;
+
+		ret = ustrlen(ustring);
+		if (ret < 0)
+			return ret;
+		length += ret + 1;
+		elements++;
+	}
+
+	if (length > PAGE_SIZE)
+		return -E2BIG;
+
+	/* allocate space in kernel memory */
+	uenv->string = kmalloc(length);
+	if (!uenv->string)
+		return -ENOMEM;
+
+	uenv->cuts = kmalloc(elements * sizeof(uenv->cuts));
+	if (!uenv->cuts) {
+		kfree(uenv->string);
+		uenv->string = NULL;
+		return -ENOMEM;
+	}
+
+	uenv->length = length;
+	uenv->elements = elements;
+
+	/* copy over stuff */
+	pos = uenv->string;
+	cut = uenv->cuts;
+	for (user = _user; length; user++) {
+		*cut++ = pos - uenv->string;
+		err = uptr_from_user(t, &ustring, user);
+		if (err)
+			return err;
+		if (!ustring)
+			break;
+
+		ret = ustrncpy(pos, ustring, length);
+		if (unlikely(ret < 0))
+			return ret;
+		pos += ret;
+		length -= ret;
+	}
+	return 0;
+}
+
+void uenv_free(struct uenv_array *uenv)
+{
+	if (uenv->string)
+		kfree(uenv->string);
+	if (uenv->cuts)
+		kfree(uenv->cuts);
+	memset(uenv, 0, sizeof(*uenv));
 }
