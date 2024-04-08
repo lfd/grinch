@@ -161,24 +161,3 @@ unsigned long sys_write(int fd, const char __user *buf, size_t count)
 
 	return file->fops->write(handle, buf, count);
 }
-
-int sys_execve(const char __user *pathname, char *const __user argv[],
-	       char *const __user envp[])
-{
-	char buf[MAX_PATHLEN];
-	struct task *this;
-	ssize_t ret;
-
-	this = current_task();
-	ret = ustrncpy(buf, pathname, sizeof(buf));
-	/* pathname too long */
-	if (unlikely(ret == sizeof(buf)))
-		return -ERANGE;
-	else if (unlikely(ret < 0))
-		return ret;
-
-	uvmas_destroy(this->process);
-	this_per_cpu()->pt_needs_update = true;
-
-	return process_from_fs(this, buf);
-}

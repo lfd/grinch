@@ -20,6 +20,7 @@
 #include <grinch/task.h>
 #include <grinch/uaccess.h>
 #include <grinch/percpu.h>
+#include <grinch/syscall.h>
 #include <grinch/vfs.h>
 
 #ifdef ARCH_RISCV
@@ -144,4 +145,25 @@ process_free_out:
 free_out:
 	kfree(task);
 	return ERR_PTR(-ENOMEM);
+}
+
+int sys_execve(const char __user *pathname, char *const __user argv[],
+	       char *const __user envp[])
+{
+	char buf[MAX_PATHLEN];
+	struct task *this;
+	ssize_t ret;
+
+	this = current_task();
+	ret = ustrncpy(buf, pathname, sizeof(buf));
+	/* pathname too long */
+	if (unlikely(ret == sizeof(buf)))
+		return -ERANGE;
+	else if (unlikely(ret < 0))
+		return ret;
+
+	uvmas_destroy(this->process);
+	this_per_cpu()->pt_needs_update = true;
+
+	return process_from_fs(this, buf);
 }
