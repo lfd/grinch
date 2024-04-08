@@ -212,15 +212,19 @@ static int test_fork(void)
 	unsigned int i;
 	pid_t child;
 	int err;
+	bool failed;
 
+	failed = false;
 	for (i = 0; i < NO_FORKS; i++) {
 		child = fork();
 		if (child == 0) {
 			err = execve("/initrd/true.echse", NULL, NULL);
 			perror("execve");
+			failed = true;
 			break;
 		} else if (child == -1) {
 			perror("fork!");
+			failed = true;
 			break;
 		}
 	}
@@ -228,10 +232,17 @@ static int test_fork(void)
 	for (i = 0; ; i++) {
 		child = wait(NULL);
 		if (child == -1) {
-			if (errno != ECHILD)
+			if (errno != ECHILD) {
 				perror("wait");
+				failed = true;
+			}
 			break;
 		}
+	}
+
+	if (failed) {
+		printf("Test failed\n");
+		return -EINVAL;
 	}
 
 	err = (i == NO_FORKS) ? 0 : -EINVAL;
