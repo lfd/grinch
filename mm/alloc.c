@@ -14,6 +14,7 @@
 
 #include <asm/spinlock.h>
 
+#include <grinch/align.h>
 #include <grinch/alloc.h>
 #include <grinch/bootparam.h>
 #include <grinch/errno.h>
@@ -169,8 +170,7 @@ void *kmalloc(size_t size)
 	if (do_malloc_fsck)
 		malloc_fsck();
 
-	/* align size to multiples of 4 */
-	size = (size + 3) & ~0x3;
+	size = ALIGN(size, 4);
 
 	spin_lock(&alloc_lock);
 	this = first_chunk;
