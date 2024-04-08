@@ -29,6 +29,7 @@
 
 static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr)
 {
+	void __user *stack_top;
 	unsigned int vma_flags;
 	unsigned long copied;
 	Elf64_Phdr *phdr;
@@ -74,12 +75,15 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr)
 			return -ERANGE;
 	}
 
-	vma = uvma_create(task->process, (void *)USER_STACK_BASE, USER_STACK_SIZE,
+	stack_top = (void *)USER_STACK_TOP;
+
+	vma = uvma_create(task->process, stack_top - USER_STACK_SIZE,
+			  USER_STACK_SIZE,
 			  VMA_FLAG_USER | VMA_FLAG_ZERO | VMA_FLAG_RW);
 	if (IS_ERR(vma))
 		return PTR_ERR(vma);
 
-	task_set_context(task, ehdr->e_entry, USER_STACK_BASE + USER_STACK_SIZE);
+	task_set_context(task, ehdr->e_entry, (uintptr_t)stack_top);
 
 	return 0;
 }

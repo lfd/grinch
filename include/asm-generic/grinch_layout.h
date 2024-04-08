@@ -16,7 +16,7 @@
 /* Check if this applies for ARM64 */
 #define USER_START	_UL(0x1000)
 #define USER_END	(_UL(1) << 38)
-#define USER_STACK_BASE	_UL(0x40000000)
+#define USER_STACK_TOP	_UL(0x40000000)
 #define USER_STACK_SIZE	_UL(0x2000)
 
 /* Must be a multiple of 256 KiB */
