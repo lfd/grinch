@@ -16,6 +16,7 @@
 #ifndef __ASSEMBLY__
 
 #define BITS_PER_LONG	64
+#define BYTES_PER_LONG	(BITS_PER_LONG / 8)
 #define ARRAY_SIZE(array)	(sizeof(array) / sizeof((array)[0]))
 
 #define INT_MAX		((int)(~0U>>1))
