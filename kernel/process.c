@@ -81,7 +81,7 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr)
 
 	stack_top = (void *)USER_STACK_TOP;
 
-	vma_flags = VMA_FLAG_USER | VMA_FLAG_RW;
+	vma_flags = VMA_FLAG_USER | VMA_FLAG_RW | VMA_FLAG_LAZY;
 	vma = uvma_create(task->process, (void *)USER_STACK_BOTTOM,
 			  USER_STACK_SIZE, vma_flags, "[stack]");
 	if (IS_ERR(vma))

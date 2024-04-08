@@ -13,6 +13,7 @@
 #define dbg_fmt(x)	"vma: " x
 
 #include <grinch/alloc.h>
+#include <grinch/align.h>
 #include <grinch/gfp.h>
 #include <grinch/kstr.h>
 #include <grinch/percpu.h>
@@ -22,16 +23,20 @@
 #include <grinch/task.h>
 #include <grinch/uaccess.h>
 
-static int vma_create(page_table_t pt, struct vma *vma, unsigned int alignment)
+static int vma_alloc_range(page_table_t pt, struct vma *vma, void *base,
+			   size_t size, unsigned int alignment)
 {
 	mem_flags_t flags;
 	paddr_t phys;
 	int err;
 
-	if (vma->flags & VMA_FLAG_LAZY)
-		return -ENOSYS;
+	if (!PTR_PAGE_ALIGNED(base))
+		return -EINVAL;
 
-	err = phys_pages_alloc_aligned(&phys, PAGES(vma->size), alignment);
+	if (size % PAGE_SIZE)
+		return -EINVAL;
+
+	err = phys_pages_alloc_aligned(&phys, PAGES(size), alignment);
 	if (err)
 		return err;
 
@@ -44,16 +49,21 @@ static int vma_create(page_table_t pt, struct vma *vma, unsigned int alignment)
 		flags |= GRINCH_MEM_U;
 	if (vma->flags & VMA_FLAG_EXEC)
 		flags |= GRINCH_MEM_X;
-
-	err = map_range(pt, vma->base, phys, vma->size, flags);
+	err = map_range(pt, base, phys, size, flags);
 	if (err)
 		goto free_out;
 
 	return 0;
 
 free_out:
-	phys_free_pages(phys, PAGES(vma->size));
+	phys_free_pages(phys, PAGES(size));
 	return err;
+}
+
+static inline int
+vma_alloc(page_table_t pt, struct vma *vma, unsigned int alignment)
+{
+	return vma_alloc_range(pt, vma, vma->base, vma->size, alignment);
 }
 
 int kvma_create(struct vma *vma)
@@ -63,7 +73,7 @@ int kvma_create(struct vma *vma)
 	// FIXME: We must somewhen take care, that this applies to all page
 	// tables of all CPUs
 	// FIXME: Get alignment via argument
-	err = vma_create(this_per_cpu()->root_table_page, vma, MEGA_PAGE_SIZE);
+	err = vma_alloc(this_per_cpu()->root_table_page, vma, MEGA_PAGE_SIZE);
 	if (err)
 		return err;
 
@@ -95,22 +105,25 @@ static bool vma_collides(struct vma *vma, void *base, size_t size)
 static int uvma_destroy(struct process *p, struct vma *vma)
 {
 	paddr_t phys;
+	size_t step;
+	void *base;
 	int err;
-
-	/* Doesn't understand lazy VMAs! */
 
 	kfree(vma->name);
 	vma->name = NULL;
 
-	phys = paging_get_phys(p->mm.page_table, vma->base);
-	if (phys == INVALID_PHYS_ADDR)
-		return -EINVAL;
+	step = (vma->flags & VMA_FLAG_LAZY) ? PAGE_SIZE : vma->size;
+	for (base = vma->base; base < vma->base + vma->size; base += step) {
+		phys = paging_get_phys(p->mm.page_table, base);
+		if (phys == INVALID_PHYS_ADDR)
+			continue;
+
+		err = phys_free_pages(phys, PAGES(step));
+		if (err)
+			return err;
+	}
 
 	err = unmap_range(p->mm.page_table, vma->base, vma->size);
-	if (err)
-		return -EINVAL;
-
-	err = phys_free_pages(phys, PAGES(vma->size));
 	if (err)
 		return -EINVAL;
 
@@ -163,16 +176,18 @@ struct vma *uvma_create(struct process *p, void *base, size_t size,
 	} else
 		vma->name = NULL;
 
-	err = vma_create(p->mm.page_table, vma, PAGE_SIZE);
-	if (err) {
-		kfree(vma);
-		return ERR_PTR(err);
+	if (!(vma->flags & VMA_FLAG_LAZY)) {
+		err = vma_alloc(p->mm.page_table, vma, PAGE_SIZE);
+		if (err) {
+			kfree(vma);
+			return ERR_PTR(err);
+		}
+
+		/* All pages that are given to the user must be zeroed */
+		umemset(&p->mm, vma->base, 0, vma->size);
 	}
 
 	list_add(&vma->vmas, &p->mm.vmas);
-
-	/* All pages that are given to the user must be zeroed */
-	umemset(&p->mm, vma->base, 0, vma->size);
 
 	return vma;
 }
@@ -181,20 +196,32 @@ int uvma_duplicate(struct process *dst, struct process *src, struct vma *vma)
 {
 	void *psrc, *pdst;
 	struct vma *new;
+	void *base;
+	int err;
 
 	new = uvma_create(dst, vma->base, vma->size, vma->flags, vma->name);
 	if (IS_ERR(new))
 		return PTR_ERR(new);
 
-	psrc = user_to_direct(&src->mm, vma->base);
-	if (!psrc)
-		return -EINVAL;
+	for (base = vma->base; base < vma->base + vma->size;
+	     base += PAGE_SIZE) {
+		psrc = user_to_direct(&src->mm, base);
+		/* Skip non-allocated pages */
+		if (!psrc)
+			continue;
 
-	pdst = user_to_direct(&dst->mm, new->base);
-	if (!pdst)
-		return -EINVAL;
+		if (new->flags & VMA_FLAG_LAZY) {
+			err = uvma_handle_fault(dst, new, base);
+			if (err)
+				return err;
+		}
 
-	memcpy(pdst, psrc, vma->size);
+		pdst = user_to_direct(&dst->mm, base);
+		if (!pdst)
+			BUG();
+
+		memcpy(pdst, psrc, PAGE_SIZE);
+	}
 
 	return 0;
 }
@@ -212,5 +239,19 @@ struct vma *uvma_find(struct process *p, void __user *base)
 
 int uvma_handle_fault(struct process *p, struct vma *vma, void __user *addr)
 {
-	return -ENOSYS;
+	void *base;
+	int err;
+
+	if (!(vma->flags & VMA_FLAG_LAZY))
+		BUG();
+
+	base = PTR_PAGE_ALIGN_DOWN(addr);
+	err = vma_alloc_range(p->mm.page_table, vma, base,
+			      PAGE_SIZE, PAGE_SIZE);
+	if (err)
+		return err;
+
+	umemset(&p->mm, base, 0, PAGE_SIZE);
+
+	return 0;
 }
