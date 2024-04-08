@@ -63,6 +63,10 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr)
 		if (phdr->p_flags & PF_X)
 			vma_flags |= VMA_FLAG_EXEC;
 
+		/* The region must not collide with the stack */
+		if (base + page_up(phdr->p_memsz) >= (void *)USER_STACK_BOTTOM)
+			return -EINVAL;
+
 		vma = uvma_create(task->process, base, page_up(phdr->p_memsz),
 				  vma_flags);
 		if (IS_ERR(vma))
@@ -77,7 +81,7 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr)
 
 	stack_top = (void *)USER_STACK_TOP;
 
-	vma = uvma_create(task->process, stack_top - USER_STACK_SIZE,
+	vma = uvma_create(task->process, (void *)USER_STACK_BOTTOM,
 			  USER_STACK_SIZE, VMA_FLAG_USER | VMA_FLAG_RW);
 	if (IS_ERR(vma))
 		return PTR_ERR(vma);
