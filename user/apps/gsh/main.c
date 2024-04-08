@@ -27,13 +27,15 @@
 #define ASCII_CR	'\r'
 #define ASCII_DEL	0x7f
 
-int main(void);
+int main(int argc, char *argv[], char *envp[]);
+
+static char **_envp;
 
 APP_NAME(gsh);
 
 struct gsh_builtin {
 	const char *cmd;
-	int (*fun)(void);
+	int (*fun)(char *argv[]);
 };
 
 static inline void putc(char c)
@@ -88,14 +90,14 @@ static int read_line(char *buf, size_t len)
 	return 0;
 }
 
-static int start(const char *cmd)
+static int start(const char *cmd, char *argv[])
 {
 	pid_t child;
 	int wstatus;
 
 	child = fork();
 	if (child == 0) {
-		execve(cmd, NULL, NULL);
+		execve(cmd, argv, _envp);
 		perror("execve");
 		return -errno;
 	} else if (child == -1) {
@@ -110,31 +112,31 @@ static int start(const char *cmd)
 	return 0;
 }
 
-static int gsh_version(void)
+static int gsh_version(char *argv[])
 {
 	printf("Grinch Shell v0.1\n");
 
 	return 0;
 }
 
-static int gsh_exit(void)
+static int gsh_exit(char *argv[])
 {
 	return -EIO;
 }
 
-static int gsh_help(void)
+static int gsh_help(char *argv[])
 {
 	printf("No help at the moment\n");
 
 	return 0;
 }
 
-static int gsh_ps(void)
+static int gsh_ps(char *argv[])
 {
 	return grinch_ps();
 }
 
-static int gsh_vm(void)
+static int gsh_vm(char *argv[])
 {
 	pid_t child;
 	int err;
@@ -159,7 +161,7 @@ static const struct gsh_builtin builtins[] = {
 	{ "vm", gsh_vm },
 };
 
-static int parse_command(int argc, const char **argv)
+static int parse_command(int argc, char *argv[])
 {
 	const struct gsh_builtin *builtin;
 	const char *cmd;
@@ -172,24 +174,24 @@ static int parse_command(int argc, const char **argv)
 	     builtin++, i++) {
 		if (strcmp(cmd, builtin->cmd))
 			continue;
-		err = builtin->fun();
+		err = builtin->fun(argv);
 		return err;
 	}
 
 	if (!strcmp(cmd, "jittertest")) {
-		err = start("/initrd/jittertest.echse");
+		err = start("/initrd/jittertest.echse", argv);
 	} else if (!strcmp(cmd, "test")) {
-		err = start("/initrd/test.echse");
+		err = start("/initrd/test.echse", argv);
 	} else
 		err = -ENOENT;
 
 	return err;
 }
 
-static int parse_tokens(const char *input_buffer, char *token_buffer, const char *tokens[])
+static int parse_tokens(const char *input_buffer, char *token_buffer, char *tokens[])
 {
 	unsigned int no_tokens;
-	const char *start;
+	char *start;
 	char c;
 	//char quote;
 	//bool is_escape;
@@ -223,11 +225,11 @@ static int parse_tokens(const char *input_buffer, char *token_buffer, const char
 	return no_tokens;
 }
 
-int main(void)
+static int gsh(void)
 {
 	char input_buffer[32];
 	char token_buffer[64];
-	const char *argv[32];
+	char *argv[32];
 	int argc, err;
 
 	printf_set_prefix(false);
@@ -258,5 +260,16 @@ int main(void)
 			printf("Error: %pe\n", ERR_PTR(err));
 		}
 	}
-	return 0;
+
+	return err;
+}
+
+int main(int argc, char *argv[], char *envp[])
+{
+	int err;
+
+	_envp = envp;
+	err = gsh();
+
+	return err;
 }

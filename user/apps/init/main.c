@@ -23,7 +23,12 @@ int main(void);
 
 APP_NAME(init);
 
-static pid_t start_background(const char *path, bool wait)
+static char *const envp[] = {
+	"KEY=value",
+	NULL
+};
+
+static pid_t start_background(const char *path, char *const argv[], bool wait)
 {
 	pid_t child;
 	int err, wstatus;
@@ -32,7 +37,7 @@ static pid_t start_background(const char *path, bool wait)
 	err = 0;
 	child = fork();
 	if (child == 0) {
-		err = execve(path, NULL, NULL);
+		err = execve(path, argv, envp);
 		perror("execve");
 		exit(-errno);
 	} else if (child == -1) {
@@ -63,50 +68,14 @@ static pid_t start_background(const char *path, bool wait)
 	return 0;
 }
 
-static int init(void)
-{
-	pid_t child;
-
-	child = start_background("/initrd/gsh.echse", true);
-	if (child < 0)
-		return child;
-
-#if 0
-	int forked;
-	for (forked = 0; forked < 5; forked++) {
-		child = start_background("/initrd/hello.echse", false);
-		if (child < 0)
-			return child;
-	}
-
-	child = start_background("/initrd/test.echse", true);
-	if (child < 0)
-		return child;
-
-	child = start_background("/initrd/jittertest.echse", false);
-	if (child < 0)
-		return child;
-
-	if (0) {
-		child = create_grinch_vm();
-		if (child == -1) {
-			perror("create_grinch_vm");
-			return -errno;
-		} else
-			printf("Created grinch VM with PID %d\n", child);
-	}
-#endif
-
-	return 0;
-}
-
 int main(void)
 {
-	int err, wstatus;
+	int wstatus;
 	pid_t child;
 
-	err = init();
-	printf("Init finished with %pe. Waiting.\n", ERR_PTR(err));
+	start_background("/initrd/gsh.echse",
+			 (char *[]){"/initrd/gsh.echse", NULL}, false);
+	printf("Waiting for children...\n");
 
 	while (true) {
 		child = wait(&wstatus);

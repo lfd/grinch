@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -26,6 +26,11 @@ _user_start:
 	/* BSS cleared */
 
 2:
+	ld	a0, 0(sp) /* int argc */
+	ld	a1, 8(sp) /* char *argv[] */
+	ld	a2, 16(sp) /* char *envp[] */
+	addi	sp, sp, 24
+
 	jal	main
 	jal	exit
 	/* should we ever return from exit, loop */
