@@ -16,6 +16,7 @@
 
 #include <grinch/fs.h>
 #include <grinch/vma.h>
+#include <grinch/uaccess.h>
 
 /*
  * At the moment, a process can only hold 10 file descriptors. If we ever need
@@ -33,7 +34,8 @@ struct task *process_alloc_new(void);
 void process_destroy(struct task *task);
 int process_handle_fault(struct task *task, void __user *addr, bool is_write);
 
-int process_from_fs(struct task *task, const char *pathname);
+int process_from_fs(struct task *task, const char *pathname,
+		    struct uenv_array *argv, struct uenv_array *envp);
 
 /* Arch specific routines */
 void arch_process_activate(struct process *task);
