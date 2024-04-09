@@ -14,6 +14,7 @@
 
 #include <grinch/alloc.h>
 #include <grinch/gfp.h>
+#include <grinch/kstr.h>
 #include <grinch/percpu.h>
 #include <grinch/paging.h>
 #include <grinch/panic.h>
@@ -93,10 +94,14 @@ static bool vma_collides(struct vma *vma, void *base, size_t size)
 
 static int uvma_destroy(struct process *p, struct vma *vma)
 {
-	int err;
 	paddr_t phys;
+	int err;
 
 	/* Doesn't understand lazy VMAs! */
+
+	kfree(vma->name);
+	vma->name = NULL;
+
 	phys = paging_get_phys(p->mm.page_table, vma->base);
 	if (phys == INVALID_PHYS_ADDR)
 		return -EINVAL;
@@ -128,7 +133,8 @@ void uvmas_destroy(struct process *p)
 	}
 }
 
-struct vma *uvma_create(struct process *p, void *base, size_t size, unsigned int vma_flags)
+struct vma *uvma_create(struct process *p, void *base, size_t size,
+		        unsigned int vma_flags, const char *name)
 {
 	struct vma *vma;
 	int err;
@@ -148,6 +154,14 @@ struct vma *uvma_create(struct process *p, void *base, size_t size, unsigned int
 	vma->base = base;
 	vma->size = size;
 	vma->flags = vma_flags | VMA_FLAG_USER;
+	if (name) {
+		vma->name = kstrdup(name);
+		if (!vma->name) {
+			kfree(vma);
+			return ERR_PTR(-ENOMEM);
+		}
+	} else
+		vma->name = NULL;
 
 	err = vma_create(p->mm.page_table, vma, PAGE_SIZE);
 	if (err) {
@@ -168,7 +182,7 @@ int uvma_duplicate(struct process *dst, struct process *src, struct vma *vma)
 	void *psrc, *pdst;
 	struct vma *new;
 
-	new = uvma_create(dst, vma->base, vma->size, vma->flags);
+	new = uvma_create(dst, vma->base, vma->size, vma->flags, vma->name);
 	if (IS_ERR(new))
 		return PTR_ERR(new);
 

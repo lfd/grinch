@@ -23,6 +23,7 @@
 #define VMA_FLAG_RW	(VMA_FLAG_R | VMA_FLAG_W)
 
 struct vma {
+	char *name;
 	void *base;
 	size_t size; /* in bytes */
 	unsigned int flags;
@@ -41,7 +42,8 @@ struct mm {
 struct process;
 
 int kvma_create(struct vma *vma);
-struct vma *uvma_create(struct process *task, void* base, size_t size, unsigned int vma_flags);
+struct vma *uvma_create(struct process *task, void* base, size_t size,
+			unsigned int vma_flags, const char *name);
 void uvmas_destroy(struct process *task);
 
 int uvma_duplicate(struct process *dst, struct process *src, struct vma *vma);
