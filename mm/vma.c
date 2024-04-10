@@ -66,9 +66,6 @@ int kvma_create(struct vma *vma)
 	if (err)
 		return err;
 
-	if (vma->flags & VMA_FLAG_ZERO)
-		memset(vma->base, 0, vma->size);
-
 	return 0;
 }
 
@@ -160,8 +157,8 @@ struct vma *uvma_create(struct process *p, void *base, size_t size, unsigned int
 
 	list_add(&vma->vmas, &p->mm.vmas);
 
-	if (vma->flags & VMA_FLAG_ZERO)
-		umemset(&p->mm, vma->base, 0, vma->size);
+	/* All pages that are given to the user must be zeroed */
+	umemset(&p->mm, vma->base, 0, vma->size);
 
 	return vma;
 }
