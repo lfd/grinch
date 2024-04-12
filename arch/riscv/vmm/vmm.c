@@ -160,7 +160,7 @@ static int vmm_handle_inst(void)
 		return -ENOSYS;
 
 	/* we have a WFI instruction */
-	if (!current_task()->vmachine->vregs.hvip)
+	if (!current_task()->vmachine.vregs.hvip)
 		task_set_wfe(current_task());
 
 	this_per_cpu()->schedule = true;
@@ -193,7 +193,7 @@ vmm_handle_trap(struct trap_context *ctx, struct registers *regs)
 	task->regs = *regs;
 
 	/* Save VM specific registers */
-	vm = task->vmachine;
+	vm = &task->vmachine;
 	arch_vmachine_save(vm);
 
 	/* Here we land if we take a trap vom V=1 */
@@ -231,14 +231,15 @@ out:
 
 void vmachine_destroy(struct task *task)
 {
+	struct vmachine *vm;
 	int err;
-	struct vmachine *vm = task->vmachine;
 
 	if (task == current_task()) {
 		csr_write(CSR_HSTATUS, 0);
 		disable_mmu_hgatp();
 	}
 
+	vm = &task->vmachine;
 	if (vm->hv_page_table) {
 		err = vm_unmap_range(vm->hv_page_table, (void *)VM_GPHYS_BASE, vm->memregion.size);
 		if (err)
@@ -254,9 +255,6 @@ void vmachine_destroy(struct task *task)
 		if (err)
 			panic("vmachine_destroy: pmm_page_free\n");
 	}
-
-	kfree(vm);
-	task->vmachine = NULL;
 }
 
 static int vm_memcpy(struct vmachine *vm, unsigned long offset,
@@ -318,12 +316,8 @@ static struct task *vmm_alloc_new(void)
 	task->parent = parent;
 
 	task->type = GRINCH_VMACHINE;
-	task->vmachine = kzalloc(sizeof(*task->vmachine));
-	if (!task->vmachine) {
-		err = -ENOMEM;
-		goto vmfree_out;
-	}
-	vm = task->vmachine;
+	memset(&task->vmachine, 0, sizeof(task->vmachine));
+	vm = &task->vmachine;
 
 	/* Allocate VM specific parts */
 	err = phys_pages_alloc_aligned(&vm->memregion.base, VM_PAGES, PAGE_SIZE);

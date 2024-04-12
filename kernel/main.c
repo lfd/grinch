@@ -99,22 +99,22 @@ static int __init init(void)
 	}
 
 	/* stdin */
-	fh = &task->process->fds[0];
+	fh = &task->process.fds[0];
 	fh->flags.may_read = true;
 	fh->flags.may_write = false;
 	fh->flags.is_kernel = false;
 	fh->flags.nonblock = false;
 
 	/* stdout + stderr */
-	fh = &task->process->fds[1];
+	fh = &task->process.fds[1];
 	fh->flags.may_read = false;
 	fh->flags.may_write = true;
 	fh->flags.is_kernel = false;
 	fh->flags.nonblock = false;
-	task->process->fds[2].flags = fh->flags;
+	task->process.fds[2].flags = fh->flags;
 
 	for (i = 0; i < 3; i++) {
-		fh = &task->process->fds[i];
+		fh = &task->process.fds[i];
 		fh->fp = file_open(ISTR(DEVICE_NAME("console")), fh->flags);
 		if (IS_ERR(fh->fp))
 			return PTR_ERR(fh->fp);

@@ -34,7 +34,7 @@ static inline struct sbiret handle_sbi_time(unsigned long fid, unsigned long a0)
 
 	switch (fid) {
 		case SBI_EXT_TIME_SET_TIMER:
-			current_task()->vmachine->vregs.hvip &= ~VIE_TIE;
+			current_task()->vmachine.vregs.hvip &= ~VIE_TIE;
 			if (a0 != (unsigned long)-1)
 				task_sleep_until(current_task(),
 						 timer_ticks_to_time(a0));

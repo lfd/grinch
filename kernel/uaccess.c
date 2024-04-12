@@ -147,7 +147,7 @@ ssize_t ustrncpy(char *dst, const char *src, unsigned long count)
 
 	copied = 0;
 	while (1) {
-		direct = user_to_direct(&task->process->mm, src);
+		direct = user_to_direct(&task->process.mm, src);
 		if (!direct)
 			return -EFAULT;
 

@@ -187,7 +187,7 @@ ssize_t devfs_chardev_read(struct task *task, struct devfs_node *node,
 	if (h->flags.is_kernel)
 		BUG();
 
-	process = task->process;
+	process = &task->process;
 
 	rb = &node->rb;
 	ret = 0;

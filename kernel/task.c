@@ -95,7 +95,7 @@ static int task_notify_wait(struct task *parent, struct task *child)
 	/* Forward status code */
 	if (wfe->status) {
 		status = (child->exit_code & 0xff) << 8;
-		copy_to_user(&parent->process->mm, wfe->status,
+		copy_to_user(&parent->process.mm, wfe->status,
 			     &status, sizeof(status));
 	}
 
@@ -331,11 +331,11 @@ static void task_activate(struct task *task)
 
 	switch (task->type) {
 	case GRINCH_PROCESS:
-		arch_process_activate(task->process);
+		arch_process_activate(&task->process);
 		break;
 
 	case GRINCH_VMACHINE:
-		arch_vmachine_activate(task->vmachine);
+		arch_vmachine_activate(&task->vmachine);
 		break;
 
 	default:
@@ -427,10 +427,10 @@ int do_fork(void)
 	this = current_task();
 	spin_lock(&this->lock);
 	for (fd = 0; fd < MAX_FDS; fd++) {
-		fh = &this->process->fds[fd];
+		fh = &this->process.fds[fd];
 		if (fh->fp) {
 			file_get(fh->fp);
-			new->process->fds[fd] = *fh;
+			new->process.fds[fd] = *fh;
 		}
 	}
 
@@ -438,8 +438,8 @@ int do_fork(void)
 	new->parent = this;
 	regs_set_retval(&new->regs, 0);
 
-	list_for_each_entry(vma, &this->process->mm.vmas, vmas) {
-		err = uvma_duplicate(new->process, this->process, vma);
+	list_for_each_entry(vma, &this->process.mm.vmas, vmas) {
+		err = uvma_duplicate(&new->process, &this->process, vma);
 		if (err)
 			goto destroy_out;
 	}
@@ -524,7 +524,7 @@ void task_handle_events(void)
 
 		if (task->wfe.timer.expiration <= timer_get_wall()) {
 			if (task->type == GRINCH_VMACHINE) {
-				vmachine_set_timer_pending(task->vmachine);
+				vmachine_set_timer_pending(&task->vmachine);
 				if (task->state == TASK_RUNNING) {
 					if (task->on_cpu != this_cpu_id()) {
 						ipi_send(task->on_cpu);
@@ -566,7 +566,7 @@ static void task_restore(void)
 
 	this_per_cpu()->stack.regs = task->regs;
 	if (task->type == GRINCH_VMACHINE)
-		arch_vmachine_restore(task->vmachine);
+		arch_vmachine_restore(&task->vmachine);
 }
 
 void task_save(struct registers *regs)
@@ -577,7 +577,7 @@ void task_save(struct registers *regs)
 	/* Save task context */
 	task->regs = *regs;
 	if (task->type == GRINCH_VMACHINE)
-		arch_vmachine_save(task->vmachine);
+		arch_vmachine_save(&task->vmachine);
 }
 
 static const char *task_type_to_string(enum task_type type)
@@ -689,7 +689,7 @@ retry:
 		tpcpu->pt_needs_update = false;
 		switch (current_task()->type) {
 			case GRINCH_PROCESS:
-				arch_process_activate(current_task()->process);
+				arch_process_activate(&current_task()->process);
 				break;
 
 			default:

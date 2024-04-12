@@ -67,13 +67,13 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr)
 		if (base + page_up(phdr->p_memsz) >= (void *)USER_STACK_BOTTOM)
 			return -EINVAL;
 
-		vma = uvma_create(task->process, base, page_up(phdr->p_memsz),
+		vma = uvma_create(&task->process, base, page_up(phdr->p_memsz),
 				  vma_flags, NULL);
 		if (IS_ERR(vma))
 			return PTR_ERR(vma);
 
 		src = (void *)ehdr + phdr->p_offset;
-		copied = copy_to_user(&task->process->mm, base, src,
+		copied = copy_to_user(&task->process.mm, base, src,
 				      phdr->p_memsz);
 		if (copied != phdr->p_memsz)
 			return -ERANGE;
@@ -82,7 +82,7 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr)
 	stack_top = (void *)USER_STACK_TOP;
 
 	vma_flags = VMA_FLAG_USER | VMA_FLAG_RW | VMA_FLAG_LAZY;
-	vma = uvma_create(task->process, (void *)USER_STACK_BOTTOM,
+	vma = uvma_create(&task->process, (void *)USER_STACK_BOTTOM,
 			  USER_STACK_SIZE, vma_flags, "[stack]");
 	if (IS_ERR(vma))
 		return PTR_ERR(vma);
@@ -112,7 +112,7 @@ void process_destroy(struct task *task)
 	struct process *process;
 	unsigned int i;
 
-	process = task->process;
+	process = &task->process;
 	for (i = 0; i < MAX_FDS; i++)
 		if (process->fds[i].fp)
 			file_close(&process->fds[i]);
@@ -121,9 +121,6 @@ void process_destroy(struct task *task)
 
 	if (process->mm.page_table)
 		kfree(process->mm.page_table);
-
-	kfree(task->process);
-	task->process = NULL;
 }
 
 struct task *process_alloc_new(void)
@@ -135,24 +132,15 @@ struct task *process_alloc_new(void)
 		return task;
 
 	task->type = GRINCH_PROCESS;
-	task->process = kzalloc(sizeof(*task->process));
-	if (!task->process)
-		goto free_out;
+	task->process.mm.page_table = kzalloc(PAGE_SIZE);
+	if (!task->process.mm.page_table) {
+		kfree(task);
+		return ERR_PTR(-ENOMEM);
+	}
 
-	task->process->mm.page_table = kzalloc(PAGE_SIZE);
-	if (!task->process->mm.page_table)
-		goto process_free_out;
-
-	INIT_LIST_HEAD(&task->process->mm.vmas);
+	INIT_LIST_HEAD(&task->process.mm.vmas);
 
 	return task;
-
-process_free_out:
-	kfree(task->process);
-
-free_out:
-	kfree(task);
-	return ERR_PTR(-ENOMEM);
 }
 
 int process_handle_fault(struct task *task, void __user *addr, bool is_write)
@@ -160,13 +148,13 @@ int process_handle_fault(struct task *task, void __user *addr, bool is_write)
 	struct vma *vma;
 	int err;
 
-	vma = uvma_find(task->process, addr);
+	vma = uvma_find(&task->process, addr);
 	if (!vma) {
 		pr_warn("PID %d: No VMA found %p\n", task->pid, addr);
 		return -ENOENT;
 	}
 
-	err = uvma_handle_fault(task->process, vma, addr);
+	err = uvma_handle_fault(&task->process, vma, addr);
 	if (err) {
 		pr_warn("PID %d: Unable to handle fault: %pe\n",
 			task->pid, ERR_PTR(err));
@@ -194,7 +182,7 @@ int sys_execve(const char __user *pathname, char *const __user argv[],
 	else if (unlikely(ret < 0))
 		return ret;
 
-	uvmas_destroy(this->process);
+	uvmas_destroy(&this->process);
 	this_per_cpu()->pt_needs_update = true;
 
 	return process_from_fs(this, buf);

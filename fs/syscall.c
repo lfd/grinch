@@ -60,7 +60,7 @@ unsigned long sys_open(const char *_path, int oflag)
 
 	task = current_task();
 	spin_lock(&task->lock);
-	process = task->process;
+	process = &task->process;
 	for (d = 0; d < MAX_FDS; d++)
 		if (process->fds[d].fp == NULL)
 			goto found;

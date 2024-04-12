@@ -90,8 +90,8 @@ struct task {
 
 	enum task_type type;
 	union {
-		struct process *process;
-		struct vmachine *vmachine;
+		struct process process;
+		struct vmachine vmachine;
 	};
 };
 
@@ -111,7 +111,7 @@ static inline struct process *current_process(void)
 	if (cur->type != GRINCH_PROCESS)
 		BUG();
 
-	return cur->process;
+	return &cur->process;
 }
 
 extern struct task *init_task;
