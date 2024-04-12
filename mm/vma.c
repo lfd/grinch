@@ -194,9 +194,8 @@ struct vma *uvma_create(struct process *p, void *base, size_t size,
 
 int uvma_duplicate(struct process *dst, struct process *src, struct vma *vma)
 {
-	void *psrc, *pdst;
+	void *base, __user *psrc;
 	struct vma *new;
-	void *base;
 	int err;
 
 	new = uvma_create(dst, vma->base, vma->size, vma->flags, vma->name);
@@ -216,11 +215,7 @@ int uvma_duplicate(struct process *dst, struct process *src, struct vma *vma)
 				return err;
 		}
 
-		pdst = user_to_direct(&dst->mm, base);
-		if (!pdst)
-			BUG();
-
-		memcpy(pdst, psrc, PAGE_SIZE);
+		copy_to_user(&dst->mm, base, psrc, PAGE_SIZE);
 	}
 
 	return 0;
