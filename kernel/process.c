@@ -67,14 +67,13 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr)
 		if (base + page_up(phdr->p_memsz) >= (void *)USER_STACK_BOTTOM)
 			return -EINVAL;
 
-		vma = uvma_create(&task->process, base, page_up(phdr->p_memsz),
+		vma = uvma_create(task, base, page_up(phdr->p_memsz),
 				  vma_flags, NULL);
 		if (IS_ERR(vma))
 			return PTR_ERR(vma);
 
 		src = (void *)ehdr + phdr->p_offset;
-		copied = copy_to_user(&task->process.mm, base, src,
-				      phdr->p_memsz);
+		copied = copy_to_user(task, base, src, phdr->p_memsz);
 		if (copied != phdr->p_memsz)
 			return -ERANGE;
 	}
@@ -82,8 +81,8 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr)
 	stack_top = (void *)USER_STACK_TOP;
 
 	vma_flags = VMA_FLAG_USER | VMA_FLAG_RW | VMA_FLAG_LAZY;
-	vma = uvma_create(&task->process, (void *)USER_STACK_BOTTOM,
-			  USER_STACK_SIZE, vma_flags, "[stack]");
+	vma = uvma_create(task, (void *)USER_STACK_BOTTOM, USER_STACK_SIZE,
+			  vma_flags, "[stack]");
 	if (IS_ERR(vma))
 		return PTR_ERR(vma);
 
@@ -154,7 +153,7 @@ int process_handle_fault(struct task *task, void __user *addr, bool is_write)
 		return -ENOENT;
 	}
 
-	err = uvma_handle_fault(&task->process, vma, addr);
+	err = uvma_handle_fault(task, vma, addr);
 	if (err) {
 		pr_warn("PID %d: Unable to handle fault: %pe\n",
 			task->pid, ERR_PTR(err));

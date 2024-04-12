@@ -24,7 +24,7 @@ static ssize_t
 sbi_write(struct file_handle *h, const char *buf, size_t count)
 {
 	unsigned int this_sz, copied, i;
-	struct process *process;
+	struct task *task;
 	size_t written;
 	char tmp[8];
 
@@ -34,11 +34,11 @@ sbi_write(struct file_handle *h, const char *buf, size_t count)
 		return written;
 	}
 
-	process = current_process();
+	task = current_task();
 	written = 0;
 	while (count) {
 		this_sz = min(count, sizeof(tmp));
-		copied = copy_from_user(&process->mm, tmp, buf, this_sz);
+		copied = copy_from_user(task, tmp, buf, this_sz);
 
 		count -= this_sz;
 		buf += this_sz;
@@ -72,7 +72,7 @@ sbi_read(struct file_handle *h, char *buf, size_t count)
 	if (h->flags.is_kernel)
 		*buf = c;
 	else
-		copy_to_user(&current_process()->mm, buf, &c, 1);
+		copy_to_user(current_task(), buf, &c, 1);
 
 	return 1;
 }

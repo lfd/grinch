@@ -17,12 +17,17 @@ struct mm;
 
 void *user_to_direct(struct mm *mm, const void *s);
 
-unsigned long umemset(struct mm *mm, void __user *s, int c, size_t n);
-unsigned long copy_to_user(struct mm *mm, void __user *d,
+/* Write to user */
+unsigned long umemset(struct task *t, void __user *dst, int c, size_t n);
+unsigned long copy_to_user(struct task *t, void __user *d,
 			   const void *s, size_t n);
-unsigned long copy_from_user(struct mm *mm, void *to, const void __user *from,
+
+/* Read from user */
+unsigned long copy_from_user(struct task *t, void *to, const void __user *from,
 			     unsigned long n);
 
+/* Only works on current_task() */
 ssize_t ustrncpy(char *dst, const char __user *src, unsigned long count);
 ssize_t ustrlen(const char __user *src);
+
 #endif

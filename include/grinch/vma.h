@@ -42,13 +42,13 @@ struct mm {
 struct process;
 
 int kvma_create(struct vma *vma);
-struct vma *uvma_create(struct process *task, void *base, size_t size,
+struct vma *uvma_create(struct task *task, void *base, size_t size,
 			unsigned int vma_flags, const char *name);
 void uvmas_destroy(struct process *task);
 
-int uvma_duplicate(struct process *dst, struct process *src, struct vma *vma);
+int uvma_duplicate(struct task *t, struct task *src, struct vma *vma);
 
 struct vma *uvma_find(struct process *p, void __user *addr);
-int uvma_handle_fault(struct process *p, struct vma *vma, void __user *addr);
+int uvma_handle_fault(struct task *t, struct vma *vma, void __user *addr);
 
 #endif /* _VMA_H */

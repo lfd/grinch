@@ -95,8 +95,7 @@ static int task_notify_wait(struct task *parent, struct task *child)
 	/* Forward status code */
 	if (wfe->status) {
 		status = (child->exit_code & 0xff) << 8;
-		copy_to_user(&parent->process.mm, wfe->status,
-			     &status, sizeof(status));
+		copy_to_user(parent, wfe->status, &status, sizeof(status));
 	}
 
 	/*
@@ -439,7 +438,7 @@ int do_fork(void)
 	regs_set_retval(&new->regs, 0);
 
 	list_for_each_entry(vma, &this->process.mm.vmas, vmas) {
-		err = uvma_duplicate(&new->process, &this->process, vma);
+		err = uvma_duplicate(new, this, vma);
 		if (err)
 			goto destroy_out;
 	}

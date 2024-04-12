@@ -44,7 +44,7 @@ static ssize_t dev_zero_read(struct file_handle *h, char *ubuf, size_t count)
 		memset(ubuf, 0, count);
 		return count;
 	} else
-		return umemset(&current_process()->mm, ubuf, 0, count);
+		return umemset(current_task(), ubuf, 0, count);
 }
 
 static ssize_t dev_null_read(struct file_handle *, char *, size_t)
@@ -171,7 +171,6 @@ void devfs_chardev_write(struct devfs_node *node, char c)
 ssize_t devfs_chardev_read(struct task *task, struct devfs_node *node,
 			   struct file_handle *h, char *buf, size_t count)
 {
-	struct process *process;
 	unsigned long copied;
 	struct ringbuf *rb;
 	unsigned int cnt;
@@ -187,8 +186,6 @@ ssize_t devfs_chardev_read(struct task *task, struct devfs_node *node,
 	if (h->flags.is_kernel)
 		BUG();
 
-	process = &task->process;
-
 	rb = &node->rb;
 	ret = 0;
 	spin_lock(&node->lock);
@@ -199,7 +196,7 @@ ssize_t devfs_chardev_read(struct task *task, struct devfs_node *node,
 		cnt = min(cnt, count);
 		ringbuf_consume(rb, cnt);
 
-		copied = copy_to_user(&process->mm, buf, src, cnt);
+		copied = copy_to_user(task, buf, src, cnt);
 
 		buf += cnt;
 		count -= cnt;

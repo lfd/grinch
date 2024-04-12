@@ -146,7 +146,7 @@ void uvmas_destroy(struct process *p)
 	}
 }
 
-struct vma *uvma_create(struct process *p, void *base, size_t size,
+struct vma *uvma_create(struct task *t, void *base, size_t size,
 		        unsigned int vma_flags, const char *name)
 {
 	struct vma *vma;
@@ -156,7 +156,7 @@ struct vma *uvma_create(struct process *p, void *base, size_t size,
 		return ERR_PTR(-ERANGE);
 
 	/* Check that the VMA won't collide with any other VMA */
-	list_for_each_entry(vma, &p->mm.vmas, vmas)
+	list_for_each_entry(vma, &t->process.mm.vmas, vmas)
 		if (vma_collides(vma, base, size))
 			return ERR_PTR(-EINVAL);
 
@@ -177,22 +177,22 @@ struct vma *uvma_create(struct process *p, void *base, size_t size,
 		vma->name = NULL;
 
 	if (!(vma->flags & VMA_FLAG_LAZY)) {
-		err = vma_alloc(p->mm.page_table, vma, PAGE_SIZE);
+		err = vma_alloc(t->process.mm.page_table, vma, PAGE_SIZE);
 		if (err) {
 			kfree(vma);
 			return ERR_PTR(err);
 		}
 
 		/* All pages that are given to the user must be zeroed */
-		umemset(&p->mm, vma->base, 0, vma->size);
+		umemset(t, vma->base, 0, vma->size);
 	}
 
-	list_add(&vma->vmas, &p->mm.vmas);
+	list_add(&vma->vmas, &t->process.mm.vmas);
 
 	return vma;
 }
 
-int uvma_duplicate(struct process *dst, struct process *src, struct vma *vma)
+int uvma_duplicate(struct task *dst, struct task *src, struct vma *vma)
 {
 	void *base, __user *psrc;
 	struct vma *new;
@@ -204,7 +204,7 @@ int uvma_duplicate(struct process *dst, struct process *src, struct vma *vma)
 
 	for (base = vma->base; base < vma->base + vma->size;
 	     base += PAGE_SIZE) {
-		psrc = user_to_direct(&src->mm, base);
+		psrc = user_to_direct(&src->process.mm, base);
 		/* Skip non-allocated pages */
 		if (!psrc)
 			continue;
@@ -215,7 +215,7 @@ int uvma_duplicate(struct process *dst, struct process *src, struct vma *vma)
 				return err;
 		}
 
-		copy_to_user(&dst->mm, base, psrc, PAGE_SIZE);
+		copy_to_user(dst, base, psrc, PAGE_SIZE);
 	}
 
 	return 0;
@@ -232,7 +232,7 @@ struct vma *uvma_find(struct process *p, void __user *base)
 	return NULL;
 }
 
-int uvma_handle_fault(struct process *p, struct vma *vma, void __user *addr)
+int uvma_handle_fault(struct task *t, struct vma *vma, void __user *addr)
 {
 	void *base;
 	int err;
@@ -241,12 +241,12 @@ int uvma_handle_fault(struct process *p, struct vma *vma, void __user *addr)
 		BUG();
 
 	base = PTR_PAGE_ALIGN_DOWN(addr);
-	err = vma_alloc_range(p->mm.page_table, vma, base,
+	err = vma_alloc_range(t->process.mm.page_table, vma, base,
 			      PAGE_SIZE, PAGE_SIZE);
 	if (err)
 		return err;
 
-	umemset(&p->mm, base, 0, PAGE_SIZE);
+	umemset(t, base, 0, PAGE_SIZE);
 
 	return 0;
 }

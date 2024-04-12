@@ -185,7 +185,7 @@ static ssize_t initrd_read(struct file_handle *handle, char *buf, size_t count)
 		memcpy(buf, src, sz);
 		copied = sz;
 	} else {
-		copied = copy_to_user(&current_process()->mm, buf, src, sz);
+		copied = copy_to_user(current_task(), buf, src, sz);
 	}
 
 	*off += copied;

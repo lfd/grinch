@@ -36,7 +36,7 @@ void *user_to_direct(struct mm *mm, const void *s)
 	return p2v(pa);
 }
 
-unsigned long umemset(struct mm *mm, void *s, int c, size_t n)
+unsigned long umemset(struct task *t, void *dst, int c, size_t n)
 {
 	unsigned int remaining;
 	unsigned long ret;
@@ -45,7 +45,7 @@ unsigned long umemset(struct mm *mm, void *s, int c, size_t n)
 
 	ret = 0;
 	while (n) {
-		direct = user_to_direct(mm, s);
+		direct = user_to_direct(&t->process.mm, dst);
 		if (!direct)
 			break;
 
@@ -60,13 +60,13 @@ unsigned long umemset(struct mm *mm, void *s, int c, size_t n)
 
 		ret += written;
 		n -= written;
-		s += written;
+		dst += written;
 	}
 
 	return ret;
 }
 
-unsigned long copy_from_user(struct mm *mm, void *to, const void *from,
+unsigned long copy_from_user(struct task *t, void *to, const void *from,
 			     unsigned long n)
 {
 	unsigned int remaining;
@@ -76,7 +76,7 @@ unsigned long copy_from_user(struct mm *mm, void *to, const void *from,
 
 	sum = 0;
 	while (n) {
-		direct = user_to_direct(mm, from);
+		direct = user_to_direct(&t->process.mm, from);
 		if (!direct)
 			break;
 
@@ -98,7 +98,7 @@ unsigned long copy_from_user(struct mm *mm, void *to, const void *from,
 	return sum;
 }
 
-unsigned long copy_to_user(struct mm *mm, void *d, const void *s, size_t n)
+unsigned long copy_to_user(struct task *t, void *d, const void *s, size_t n)
 {
 	unsigned int remaining;
 	unsigned long copied;
@@ -107,7 +107,7 @@ unsigned long copy_to_user(struct mm *mm, void *d, const void *s, size_t n)
 
 	copied = 0;
 	while (n) {
-		direct = user_to_direct(mm, d);
+		direct = user_to_direct(&t->process.mm, d);
 		if (!direct)
 			return copied;
 

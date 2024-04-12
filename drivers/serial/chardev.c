@@ -39,9 +39,9 @@ static ssize_t
 serial_write(struct file_handle *h, const char *buf, size_t count)
 {
 	unsigned int this_sz, copied, i;
-	struct process *process;
 	struct uart_chip *c;
 	struct device *dev;
+	struct task *task;
 	struct file *fp;
 	size_t written;
 	char tmp[8];
@@ -57,11 +57,11 @@ serial_write(struct file_handle *h, const char *buf, size_t count)
 		return written;
 	}
 
-	process = current_process();
+	task = current_task();
 	written = 0;
 	while (count) {
 		this_sz = min(count, sizeof(tmp));
-		copied = copy_from_user(&process->mm, tmp, buf, this_sz);
+		copied = copy_from_user(task, tmp, buf, this_sz);
 
 		count -= this_sz;
 		buf += this_sz;
