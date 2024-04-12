@@ -36,6 +36,23 @@ void *user_to_direct(struct mm *mm, const void *s)
 	return p2v(pa);
 }
 
+static void *user_to_direct_fault(struct task *t, void __user *s)
+{
+	void *ret;
+	int err;
+
+	ret = user_to_direct(&t->process.mm, s);
+	if (!ret) {
+		err = process_handle_fault(t, s, true);
+		if (err)
+			return NULL;
+
+		ret = user_to_direct(&t->process.mm, s);
+	}
+
+	return ret;
+}
+
 unsigned long umemset(struct task *t, void *dst, int c, size_t n)
 {
 	unsigned int remaining;
@@ -45,7 +62,7 @@ unsigned long umemset(struct task *t, void *dst, int c, size_t n)
 
 	ret = 0;
 	while (n) {
-		direct = user_to_direct(&t->process.mm, dst);
+		direct = user_to_direct_fault(t, dst);
 		if (!direct)
 			break;
 
@@ -107,7 +124,7 @@ unsigned long copy_to_user(struct task *t, void *d, const void *s, size_t n)
 
 	copied = 0;
 	while (n) {
-		direct = user_to_direct(&t->process.mm, d);
+		direct = user_to_direct_fault(t, d);
 		if (!direct)
 			return copied;
 
