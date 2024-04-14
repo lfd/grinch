@@ -26,6 +26,12 @@ unsigned long copy_to_user(struct task *t, void __user *d,
 unsigned long copy_from_user(struct task *t, void *to, const void __user *from,
 			     unsigned long n);
 
+/** Utilities **/
+
+/* copies sizeof(void *) bytes behind *user from userspace to kernel space */
+int uptr_from_user(struct task *t, void *dst, const void __user *user);
+int uptr_to_user(struct task *t, void __user *dst, void *ptr);
+
 /* Only works on current_task() */
 ssize_t ustrncpy(char *dst, const char __user *src, unsigned long count);
 ssize_t ustrlen(const char __user *src);

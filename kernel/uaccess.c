@@ -12,6 +12,7 @@
 
 #define dbg_fmt(x)	"uaccess: " x
 
+#include <grinch/align.h>
 #include <grinch/gfp.h>
 #include <grinch/panic.h>
 #include <grinch/paging.h>
@@ -144,6 +145,34 @@ unsigned long copy_to_user(struct task *t, void *d, const void *s, size_t n)
 	}
 
 	return copied;
+}
+
+int uptr_from_user(struct task *t, void *dst, const void __user *user)
+{
+	unsigned long copied;
+
+	if (!PTR_IS_ALIGNED(user, sizeof(user)))
+		return -EINVAL;
+
+	copied = copy_from_user(t, dst, user, sizeof(dst));
+	if (copied != sizeof(dst))
+		return -EINVAL;
+
+	return 0;
+}
+
+int uptr_to_user(struct task *t, void __user *dst, void *ptr)
+{
+	unsigned long copied;
+
+	if (!PTR_IS_ALIGNED(dst, sizeof(dst)))
+			return -EINVAL;
+
+	copied = copy_to_user(t, dst, &ptr, sizeof(ptr));
+	if (copied != sizeof(dst))
+		return -EINVAL;
+
+	return 0;
 }
 
 /*
