@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -10,22 +10,21 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <sched.h>
 #include <stdio.h>
-#include <unistd.h>
 
-int main(void);
+int main(int argc, char **argv);
 
-APP_NAME(hello);
+APP_NAME(echo);
 
-int main(void)
+int main(int argc, char **argv)
 {
-	unsigned int pid = getpid();
+	int arg;
 
-	for (;;) {
-		puts("Hello, world!\n");
-		//sched_yield();
-		sleep(pid % 1000);
+	printf_set_prefix(false);
+	for (arg = 1; arg < argc; arg++) {
+		printf("%s%c", argv[arg], argv[arg + 1] ? ' ' : '\0');
 	}
+	printf("\n");
+
 	return 0;
 }

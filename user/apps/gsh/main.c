@@ -182,6 +182,8 @@ static int parse_command(int argc, char *argv[])
 		err = start("/initrd/jittertest.echse", argv);
 	} else if (!strcmp(cmd, "test")) {
 		err = start("/initrd/test.echse", argv);
+	} else if (!strcmp(cmd, "echo")) {
+		err = start("/initrd/echo.echse", argv);
 	} else
 		err = -ENOENT;
 
