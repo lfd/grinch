@@ -205,16 +205,12 @@ struct fs_flags get_flags(int oflag)
 
 void *vfs_read_file(const char *pathname, size_t *len)
 {
-	struct file_handle handle;
+	struct file_handle handle = { 0 };
 	struct stat st;
 	ssize_t err;
 	void *ret;
 
-	handle.flags.may_read = true;
-	handle.flags.may_write = false;
 	handle.flags.is_kernel = true;
-	handle.position = 0;
-
 	handle.fp = file_open(pathname, handle.flags);
 	if (IS_ERR(handle.fp))
 		return handle.fp;
