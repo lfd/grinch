@@ -38,14 +38,15 @@ UC = $(shell echo '$1' | tr '[:lower:]' '[:upper:]')
 
 define define_app
 clean_$(1):
-	$(RMRF) user/apps/$(1)/*.{o,a,echse}
+	$(RMRF) user/apps/$(1)/*.{o,a}
 
 user/apps/$(1)/built-in.a: $(LIBC_BUILTIN) $($(call UC,$(1))_OBJS)
 
 user/apps/$(1)/$(1)_linked.o: user/apps/$(1)/built-in.a
 	$(call ld_user,$$@,$$^)
 
-user/apps/$(1)/$(1).echse: user/user.ld user/apps/$(1)/$(1)_linked.o
+user/apps/build/$(1): user/user.ld user/apps/$(1)/$(1)_linked.o
+	$(VERBOSE) mkdir -p user/apps/build
 	$(call ld_app_user,$$@,$$^)
 endef
 
@@ -58,13 +59,14 @@ clean_user: $(patsubst %,clean_%,$(APPS))
 	$(RMRF) user/lib/$(ARCH)/*.{o,a}
 	$(RMRF) user/initrd.cpio
 	$(RMRF) user/dts/*.dts user/dts/*.dtb
+	$(RMRF) user/apps/build
 
-define echse_of
-	user/apps/$(1)/$(1).echse
+define app_of
+	user/apps/build/$(1)
 endef
 
-APP_ECHSES=$(foreach app,$(APPS),$(call echse_of,$(app)))
+USER_APPS=$(foreach app,$(APPS),$(call app_of,$(app)))
 
-user/initrd.cpio: $(APP_ECHSES) res/test.txt kernel.bin user/dts/freechips,lfd-rocket.dtb user/dts/riscv-virtio,qemu.dtb
+user/initrd.cpio: $(USER_APPS) res/test.txt kernel.bin user/dts/freechips,lfd-rocket.dtb user/dts/riscv-virtio,qemu.dtb
 	$(QUIET) "[CPIO]  $@"
 	$(VERBOSE) ./scripts/create_cpio $@ $^

@@ -218,7 +218,7 @@ static int test_fork(void)
 	for (i = 0; i < NO_FORKS; i++) {
 		child = fork();
 		if (child == 0) {
-			err = execve("/initrd/true.echse", NULL, NULL);
+			err = execve("/initrd/true", NULL, NULL);
 			perror("execve");
 			failed = true;
 			break;

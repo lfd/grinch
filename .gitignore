@@ -1,5 +1,4 @@
 *.bin
-*.echse
 *.elf
 *.a
 *.o
@@ -17,6 +16,7 @@ user/initrd.cpio
 .gdbinit
 .gdb_history
 
+user/apps/build/
 user/dts/*.dts
 qemu.dts
 

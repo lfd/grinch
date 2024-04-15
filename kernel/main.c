@@ -91,7 +91,7 @@ static int __init init(void)
 	if (IS_ERR(task))
 		return PTR_ERR(task);
 
-	err = process_from_fs(task, ISTR("/initrd/init.echse"), NULL, NULL);
+	err = process_from_fs(task, ISTR("/initrd/init"), NULL, NULL);
 	if (err) {
 		task_exit(task, err);
 		task_destroy(task);

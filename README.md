@@ -6,9 +6,9 @@ Introduction
 
 Grinch is a minimalist operating systems, mainly developed for educational and
 testing purposes. Grinch is designed to run on RISC-V platforms. It is able to
-run userspace processes (called ECHSE, Elf grinCH Static Executable), and
-virtual machines. Userland applications shall have basic POSIX support.
-Therefore, grinch comes with its own minimalist libc implementation.
+run userspace processes (ELF format), and virtual machines. Userland
+applications shall have basic POSIX support. Therefore, grinch comes with its
+own minimalist libc implementation.
 
 Don't expect anything to work.
 

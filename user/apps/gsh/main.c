@@ -179,11 +179,11 @@ static int parse_command(int argc, char *argv[])
 	}
 
 	if (!strcmp(cmd, "jittertest")) {
-		err = start("/initrd/jittertest.echse", argv);
+		err = start("/initrd/jittertest", argv);
 	} else if (!strcmp(cmd, "test")) {
-		err = start("/initrd/test.echse", argv);
+		err = start("/initrd/test", argv);
 	} else if (!strcmp(cmd, "echo")) {
-		err = start("/initrd/echo.echse", argv);
+		err = start("/initrd/echo", argv);
 	} else
 		err = -ENOENT;
 
