@@ -117,9 +117,6 @@ struct file *file_open(const char *path, struct fs_flags flags)
 {
 	struct file *filep;
 
-	if (!flags.may_read && !flags.may_write)
-		return ERR_PTR(-EINVAL);
-
 	spin_lock(&files_lock);
 	filep = search_file(path, flags);
 	if (filep != ERR_PTR(-ENOENT))

@@ -232,9 +232,6 @@ static int initrd_open(const struct file_system *fs, struct file *filep, const c
 	if (flags.may_write)
 		return -EPERM;
 
-	if (!flags.may_read)
-		return -EINVAL;
-
 	filep->fops = &initrd_fops;
 	filep->drvdata = kmalloc(sizeof(struct cpio_header));
 	if (!filep->drvdata)
