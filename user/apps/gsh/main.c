@@ -17,6 +17,7 @@
 #include <grinch/grinch.h>
 #include <grinch/types.h>
 #include <grinch/vm.h>
+#include <grinch/vsprintf.h>
 
 #include <sys/wait.h>
 
@@ -166,6 +167,7 @@ static int parse_command(int argc, char *argv[])
 	const struct gsh_builtin *builtin;
 	const char *cmd;
 	unsigned int i;
+	char buf[64];
 	int err;
 
 	cmd = argv[0];
@@ -178,14 +180,8 @@ static int parse_command(int argc, char *argv[])
 		return err;
 	}
 
-	if (!strcmp(cmd, "jittertest")) {
-		err = start("/initrd/jittertest", argv);
-	} else if (!strcmp(cmd, "test")) {
-		err = start("/initrd/test", argv);
-	} else if (!strcmp(cmd, "echo")) {
-		err = start("/initrd/echo", argv);
-	} else
-		err = -ENOENT;
+	snprintf(buf, sizeof(buf), "/initrd/%s", cmd);
+	err = start(buf, argv);
 
 	return err;
 }
