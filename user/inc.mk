@@ -1,4 +1,11 @@
-APPS=cat echo gsh init jittertest test true
+APPS = cat
+APPS += echo
+APPS += gsh
+APPS += init
+APPS += jittertest
+APPS += ls
+APPS += test
+APPS += true
 
 INCLUDES_USER = -Iuser/include -Icommon/include -Iuser/lib/$(ARCH)/include
 CFLAGS_USER = $(CFLAGS_COMMON) $(CFLAGS_ARCH) $(CFLAGS_STANDALONE) $(INCLUDES_USER)
