@@ -161,3 +161,8 @@ unsigned long sys_write(int fd, const char __user *buf, size_t count)
 
 	return file->fops->write(handle, buf, count);
 }
+
+int sys_stat(const char __user *_pathname, struct stat __user *_st)
+{
+	return -ENOSYS;
+}

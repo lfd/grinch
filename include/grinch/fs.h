@@ -14,15 +14,12 @@
 #define _FS_H
 
 #include <grinch/types.h>
+#include <grinch/stat.h>
 
 #define MAX_PATHLEN	64
 
 struct file;
 struct file_system;
-
-struct stat {
-	loff_t size;
-};
 
 struct fs_flags {
 	unsigned char may_read:1;

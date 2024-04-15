@@ -5,7 +5,7 @@ CFLAGS_USER = $(CFLAGS_COMMON) $(CFLAGS_ARCH) $(CFLAGS_STANDALONE) $(INCLUDES_US
 LDFLAGS_USER = $(LDFLAGS_COMMON) $(LDFLAGS_ARCH)
 
 LIBC_OBJS = user/lib/ctype.o user/lib/errno.o user/lib/fcntl.o user/lib/grinch.o
-LIBC_OBJS += user/lib/stdio.o user/lib/sched.o user/lib/string.o
+LIBC_OBJS += user/lib/stdio.o user/lib/sched.o user/lib/stat.o user/lib/string.o
 LIBC_OBJS += user/lib/unistd.o user/lib/vsprintf.o user/lib/wait.o
 LIBC_OBJS += user/lib/$(ARCH)/entry.o
 

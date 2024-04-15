@@ -233,13 +233,13 @@ void *vfs_read_file(const char *pathname, size_t *len)
 		goto close_out;
 	}
 
-	ret = kmalloc(st.size);
+	ret = kmalloc(st.st_size);
 	if (!ret) {
 		ret = ERR_PTR(-ENOMEM);
 		goto close_out;
 	}
 
-	err = handle.fp->fops->read(&handle, ret, st.size);
+	err = handle.fp->fops->read(&handle, ret, st.st_size);
 	if (err < 0) {
 		kfree(ret);
 		ret = ERR_PTR(err);

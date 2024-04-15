@@ -30,6 +30,7 @@
 struct cpio_header {
 	unsigned int name_len;
 	unsigned int body_len;
+	unsigned short mode;
 	const char *name;
 	const char *body;
 	const void *next_header;
@@ -56,6 +57,7 @@ static int parse_cpio_header(const char *s, struct cpio_header *hdr)
 
 	s += 8;
 
+	hdr->mode = parsed[1];
 	hdr->body_len = parsed[6];
 	hdr->name_len = parsed[11];
 	hdr->name = s;
@@ -173,6 +175,10 @@ static ssize_t initrd_read(struct file_handle *handle, char *buf, size_t count)
 	fp = handle->fp;
 	off = &handle->position;
 	hdr = fp->drvdata;
+
+	if (!S_ISREG(hdr->mode))
+		return -EBADF;
+
 	if (*off >= hdr->body_len)
 		return 0;
 
@@ -206,7 +212,8 @@ static int initrd_stat(struct file *fp, struct stat *st)
 	struct cpio_header *hdr;
 
 	hdr = fp->drvdata;
-	st->size = hdr->body_len;
+	st->st_size = hdr->body_len;
+	st->st_mode = hdr->mode;
 
 	return 0;
 }

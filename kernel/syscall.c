@@ -56,6 +56,10 @@ int syscall(unsigned long no, unsigned long arg1,
 			ret = sys_close(arg1);
 			break;
 
+		case SYS_stat:
+			ret = sys_stat((const char *)arg1, (struct stat *)arg2);
+			break;
+
 		case SYS_write:
 			ret = sys_write(arg1, (const char *)arg2, arg3);
 			break;
@@ -80,7 +84,8 @@ int syscall(unsigned long no, unsigned long arg1,
 			break;
 
 		case SYS_execve:
-			ret = sys_execve((void *)arg1, (void *)arg2, (void *)arg3);
+			ret = sys_execve((void *)arg1, (void *)arg2,
+					 (void *)arg3);
 			if (ret) {
 				pr("execve failed on task %u: %pe\n",
 				   cur->pid, ERR_PTR(ret));
