@@ -29,6 +29,17 @@
 
 static LIST_HEAD(open_files);
 static DEFINE_SPINLOCK(files_lock);
+static LIST_HEAD(mountpoints);
+
+struct mountpoint {
+	struct {
+		char *name;
+		unsigned int len;
+	} path;
+	const struct file_system *fs;
+
+	struct list_head mountpoints;
+};
 
 struct files {
 	struct list_head files;
@@ -69,26 +80,53 @@ static struct file *search_file(const char *path, struct fs_flags flags)
 	return ERR_PTR(-ENOENT);
 }
 
+static const struct mountpoint *
+find_mountpoint(const char *pathname, const char **_fsname)
+{
+	struct mountpoint *mp, *cand;
+	const char *fsname;
+
+	mp = NULL;
+	list_for_each_entry(cand, &mountpoints, mountpoints) {
+		if (strncmp(cand->path.name, pathname, cand->path.len))
+			continue;
+
+		if (!mp) {
+			mp = cand;
+			continue;
+		}
+
+		if (cand->path.len > mp->path.len)
+			mp = cand;
+	}
+
+	if (!mp)
+		return NULL;
+
+	if (_fsname) {
+		fsname = pathname + mp->path.len;
+		if (*fsname == '/')
+			fsname++;
+		*_fsname = fsname;
+	}
+
+	return mp;
+}
+
 /* must hold files_lock */
 static struct file *_file_open(const char *pathname, struct fs_flags flags)
 {
 	const struct file_system *fs;
+	const struct mountpoint *mp;
 	struct files *files;
 	const char *fsname;
 	int err;
 
-	fsname = pathname;
-	fs = NULL;
-	if (!strncmp(pathname, DEVFS_MOUNTPOINT, DEVFS_MOUNTPOINT_LEN)) {
-		fs = &devfs;
-		fsname += 5;
-	} else if (!strncmp(fsname, "/initrd/", 8)) {
-		fs = &initrdfs;
-		fsname += 8;
-	}
-
-	if (!fs)
+	mp = find_mountpoint(pathname, &fsname);
+	if (!mp)
 		return ERR_PTR(-ENOENT);
+
+	fs = mp->fs;
 
 	files = kzalloc(sizeof(*files));
 	if (!files)
@@ -246,6 +284,31 @@ close_out:
 	return ret;
 }
 
+static int __init vfs_mount(const char *path, const struct file_system *fs)
+{
+	struct mountpoint *mp;
+	int err;
+
+	mp = kzalloc(sizeof(*mp));
+	if (!mp)
+		return -ENOMEM;
+
+	mp->path.name = kstrdup(path);
+	if (!mp->path.name) {
+		err = -ENOMEM;
+		goto free_out;
+	}
+	mp->path.len = strlen(mp->path.name);
+	mp->fs = fs;
+
+	list_add(&mp->mountpoints, &mountpoints);
+	return 0;
+
+free_out:
+	kfree(mp);
+	return err;
+}
+
 int __init vfs_init(void)
 {
 	int err;
@@ -256,7 +319,15 @@ int __init vfs_init(void)
 	else if (err)
 		return err;
 
+	err = vfs_mount("/initrd", &initrdfs);
+	if (err)
+		return err;
+
 	err = devfs_init();
+	if (err)
+		return err;
+
+	err = vfs_mount(DEVFS_MOUNTPOINT, &devfs);
 	if (err)
 		return err;
 
