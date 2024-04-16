@@ -176,9 +176,8 @@ int check_path(const char *path)
 
 struct fs_flags get_flags(int oflag)
 {
-	struct fs_flags ret;
+	struct fs_flags ret = { 0 };
 
-	ret.is_kernel = false;
 	switch (oflag & O_ACCMODE) {
 		case O_RDONLY:
 			ret.may_read = true;
