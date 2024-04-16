@@ -19,6 +19,7 @@
 #include <grinch/alloc.h>
 #include <grinch/errno.h>
 #include <grinch/fs/devfs.h>
+#include <grinch/fs/util.h>
 #include <grinch/kstr.h>
 #include <grinch/minmax.h>
 #include <grinch/percpu.h>
@@ -62,24 +63,94 @@ static const struct file_operations dev_null_fops = {
 	.write = dev_zero_write,
 };
 
+static int
+devfs_getdents(struct file_handle *handle, struct grinch_dirent *udents,
+	       unsigned int size)
+{
+	struct grinch_dirent dent;
+	struct devfs_node *node;
+	loff_t i;
+	int err;
+
+	spin_lock(&devfs_lock);
+
+	i = 0;
+	err = 0;
+	list_for_each_entry(node, &devfs_nodes, nodes) {
+		if (i == handle->position)
+			goto found;
+		i++;
+	}
+
+	goto unlock_out;
+
+found:
+	i++;
+	switch (node->type) {
+		case DEVFS_REGULAR:
+		case DEVFS_CHARDEV:
+			dent.type = DT_REG;
+			break;
+
+		case DEVFS_SYMLINK:
+			dent.type = DT_LNK;
+			break;
+
+		default:
+			dent.type = DT_UNKNOWN;
+			break;
+	}
+
+	err = copy_dirent(udents, handle->flags.is_kernel, &dent, node->name,
+			  size);
+	if (err)
+		goto unlock_out;
+
+	handle->position = i;
+	err = 1;
+
+unlock_out:
+	spin_unlock(&devfs_lock);
+	return err;
+}
+
+static const struct file_operations devfs_root_fops = {
+	.getdents = devfs_getdents,
+};
+
+static struct devfs_node *devfs_find_node(const char *name)
+{
+	struct devfs_node *node;
+
+	list_for_each_entry(node, &devfs_nodes, nodes)
+		if (!strcmp(node->name, name))
+			return node;
+
+	return NULL;
+}
+
 static int devfs_open(const struct file_system *fs, struct file *filep,
 		      const char *path, struct fs_flags flags)
 {
 	struct devfs_node *node;
 	int err;
 
+	if (*path == '\0') {
+		filep->fops = &devfs_root_fops;
+		filep->drvdata = NULL;
+		return 0;
+	}
+
 	if (flags.must_directory)
 		return -ENOENT;
 
 	spin_lock(&devfs_lock);
+	node = devfs_find_node(path);
+	if (!node) {
+		err = -ENOENT;
+		goto unlock_out;
+	}
 
-	list_for_each_entry(node, &devfs_nodes, nodes)
-		if (!strcmp(node->name, path))
-			goto found;
-	err = -ENOENT;
-	goto unlock_out;
-
-found:
 	if (node->type == DEVFS_SYMLINK)
 		node = node->drvdata;
 
@@ -276,8 +347,49 @@ unlock_out:
 	return err;
 }
 
+static int
+devfs_stat(const struct file_system *fs, const char *pathname, struct stat *st)
+{
+	struct devfs_node *node;
+	int err;
+
+	if (*pathname == '\0') {
+		st->st_mode = S_IFDIR;
+		return 0;
+	}
+
+	spin_lock(&devfs_lock);
+	node = devfs_find_node(pathname);
+	if (!node) {
+		err = -ENOENT;
+		goto unlock_out;
+	}
+
+	st->st_size = PAGE_SIZE;
+	switch (node->type) {
+		case DEVFS_REGULAR:
+		case DEVFS_CHARDEV:
+			st->st_mode = S_IFCHR;
+			break;
+
+		case DEVFS_SYMLINK:
+			st->st_mode = S_IFLNK;
+			break;
+
+		default:
+			st->st_mode = S_IFREG;
+			break;
+	}
+	err = 0;
+
+unlock_out:
+	spin_unlock(&devfs_lock);
+	return err;
+}
+
 static const struct file_system_operations fs_ops_devfs = {
 	.open_file = devfs_open,
+	.stat = devfs_stat,
 };
 
 /* This is the /dev "mount point" */
