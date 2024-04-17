@@ -19,7 +19,6 @@
 #include <grinch/driver.h>
 #include <grinch/errno.h>
 #include <grinch/fdt.h>
-#include <grinch/fs.h>
 #include <grinch/init.h>
 #include <grinch/printk.h>
 #include <grinch/ringbuf.h>

@@ -11,8 +11,8 @@
  */
 
 #include <grinch/driver.h>
-#include <grinch/devfs.h>
 #include <grinch/errno.h>
+#include <grinch/fs/devfs.h>
 #include <grinch/init.h>
 #include <grinch/minmax.h>
 #include <grinch/uaccess.h>

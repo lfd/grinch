@@ -10,8 +10,8 @@
  * the COPYING file in the top-level directory.
  */
 
-#ifndef _FS_H
-#define _FS_H
+#ifndef _FS_FS_H
+#define _FS_FS_H
 
 #include <grinch/types.h>
 #include <grinch/stat.h>
@@ -65,4 +65,4 @@ void file_close(struct file_handle *handle);
 
 void file_get(struct file *file);
 
-#endif /* _FS_H */
+#endif /* _FS_FS_H */

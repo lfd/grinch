@@ -17,8 +17,8 @@
 #include <asm/spinlock.h>
 
 #include <grinch/alloc.h>
-#include <grinch/devfs.h>
 #include <grinch/errno.h>
+#include <grinch/fs/devfs.h>
 #include <grinch/kstr.h>
 #include <grinch/minmax.h>
 #include <grinch/percpu.h>

@@ -13,7 +13,6 @@
 #define dbg_fmt(x)	"fs-syscall: " x
 
 #include <grinch/errno.h>
-#include <grinch/fs.h>
 #include <grinch/syscall.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>

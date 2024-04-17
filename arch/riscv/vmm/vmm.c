@@ -17,13 +17,13 @@
 
 #include <grinch/alloc.h>
 #include <grinch/gfp.h>
-#include <grinch/initrd.h>
+#include <grinch/fs/initrd.h>
+#include <grinch/fs/vfs.h>
 #include <grinch/panic.h>
 #include <grinch/paging.h>
 #include <grinch/printk.h>
 #include <grinch/platform.h>
 #include <grinch/task.h>
-#include <grinch/vfs.h>
 #include <grinch/vsprintf.h>
 
 #include <grinch/arch/vmm.h>

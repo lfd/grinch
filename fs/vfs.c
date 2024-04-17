@@ -18,15 +18,14 @@
 #include <string.h>
 
 #include <grinch/alloc.h>
-#include <grinch/devfs.h>
+#include <grinch/fs/devfs.h>
+#include <grinch/fs/initrd.h>
+#include <grinch/fs/vfs.h>
 #include <grinch/errno.h>
-#include <grinch/fs.h>
-#include <grinch/initrd.h>
 #include <grinch/list.h>
 #include <grinch/kstr.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
-#include <grinch/vfs.h>
 
 static LIST_HEAD(open_files);
 static DEFINE_SPINLOCK(files_lock);

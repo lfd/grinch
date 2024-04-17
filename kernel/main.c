@@ -20,9 +20,10 @@
 #include <grinch/boot.h>
 #include <grinch/bootparam.h>
 #include <grinch/console.h>
-#include <grinch/devfs.h>
 #include <grinch/driver.h>
 #include <grinch/fdt.h>
+#include <grinch/fs/devfs.h>
+#include <grinch/fs/vfs.h>
 #include <grinch/gfp.h>
 #include <grinch/memtest.h>
 #include <grinch/paging.h>
@@ -32,7 +33,6 @@
 #include <grinch/smp.h>
 #include <grinch/task.h>
 #include <grinch/version.h>
-#include <grinch/vfs.h>
 
 static const char __initconst logo[] =
 "\n\n"

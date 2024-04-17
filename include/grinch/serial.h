@@ -16,7 +16,7 @@
 #include <asm/cpu.h>
 #include <asm/spinlock.h>
 
-#include <grinch/devfs.h>
+#include <grinch/fs/devfs.h>
 #include <grinch/types.h>
 
 struct uart_chip;

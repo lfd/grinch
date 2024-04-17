@@ -14,7 +14,6 @@
 
 #include <asm/cpu.h>
 #include <grinch/alloc.h>
-#include <grinch/devfs.h>
 #include <grinch/errno.h>
 #include <grinch/fdt.h>
 #include <grinch/ioremap.h>
@@ -24,8 +23,6 @@
 #include <grinch/printk.h>
 #include <grinch/serial.h>
 #include <grinch/vsprintf.h>
-
-#include <grinch/fs.h>
 
 static unsigned int uart_no;
 

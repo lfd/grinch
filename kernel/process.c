@@ -16,13 +16,12 @@
 #include <grinch/alloc.h>
 #include <grinch/elf.h>
 #include <grinch/errno.h>
-#include <grinch/fs.h>
+#include <grinch/fs/vfs.h>
 #include <grinch/printk.h>
 #include <grinch/task.h>
 #include <grinch/uaccess.h>
 #include <grinch/percpu.h>
 #include <grinch/syscall.h>
-#include <grinch/vfs.h>
 
 #ifdef ARCH_RISCV
 #define ELF_ARCH EM_RISCV

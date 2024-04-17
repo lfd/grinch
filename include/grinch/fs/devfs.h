@@ -10,10 +10,9 @@
  * the COPYING file in the top-level directory.
  */
 
-#ifndef _DEVFS_H
-#define _DEVFS_H
+#ifndef _FS_DEVFS_H
+#define _FS_DEVFS_H
 
-#include <grinch/fs.h>
 #include <grinch/init.h>
 #include <grinch/list.h>
 #include <grinch/ringbuf.h>
@@ -69,4 +68,4 @@ void devfs_chardev_write(struct devfs_node *node, char c);
 ssize_t devfs_chardev_read(struct task *task, struct devfs_node *node,
 			   struct file_handle *h, char *buf, size_t count);
 
-#endif /* _DEVFS_H */
+#endif /* _FS_DEVFS_H */

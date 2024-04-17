@@ -10,8 +10,8 @@
  * the COPYING file in the top-level directory.
  */
 
-#ifndef _INITRD_H
-#define _INITRD_H
+#ifndef _FS_INITRD_H
+#define _FS_INITRD_H
 
 struct initrd {
 	paddr_t pstart;
@@ -26,4 +26,4 @@ int initrd_init(void);
 /* /initrd mountpoint */
 extern const struct file_system initrdfs;
 
-#endif /* _INITRD_H */
+#endif /* _FS_INITRD_H */

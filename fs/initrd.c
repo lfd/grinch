@@ -14,9 +14,8 @@
 
 #include <grinch/alloc.h>
 #include <grinch/fdt.h>
-#include <grinch/fs.h>
+#include <grinch/fs/initrd.h>
 #include <grinch/gfp.h>
-#include <grinch/initrd.h>
 #include <grinch/minmax.h>
 #include <grinch/printk.h>
 #include <grinch/task.h>
