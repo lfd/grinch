@@ -156,6 +156,9 @@ struct file *file_open(const char *_path, struct fs_flags flags)
 	struct file *filep;
 	char *path;
 
+	if (flags.create)
+		return ERR_PTR(-ENOSYS);
+
 	path = kstrdup(_path);
 	if (!path)
 		return ERR_PTR(-ENOMEM);
@@ -224,6 +227,9 @@ struct fs_flags get_flags(int oflag)
 
 	if (oflag & O_NONBLOCK)
 		ret.nonblock = true;
+
+	if (oflag & O_CREAT)
+		ret.create = true;
 
 	return ret;
 }

@@ -28,6 +28,7 @@ struct fs_flags {
 	unsigned char nonblock:1;
 	unsigned char is_kernel:1;
 	unsigned char must_directory:1;
+	unsigned char create:1;
 };
 
 struct file_handle {
