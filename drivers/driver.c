@@ -54,7 +54,7 @@ static int __init drivers_probe(enum driver_prio prio)
 	const struct driver *drv;
 	struct device *dev;
 	int err, off, sub;
-	char path[32];
+	char path[64];
 
 	off = fdt_path_offset(_fdt, ISTR("/soc"));
 	if (off <= 0)
@@ -78,7 +78,8 @@ static int __init drivers_probe(enum driver_prio prio)
 			/* We have a match */
 			err = fdt_get_path(_fdt, sub, path, sizeof(path));
 			if (err) {
-				pri("Error getting path name\n");
+				pri("%s: Error getting path name: %d\n",
+				    drv->name, err);
 				continue;
 			}
 
