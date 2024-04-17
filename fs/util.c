@@ -14,6 +14,11 @@
 
 #include <grinch/fs/util.h>
 
+#include <grinch/errno.h>
+#include <grinch/task.h>
+#include <grinch/fs/util.h>
+#include <grinch/uaccess.h>
+
 bool pathname_sanitise_dir(char *pathname)
 {
 	size_t len;
@@ -25,4 +30,32 @@ bool pathname_sanitise_dir(char *pathname)
 	}
 
 	return false;
+}
+
+int copy_dirent(struct grinch_dirent __mayuser *udent, bool is_kernel,
+		struct grinch_dirent *src, const char *name,
+		unsigned int size)
+{
+	unsigned long copied;
+	struct task *task;
+	size_t nlen;
+
+	nlen = strlen(name) + 1;
+	if (size < nlen + sizeof(*src))
+		return -EINVAL;
+
+	if (is_kernel) {
+		memcpy(udent, src, sizeof(*src));
+		memcpy(udent->name, name, nlen);
+	} else {
+		task = current_task();
+		copied = copy_to_user(task, udent, src, sizeof(*src));
+		if (copied != sizeof(*src))
+			return -EFAULT;
+		copied = copy_to_user(task, udent->name, name, nlen);
+		if (copied != nlen)
+			return -EFAULT;
+	}
+
+	return 0;
 }

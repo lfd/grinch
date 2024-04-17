@@ -13,6 +13,11 @@
 #ifndef _FS_UTIL_H
 #define _FS_UTIL_H
 
+#include <grinch/dirent.h>
+
 bool pathname_sanitise_dir(char *path);
+int copy_dirent(struct grinch_dirent __mayuser *udent, bool is_kernel,
+		struct grinch_dirent *src, const char *name,
+		unsigned int size);
 
 #endif /* _FS_UTIL */
