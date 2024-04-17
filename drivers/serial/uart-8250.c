@@ -19,6 +19,7 @@
 #define UART_IER		0x1
 #define  UART_IER_RXEN		(1 << 0)
 #define UART_DLM		0x1
+#define UART_FCR		0x2
 #define UART_LCR		0x3
 #define  UART_LCR_8N1		0x03
 #define  UART_LCR_DLAB		0x80
@@ -39,6 +40,7 @@ static int uart_8250_init(struct uart_chip *chip)
 {
 	chip->reg_out(chip, UART_LCR, UART_LCR_8N1);
 	chip->reg_out(chip, UART_IER, UART_IER_RXEN);
+	chip->reg_out(chip, UART_FCR, 0);
 
 	return 0;
 }
