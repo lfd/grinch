@@ -13,6 +13,8 @@
 #define dbg_fmt(x)	"fs-syscall: " x
 
 #include <grinch/errno.h>
+#include <grinch/fs/vfs.h>
+#include <grinch/fs/util.h>
 #include <grinch/syscall.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
@@ -169,5 +171,26 @@ unsigned long sys_write(int fd, const char __user *buf, size_t count)
 
 int sys_stat(const char __user *_pathname, struct stat __user *_st)
 {
-	return -ENOSYS;
+	char pathname[MAX_PATHLEN];
+	struct stat st = { 0 };
+	unsigned long copied;
+	bool must_dir;
+	int err;
+
+	err = pathname_from_user(pathname, _pathname);
+	if (err)
+		return err;
+
+	must_dir = pathname_sanitise_dir(pathname);
+	err = vfs_stat(pathname, &st);
+	if (err)
+		return err;
+
+	if (must_dir && !S_ISDIR(st.st_mode))
+		return -ENOTDIR;
+
+	copied = copy_to_user(current_task(), _st, &st, sizeof(st));
+	err = copied == sizeof(st) ? 0 : -EFAULT;
+
+	return err;
 }

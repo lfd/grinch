@@ -13,7 +13,10 @@
 #ifndef _FS_VFS_H
 #define _FS_VFS_H
 
+#include <grinch/stat.h>
+
 void *vfs_read_file(const char *pathname, size_t *len);
+int vfs_stat(const char *pathname, struct stat *st);
 
 int vfs_init(void);
 

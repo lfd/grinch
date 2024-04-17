@@ -206,21 +206,9 @@ static void initrd_close(struct file *fp)
 	kfree(hdr);
 }
 
-static int initrd_stat(struct file *fp, struct stat *st)
-{
-	struct cpio_header *hdr;
-
-	hdr = fp->drvdata;
-	st->st_size = hdr->body_len;
-	st->st_mode = hdr->mode;
-
-	return 0;
-}
-
 static const struct file_operations initrd_fops = {
 	.read = initrd_read,
 	.close = initrd_close,
-	.stat = initrd_stat,
 };
 
 static int initrd_open(const struct file_system *fs, struct file *filep, const char *path, struct fs_flags flags)
@@ -246,8 +234,25 @@ static int initrd_open(const struct file_system *fs, struct file *filep, const c
 	return 0;
 }
 
+static int
+initrd_stat(const struct file_system *fs, const char *pathname, struct stat *st)
+{
+	struct cpio_header hdr;
+	int err;
+
+	err = cpio_find_file(pathname, &hdr);
+	if (err)
+		return err;
+
+	st->st_size = hdr.body_len;
+	st->st_mode = hdr.mode;
+
+	return 0;
+}
+
 static const struct file_system_operations fs_ops_initrd = {
 	.open_file = initrd_open,
+	.stat = initrd_stat,
 };
 
 const struct file_system initrdfs = {
