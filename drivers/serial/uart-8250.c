@@ -19,12 +19,17 @@
 #define UART_IER		0x1
 #define  UART_IER_RXEN		(1 << 0)
 #define UART_DLM		0x1
-#define UART_FCR		0x2
+#define UART_FCR		0x2 /* out: FCR */
+#define UART_IIR		0x2 /* in: IIR */
 #define UART_LCR		0x3
 #define  UART_LCR_8N1		0x03
 #define  UART_LCR_DLAB		0x80
 #define UART_LSR		0x5
 #define  UART_LSR_THRE		0x20
+
+/* DesignWare specific register */
+#define DW_UART_USR		0x1f
+#define  DW_UART_IIR_BUSY	0x07
 
 static int uart_8250_rcv_handler(struct uart_chip *chip)
 {
@@ -32,6 +37,22 @@ static int uart_8250_rcv_handler(struct uart_chip *chip)
 
 	ch = chip->reg_in(chip, UART_RX);
 	serial_in(chip, ch);
+
+	return 0;
+}
+
+static int uart_8250_dw_rcv_handler(struct uart_chip *chip)
+{
+	unsigned int err, iir;
+
+	iir = chip->reg_in(chip, UART_IIR);
+
+	err = uart_8250_rcv_handler(chip);
+	if (err)
+		return err;
+
+	if ((iir & DW_UART_IIR_BUSY) == DW_UART_IIR_BUSY)
+		chip->reg_in(chip, DW_UART_USR);
 
 	return 0;
 }
@@ -62,10 +83,17 @@ static const struct uart_driver uart_8250 = {
 	.rcv_handler = uart_8250_rcv_handler,
 };
 
+static const struct uart_driver uart_8250_dw = {
+	.init = uart_8250_init,
+	.write_byte = uart_8250_write_byte,
+	.is_busy = uart_8250_is_busy,
+	.rcv_handler = uart_8250_dw_rcv_handler,
+};
+
 static const struct of_device_id uart_8250_matches[] = {
 	{ .compatible = "ns16550a", .data = &uart_8250, },
 	{ .compatible = "uart8250", .data = &uart_8250, },
-        { .compatible = "snps,dw-apb-uart", .data = &uart_8250, },
+        { .compatible = "snps,dw-apb-uart", .data = &uart_8250_dw, },
 	{},
 };
 
