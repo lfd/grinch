@@ -197,8 +197,6 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 			goto out;
 	}
 
-	kheap_stats();
-
 	err = driver_init();
 	if (err && err != -ENOENT)
 		goto out;
