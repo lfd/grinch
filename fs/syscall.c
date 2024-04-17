@@ -64,6 +64,7 @@ unsigned long sys_open(const char *_path, int oflag)
 		return err;
 
 	flags = get_flags(oflag);
+	flags.must_directory = pathname_sanitise_dir(path);
 
 	task = current_task();
 	spin_lock(&task->lock);

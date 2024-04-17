@@ -68,6 +68,9 @@ static int devfs_open(const struct file_system *fs, struct file *filep,
 	struct devfs_node *node;
 	int err;
 
+	if (flags.must_directory)
+		return -ENOENT;
+
 	spin_lock(&devfs_lock);
 
 	list_for_each_entry(node, &devfs_nodes, nodes)

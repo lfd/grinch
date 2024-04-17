@@ -45,6 +45,7 @@ struct files {
 	struct list_head files;
 
 	const char *pathname;
+	bool is_directory;
 	struct file fp;
 	unsigned int refs;
 };
@@ -72,6 +73,9 @@ static struct file *search_file(const char *path, struct fs_flags flags)
 		    (flags.may_write && !files->fp.fops->write)) {
 			return ERR_PTR(-EINVAL);
 		}
+
+		if (flags.must_directory && !files->is_directory)
+			return ERR_PTR(-ENOTDIR);
 
 		files->refs++;
 		return &files->fp;
@@ -132,14 +136,9 @@ static struct file *_file_open(const char *pathname, struct fs_flags flags)
 	if (!files)
 		return ERR_PTR(-ENOMEM);
 
-	files->pathname = kstrdup(pathname);
-	if (!files->pathname) {
-		kfree(files);
-	}
-
+	files->pathname = pathname;
 	err = fs->fs_ops->open_file(fs, &files->fp, fsname, flags);
 	if (err) {
-		kfree(files->pathname);
 		kfree(files);
 		return ERR_PTR(err);
 	}
@@ -150,20 +149,28 @@ static struct file *_file_open(const char *pathname, struct fs_flags flags)
 	return &files->fp;
 }
 
-struct file *file_open(const char *path, struct fs_flags flags)
+struct file *file_open(const char *_path, struct fs_flags flags)
 {
 	struct file *filep;
+	char *path;
+
+	path = kstrdup(_path);
+	if (!path)
+		return ERR_PTR(-ENOMEM);
 
 	spin_lock(&files_lock);
 	filep = search_file(path, flags);
-	if (filep != ERR_PTR(-ENOENT))
+	if (filep != ERR_PTR(-ENOENT)) {
+		kfree(path);
 		goto unlock_out;
+	}
 
 	filep = _file_open(path, flags);
+	if (IS_ERR(filep))
+		kfree(path);
 
 unlock_out:
 	spin_unlock(&files_lock);
-
 	return filep;
 }
 
