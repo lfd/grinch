@@ -17,12 +17,15 @@
 
 #define	IRQ_INVALID	((u32)-1)
 
+struct device;
+
 typedef int (*irq_handler_t)(void *userdata);
 
 struct irqchip_fn {
 	void (*handle_irq)(void);
 	int (*enable_irq)(unsigned long cpuid, u32 irq, u32 prio, u32 thres);
 	int (*disable_irq)(unsigned long cpuid, u32 irq);
+	int (*init)(struct device *dev, void *vbase);
 };
 
 extern const struct irqchip_fn *irqchip_fn;

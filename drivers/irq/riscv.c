@@ -64,17 +64,13 @@ static int __init xplic_probe(struct device *dev)
 	if (IS_ERR(vbase))
 		return PTR_ERR(vbase);
 
-	if (irqchip_fn == &irqchip_fn_plic)
-		err = plic_init(vbase);
-	else if (irqchip_fn == &irqchip_fn_aplic)
-		err = aplic_init(vbase);
-	else
-		return -ENOSYS;
+	err = irqchip_fn->init(dev, vbase);
+	if (err)
+		return err;
 
-	if (!err)
-		ext_enable();
+	ext_enable();
 
-	return err;
+	return 0;
 }
 
 DECLARE_DRIVER(PLIC, PRIO_0, NULL, xplic_probe, plic_compats);

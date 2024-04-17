@@ -14,6 +14,3 @@
 
 extern const struct irqchip_fn irqchip_fn_plic;
 extern const struct irqchip_fn irqchip_fn_aplic;
-
-int plic_init(void *vaddr);
-int aplic_init(void *vaddr);

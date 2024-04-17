@@ -102,7 +102,7 @@ static void plic_handle_irq(void)
 	plic_write_reg(0x200000 + 0x4 + 0x1000 * this_ctx(), source);
 }
 
-int plic_init(void *vaddr)
+static int __init plic_init(struct device *dev, void *vaddr)
 {
 	struct per_cpu *pcpu = this_per_cpu();
 	unsigned int irq;
@@ -121,4 +121,5 @@ const struct irqchip_fn irqchip_fn_plic = {
 	.handle_irq = plic_handle_irq,
 	.enable_irq = plic_enable_irq,
 	.disable_irq = plic_disable_irq,
+	.init = plic_init,
 };

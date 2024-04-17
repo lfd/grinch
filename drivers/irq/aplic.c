@@ -36,7 +36,7 @@ static void aplic_handle_irq(void)
 {
 }
 
-int aplic_init(void *vaddr)
+static int __init aplic_init(struct device *dev, void *vaddr)
 {
 	return -ENOSYS;
 }
@@ -45,4 +45,5 @@ const struct irqchip_fn irqchip_fn_aplic = {
 	.handle_irq = aplic_handle_irq,
 	.enable_irq = aplic_enable_irq,
 	.disable_irq = aplic_disable_irq,
+	.init = aplic_init,
 };
