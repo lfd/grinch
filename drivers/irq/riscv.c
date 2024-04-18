@@ -33,18 +33,6 @@ static __initconst const struct of_device_id aplic_compats[] = {
 	{ /* sentinel */ }
 };
 
-static int __init fdt_irqchip_get_extended(const void *fdt, int off)
-{
-	const fdt32_t *reg;
-	int res;
-
-	reg = fdt_getprop(fdt, off, "interrupts-extended", &res);
-	if (res < 0)
-		return res;
-
-	return fdt32_to_cpu(reg[1]);
-}
-
 static int __init xplic_probe(struct device *dev)
 {
 	paddr_t pbase;
