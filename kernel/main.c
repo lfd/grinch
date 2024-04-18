@@ -222,7 +222,8 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 	prepare_user_return();
 
 out:
-	pr("End reached: %pe\n", ERR_PTR(err));
-	if (err)
+	if (err) {
+		pr("End reached: %pe\n", ERR_PTR(err));
 		arch_shutdown(err);
+	}
 }
