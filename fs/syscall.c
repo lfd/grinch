@@ -43,14 +43,15 @@ unsigned long sys_open(const char *_path, int oflag)
 	struct file *file;
 	struct task *task;
 	unsigned int d;
+	bool must_dir;
 	int err;
 
-	err = pathname_from_user(path, _path);
+	err = pathname_from_user(path, _path, &must_dir);
 	if (err)
 		return err;
 
 	flags = get_flags(oflag);
-	flags.must_directory = pathname_sanitise_dir(path);
+	flags.must_directory = must_dir;
 
 	task = current_task();
 	spin_lock(&task->lock);
@@ -164,11 +165,10 @@ int sys_stat(const char __user *_pathname, struct stat __user *_st)
 	bool must_dir;
 	int err;
 
-	err = pathname_from_user(pathname, _pathname);
+	err = pathname_from_user(pathname, _pathname, &must_dir);
 	if (err)
 		return err;
 
-	must_dir = pathname_sanitise_dir(pathname);
 	err = vfs_stat(pathname, &st);
 	if (err)
 		return err;

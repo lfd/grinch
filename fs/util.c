@@ -39,7 +39,7 @@ static int check_path(const char *path)
 	return 0;
 }
 
-bool pathname_sanitise_dir(char *pathname)
+static bool pathname_sanitise_dir(char *pathname)
 {
 	size_t len;
 
@@ -52,18 +52,28 @@ bool pathname_sanitise_dir(char *pathname)
 	return false;
 }
 
-int pathname_from_user(char *dst, const char __user *path)
+int pathname_from_user(char *dst, const char __user *path, bool *_must_dir)
 {
-	ssize_t ret;
+	bool must_dir;
+	ssize_t len;
+	int err;
 
-	ret = ustrncpy(dst, path, MAX_PATHLEN);
+	len = ustrncpy(dst, path, MAX_PATHLEN);
 	/* pathname too long */
-	if (unlikely(ret == MAX_PATHLEN))
+	if (unlikely(len == MAX_PATHLEN))
 		return -ERANGE;
-	else if (unlikely(ret < 0))
-		return ret;
+	else if (unlikely(len < 0))
+		return len;
 
-	return check_path(dst);
+	err = check_path(dst);
+	if (err)
+		return err;
+
+	must_dir = pathname_sanitise_dir(dst);
+	if (_must_dir)
+		*_must_dir = must_dir;
+
+	return 0;
 }
 
 int copy_dirent(struct grinch_dirent __mayuser *udent, bool is_kernel,
