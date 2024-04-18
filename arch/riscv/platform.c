@@ -23,6 +23,7 @@ int __init arch_platform_init(void)
 {
 	const char *name, *isa;
 	unsigned long hart_id;
+	struct per_cpu *pcpu;
 	int err, off, child;
 	const fdt32_t *reg;
 
@@ -66,10 +67,12 @@ int __init arch_platform_init(void)
 
 		pri("%s: HART %lu available\n", name, hart_id);
 
-		err = phys_mark_used(v2p(per_cpu(hart_id)),
-				     PAGES(sizeof(struct per_cpu)));
+		pcpu = per_cpu(hart_id);
+		err = phys_mark_used(v2p(pcpu), PAGES(sizeof(*pcpu)));
 		if (err)
-			return err;
+			return trace_error(err);
+
+		memset(pcpu, 0, sizeof(*pcpu));
 	}
 
 	return 0;

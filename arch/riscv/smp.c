@@ -74,9 +74,6 @@ int arch_boot_cpu(unsigned long hart_id)
 	pr("Bringing up HART %lu\n", hart_id);
 	pcpu = per_cpu(hart_id);
 
-	/* Zero everything */
-	memset(pcpu, 0, sizeof(struct per_cpu));
-
 	pcpu->cpuid = hart_id;
 	spin_init(&pcpu->remote_call.lock);
 
