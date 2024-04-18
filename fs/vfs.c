@@ -199,26 +199,6 @@ void file_close(struct file_handle *handle)
 	handle->fp = NULL;
 }
 
-int check_path(const char *path)
-{
-	unsigned int no;
-
-	/* no relative paths supported */
-	if (path[0] != '/')
-		return -EINVAL;
-
-	for (no = 1; path[no]; no++) {
-		/* no double slashes */
-		if (path[no] == '/' && path[no - 1] == '/')
-			return -EINVAL;
-		/* no . files */
-		else if (path[no] == '.' && path[no - 1] == '/')
-			return -EINVAL;
-	}
-
-	return 0;
-}
-
 struct fs_flags get_flags(int oflag)
 {
 	struct fs_flags ret = { 0 };

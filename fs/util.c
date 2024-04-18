@@ -19,6 +19,26 @@
 #include <grinch/fs/util.h>
 #include <grinch/uaccess.h>
 
+static int check_path(const char *path)
+{
+	unsigned int no;
+
+	/* no relative paths supported */
+	if (path[0] != '/')
+		return -EINVAL;
+
+	for (no = 1; path[no]; no++) {
+		/* no double slashes */
+		if (path[no] == '/' && path[no - 1] == '/')
+			return -EINVAL;
+		/* no . files */
+		else if (path[no] == '.' && path[no - 1] == '/')
+			return -EINVAL;
+	}
+
+	return 0;
+}
+
 bool pathname_sanitise_dir(char *pathname)
 {
 	size_t len;
@@ -30,6 +50,20 @@ bool pathname_sanitise_dir(char *pathname)
 	}
 
 	return false;
+}
+
+int pathname_from_user(char *dst, const char __user *path)
+{
+	ssize_t ret;
+
+	ret = ustrncpy(dst, path, MAX_PATHLEN);
+	/* pathname too long */
+	if (unlikely(ret == MAX_PATHLEN))
+		return -ERANGE;
+	else if (unlikely(ret < 0))
+		return ret;
+
+	return check_path(dst);
 }
 
 int copy_dirent(struct grinch_dirent __mayuser *udent, bool is_kernel,

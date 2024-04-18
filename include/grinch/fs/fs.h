@@ -62,7 +62,6 @@ struct file_system {
 };
 
 /* Routines */
-int check_path(const char *path);
 struct fs_flags get_flags(int oflag);
 
 struct file *file_open(const char *path, struct fs_flags flags);

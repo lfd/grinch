@@ -35,20 +35,6 @@ static struct file_handle *get_handle(int fd)
 	return handle;
 }
 
-static int pathname_from_user(char *dst, const char __user *path)
-{
-	ssize_t ret;
-
-	ret = ustrncpy(dst, path, MAX_PATHLEN);
-	/* pathname too long */
-	if (unlikely(ret == MAX_PATHLEN))
-		return -ERANGE;
-	else if (unlikely(ret < 0))
-		return ret;
-
-	return check_path(dst);
-}
-
 unsigned long sys_open(const char *_path, int oflag)
 {
 	struct process *process;
