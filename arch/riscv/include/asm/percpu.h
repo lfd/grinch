@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -12,5 +12,10 @@
 
 #define ARCH_PER_CPU_FIELDS				\
 	struct {					\
+		/*					\
+		 * Offset of interrupt-controller	\
+		 * phandle node in device-tree.		\
+		 */					\
+		unsigned int cpu_phandle;		\
 		u16 ctx;				\
 	} plic;

@@ -24,7 +24,8 @@ int __init arch_platform_init(void)
 	const char *name, *isa;
 	unsigned long hart_id;
 	struct per_cpu *pcpu;
-	int err, off, child;
+	int err, off, child, ic;
+	unsigned int phandle;
 	const fdt32_t *reg;
 
 	off = fdt_path_offset(_fdt, "/cpus");
@@ -73,6 +74,17 @@ int __init arch_platform_init(void)
 			return trace_error(err);
 
 		memset(pcpu, 0, sizeof(*pcpu));
+
+		ic = fdt_subnode_offset(_fdt, child,
+					ISTR("interrupt-controller"));
+		if (ic < 0)
+			return trace_error(-EINVAL);
+
+		err = fdt_read_u32(_fdt, ic, "phandle", &phandle);
+		if (err)
+			return err;
+
+		pcpu->plic.cpu_phandle = phandle;
 	}
 
 	return 0;
