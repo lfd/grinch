@@ -19,42 +19,76 @@
 #include <grinch/fs/util.h>
 #include <grinch/uaccess.h>
 
-static int check_path(const char *path)
+static int pathname_sanitise_dir(char *pathname, bool *_must_dir)
 {
-	unsigned int no;
+	char *dst, *pos;
+	bool must_dir, is_dot;
 
-	/* no relative paths supported */
-	if (path[0] != '/')
+	/* Don't support empty paths */
+	if (pathname[0] == '\0')
 		return -EINVAL;
 
-	for (no = 1; path[no]; no++) {
-		/* no double slashes */
-		if (path[no] == '/' && path[no - 1] == '/')
-			return -EINVAL;
-		/* no . files */
-		else if (path[no] == '.' && path[no - 1] == '/')
-			return -EINVAL;
+	/* Don't support relative paths */
+	if (pathname[0] != '/')
+		return -EINVAL;
+
+	/* Special treatment for "/" */
+	if (pathname[1] == '\0') {
+		must_dir = true;
+		goto out;
+	}
+
+	must_dir = false;
+	is_dot = false;
+	pos = dst = pathname + 1;
+	for (;;) {
+		if (pos[0] == '\0') {
+			if (is_dot)
+				return -EINVAL;
+
+			if (dst[-1] == '/') {
+				dst[-1] = 0;
+				must_dir = true;
+			} else
+				*dst = 0;
+			break;
+		}
+
+		if (pos[0] == '.') {
+			if (pos[-1] == '/')
+				is_dot = true;
+		} else if (pos[0] != '/')
+			is_dot = false;
+
+		if (pos[0] == '/') {
+			if (is_dot)
+				return -EINVAL;
+			else if (dst[-1] == '/')
+				goto skip;
+		}
+		*dst = pos[0];
+		dst++;
+
+skip:
+		pos++;
+		while (pos[0] == '/' && pos[1] == '/')
+			pos++;
+	}
+
+out:
+	if (_must_dir)
+		*_must_dir = must_dir;
+
+	if (!*pathname) {
+		pathname[0] = '/';
+		pathname[1] = 0;
 	}
 
 	return 0;
 }
 
-static bool pathname_sanitise_dir(char *pathname)
+int pathname_from_user(char *dst, const char __user *path, bool *must_dir)
 {
-	size_t len;
-
-	len = strlen(pathname);
-	if (len && pathname[len - 1] == '/') {
-		pathname[len - 1] = 0;
-		return true;
-	}
-
-	return false;
-}
-
-int pathname_from_user(char *dst, const char __user *path, bool *_must_dir)
-{
-	bool must_dir;
 	ssize_t len;
 	int err;
 
@@ -65,13 +99,9 @@ int pathname_from_user(char *dst, const char __user *path, bool *_must_dir)
 	else if (unlikely(len < 0))
 		return len;
 
-	err = check_path(dst);
+	err = pathname_sanitise_dir(dst, must_dir);
 	if (err)
 		return err;
-
-	must_dir = pathname_sanitise_dir(dst);
-	if (_must_dir)
-		*_must_dir = must_dir;
 
 	return 0;
 }
