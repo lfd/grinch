@@ -87,5 +87,4 @@ clean_kernel:
 	$(RMRF) arch/$(ARCH)/asm_defines.S
 	$(RMRF) fs/*.{o,a} kernel/*.{o,a,ld}
 	$(RMRF) lib/*.{o,a} lib/libfdt/*.{o,a}
-	$(RMRF) drivers/*.{o,a} drivers/irq/*.{o,a} drivers/serial/*.{o,a}
 	$(RMRF) mm/*.{o,a}

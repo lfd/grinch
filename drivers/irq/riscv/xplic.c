@@ -10,6 +10,8 @@
  * the COPYING file in the top-level directory.
  */
 
+#define dbg_fmt(x) "xplic: " x
+
 #include <asm/csr.h>
 #include <asm/irq.h>
 

@@ -105,7 +105,7 @@ $(UBOOT_BIN):
 debug: kernel.bin
 	$(GDB) $^
 
-clean: clean_user clean_arch clean_kernel clean_loader clean_tools
+clean: clean_user clean_arch clean_drivers clean_kernel clean_loader clean_tools
 	$(RMRF) *.dtb
 	$(RMRF) *.elf
 	$(RMRF) *.bin
