@@ -277,13 +277,20 @@ static inline pid_t get_new_pid(void)
 	return ret;
 }
 
-struct task *task_alloc_new(void)
+void task_set_name(struct task *task, const char *name)
+{
+	strncpy(task->name, name, TASK_NAME_LEN - 1);
+}
+
+struct task *task_alloc_new(const char *name)
 {
 	struct task *task;
 
 	task = kzalloc(sizeof(*task));
 	if (!task)
 		return ERR_PTR(-ENOMEM);
+
+	task_set_name(task, name);
 
 	spin_init(&task->lock);
 	task->pid = get_new_pid();
@@ -418,13 +425,15 @@ int do_fork(void)
 	struct vma *vma;
 	int fd, err;
 
-	new = process_alloc_new();
-	if (IS_ERR(new))
-		return PTR_ERR(new);
-	spin_lock(&new->lock);
-
 	this = current_task();
 	spin_lock(&this->lock);
+	new = process_alloc_new(this->name);
+	if (IS_ERR(new)) {
+		err = PTR_ERR(new);
+		goto unlock_out;
+	}
+	spin_lock(&new->lock);
+
 	for (fd = 0; fd < MAX_FDS; fd++) {
 		fh = &this->process.fds[fd];
 		if (fh->fp) {
@@ -459,6 +468,8 @@ destroy_out:
 	spin_unlock(&new->lock);
 	task_exit(new, err);
 	task_destroy(new);
+
+unlock_out:
 	spin_unlock(&this->lock);
 
 	return err;
@@ -643,11 +654,11 @@ void tasks_dump(void)
 	spin_lock(&task_lock);
 
 	list_for_each_entry(task, &task_list, tasks) {
-		pr("PID: %u Type: %s State: %s WFE: %s On CPU: %lu\n",
+		pr("PID: %u Type: %s State: %s WFE: %s On CPU: %lu - %s\n",
 		   task->pid, task_type_to_string(task->type),
 		   task_state_to_string(task->state),
 		   task_wfe_to_string(task->wfe.type),
-		   task->on_cpu);
+		   task->on_cpu, task->name);
 	}
 
 	spin_unlock(&task_lock);

@@ -30,7 +30,7 @@ struct process {
 	struct file_handle fds[MAX_FDS];
 };
 
-struct task *process_alloc_new(void);
+struct task *process_alloc_new(const char *name);
 void process_destroy(struct task *task);
 int process_handle_fault(struct task *task, void __user *addr, bool is_write);
 

@@ -305,7 +305,7 @@ static struct task *vmm_alloc_new(void)
 	int err;
 
 	/* Allocate basic structures */
-	task = task_alloc_new();
+	task = task_alloc_new("GrinchVM");
 	if (IS_ERR(task))
 		return task;
 

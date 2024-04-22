@@ -218,11 +218,11 @@ void process_destroy(struct task *task)
 		kfree(process->mm.page_table);
 }
 
-struct task *process_alloc_new(void)
+struct task *process_alloc_new(const char *name)
 {
 	struct task *task;
 
-	task = task_alloc_new();
+	task = task_alloc_new(name);
 	if (IS_ERR(task))
 		return task;
 
@@ -268,6 +268,7 @@ int sys_execve(const char __user *pathname, char *const __user uargv[],
 	struct uenv_array argv, envp;
 	char buf[MAX_PATHLEN];
 	struct task *this;
+	const char *name;
 	ssize_t ret;
 	int err;
 
@@ -286,6 +287,9 @@ int sys_execve(const char __user *pathname, char *const __user uargv[],
 	err = uenv_dup(this, uenvp, &envp);
 	if (err)
 		goto uargv_free_out;
+
+	name = argv.elements ? argv.string : "NO NAME";
+	task_set_name(this, name);
 
 	uvmas_destroy(&this->process);
 	this_per_cpu()->pt_needs_update = true;

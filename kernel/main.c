@@ -87,7 +87,7 @@ static int __init init(void)
 	int err;
 
 	pri("Initialising userland\n");
-	task = process_alloc_new();
+	task = process_alloc_new("init");
 	if (IS_ERR(task))
 		return PTR_ERR(task);
 

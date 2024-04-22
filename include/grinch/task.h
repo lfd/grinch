@@ -24,6 +24,8 @@
 
 #include <grinch/arch/vmm.h>
 
+#define TASK_NAME_LEN	16
+
 enum task_state {
 	TASK_INIT = 0,
 	TASK_RUNNABLE, /* Scheduleable */
@@ -64,6 +66,7 @@ struct wfe_read {
 struct task {
 	struct list_head tasks;
 	spinlock_t lock;
+	char name[TASK_NAME_LEN];
 
 	struct registers regs;
 	pid_t pid;
@@ -116,7 +119,7 @@ static inline struct process *current_process(void)
 
 extern struct task *init_task;
 
-struct task *task_alloc_new(void);
+struct task *task_alloc_new(const char *name);
 
 void task_set_context(struct task *task, unsigned long pc, unsigned long sp);
 void task_destroy(struct task *task);
@@ -150,6 +153,7 @@ void sched_all(void);
 int do_fork(void);
 
 /* utilities */
+void task_set_name(struct task *task, const char *src);
 void tasks_dump(void);
 
 #endif /* _TASK_H */
