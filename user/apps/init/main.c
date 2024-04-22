@@ -73,8 +73,8 @@ int main(void)
 	int wstatus;
 	pid_t child;
 
-	start_background("/initrd/gsh",
-			 (char *[]){"/initrd/gsh", NULL}, false);
+	start_background("/initrd/bin/gsh",
+			 (char *[]){"gsh", NULL}, false);
 	printf("Waiting for children...\n");
 
 	while (true) {

@@ -202,7 +202,7 @@ static int parse_command(int argc, char *argv[])
 		return err;
 	}
 
-	snprintf(buf, sizeof(buf), "/initrd/%s", cmd);
+	snprintf(buf, sizeof(buf), "/initrd/bin/%s", cmd);
 	err = start(buf, argv);
 
 	return err;
