@@ -24,7 +24,7 @@ int main(void);
 APP_NAME(init);
 
 static char *const envp[] = {
-	"KEY=value",
+	"PATH=/initrd/bin",
 	NULL
 };
 

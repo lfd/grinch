@@ -10,6 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,6 +21,7 @@
 #include <grinch/vm.h>
 #include <grinch/vsprintf.h>
 
+#include <sys/stat.h>
 #include <sys/wait.h>
 
 #define PROMPT	"gsh> "
@@ -45,6 +47,7 @@ struct gsh_builtin {
 	int (*fun)(char *argv[]);
 };
 
+static struct tokens paths;
 static char **_envp;
 
 static inline void putc(char c)
@@ -225,12 +228,41 @@ static const struct gsh_builtin builtins[] = {
 	{ "vm", gsh_vm },
 };
 
+static char *executable_get_pathname(const char *cmd)
+{
+	char *buf, **token;
+	struct stat st;
+	int err;
+
+	/* Do we have an absolute path? */
+	if (*cmd == '/')
+		return strdup(cmd);
+
+	if (!paths.tokens)
+		return NULL;
+
+	buf = malloc(128);
+	for (token = paths.tokens; *token; token++) {
+		snprintf(buf, 128, "%s/%s", *token, cmd);
+
+		err = stat(buf, &st);
+		if (err)
+			continue;
+
+		return buf;
+	}
+
+	free(buf);
+
+	return NULL;
+}
+
 static int parse_command(int argc, char *argv[])
 {
 	const struct gsh_builtin *builtin;
+	char *executable;
 	const char *cmd;
 	unsigned int i;
-	char buf[64];
 	int err;
 
 	cmd = argv[0];
@@ -243,8 +275,12 @@ static int parse_command(int argc, char *argv[])
 		return err;
 	}
 
-	snprintf(buf, sizeof(buf), "/initrd/bin/%s", cmd);
-	err = start(buf, argv);
+	executable = executable_get_pathname(cmd);
+	if (!executable)
+		return -ENOENT;
+
+	err = start(executable, argv);
+	free(executable);
 
 	return err;
 }
@@ -262,13 +298,13 @@ static void free_tokens(struct tokens *t)
 	}
 }
 
-static int parse_tokens(const char *input_buffer, struct tokens *t)
+static int parse_tokens(const char *input_buffer, char delim, struct tokens *t)
 {
 	char **tokens, *start, c, *pos;
 	unsigned int no_tokens;
 
 	/* First run: calculate maximum amount of arguments */
-	no_tokens = strcount(input_buffer, ' ') + 1;
+	no_tokens = strcount(input_buffer, delim) + 1;
 	t->tokenised = malloc(strlen(input_buffer) + 1);
 	if (!t->tokenised)
 		return -ENOMEM;
@@ -290,13 +326,13 @@ static int parse_tokens(const char *input_buffer, struct tokens *t)
 			break;
 		}
 
-		if (c == ' ') {
+		if (c == delim) {
 			*pos++ = 0;
 			*tokens++ = start;
 			start = pos;
 			no_tokens++;
 
-			while (*input_buffer == ' ')
+			while (*input_buffer == delim)
 				input_buffer++;
 
 			continue;
@@ -308,6 +344,33 @@ static int parse_tokens(const char *input_buffer, struct tokens *t)
 	*tokens = NULL;
 
 	return no_tokens;
+}
+
+/*
+ * Trims the string str in-situ. Removes {pre,succ}eeding whitespaces (includes
+ * tabs). The infix of the string will not be touched.
+ */
+static void trim(char *str)
+{
+	char *dst, *lastwhite;
+
+	dst = str;
+	while (isblank(*str))
+		str++;
+
+	lastwhite = NULL;
+	while (*str) {
+		if (isblank(*str)) {
+			if (!lastwhite)
+				lastwhite = dst;
+		} else
+			lastwhite = NULL;
+
+		*dst++ = *str++;
+	}
+
+	if (lastwhite)
+		*lastwhite = '\0';
 }
 
 static int gsh(void)
@@ -332,7 +395,9 @@ static int gsh(void)
 			continue;
 		}
 
-		argc = parse_tokens(input_buffer, &tokens);
+		trim(input_buffer);
+
+		argc = parse_tokens(input_buffer, ' ', &tokens);
 		if (argc <= 0) {
 			printf("\nError: parsing cmdline\n");
 			continue;
@@ -356,10 +421,20 @@ static int gsh(void)
 
 int main(int argc, char *argv[], char *envp[])
 {
+	char *path;
 	int err;
 
 	_envp = envp;
+
+	path = getenv("PATH");
+	if (!path)
+		printf("Warning: no PATH found\n");
+	else
+		parse_tokens(path, ':', &paths);
+
 	err = gsh();
+
+	free_tokens(&paths);
 
 	return err;
 }
