@@ -21,6 +21,7 @@ LIBC_OBJS += stdio.o
 LIBC_OBJS += sched.o
 LIBC_OBJS += stat.o
 LIBC_OBJS += startup.o
+LIBC_OBJS += stdlib.o
 LIBC_OBJS += string.o
 LIBC_OBJS += time.o
 LIBC_OBJS += unistd.o

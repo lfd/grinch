@@ -11,12 +11,26 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
-int cmain(int argc, char *argv[], char *envp[]);
-int main(int argc, char *argv[], char *envp[]);
+char **__envp;
 
-int cmain(int argc, char *argv[], char *envp[])
+char *getenv(const char *name)
 {
-	__envp = envp;
-	return main(argc, argv, envp);
+	char **envp;
+	size_t len;
+
+	len = strlen(name);
+
+	for (envp = __envp; *envp; envp++)
+		if (!strncmp(name, *envp, len))
+			goto found;
+
+	return NULL;
+
+found:
+	if (*(*envp + len) != '=')
+		return NULL;
+
+	return *envp + len + 1;
 }

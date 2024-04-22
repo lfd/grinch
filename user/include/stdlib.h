@@ -10,13 +10,11 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <stdlib.h>
+#ifndef _STLIB_H
+#define _STLIB_H
 
-int cmain(int argc, char *argv[], char *envp[]);
-int main(int argc, char *argv[], char *envp[]);
+extern char **__envp;
 
-int cmain(int argc, char *argv[], char *envp[])
-{
-	__envp = envp;
-	return main(argc, argv, envp);
-}
+char *getenv(const char *name);
+
+#endif /* _STLIB_H */
