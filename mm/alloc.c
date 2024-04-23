@@ -20,21 +20,8 @@
 #include <grinch/errno.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
+#include <grinch/salloc.h>
 #include <grinch/vma.h>
-
-#define CANARY1	0xdeadbeef
-#define CANARY2 0xf00bf00b
-
-#define MEMCHUNK_FLAG_LAST	0x1
-#define MEMCHUNK_FLAG_USED	0x2
-
-struct memchunk {
-	unsigned int canary1;
-	struct memchunk *before;
-	size_t size;
-	unsigned int flags;
-	unsigned int canary2;
-};
 
 static DEFINE_SPINLOCK(alloc_lock);
 
@@ -77,14 +64,6 @@ static void __init kheap_size_parse(const char *arg)
 }
 bootparam(kheap_size, kheap_size_parse);
 
-#define first_chunk	((struct memchunk *)(vma_kheap.base))
-
-static void check_chunk(struct memchunk *chunk)
-{
-	if (chunk->canary1 != CANARY1 || chunk->canary2 != CANARY2)
-		panic("Corrupted heap structures!\n");
-}
-
 static bool is_kheap(const void *ptr)
 {
 	if (ptr >= vma_kheap.base && ptr < vma_kheap.base + vma_kheap.size)
@@ -92,134 +71,60 @@ static bool is_kheap(const void *ptr)
 	return false;
 }
 
-static void set_chunk(struct memchunk *m, struct memchunk *before,
-		      size_t size, unsigned int flags)
+static void __printf(1, 2) kheap_pr(const char *fmt, ...)
 {
-	m->canary1 = CANARY1;
-	m->size = size;
-	m->flags = flags;
-	m->before = before;
-	m->canary2 = CANARY2;
+	va_list ap;
+
+	va_start(ap, fmt);
+	vprintk(fmt, dbg_fmt(""), ap);
+	va_end(ap);
 }
 
-static inline struct memchunk *next_chunk(struct memchunk *this)
+void kheap_stats(void)
 {
-	if (this->flags & MEMCHUNK_FLAG_LAST)
-		return NULL;
+	int err;
 
-	return (void *)this + sizeof(struct memchunk) + this->size;
-}
+	spin_lock(&alloc_lock);
+	err = salloc_stats(kheap_pr, vma_kheap.base);
+	spin_unlock(&alloc_lock);
 
-static inline void *chunk_data(struct memchunk *m)
-{
-	return (void*)m + sizeof(struct memchunk);
-}
-
-static inline struct memchunk *chunk_of(const void *ptr)
-{
-	return (struct memchunk *)(ptr - sizeof(struct memchunk));
-}
-
-static void malloc_fsck(void)
-{
-	unsigned long size;
-	struct memchunk *this;
-	static unsigned long ctr;
-
-	pr("fsck run %lu\n", ctr++);
-	/* Forward run */
-	this = first_chunk;
-	size = 0;
-	while (1) {
-		check_chunk(this);
-		size += sizeof(*this) + this->size;
-		if (this->size == 0)
-			pr("Found chunk with zero size\n");
-
-		if (this->flags & MEMCHUNK_FLAG_LAST)
-			break;
-		else
-			this = next_chunk(this);
-	}
-	if (size != vma_kheap.size)
-		panic("fsck forw failed!\n");
-
-	/* Backward run */
-	size = 0;
-	while (1) {
-		check_chunk(this);
-		size += sizeof(*this) + this->size;
-		if (this->size == 0)
-			pr("Found chunk with zero size\n");
-
-		if (this->before == NULL)
-			break;
-		else
-			this = this->before;
-	}
-	if (size != vma_kheap.size)
-		panic("fsck back failed\n");
+	if (err)
+		panic("salloc_stats: %s\n", salloc_err_str(err));
 }
 
 void *kmalloc(size_t size)
 {
-	struct memchunk *this, *other, *tmp;
-	unsigned int flags, remaining;
 	void *ret;
+	int err;
 
-	if (do_malloc_fsck)
-		malloc_fsck();
-
-	size = ALIGN(size, 4);
+	if (do_malloc_fsck) {
+		err = salloc_fsck(kheap_pr, vma_kheap.base, vma_kheap.size);
+		if (err)
+			panic("salloc_fsck failed: %s\n", salloc_err_str(err));
+	}
 
 	spin_lock(&alloc_lock);
-	this = first_chunk;
-	do {
-		check_chunk(this);
-		if (this->flags & MEMCHUNK_FLAG_USED || this->size < size) {
-			this = next_chunk(this);
-			if (!this) {
-				ret = NULL;
-				goto out;
-			}
-			continue;
-		}
-
-		this->flags |= MEMCHUNK_FLAG_USED;
-		if (this->size > size + sizeof(struct memchunk)) { /* Split */
-			other = chunk_data(this) + size;
-			if (this->flags & MEMCHUNK_FLAG_LAST) {
-				flags = MEMCHUNK_FLAG_LAST;
-				this->flags &= ~MEMCHUNK_FLAG_LAST;
-			} else {
-				flags = 0;
-				tmp = next_chunk(this);
-				if (!tmp)
-					BUG();
-				check_chunk(tmp);
-				tmp->before = other;
-			}
-
-			remaining = this->size - size - sizeof(struct memchunk);
-			set_chunk(other, this, remaining, flags);
-			this->size = size;
-		}
-
-		ret = chunk_data(this);
-		break;
-	} while (true);
-
-out:
+	err = salloc_alloc(vma_kheap.base, size, &ret);
 	spin_unlock(&alloc_lock);
+
+	if (err == -ENOMEM)
+		return NULL;
+
+	if (err)
+		panic("salloc_alloc failed: %s\n", salloc_err_str(err));
+
 	return ret;
 }
 
 void kfree(const void *ptr)
 {
-	struct memchunk *m, *before, *after, *tmp;
+	int err;
 
-	if (do_malloc_fsck)
-		malloc_fsck();
+	if (do_malloc_fsck) {
+		err = salloc_fsck(kheap_pr, vma_kheap.base, vma_kheap.size);
+		if (err)
+			panic("salloc_fsck failed: %s\n", salloc_err_str(err));
+	}
 
 	/* Do nothing on NULL ptr free */
 	if (ptr == NULL)
@@ -228,76 +133,12 @@ void kfree(const void *ptr)
 	if (!is_kheap(ptr))
 		panic("Invalid free on kheap. Out of range: %p\n", ptr);
 
-	m = chunk_of(ptr);
 	spin_lock(&alloc_lock);
-	check_chunk(m);
-
-	if (!(m->flags & MEMCHUNK_FLAG_USED))
-		panic("Potential Double free on %p\n", ptr);
-
-	m->flags &= ~MEMCHUNK_FLAG_USED;
-
-	/* Merge before */
-	before = m->before;
-	after = next_chunk(m);
-	if (after)
-		check_chunk(after);
-
-	if (before) {
-		check_chunk(before);
-		if (!(before->flags & MEMCHUNK_FLAG_USED)) {
-			before->size += sizeof(struct memchunk) + m->size;
-			if (after)
-				after->before = before;
-			memset(m, 0, sizeof(struct memchunk));
-			m = before;
-		}
-	}
-
-	/* Merge after */
-	if (after && !(after->flags & MEMCHUNK_FLAG_USED)) {
-		tmp = next_chunk(after);
-		if (tmp) {
-			check_chunk(tmp);
-			tmp->before = m;
-		}
-
-		m->size += sizeof(struct memchunk) + after->size;
-		m->flags = after->flags; /* Carries over MEMCHUNK_FLAG_LAST */
-		memset(after, 0, sizeof(struct memchunk));
-	}
-
-	spin_unlock(&alloc_lock);
-}
-
-void kheap_stats(void)
-{
-	size_t used, free, chunks_free, chunks_used;
-	struct memchunk *this;
-
-	used = free = chunks_free = chunks_used = 0;
-	this = first_chunk;
-	
-	spin_lock(&alloc_lock);
-	do {
-		check_chunk(this);
-		if (this->flags & MEMCHUNK_FLAG_USED) {
-			used += this->size;
-			chunks_used++;
-			pr("Used chunk: %p\n", (void *)this + sizeof(struct memchunk));
-		} else {
-			free += this->size;
-			chunks_free++;
-		}
-
-		if (this->flags & MEMCHUNK_FLAG_LAST)
-			break;
-		this = next_chunk(this);
-	} while(1);
+	err = salloc_free(ptr);
 	spin_unlock(&alloc_lock);
 
-	pr("Chunks Free: %lu Chunks Used: %lu Free: 0x%lx Used: 0x%lx\n",
-	   chunks_free, chunks_used, free, used);
+	if (err)
+		panic("kfree on %p: %s\n", ptr, salloc_err_str(err));
 }
 
 int __init kheap_init(void)
@@ -311,8 +152,7 @@ int __init kheap_init(void)
 	if (err)
 		return err;
 
-	set_chunk(first_chunk, NULL, vma_kheap.size - sizeof(struct memchunk),
-		  MEMCHUNK_FLAG_LAST);
+	salloc_init(vma_kheap.base, vma_kheap.size);
 
 	return 0;
 }
