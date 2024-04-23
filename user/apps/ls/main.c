@@ -120,7 +120,6 @@ static int ls(const char *pathname)
 
 	/* non-directory entry */
 	return ls_file_st(pathname, &st);
-	return 0;
 }
 
 int main(int argc, char *argv[])
