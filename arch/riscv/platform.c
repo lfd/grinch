@@ -73,8 +73,6 @@ int __init arch_platform_init(void)
 		if (err)
 			return trace_error(err);
 
-		memset(pcpu, 0, sizeof(*pcpu));
-
 		ic = fdt_subnode_offset(_fdt, child,
 					ISTR("interrupt-controller"));
 		if (ic < 0)
