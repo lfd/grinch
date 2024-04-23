@@ -31,7 +31,7 @@ _user_start:
 	ld	a2, 16(sp) /* char *envp[] */
 	addi	sp, sp, 24
 
-	jal	main
+	jal	cmain
 	jal	exit
 	/* should we ever return from exit, loop */
 3:
