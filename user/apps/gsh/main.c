@@ -147,6 +147,8 @@ static int gsh_kstat(char *argv[])
 
 	if (!strcmp(arg, "ps"))
 		return gsh_ps(NULL);
+	if (!strcmp(arg, "kheap"))
+		return grinch_kstat(GRINCH_KSTAT_KHEAP);
 	else
 		return -ENOSYS;
 

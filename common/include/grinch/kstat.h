@@ -14,5 +14,6 @@
 #define _GRINCH_KSTAT_H
 
 #define GRINCH_KSTAT_PS		0
+#define GRINCH_KSTAT_KHEAP	1
 
 #endif /* _GRINCH_KSTAT_H */

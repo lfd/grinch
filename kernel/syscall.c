@@ -41,6 +41,10 @@ static int grinch_kstat(unsigned long arg)
 			tasks_dump();
 			break;
 
+		case GRINCH_KSTAT_KHEAP:
+			kheap_stats();
+			break;
+
 		default:
 			ret = -ENOSYS;
 			break;
