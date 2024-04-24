@@ -12,8 +12,8 @@
 
 /* Partly copied from Linux kernel sources */
 
-#ifndef _ALIGN_H
-#define _ALIGN_H
+#ifndef _GRINCH_ALIGN_H
+#define _GRINCH_ALIGN_H
 
 #define ALIGN_MASK(x, mask)		(((x) + (mask)) & ~(mask))
 
@@ -30,4 +30,4 @@
 #define PTR_PAGE_ALIGNED(addr)		PTR_IS_ALIGNED((unsigned long)(addr), PAGE_SIZE)
 
 
-#endif /* _ALIGN_H */
+#endif /* _GRINCH_ALIGN_H */
