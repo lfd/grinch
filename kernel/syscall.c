@@ -14,6 +14,7 @@
 
 #include <grinch/alloc.h>
 #include <grinch/errno.h>
+#include <grinch/kstat.h>
 #include <grinch/syscall.h>
 #include <grinch/syscall_common.h>
 #include <grinch/printk.h>
@@ -28,6 +29,24 @@ static unsigned long usleep(unsigned long us)
 	this_per_cpu()->schedule = true;
 
 	return 0;
+}
+
+static int grinch_kstat(unsigned long arg)
+{
+	int ret;
+
+	ret = 0;
+	switch (arg) {
+		case GRINCH_KSTAT_PS:
+			tasks_dump();
+			break;
+
+		default:
+			ret = -ENOSYS;
+			break;
+	}
+
+	return ret;
 }
 
 int syscall(unsigned long no, unsigned long arg1,
@@ -114,9 +133,8 @@ int syscall(unsigned long no, unsigned long arg1,
 			ret = vm_create_grinch();
 			break;
 
-		case SYS_grinch_ps:
-			tasks_dump();
-			ret = 0;
+		case SYS_grinch_kstat:
+			ret = grinch_kstat(arg1);
 			break;
 
 		default:

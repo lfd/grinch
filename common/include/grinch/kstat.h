@@ -10,15 +10,9 @@
  * the COPYING file in the top-level directory.
  */
 
-#ifndef _GRINCH_GRINCH_H
-#define _GRINCH_GRINCH_H
+#ifndef _GRINCH_KSTAT_H
+#define _GRINCH_KSTAT_H
 
-#include <grinch/kstat.h>
-#include <syscall.h>
+#define GRINCH_KSTAT_PS		0
 
-static inline int grinch_kstat(unsigned long no)
-{
-	return syscall_1(SYS_grinch_kstat, no);
-}
-
-#endif /* _GRINCH_GRINCH_H */
+#endif /* _GRINCH_KSTAT_H */

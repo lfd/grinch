@@ -134,7 +134,7 @@ static int gsh_help(char *argv[])
 
 static int gsh_ps(char *argv[])
 {
-	return grinch_ps();
+	return grinch_kstat(GRINCH_KSTAT_PS);
 }
 
 static int gsh_vm(char *argv[])
