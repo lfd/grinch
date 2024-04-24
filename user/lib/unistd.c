@@ -73,3 +73,43 @@ int close(int fd)
 {
 	return errno_syscall_1(SYS_close, fd);
 }
+
+static inline void *__brk(void *addr)
+{
+	return (void *)syscall_1(SYS_brk, (unsigned long)addr);
+}
+
+int brk(void *addr)
+{
+	void *new;
+
+	new = __brk(addr);
+	if (IS_ERR(new)) {
+		errno = -PTR_ERR(new);
+		return -1;
+	}
+
+	return 0;
+}
+
+void *sbrk(intptr_t increment)
+{
+	void *current, *addr;
+
+	current = __brk(NULL);
+	if (IS_ERR(current)) {
+		errno = -PTR_ERR(current);
+		return (void *)-1;
+	}
+
+	if (increment == 0)
+		return current;
+
+	addr = __brk(current + increment);
+	if (IS_ERR(addr)) {
+		errno = -PTR_ERR(addr);
+		return (void *)-1;
+	}
+
+	return addr;
+}
