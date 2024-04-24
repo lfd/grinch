@@ -215,15 +215,30 @@ int uvma_duplicate(struct task *dst, struct task *src, struct vma *vma)
 	return 0;
 }
 
-struct vma *uvma_find(struct process *p, void __user *base)
+static struct vma *
+uvma_find_size(struct process *p, void __user *base, size_t size)
 {
 	struct vma *vma;
 
 	list_for_each_entry(vma, &p->mm.vmas, vmas)
-		if (vma_collides(vma, base, 1))
+		if (vma_collides(vma, base, size))
 			return vma;
 
 	return NULL;
+}
+
+struct vma *uvma_find(struct process *p, void __user *base)
+{
+	return uvma_find_size(p, base, 1);
+}
+
+bool uvma_collides(struct process *p, void __user *base, size_t size)
+{
+	struct vma *vma;
+
+	vma = uvma_find_size(p, base, size);
+
+	return vma ? true : false;
 }
 
 int uvma_handle_fault(struct task *t, struct vma *vma, void __user *addr)

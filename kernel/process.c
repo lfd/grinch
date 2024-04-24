@@ -166,8 +166,8 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr,
 		if (phdr->p_flags & PF_X)
 			vma_flags |= VMA_FLAG_EXEC;
 
-		/* The region must not collide with the stack */
-		if (base + page_up(phdr->p_memsz) >= (void *)USER_STACK_BOTTOM)
+		/* The region must not collide with any other VMA */
+		if (uvma_collides(&task->process, base, page_up(phdr->p_memsz)))
 			return -EINVAL;
 
 		vma = uvma_create(task, base, page_up(phdr->p_memsz),
