@@ -137,6 +137,22 @@ static int gsh_ps(char *argv[])
 	return grinch_kstat(GRINCH_KSTAT_PS);
 }
 
+static int gsh_kstat(char *argv[])
+{
+	const char *arg;
+
+	arg = argv[1];
+	if (!arg)
+		return -EINVAL;
+
+	if (!strcmp(arg, "ps"))
+		return gsh_ps(NULL);
+	else
+		return -ENOSYS;
+
+	return 0;
+}
+
 static int gsh_vm(char *argv[])
 {
 	pid_t child;
@@ -158,6 +174,8 @@ static const struct gsh_builtin builtins[] = {
 	{ "help", gsh_help },
 	{ "version", gsh_version },
 	{ "exit", gsh_exit },
+	{ "k", gsh_kstat },
+	{ "kernel", gsh_kstat },
 	{ "ps", gsh_ps },
 	{ "vm", gsh_vm },
 };
