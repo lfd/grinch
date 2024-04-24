@@ -23,29 +23,17 @@ void __noreturn exit(int status)
 
 pid_t fork(void)
 {
-	pid_t ret;
-
-	ret = syscall_0(SYS_fork);
-	if (ret < 0) {
-		errno = -ret;
-		ret = -1;
-	}
-
-	return ret;
+	return errno_syscall_0(SYS_fork);
 }
 
 pid_t getpid(void)
 {
-	pid_t ret;
-
-	ret = syscall_0(SYS_getpid);
-
-	return ret;
+	return errno_syscall_0(SYS_getpid);
 }
 
 int usleep(unsigned int usec)
 {
-	return syscall_1(SYS_usleep, usec);
+	return errno_syscall_1(SYS_usleep, usec);
 }
 
 unsigned int sleep(unsigned int seconds)
@@ -60,30 +48,14 @@ unsigned int sleep(unsigned int seconds)
 
 ssize_t read(int fd, void *buf, size_t count)
 {
-	ssize_t ret;
-
-	ret = syscall_3(SYS_read, (unsigned long)fd, (unsigned long)buf,
-			(unsigned long)count);
-	if (ret < 0) {
-		errno = -ret;
-		ret = -1;
-	}
-
-	return ret;
+	return errno_syscall_3(SYS_read, (unsigned long)fd, (unsigned long)buf,
+			       (unsigned long)count);
 }
 
 ssize_t write(int fd, const void *buf, size_t count)
 {
-	ssize_t ret;
-
-	ret = syscall_3(SYS_write, (unsigned long)fd, (unsigned long)buf,
-		      (unsigned long)count);
-	if (ret < 0) {
-		errno = -ret;
-		ret = -1;
-	}
-
-	return ret;
+	return errno_syscall_3(SYS_write, (unsigned long)fd,
+			       (unsigned long)buf, (unsigned long)count);
 }
 
 int execve(const char *pathname, char *const argv[], char *const envp[])
@@ -99,16 +71,5 @@ int execve(const char *pathname, char *const argv[], char *const envp[])
 
 int close(int fd)
 {
-	int ret;
-
-	ret = syscall_1(SYS_close, (unsigned long)fd);
-	if (!ret)
-		return 0;
-
-	if (ret < 0)
-		errno = -ret;
-	else
-		errno = -EINVAL;
-
-	return -1;
+	return errno_syscall_1(SYS_close, fd);
 }

@@ -17,14 +17,6 @@
 
 int stat(const char *pathname, struct stat *statbuf)
 {
-	int ret;
-
-	ret = syscall_2(SYS_stat, (unsigned long)pathname,
-			(unsigned long)statbuf);
-	if (ret < 0) {
-		errno = -ret;
-		ret = -1;
-	}
-
-	return ret;
+	return errno_syscall_2(SYS_stat, (unsigned long)pathname,
+			       (unsigned long)statbuf);
 }

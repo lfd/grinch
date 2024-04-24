@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -16,13 +16,5 @@
 
 int sched_yield(void)
 {
-	int err;
-	err = syscall_0(SYS_sched_yield);
-	if (!err)
-		return 0;
-
-	if (err < 0)
-		errno = -err;
-
-	return -1;
+	return errno_syscall_0(SYS_sched_yield);
 }

@@ -17,18 +17,10 @@
 
 pid_t create_grinch_vm(void)
 {
-	int ret;
-
-	ret = syscall_0(SYS_create_grinch_vm);
-	if (ret < 0) {
-		errno = -ret;
-		ret = -1;
-	}
-
-	return ret;
+	return errno_syscall_0(SYS_create_grinch_vm);
 }
 
 int grinch_kstat(unsigned long no)
 {
-	return syscall_1(SYS_grinch_kstat, no);
+	return errno_syscall_1(SYS_grinch_kstat, no);
 }
