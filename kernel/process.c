@@ -100,40 +100,6 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr,
 	if (copied > ARG_MAX)
 		return -E2BIG;
 
-	/* Load process */
-	phdr = (Elf64_Phdr*)((void*)ehdr + ehdr->e_phoff);
-	for (d = 0; d < ehdr->e_phnum; d++, phdr++) {
-		if (phdr->p_type != PT_LOAD)
-			continue;
-
-		if (phdr->p_align != PAGE_SIZE)
-			return -EINVAL;
-
-		base = (void *)phdr->p_vaddr;
-
-		vma_flags = VMA_FLAG_USER;
-		if (phdr->p_flags & PF_R)
-			vma_flags |= VMA_FLAG_R;
-		if (phdr->p_flags & PF_W)
-			vma_flags |= VMA_FLAG_W;
-		if (phdr->p_flags & PF_X)
-			vma_flags |= VMA_FLAG_EXEC;
-
-		/* The region must not collide with the stack */
-		if (base + page_up(phdr->p_memsz) >= (void *)USER_STACK_BOTTOM)
-			return -EINVAL;
-
-		vma = uvma_create(task, base, page_up(phdr->p_memsz),
-				  vma_flags, NULL);
-		if (IS_ERR(vma))
-			return PTR_ERR(vma);
-
-		src = (void *)ehdr + phdr->p_offset;
-		copied = copy_to_user(task, base, src, phdr->p_memsz);
-		if (copied != phdr->p_memsz)
-			return -ERANGE;
-	}
-
 	/* Prepare user stack */
 	stack_top = (void *)USER_STACK_TOP;
 
@@ -180,6 +146,40 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr,
 	copied = copy_to_user(task, stack_top, &uargs, sizeof(uargs));
 	if (copied != sizeof(uargs))
 		return -ENOMEM;
+
+	/* Load process */
+	phdr = (Elf64_Phdr*)((void*)ehdr + ehdr->e_phoff);
+	for (d = 0; d < ehdr->e_phnum; d++, phdr++) {
+		if (phdr->p_type != PT_LOAD)
+			continue;
+
+		if (phdr->p_align != PAGE_SIZE)
+			return -EINVAL;
+
+		base = (void *)phdr->p_vaddr;
+
+		vma_flags = VMA_FLAG_USER;
+		if (phdr->p_flags & PF_R)
+			vma_flags |= VMA_FLAG_R;
+		if (phdr->p_flags & PF_W)
+			vma_flags |= VMA_FLAG_W;
+		if (phdr->p_flags & PF_X)
+			vma_flags |= VMA_FLAG_EXEC;
+
+		/* The region must not collide with the stack */
+		if (base + page_up(phdr->p_memsz) >= (void *)USER_STACK_BOTTOM)
+			return -EINVAL;
+
+		vma = uvma_create(task, base, page_up(phdr->p_memsz),
+				  vma_flags, NULL);
+		if (IS_ERR(vma))
+			return PTR_ERR(vma);
+
+		src = (void *)ehdr + phdr->p_offset;
+		copied = copy_to_user(task, base, src, phdr->p_memsz);
+		if (copied != phdr->p_memsz)
+			return -ERANGE;
+	}
 
 	task_set_context(task, ehdr->e_entry, (uintptr_t)stack_top);
 
