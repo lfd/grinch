@@ -33,8 +33,9 @@
 #define EINVAL		22
 #define ERANGE		34
 #define ENOSYS		38
+#define	EMSGSIZE	97
 
-#define MAX_ERRNO	38
+#define MAX_ERRNO	97
 
 #define IS_ERR_VALUE(x)	unlikely((unsigned long)(void *)(x) >= (unsigned long)-MAX_ERRNO)
 
