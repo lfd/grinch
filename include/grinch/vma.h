@@ -17,9 +17,9 @@
 
 #define VMA_FLAG_LAZY	(1 << 0)
 #define VMA_FLAG_USER	(1 << 1)
-#define VMA_FLAG_EXEC	(1 << 2)
-#define VMA_FLAG_R	(1 << 3)
-#define VMA_FLAG_W	(1 << 4)
+#define VMA_FLAG_R	(1 << 2)
+#define VMA_FLAG_W	(1 << 3)
+#define VMA_FLAG_X	(1 << 4)
 #define VMA_FLAG_RW	(VMA_FLAG_R | VMA_FLAG_W)
 
 struct vma {

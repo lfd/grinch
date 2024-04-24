@@ -164,7 +164,7 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr,
 		if (phdr->p_flags & PF_W)
 			vma_flags |= VMA_FLAG_W;
 		if (phdr->p_flags & PF_X)
-			vma_flags |= VMA_FLAG_EXEC;
+			vma_flags |= VMA_FLAG_X;
 
 		/* The region must not collide with any other VMA */
 		if (uvma_collides(&task->process, base, page_up(phdr->p_memsz)))

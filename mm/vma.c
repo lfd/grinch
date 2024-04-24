@@ -47,7 +47,7 @@ static int vma_alloc_range(page_table_t pt, struct vma *vma, void *base,
 		flags |= GRINCH_MEM_W;
 	if (vma->flags & VMA_FLAG_USER)
 		flags |= GRINCH_MEM_U;
-	if (vma->flags & VMA_FLAG_EXEC)
+	if (vma->flags & VMA_FLAG_X)
 		flags |= GRINCH_MEM_X;
 	err = map_range(pt, base, phys, size, flags);
 	if (err)
