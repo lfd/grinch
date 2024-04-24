@@ -45,6 +45,10 @@ static int grinch_kstat(unsigned long arg)
 			kheap_stats();
 			break;
 
+		case GRINCH_KSTAT_MAPS:
+			process_show_vmas(current_task());
+			break;
+
 		default:
 			ret = -ENOSYS;
 			break;

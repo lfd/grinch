@@ -40,4 +40,7 @@ int process_from_fs(struct task *task, const char *pathname,
 /* Arch specific routines */
 void arch_process_activate(struct process *task);
 
+/* Utilities */
+void process_show_vmas(struct task *task);
+
 #endif /* _PROCESS_H */

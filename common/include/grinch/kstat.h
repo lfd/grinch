@@ -13,7 +13,8 @@
 #ifndef _GRINCH_KSTAT_H
 #define _GRINCH_KSTAT_H
 
-#define GRINCH_KSTAT_PS		0
-#define GRINCH_KSTAT_KHEAP	1
+#define GRINCH_KSTAT_PS		0 /* dump processes */
+#define GRINCH_KSTAT_KHEAP	1 /* dump kheap stats */
+#define GRINCH_KSTAT_MAPS	2 /* show user VMAs */
 
 #endif /* _GRINCH_KSTAT_H */
