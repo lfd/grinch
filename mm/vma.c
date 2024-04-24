@@ -93,13 +93,7 @@ static bool is_user_range(void *_base, size_t size)
 
 static bool vma_collides(struct vma *vma, void *base, size_t size)
 {
-	if (vma->base < base && vma->base + vma->size > base)
-		return true;
-
-	if (base < vma->base && base + size > vma->base)
-		return true;
-
-	return false;
+	return base < (vma->base + vma->size) && (base + size) > vma->base;
 }
 
 static int uvma_destroy(struct process *p, struct vma *vma)
