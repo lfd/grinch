@@ -14,11 +14,7 @@
 #define _GRINCH_GRINCH_H
 
 #include <grinch/kstat.h>
-#include <syscall.h>
 
-static inline int grinch_kstat(unsigned long no)
-{
-	return syscall_1(SYS_grinch_kstat, no);
-}
+int grinch_kstat(unsigned long no);
 
 #endif /* _GRINCH_GRINCH_H */

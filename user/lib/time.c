@@ -10,25 +10,10 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <errno.h>
 #include <syscall.h>
-#include <grinch/grinch.h>
-#include <grinch/vm.h>
+#include <time.h>
 
-pid_t create_grinch_vm(void)
+unsigned long gettime(void)
 {
-	int ret;
-
-	ret = syscall_0(SYS_create_grinch_vm);
-	if (ret < 0) {
-		errno = -ret;
-		ret = -1;
-	}
-
-	return ret;
-}
-
-int grinch_kstat(unsigned long no)
-{
-	return syscall_1(SYS_grinch_kstat, no);
+	return syscall_0(SYS_gettime);
 }

@@ -13,12 +13,6 @@
 #ifndef _TIME_H
 #define _TIME_H
 
-#include <syscall.h>
-
-/* returns the elapsed time since boot in nsec */
-static inline unsigned long gettime(void)
-{
-	return syscall_0(SYS_gettime);
-}
+unsigned long gettime(void);
 
 #endif /* _TIME_H */
