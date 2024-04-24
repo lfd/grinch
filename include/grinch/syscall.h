@@ -29,5 +29,6 @@ int sys_execve(const char __user *pathname, char *const __user argv[],
 	       char *const __user envp[]);
 int sys_stat(const char __user *pathname, struct stat __user *st);
 int sys_getdents(int fd, struct grinch_dirent __user *dents, unsigned int size);
+long sys_brk(unsigned long addr);
 
 #endif /* _SYSCALL_H */

@@ -85,6 +85,7 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr,
 	Elf64_Phdr *phdr;
 	void *src, *base;
 	struct vma *vma;
+	size_t vma_size;
 	unsigned int d;
 
 	if (memcmp(ehdr->e_ident, ELFMAG, SELFMAG))
@@ -149,6 +150,7 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr,
 
 	/* Load process */
 	phdr = (Elf64_Phdr*)((void*)ehdr + ehdr->e_phoff);
+	task->process.brk = NULL;
 	for (d = 0; d < ehdr->e_phnum; d++, phdr++) {
 		if (phdr->p_type != PT_LOAD)
 			continue;
@@ -167,11 +169,11 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr,
 			vma_flags |= VMA_FLAG_X;
 
 		/* The region must not collide with any other VMA */
-		if (uvma_collides(&task->process, base, page_up(phdr->p_memsz)))
+		vma_size = page_up(phdr->p_memsz);
+		if (uvma_collides(&task->process, base, vma_size))
 			return -EINVAL;
 
-		vma = uvma_create(task, base, page_up(phdr->p_memsz),
-				  vma_flags, NULL);
+		vma = uvma_create(task, base, vma_size, vma_flags, NULL);
 		if (IS_ERR(vma))
 			return PTR_ERR(vma);
 
@@ -179,6 +181,9 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr,
 		copied = copy_to_user(task, base, src, phdr->p_memsz);
 		if (copied != phdr->p_memsz)
 			return -ERANGE;
+
+		if (base + vma_size > task->process.brk)
+			task->process.brk = base + vma_size;
 	}
 
 	task_set_context(task, ehdr->e_entry, (uintptr_t)stack_top);
@@ -266,6 +271,7 @@ int sys_execve(const char __user *pathname, char *const __user uargv[],
 	       char *const __user uenvp[])
 {
 	struct uenv_array argv, envp;
+	struct process *process;
 	char buf[MAX_PATHLEN];
 	struct task *this;
 	const char *name;
@@ -273,6 +279,7 @@ int sys_execve(const char __user *pathname, char *const __user uargv[],
 	int err;
 
 	this = current_task();
+	process = &this->process;
 	ret = ustrncpy(buf, pathname, sizeof(buf));
 	/* pathname too long */
 	if (unlikely(ret == sizeof(buf)))
@@ -291,7 +298,9 @@ int sys_execve(const char __user *pathname, char *const __user uargv[],
 	name = argv.elements ? argv.string : "NO NAME";
 	task_set_name(this, name);
 
-	uvmas_destroy(&this->process);
+	uvmas_destroy(process);
+	process->brk = NULL;
+	process->vma_heap = NULL;
 	this_per_cpu()->pt_needs_update = true;
 
 	err = process_from_fs(this, buf, &argv, &envp);
@@ -302,4 +311,51 @@ uargv_free_out:
 	uenv_free(&argv);
 
 	return err;
+}
+
+long sys_brk(unsigned long addr)
+{
+	struct process *process;
+	unsigned int vma_flags;
+	struct vma *vma_heap;
+	struct task *task;
+	unsigned long brk;
+	size_t size;
+
+	task = current_task();
+	process = &task->process;
+
+	spin_lock(&task->lock);
+	brk = (unsigned long)process->brk;
+	if (!addr)
+		goto unlock_out;
+
+	/* can not shift break to the left */
+	if (addr < brk) {
+		brk = -EINVAL;
+		goto unlock_out;
+	}
+
+	addr = page_up(addr);
+	size = addr - brk;
+
+	/* We don't support shrinking or extending the heap at the moment */
+	if (process->vma_heap) {
+		brk = -ENOSYS;
+		goto unlock_out;
+	}
+
+	vma_flags = VMA_FLAG_USER | VMA_FLAG_RW | VMA_FLAG_LAZY;
+	vma_heap = uvma_create(task, (void *)brk, size, vma_flags, "[heap]");
+	if (IS_ERR(vma_heap)) {
+		brk = PTR_ERR(vma_heap);
+		goto unlock_out;
+	}
+
+	process->vma_heap = vma_heap;
+	brk = brk + size;
+
+unlock_out:
+	spin_unlock(&task->lock);
+	return brk;
 }

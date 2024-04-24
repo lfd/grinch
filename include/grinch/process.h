@@ -26,6 +26,8 @@
 
 struct process {
 	struct mm mm;
+	void __user *brk;
+	struct vma *vma_heap;
 
 	struct file_handle fds[MAX_FDS];
 };
