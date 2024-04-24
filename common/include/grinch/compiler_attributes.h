@@ -27,6 +27,8 @@
 
 #define __section(section)	__attribute__((__section__(section)))
 
+#define __must_check		__attribute__((warn_unused_result))
+
 #define likely(x)	__builtin_expect(!!(x), 1)
 #define unlikely(x)	__builtin_expect(!!(x), 0)
 
