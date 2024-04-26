@@ -152,9 +152,9 @@ int __init kheap_init(void)
 	if (err)
 		return err;
 
-	salloc_init(vma_kheap.base, vma_kheap.size);
+	err = salloc_init(vma_kheap.base, vma_kheap.size);
 
-	return 0;
+	return err;
 }
 
 size_t kheap_size(void)

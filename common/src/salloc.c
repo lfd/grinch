@@ -86,10 +86,16 @@ static inline struct memchunk *chunk_of(const void *ptr)
 	return (struct memchunk *)(ptr - sizeof(struct memchunk));
 }
 
-void salloc_init(void *base, size_t size)
+int salloc_init(void *base, size_t size)
 {
+	/* smaller sizes do not make sense at all. */
+	if (size < 1024)
+		return -ENOMEM;
+
 	set_chunk(base, NULL, size - sizeof(struct memchunk),
 		  MEMCHUNK_FLAG_LAST);
+
+	return 0;
 }
 
 int salloc_alloc(void *base, size_t size, void **dst)
