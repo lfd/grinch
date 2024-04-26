@@ -13,8 +13,13 @@
 #ifndef _STLIB_H
 #define _STLIB_H
 
+#include <stddef.h>
+
 extern char **__envp;
 
 char *getenv(const char *name);
+
+void *malloc(size_t size);
+void free(void *ptr);
 
 #endif /* _STLIB_H */
