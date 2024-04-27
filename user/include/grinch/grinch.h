@@ -15,6 +15,6 @@
 
 #include <grinch/kstat.h>
 
-int grinch_kstat(unsigned long no);
+int grinch_kstat(unsigned long no, unsigned long arg1);
 
 #endif /* _GRINCH_GRINCH_H */

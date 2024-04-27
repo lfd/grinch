@@ -31,12 +31,12 @@ static unsigned long usleep(unsigned long us)
 	return 0;
 }
 
-static int grinch_kstat(unsigned long arg)
+static int grinch_kstat(unsigned long no, unsigned long arg)
 {
 	int ret;
 
 	ret = 0;
-	switch (arg) {
+	switch (no) {
 		case GRINCH_KSTAT_PS:
 			tasks_dump();
 			break;
@@ -46,7 +46,7 @@ static int grinch_kstat(unsigned long arg)
 			break;
 
 		case GRINCH_KSTAT_MAPS:
-			process_show_vmas(current_task());
+			process_show_vmas(arg);
 			break;
 
 		default:
@@ -142,7 +142,7 @@ int syscall(unsigned long no, unsigned long arg1,
 			break;
 
 		case SYS_grinch_kstat:
-			ret = grinch_kstat(arg1);
+			ret = grinch_kstat(arg1, arg2);
 			break;
 
 		default:

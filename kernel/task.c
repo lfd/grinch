@@ -752,3 +752,45 @@ void task_handle_fault(void __user *addr, bool is_write)
 		return;
 	}
 }
+
+static struct task *task_by_pid(pid_t pid)
+{
+	struct task *task;
+
+	list_for_each_entry(task, &task_list, tasks)
+		if (task->pid == pid)
+			return task;
+
+	return NULL;
+}
+
+void process_show_vmas(pid_t pid)
+{
+	struct process *process;
+	struct task *task;
+	struct vma *vma;
+
+	spin_lock(&task_lock);
+	task = task_by_pid(pid);
+	if (!task) {
+		pr("PID %d: no task\n", pid);
+		spin_unlock(&task_lock);
+		return;
+	}
+	spin_lock(&task->lock);
+	spin_unlock(&task_lock);
+
+	process = &task->process;
+	pr("VMA map of PID %d (%s)\n", task->pid, task->name);
+	list_for_each_entry(vma, &process->mm.vmas, vmas) {
+		pr("%p-%p %c%c%c%c %012lx %s\n",
+		   vma->base, vma->base + vma->size,
+		   (vma->flags & VMA_FLAG_R) ? 'r' : '-',
+		   (vma->flags & VMA_FLAG_W) ? 'w' : '-',
+		   (vma->flags & VMA_FLAG_X) ? 'x' : '-',
+		   (vma->flags & VMA_FLAG_LAZY) ? 'z' : '-',
+		   vma->size, vma->name);
+	}
+
+	spin_unlock(&task->lock);
+}

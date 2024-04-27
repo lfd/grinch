@@ -20,7 +20,7 @@ pid_t create_grinch_vm(void)
 	return errno_syscall_0(SYS_create_grinch_vm);
 }
 
-int grinch_kstat(unsigned long no)
+int grinch_kstat(unsigned long no, unsigned long arg1)
 {
-	return errno_syscall_1(SYS_grinch_kstat, no);
+	return errno_syscall_2(SYS_grinch_kstat, no, arg1);
 }

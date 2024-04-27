@@ -262,28 +262,6 @@ int process_handle_fault(struct task *task, void __user *addr, bool is_write)
 	return err;
 }
 
-void process_show_vmas(struct task *task)
-{
-	struct process *process;
-	struct vma *vma;
-
-	spin_lock(&task->lock);
-
-	process = &task->process;
-	pr("VMA map of PID %d (%s)\n", task->pid, task->name);
-	list_for_each_entry(vma, &process->mm.vmas, vmas) {
-		pr("%p-%p %c%c%c%c %012lx %s\n",
-		   vma->base, vma->base + vma->size,
-		   (vma->flags & VMA_FLAG_R) ? 'r' : '-',
-		   (vma->flags & VMA_FLAG_W) ? 'w' : '-',
-		   (vma->flags & VMA_FLAG_X) ? 'x' : '-',
-		   (vma->flags & VMA_FLAG_LAZY) ? 'z' : '-',
-		   vma->size, vma->name);
-	}
-
-	spin_unlock(&task->lock);
-}
-
 int sys_execve(const char __user *pathname, char *const __user uargv[],
 	       char *const __user uenvp[])
 {

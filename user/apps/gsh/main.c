@@ -134,12 +134,13 @@ static int gsh_help(char *argv[])
 
 static int gsh_ps(char *argv[])
 {
-	return grinch_kstat(GRINCH_KSTAT_PS);
+	return grinch_kstat(GRINCH_KSTAT_PS, 0);
 }
 
 static int gsh_kstat(char *argv[])
 {
 	const char *arg;
+	pid_t pid;
 
 	arg = argv[1];
 	if (!arg)
@@ -148,10 +149,15 @@ static int gsh_kstat(char *argv[])
 	if (!strcmp(arg, "ps"))
 		return gsh_ps(NULL);
 	if (!strcmp(arg, "kheap"))
-		return grinch_kstat(GRINCH_KSTAT_KHEAP);
-	if (!strcmp(arg, "maps"))
-		return grinch_kstat(GRINCH_KSTAT_MAPS);
-	else
+		return grinch_kstat(GRINCH_KSTAT_KHEAP, 0);
+	if (!strcmp(arg, "maps")) {
+		if (argv[2] != 0)
+			pid = strtoul(argv[2], NULL, 0);
+		else
+			pid = getpid();
+
+		return grinch_kstat(GRINCH_KSTAT_MAPS, pid);
+	} else
 		return -ENOSYS;
 
 	return 0;
