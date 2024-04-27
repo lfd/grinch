@@ -174,6 +174,7 @@ static int _alloc_pages_aligned(void **res, unsigned int pages,
 	int err;
 
 	err = -EINVAL;
+	off = 0;
 	for_each_valid_memory_area(i, area) {
 		if (!area->v.base)
 			continue;
