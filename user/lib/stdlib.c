@@ -48,6 +48,8 @@ found:
 	return *envp + len + 1;
 }
 
+/* FIXME: malloc, realloc and free need later a lock for thread safety. */
+
 void *malloc(size_t size)
 {
 	void *ret;
@@ -99,4 +101,20 @@ void free(void *ptr)
 		dprintf(stderr, "fault: %p: %s\n", ptr, salloc_err_str(err));
 		exit(err);
 	}
+}
+
+void *realloc(void *ptr, size_t size)
+{
+	void *new;
+	int err;
+
+	err = salloc_realloc(heap.base, ptr, size, &new);
+	if (!err)
+		return new;
+
+	if (err == -ENOMEM)
+		return NULL;
+
+	dprintf(stderr, "realloc fault: %p: %s\n", ptr, salloc_err_str(err));
+	exit(err);
 }
