@@ -16,4 +16,6 @@
 /* include the common header */
 #include <grinch/string.h>
 
+char *strdup(const char *s);
+
 #endif /* _STRING_H */
