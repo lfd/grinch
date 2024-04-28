@@ -152,9 +152,6 @@ int uptr_from_user(struct task *t, void *dst, const void __user *user)
 {
 	unsigned long copied;
 
-	if (!PTR_IS_ALIGNED(user, sizeof(user)))
-		return -EINVAL;
-
 	copied = copy_from_user(t, dst, user, sizeof(dst));
 	if (copied != sizeof(dst))
 		return -EINVAL;
