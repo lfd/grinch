@@ -19,6 +19,7 @@ typedef void (*salloc_printer)(const char *format, ...);
 int __must_check salloc_init(void *base, size_t size);
 int __must_check salloc_alloc(void *base, size_t size, void **dst);
 int __must_check salloc_free(const void *ptr);
+int __must_check salloc_realloc(void *base, void *old, size_t size, void **new);
 
 /* Utilities */
 int __must_check salloc_fsck(salloc_printer pr, void *base, size_t size);

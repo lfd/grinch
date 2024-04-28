@@ -14,6 +14,7 @@
 
 #include <grinch/align.h>
 #include <grinch/errno.h>
+#include <grinch/minmax.h>
 #include <grinch/salloc.h>
 #include <grinch/types.h>
 
@@ -149,6 +150,28 @@ int salloc_alloc(void *base, size_t size, void **dst)
 	} while (true);
 
 	*dst = ret;
+	return 0;
+}
+
+int salloc_realloc(void *base, void *old, size_t size, void **_new)
+{
+	struct memchunk *m_old, *m_new;
+	void *new;
+	int err;
+
+	m_old = chunk_of(old);
+	err = check_chunk(m_old);
+	if (err)
+		return err;
+
+	err = salloc_alloc(base, size, &new);
+	if (err)
+		return err;
+
+	m_new = chunk_of(new); /* must be valid */
+	memcpy(new, old, min(m_old->size, m_new->size));
+	*_new = new;
+
 	return 0;
 }
 
