@@ -13,7 +13,6 @@
 #include <asm/spinlock.h>
 
 #include <ctype.h>
-#include <string.h>
 
 #include <grinch/boot.h>
 #include <grinch/bootparam.h>

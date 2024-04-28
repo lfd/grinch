@@ -15,8 +15,6 @@
 #include <asm-generic/fcntl.h>
 #include <asm/spinlock.h>
 
-#include <string.h>
-
 #include <grinch/alloc.h>
 #include <grinch/fs/devfs.h>
 #include <grinch/fs/initrd.h>

@@ -12,8 +12,6 @@
 
 #define dbg_fmt(x)	"devfs: " x
 
-#include <string.h>
-
 #include <asm/spinlock.h>
 
 #include <grinch/alloc.h>

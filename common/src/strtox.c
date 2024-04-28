@@ -13,10 +13,10 @@
 /* Partly copied from the Linux kernel */
 
 #include <ctype.h>
-#include <string.h>
 
 #include <grinch/compiler_attributes.h>
 #include <grinch/math64.h>
+#include <grinch/string.h>
 
 #define KSTRTOX_OVERFLOW	(1U << 31)
 

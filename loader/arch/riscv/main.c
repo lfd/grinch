@@ -10,13 +10,12 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <string.h>
-
 #include <grinch/compiler_attributes.h>
 #include <grinch/errno.h>
 #include <grinch/paging.h>
 #include <grinch/percpu.h>
 #include <grinch/symbols.h>
+#include <grinch/string.h>
 #include <grinch/loader.h>
 
 /* Set PTE access bits to RWX + AD to prevent page faults */

@@ -13,10 +13,9 @@
 #include <asm/csr.h>
 #include <asm/isa.h>
 
-#include <string.h>
-
 #include <grinch/task.h>
 #include <grinch/percpu.h>
+#include <grinch/string.h>
 #include <grinch/printk.h>
 
 void task_set_context(struct task *task, unsigned long pc, unsigned long sp)

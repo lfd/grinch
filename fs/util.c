@@ -10,11 +10,10 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <string.h>
-
 #include <grinch/fs/util.h>
 
 #include <grinch/errno.h>
+#include <grinch/string.h>
 #include <grinch/task.h>
 #include <grinch/fs/util.h>
 #include <grinch/uaccess.h>

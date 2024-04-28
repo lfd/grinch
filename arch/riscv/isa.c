@@ -14,10 +14,9 @@
 
 #include <asm/isa.h>
 
-#include <string.h>
-
 #include <grinch/errno.h>
 #include <grinch/printk.h>
+#include <grinch/string.h>
 
 static __initdata bool isa_seen;
 riscv_isa_t riscv_isa;

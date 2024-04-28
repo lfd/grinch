@@ -13,7 +13,7 @@
 #ifndef _ALLOC_H
 #define _ALLOC_H
 
-#include <string.h>
+#include <grinch/string.h>
 
 int kheap_init(void);
 void kheap_stats(void);

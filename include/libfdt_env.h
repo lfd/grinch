@@ -1,7 +1,7 @@
 #ifndef _LIBFDT_ENV_H
 #define _LIBFDT_ENV_H
 
-#include <string.h>
+#include <grinch/string.h>
 
 #define fdt32_to_cpu(x) __be32_to_cpu(x)
 #define cpu_to_fdt32(x) __cpu_to_be32(x)

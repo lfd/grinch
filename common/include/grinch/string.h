@@ -10,8 +10,8 @@
  * the COPYING file in the top-level directory.
  */
 
-#ifndef _STRING_H
-#define _STRING_H
+#ifndef _GRINCH_STRING_H
+#define _GRINCH_STRING_H
 
 #include <grinch/types.h>
 
@@ -39,4 +39,4 @@ unsigned long int strtoul(const char *cp, char **endptr, unsigned int base);
 
 #endif /* __ASSEMBLY__ */
 
-#endif /* _STRING_H */
+#endif /* _GRINCH_STRING_H */

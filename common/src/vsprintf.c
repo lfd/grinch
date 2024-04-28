@@ -15,11 +15,11 @@
 #include <asm-generic/paging.h>
 
 #include <ctype.h>
-#include <string.h>
 
 #include <grinch/errno.h>
 #include <grinch/math64.h>
 #include <grinch/minmax.h>
+#include <grinch/string.h>
 #include <grinch/vsprintf.h>
 
 #define cpu_to_le16(x)	(x)

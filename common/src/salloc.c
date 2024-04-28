@@ -10,12 +10,11 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <string.h>
-
 #include <grinch/align.h>
 #include <grinch/errno.h>
 #include <grinch/minmax.h>
 #include <grinch/salloc.h>
+#include <grinch/string.h>
 #include <grinch/types.h>
 
 #define CANARY1	0xdeadbeef

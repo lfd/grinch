@@ -14,11 +14,10 @@
 
 #include <asm/irq.h>
 
-#include <string.h>
-
 #include <grinch/bootparam.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
+#include <grinch/string.h>
 #include <grinch/task.h>
 #include <grinch/timer.h>
 

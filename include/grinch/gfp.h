@@ -20,11 +20,10 @@
  * pmm (physical pages).
  */
 
-#include <string.h>
-
 #include <asm-generic/paging.h>
 
 #include <grinch/errno.h>
+#include <grinch/string.h>
 
 /* Physical Page allocation */
 int phys_pages_alloc_aligned(paddr_t *res, size_t pages, unsigned int alignment);
