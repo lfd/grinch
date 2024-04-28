@@ -12,6 +12,7 @@
 
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <grinch/grinch.h>
@@ -28,16 +29,23 @@
 #define ASCII_CR	'\r'
 #define ASCII_DEL	0x7f
 
+#define CMDLINE_BUF_GROWTH	32
+#define CMDLINE_BUF_MAX		256
+
 int main(int argc, char *argv[], char *envp[]);
-
-static char **_envp;
-
 APP_NAME(gsh);
+
+struct tokens {
+	char *tokenised;
+	char **tokens;
+};
 
 struct gsh_builtin {
 	const char *cmd;
 	int (*fun)(char *argv[]);
 };
+
+static char **_envp;
 
 static inline void putc(char c)
 {
@@ -50,20 +58,41 @@ static inline void putc_triple(char a, char b, char c)
 	write(stdout, &buf, 3);
 }
 
-static int read_line(char *buf, size_t len)
+static int read_line(char **_buf)
 {
+	char *buf, *buf_new, *pos, c;
+	size_t remaining, buf_sz;
 	ssize_t bread;
-	char c, *pos;
+	int err;
 
+	buf = malloc(CMDLINE_BUF_GROWTH);
+	if (!buf)
+		return -ENOMEM;
+	remaining = buf_sz = CMDLINE_BUF_GROWTH;
 	pos = buf;
+
 	do {
-		if (len == 0)
-			return -E2BIG;
+		if (remaining == 0) {
+			if (buf_sz == CMDLINE_BUF_MAX) {
+				err = -E2BIG;
+				break;
+			}
+			buf_new = realloc(buf, buf_sz + CMDLINE_BUF_GROWTH);
+			if (!buf_new) {
+				err = -ENOMEM;
+				break;
+			}
+			buf = buf_new;
+			remaining += CMDLINE_BUF_GROWTH;
+			pos = buf + buf_sz;
+			buf_sz += CMDLINE_BUF_GROWTH;
+		}
 
 		bread = read(stdin, &c, 1);
 		if (bread == -1) {
 			perror("read");
-			return -errno;
+			err = -errno;
+			break;
 		} else if (bread == 0)
 			continue;
 
@@ -72,11 +101,12 @@ static int read_line(char *buf, size_t len)
 			continue;
 		} else if (c == ASCII_CR) {
 			*pos = 0;
+			err = 0;
 			break;
 		} else if (c == ASCII_DEL) {
 			if (pos != buf) {
 				pos--;
-				len++;
+				remaining++;
 				putc_triple(ASCII_BACKSPACE, ' ', ASCII_BACKSPACE);
 			}
 			continue;
@@ -85,10 +115,15 @@ static int read_line(char *buf, size_t len)
 
 		putc(c);
 		pos++;
-		len--;
+		remaining--;
 	} while (1);
 
-	return 0;
+	if (err)
+		free(buf);
+	else
+		*_buf = buf;
+
+	return err;
 }
 
 static int start(const char *cmd, char *argv[])
@@ -214,36 +249,64 @@ static int parse_command(int argc, char *argv[])
 	return err;
 }
 
-static int parse_tokens(const char *input_buffer, char *token_buffer, char *tokens[])
+static void free_tokens(struct tokens *t)
 {
-	unsigned int no_tokens;
-	char *start;
-	char c;
-	//char quote;
-	//bool is_escape;
+	if (t->tokenised) {
+		free(t->tokenised);
+		t->tokenised = NULL;
+	}
 
-	//is_escape = false;
-	//quote = 0;
-	start = token_buffer;
+	if (t->tokens) {
+		free(t->tokens);
+		t->tokens = NULL;
+	}
+}
+
+static int parse_tokens(const char *input_buffer, struct tokens *t)
+{
+	char **tokens, *start, c, *pos;
+	unsigned int no_tokens;
+	const char *tmp;
+
+	/* First run: calculate maximum amount of arguments */
+	for (no_tokens = 1, tmp = input_buffer; *tmp; tmp++)
+		if (*tmp == ' ')
+			no_tokens++;
+
+	t->tokenised = malloc(strlen(input_buffer) + 1);
+	if (!t->tokenised)
+		return -ENOMEM;
+	t->tokens = malloc(sizeof(char **) * (no_tokens + 1));
+	if (!t->tokens) {
+		free_tokens(t);
+		return -ENOMEM;
+	}
+
+	start = pos = t->tokenised;
+	tokens = t->tokens;
 	no_tokens = 0;
 	do {
 		c = *input_buffer++;
 		if (c == '\0') {
-			*token_buffer++ = 0;
+			*pos++ = 0;
 			*tokens++ = start;
 			no_tokens++;
 			break;
 		}
 
 		if (c == ' ') {
-			*token_buffer++ = 0;
+			*pos++ = 0;
 			*tokens++ = start;
-			start = token_buffer;
+			start = pos;
 			no_tokens++;
+
+			while (*input_buffer == ' ')
+				input_buffer++;
+
 			continue;
 		}
 
-		*token_buffer++ = c;
+		*pos++ = c;
 	} while (true);
 
 	*tokens = NULL;
@@ -253,21 +316,27 @@ static int parse_tokens(const char *input_buffer, char *token_buffer, char *toke
 
 static int gsh(void)
 {
-	char input_buffer[32];
-	char token_buffer[64];
-	char *argv[32];
+	struct tokens tokens = { 0 };
+	char *input_buffer;
 	int argc, err;
 
+	input_buffer = NULL;
 	for (;;) {
+		if (input_buffer) {
+			free(input_buffer);
+			input_buffer = NULL;
+		}
+		free_tokens(&tokens);
+
 		puts(PROMPT);
 
-		err = read_line(input_buffer, sizeof(input_buffer));
+		err = read_line(&input_buffer);
 		if (err) {
 			printf("\nError: %pe\n", ERR_PTR(err));
 			continue;
 		}
 
-		argc = parse_tokens(input_buffer, token_buffer, argv);
+		argc = parse_tokens(input_buffer, &tokens);
 		if (argc <= 0) {
 			printf("\nError: parsing cmdline\n");
 			continue;
@@ -277,7 +346,7 @@ static int gsh(void)
 		if (!strlen(input_buffer))
 			continue;
 
-		err = parse_command(argc, argv);
+		err = parse_command(argc, tokens.tokens);
 		if (err == -EIO)
 			break;
 
