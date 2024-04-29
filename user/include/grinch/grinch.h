@@ -17,4 +17,7 @@
 
 int grinch_kstat(unsigned long no, unsigned long arg1);
 
+/* Gets CWD to a fresh buffer. NULL in case of errors */
+char *grinch_getcwd(void);
+
 #endif /* _GRINCH_GRINCH_H */

@@ -16,13 +16,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#include <sys/stat.h>
+#include <sys/wait.h>
+
 #include <grinch/grinch.h>
 #include <grinch/types.h>
 #include <grinch/vm.h>
 #include <grinch/vsprintf.h>
-
-#include <sys/stat.h>
-#include <sys/wait.h>
 
 #include "tokens.h"
 
@@ -34,8 +35,8 @@
 #define ASCII_CR	'\r'
 #define ASCII_DEL	0x7f
 
-#define CMDLINE_BUF_GROWTH	32
-#define CMDLINE_BUF_MAX		256
+#define GSH_BUF_GROWTH	32
+#define GSH_BUF_MAX	256
 
 int main(int argc, char *argv[], char *envp[]);
 APP_NAME(gsh);
@@ -66,27 +67,27 @@ static int read_line(char **_buf)
 	ssize_t bread;
 	int err;
 
-	buf = malloc(CMDLINE_BUF_GROWTH);
+	buf = malloc(GSH_BUF_GROWTH);
 	if (!buf)
 		return -ENOMEM;
-	remaining = buf_sz = CMDLINE_BUF_GROWTH;
+	remaining = buf_sz = GSH_BUF_GROWTH;
 	pos = buf;
 
 	do {
 		if (remaining == 0) {
-			if (buf_sz == CMDLINE_BUF_MAX) {
+			if (buf_sz == GSH_BUF_MAX) {
 				err = -E2BIG;
 				break;
 			}
-			buf_new = realloc(buf, buf_sz + CMDLINE_BUF_GROWTH);
+			buf_new = realloc(buf, buf_sz + GSH_BUF_GROWTH);
 			if (!buf_new) {
 				err = -ENOMEM;
 				break;
 			}
 			buf = buf_new;
-			remaining += CMDLINE_BUF_GROWTH;
+			remaining += GSH_BUF_GROWTH;
 			pos = buf + buf_sz;
-			buf_sz += CMDLINE_BUF_GROWTH;
+			buf_sz += GSH_BUF_GROWTH;
 		}
 
 		bread = read(stdin, &c, 1);
@@ -222,7 +223,25 @@ static int gsh_vm(char *argv[])
 	return err;
 }
 
+static int gsh_cd(char *argv[])
+{
+	char *dst;
+	int err;
+
+	if (!argv[1])
+		return 0;
+
+	dst=argv[1];
+
+	err = chdir(dst);
+	if (err == -1)
+		return -errno;
+
+	return 0;
+}
+
 static const struct gsh_builtin builtins[] = {
+	{ "cd", gsh_cd },
 	{ "help", gsh_help },
 	{ "version", gsh_version },
 	{ "exit", gsh_exit },
@@ -318,6 +337,20 @@ static void trim(char *str)
 		*lastwhite = '\0';
 }
 
+static int print_prompt(void)
+{
+	char *cwd;
+
+	cwd = grinch_getcwd();
+	if (!cwd)
+		return -ENOMEM;
+
+	printf("gsh %s> ", cwd);
+	free(cwd);
+
+	return 0;
+}
+
 static int gsh(void)
 {
 	struct tokens tokens = { 0 };
@@ -332,7 +365,11 @@ static int gsh(void)
 		}
 		tokens_free(&tokens);
 
-		puts(PROMPT);
+		err = print_prompt();
+		if (err) {
+			printf("\nError: %pe\n", ERR_PTR(err));
+			break;
+		}
 
 		err = read_line(&input_buffer);
 		if (err) {
