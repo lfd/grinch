@@ -18,4 +18,7 @@
 
 char *strdup(const char *s);
 
+/* counts the number of occurences of c in s */
+unsigned int strcount(const char *s, char c);
+
 #endif /* _STRING_H */
