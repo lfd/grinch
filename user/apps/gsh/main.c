@@ -24,6 +24,8 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 
+#include "tokens.h"
+
 #define NAME	"gsh"
 #define PROMPT	NAME "> "
 
@@ -37,11 +39,6 @@
 
 int main(int argc, char *argv[], char *envp[]);
 APP_NAME(gsh);
-
-struct tokens {
-	char *tokenised;
-	char **tokens;
-};
 
 struct gsh_builtin {
 	const char *cmd;
@@ -292,94 +289,6 @@ static int parse_command(int argc, char *argv[])
 	return err;
 }
 
-static void free_tokens(struct tokens *t)
-{
-	if (t->tokenised) {
-		free(t->tokenised);
-		t->tokenised = NULL;
-	}
-
-	if (t->tokens) {
-		free(t->tokens);
-		t->tokens = NULL;
-	}
-}
-
-static int parse_tokens(const char *input_buffer, char delim, struct tokens *t)
-{
-	char **tokens, *start, *pos, c, l;
-	unsigned int no_tokens;
-	bool dquote, squote;
-
-	/* First run: calculate maximum amount of arguments */
-	no_tokens = strcount(input_buffer, delim) + 1;
-	t->tokenised = malloc(strlen(input_buffer) + 1);
-	if (!t->tokenised)
-		return -ENOMEM;
-	t->tokens = malloc(sizeof(char **) * (no_tokens + 1));
-	if (!t->tokens) {
-		free_tokens(t);
-		return -ENOMEM;
-	}
-
-	start = pos = t->tokenised;
-	tokens = t->tokens;
-	dquote = squote = false;
-	no_tokens = 0;
-	c = 0;
-	do {
-		l = c;
-		c = *input_buffer++;
-		if (c == '\0') {
-			if (dquote || dquote)
-				goto error;
-
-			*pos++ = 0;
-			*tokens++ = start;
-			no_tokens++;
-			break;
-		}
-
-		if (c == '"' && l != '\\') {
-			if (squote)
-				goto store;
-
-			dquote ^= true;
-		}
-
-		if (c == '\'' && l != '\\') {
-			if (dquote)
-				goto store;
-
-			squote ^= true;
-		}
-
-		if (!dquote && !squote && c == delim) {
-			*pos++ = 0;
-			*tokens++ = start;
-			start = pos;
-			no_tokens++;
-
-			while (*input_buffer == delim)
-				input_buffer++;
-
-			continue;
-		}
-
-store:
-		*pos++ = c;
-	} while (true);
-
-	*tokens = NULL;
-
-	return no_tokens;
-
-error:
-	free_tokens(t);
-
-	return -EINVAL;
-}
-
 /*
  * Trims the string str in-situ. Removes {pre,succ}eeding whitespaces (includes
  * tabs). The infix of the string will not be touched.
@@ -419,7 +328,7 @@ static int gsh(void)
 			free(input_buffer);
 			input_buffer = NULL;
 		}
-		free_tokens(&tokens);
+		tokens_free(&tokens);
 
 		puts(PROMPT);
 
@@ -431,7 +340,7 @@ static int gsh(void)
 
 		trim(input_buffer);
 
-		argc = parse_tokens(input_buffer, ' ', &tokens);
+		argc = tokens_from_string(input_buffer, ' ', &tokens);
 		if (argc <= 0) {
 			printf("\nError: parsing cmdline\n");
 			continue;
@@ -461,16 +370,16 @@ int main(int argc, char *argv[], char *envp[])
 	int err;
 
 	_envp = envp;
-
+	
 	path = getenv("PATH");
 	if (!path)
 		printf("Warning: no PATH found\n");
 	else
-		parse_tokens(path, ':', &paths);
+		tokens_from_string(path, ':', &paths);
 
 	err = gsh();
 
-	free_tokens(&paths);
+	tokens_free(&paths);
 
 	return err;
 }
