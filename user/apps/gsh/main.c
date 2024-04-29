@@ -46,7 +46,7 @@ struct gsh_builtin {
 };
 
 static struct tokens paths;
-static char **_envp;
+static struct tokens orig_env;
 
 static inline void putc(char c)
 {
@@ -127,14 +127,14 @@ static int read_line(char **_buf)
 	return err;
 }
 
-static int start(const char *cmd, char *argv[])
+static int start(const char *cmd, char *argv[], char *env[])
 {
 	pid_t child;
 	int wstatus;
 
 	child = fork();
 	if (child == 0) {
-		execve(cmd, argv, _envp);
+		execve(cmd, argv, env);
 		perror("execve");
 		return -errno;
 	} else if (child == -1) {
@@ -259,7 +259,7 @@ static char *executable_get_pathname(const char *cmd)
 	return NULL;
 }
 
-static int parse_command(int argc, char *argv[])
+static int parse_command(int argc, char *argv[], char *env[])
 {
 	const struct gsh_builtin *builtin;
 	char *executable;
@@ -283,7 +283,7 @@ static int parse_command(int argc, char *argv[])
 		return -ENOENT;
 	}
 
-	err = start(executable, argv);
+	err = start(executable, argv, env);
 	free(executable);
 
 	return err;
@@ -352,7 +352,7 @@ static int gsh(void)
 		if (!strlen(input_buffer))
 			continue;
 
-		err = parse_command(argc, tokens.tokens);
+		err = parse_command(argc, tokens.tokens, orig_env.tokens);
 		if (err == -EIO)
 			break;
 
@@ -369,7 +369,9 @@ int main(int argc, char *argv[], char *envp[])
 	char *path;
 	int err;
 
-	_envp = envp;
+	err = tokens_from_array(envp, &orig_env);
+	if (err < 0)
+		return -1;
 	
 	path = getenv("PATH");
 	if (!path)
