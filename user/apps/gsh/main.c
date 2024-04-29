@@ -258,7 +258,6 @@ static int gsh(void)
 	char *argv[32];
 	int argc, err;
 
-	printf_set_prefix(false);
 	for (;;) {
 		puts(PROMPT);
 

@@ -18,7 +18,7 @@
 
 #include <grinch/vsprintf.h>
 
-static bool print_prefix = true;
+static bool print_prefix;
 
 static int _puts(int fd, const char *s)
 {

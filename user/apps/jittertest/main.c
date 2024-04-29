@@ -24,6 +24,7 @@ int main(void)
 {
 	unsigned long now, then;
 
+	printf_set_prefix(true);
 	printf("Jittertest\n");
 
 	for (;;) {

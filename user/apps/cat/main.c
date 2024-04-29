@@ -66,7 +66,6 @@ int main(int argc, char **argv)
 		return -EINVAL;
 
 	err = 0;
-	printf_set_prefix(false);
 	for (arg = 1; arg < argc; arg++)
 		err |= cat(argv[arg]);
 

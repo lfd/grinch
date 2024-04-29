@@ -20,7 +20,6 @@ int main(int argc, char **argv)
 {
 	int arg;
 
-	printf_set_prefix(false);
 	for (arg = 1; arg < argc; arg++) {
 		printf("%s%c", argv[arg], argv[arg + 1] ? ' ' : '\0');
 	}

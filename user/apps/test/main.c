@@ -254,6 +254,8 @@ int main(void)
 {
 	int err;
 
+	printf_set_prefix(true);
+
 	printf("Testing fork+wait\n");
 	err = test_fork();
 	if (err)
