@@ -35,6 +35,7 @@ static LIST_HEAD(task_list);
 static LIST_HEAD(timer_list);
 
 static DEFINE_SPINLOCK(task_lock);
+static DEFINE_SPINLOCK(pid_lock);
 static pid_t next_pid = 1;
 
 static inline void _sched_dequeue(struct task *task)
@@ -270,9 +271,9 @@ static inline pid_t get_new_pid(void)
 {
 	pid_t ret;
 
-	spin_lock(&task_lock);
+	spin_lock(&pid_lock);
 	ret = next_pid++;
-	spin_unlock(&task_lock);
+	spin_unlock(&pid_lock);
 
 	return ret;
 }
