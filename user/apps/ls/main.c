@@ -13,10 +13,13 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
+#include <grinch/grinch.h>
 #include <grinch/vsprintf.h>
 
 int main(int argc, char *argv[]);
@@ -82,7 +85,7 @@ static int ls_dir(const char *path)
 		return -errno;
 	}
 
-	printf("Contents of directory %s\n", path);
+	printf("Content of directory %s\n", path);
 	for (;;) {
 		err = getdents(fd, (void *)buf, sizeof(buf));
 		if (err == 0)
@@ -125,18 +128,28 @@ static int ls(const char *pathname)
 int main(int argc, char *argv[])
 {
 	const char *pathname;
+	char *cwd;
 	int err;
 
-	if (argc != 2) {
+	cwd = grinch_getcwd();
+	if (!cwd)
+		return -ENOMEM;
+
+	if (argc == 1) {
+		pathname = cwd;
+	} else if (argc == 2) {
+		pathname = argv[1];
+	} else {
 		dprintf(stderr, "Invalid argument\n");
 		return -EINVAL;
 	}
 
-	pathname = argv[1];
 	err = ls(pathname);
 	if (err) {
 		dprintf(stderr, "ls: %pe\n", ERR_PTR(err));
 	}
+
+	free(cwd);
 
 	return err;
 }
