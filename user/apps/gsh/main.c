@@ -300,8 +300,9 @@ static void free_tokens(struct tokens *t)
 
 static int parse_tokens(const char *input_buffer, char delim, struct tokens *t)
 {
-	char **tokens, *start, c, *pos;
+	char **tokens, *start, *pos, c, l;
 	unsigned int no_tokens;
+	bool dquote, squote;
 
 	/* First run: calculate maximum amount of arguments */
 	no_tokens = strcount(input_buffer, delim) + 1;
@@ -316,17 +317,37 @@ static int parse_tokens(const char *input_buffer, char delim, struct tokens *t)
 
 	start = pos = t->tokenised;
 	tokens = t->tokens;
+	dquote = squote = false;
 	no_tokens = 0;
+	c = 0;
 	do {
+		l = c;
 		c = *input_buffer++;
 		if (c == '\0') {
+			if (dquote || dquote)
+				goto error;
+
 			*pos++ = 0;
 			*tokens++ = start;
 			no_tokens++;
 			break;
 		}
 
-		if (c == delim) {
+		if (c == '"' && l != '\\') {
+			if (squote)
+				goto store;
+
+			dquote ^= true;
+		}
+
+		if (c == '\'' && l != '\\') {
+			if (dquote)
+				goto store;
+
+			squote ^= true;
+		}
+
+		if (!dquote && !squote && c == delim) {
 			*pos++ = 0;
 			*tokens++ = start;
 			start = pos;
@@ -338,12 +359,18 @@ static int parse_tokens(const char *input_buffer, char delim, struct tokens *t)
 			continue;
 		}
 
+store:
 		*pos++ = c;
 	} while (true);
 
 	*tokens = NULL;
 
 	return no_tokens;
+
+error:
+	free_tokens(t);
+
+	return -EINVAL;
 }
 
 /*
@@ -402,6 +429,8 @@ static int gsh(void)
 			printf("\nError: parsing cmdline\n");
 			continue;
 		}
+
+		// FIXME: Evaluate command line and expand variables
 
 		putc('\n');
 		if (!strlen(input_buffer))
