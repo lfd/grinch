@@ -113,3 +113,19 @@ void *sbrk(intptr_t increment)
 
 	return addr;
 }
+
+char *getcwd(char *buf, size_t size)
+{
+	int ret;
+
+	ret = errno_syscall_2(SYS_getcwd, (unsigned long)buf, size);
+	if (ret == 0)
+		return buf;
+
+	return NULL;
+}
+
+int chdir(const char *path)
+{
+	return errno_syscall_1(SYS_chdir, (unsigned long)path);
+}

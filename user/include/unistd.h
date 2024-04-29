@@ -33,4 +33,7 @@ ssize_t read(int fd, void *buf, size_t count);
 void *sbrk(intptr_t increment);
 int brk(void *addr);
 
+int chdir(const char *path);
+char *getcwd(char *buf, size_t size);
+
 #endif /* _UNISTD_H */
