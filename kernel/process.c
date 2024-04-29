@@ -221,6 +221,14 @@ void process_destroy(struct task *task)
 
 	uvmas_destroy(process);
 
+	if (process->cwd.pathname) {
+		file_close(process->cwd.file);
+		process->cwd.file = NULL;
+
+		kfree(process->cwd.pathname);
+		process->cwd.pathname = NULL;
+	}
+
 	if (process->mm.page_table)
 		kfree(process->mm.page_table);
 }
@@ -441,4 +449,43 @@ SYSCALL_DEF2(grinch_kstat, unsigned long, no, unsigned long, arg)
 	}
 
 	return ret;
+}
+
+int process_setcwd(struct task *t, const char *pathname)
+{
+	struct file *f_new;
+	struct process *p;
+	char *new;
+	int err;
+
+	p = &t->process;
+
+	f_new = file_open_at(p->cwd.file, pathname);
+	if (IS_ERR(f_new))
+		return PTR_ERR(f_new);
+
+	if (!f_new->is_directory) {
+		err = -ENOTDIR;
+		goto close_out;
+	}
+
+	new = file_realpath(f_new);
+	if (!new) {
+		err = -ENOMEM;
+		goto close_out;
+	}
+
+	if (p->cwd.pathname) {
+		file_close(p->cwd.file);
+		kfree(p->cwd.pathname);
+	}
+
+	p->cwd.pathname = new;
+	p->cwd.file = f_new;
+
+	return 0;
+
+close_out:
+	file_close(f_new);
+	return err;
 }

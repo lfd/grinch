@@ -448,6 +448,10 @@ SYSCALL_DEF0(fork)
 	new->parent = this;
 	regs_set_retval(&new->regs, 0);
 
+	err = process_setcwd(new, this->process.cwd.pathname);
+	if (err)
+		goto destroy_out;
+
 	list_for_each_entry(vma, &this->process.mm.vmas, vmas) {
 		err = uvma_duplicate(new, this, vma);
 		if (err)

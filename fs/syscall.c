@@ -18,9 +18,10 @@
 #include <grinch/errno.h>
 #include <grinch/fs/vfs.h>
 #include <grinch/fs/util.h>
-#include <grinch/syscall.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
+#include <grinch/string.h>
+#include <grinch/syscall.h>
 #include <grinch/task.h>
 #include <grinch/uaccess.h>
 
@@ -281,6 +282,69 @@ SYSCALL_DEF2(mkdir, const char __user *, _pathname, mode_t, mode)
 
 	err = vfs_mkdir(pathname, mode);
 	kfree(pathname);
+
+	return err;
+}
+
+SYSCALL_DEF2(getcwd, char __user *,buf, size_t, len)
+{
+	unsigned long cwd_len, copied;
+	struct process *p;
+	struct task *t;
+	int err;
+
+	t = current_task();
+	spin_lock(&t->lock);
+	p = &t->process;
+
+	if (!p->cwd.pathname) {
+		err = -ENOENT;
+		goto unlock_out;
+	}
+
+	cwd_len = strlen(p->cwd.pathname);
+	if (len < (cwd_len + 1)) {
+		err = -ERANGE;
+		goto unlock_out;
+	}
+
+	cwd_len++;
+
+	copied = copy_to_user(t, buf, p->cwd.pathname, cwd_len);
+	if (copied != cwd_len) {
+		err = -EFAULT;
+		goto unlock_out;
+	}
+
+	err = 0;
+
+unlock_out:
+	spin_unlock(&t->lock);
+	return err;
+}
+
+SYSCALL_DEF1(chdir, const char __user *, _pathname)
+{
+	struct task *t;
+	char *pathname;
+	int err;
+
+	pathname = pathname_from_user(_pathname, NULL);
+	if (IS_ERR(pathname))
+		return PTR_ERR(pathname);
+
+	t = current_task();
+	spin_lock(&t->lock);
+
+	err = process_setcwd(t, pathname);
+	if (err)
+		goto out;
+
+	err = 0;
+
+out:
+	kfree(pathname);
+	spin_unlock(&t->lock);
 
 	return err;
 }

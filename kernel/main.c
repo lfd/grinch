@@ -120,6 +120,10 @@ static int __init init(void)
 		}
 	}
 
+	err = process_setcwd(task, ISTR("/"));
+	if (err)
+		goto exit_out;
+
 	task->state = TASK_RUNNABLE;
 
 	init_task = task;

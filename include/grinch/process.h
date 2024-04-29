@@ -29,6 +29,11 @@ struct process {
 	void __user *brk;
 	struct vma *vma_heap;
 
+	struct {
+		char *pathname;
+		struct file *file;
+	} cwd;
+
 	struct file_handle fds[MAX_FDS];
 };
 
@@ -38,6 +43,8 @@ int process_handle_fault(struct task *task, void __user *addr, bool is_write);
 
 int process_from_fs(struct task *task, const char *pathname,
 		    struct uenv_array *argv, struct uenv_array *envp);
+
+int process_setcwd(struct task *t, const char *pathname);
 
 /* Arch specific routines */
 void arch_process_activate(struct process *task);
