@@ -46,4 +46,9 @@ static inline char _tolower(const char c)
 	return c | 0x20;
 }
 
+static inline int isblank(int c)
+{
+	return c == '\t' || c == ' ';
+}
+
 #endif /* _CTYPE_H */
