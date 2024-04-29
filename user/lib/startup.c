@@ -17,6 +17,6 @@ int main(int argc, char *argv[], char *envp[]);
 
 int cmain(int argc, char *argv[], char *envp[])
 {
-	__envp = envp;
+	environ = envp;
 	return main(argc, argv, envp);
 }

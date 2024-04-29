@@ -15,7 +15,7 @@
 
 #include <stddef.h>
 
-extern char **__envp;
+extern char **environ;
 
 char *getenv(const char *name);
 

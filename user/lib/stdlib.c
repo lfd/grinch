@@ -21,7 +21,7 @@
 
 #define HEAP_SIZE	(32 * KIB)
 
-char **__envp;
+char **environ;
 
 static struct {
 	void *base;
@@ -35,7 +35,7 @@ char *getenv(const char *name)
 
 	len = strlen(name);
 
-	for (envp = __envp; *envp; envp++)
+	for (envp = environ; *envp; envp++)
 		if (!strncmp(name, *envp, len))
 			goto found;
 
