@@ -1,5 +1,6 @@
 APPS = cat
 APPS += echo
+APPS += env
 APPS += gsh
 APPS += init
 APPS += jittertest
