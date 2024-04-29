@@ -266,13 +266,9 @@ static int parse_tokens(const char *input_buffer, struct tokens *t)
 {
 	char **tokens, *start, c, *pos;
 	unsigned int no_tokens;
-	const char *tmp;
 
 	/* First run: calculate maximum amount of arguments */
-	for (no_tokens = 1, tmp = input_buffer; *tmp; tmp++)
-		if (*tmp == ' ')
-			no_tokens++;
-
+	no_tokens = strcount(input_buffer, ' ') + 1;
 	t->tokenised = malloc(strlen(input_buffer) + 1);
 	if (!t->tokenised)
 		return -ENOMEM;
