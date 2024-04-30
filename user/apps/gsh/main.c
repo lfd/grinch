@@ -179,24 +179,28 @@ static int gsh_kstat(char *argv[])
 {
 	const char *arg;
 	pid_t pid;
+	int err;
 
 	arg = argv[1];
 	if (!arg)
 		return -EINVAL;
 
 	if (!strcmp(arg, "ps"))
-		return gsh_ps(NULL);
-	if (!strcmp(arg, "kheap"))
-		return grinch_kstat(GRINCH_KSTAT_KHEAP, 0);
-	if (!strcmp(arg, "maps")) {
+		err = gsh_ps(NULL);
+	else if (!strcmp(arg, "kheap"))
+		err = grinch_kstat(GRINCH_KSTAT_KHEAP, 0);
+	else if (!strcmp(arg, "maps")) {
 		if (argv[2] != 0)
 			pid = strtoul(argv[2], NULL, 0);
 		else
 			pid = getpid();
 
-		return grinch_kstat(GRINCH_KSTAT_MAPS, pid);
+		err = grinch_kstat(GRINCH_KSTAT_MAPS, pid);
 	} else
 		return -ENOSYS;
+
+	if (err == -1)
+		return -errno;
 
 	return 0;
 }
