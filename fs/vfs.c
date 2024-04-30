@@ -17,6 +17,7 @@
 #include <grinch/alloc.h>
 #include <grinch/fs/devfs.h>
 #include <grinch/fs/initrd.h>
+#include <grinch/fs/tmpfs.h>
 #include <grinch/fs/vfs.h>
 #include <grinch/errno.h>
 #include <grinch/list.h>
