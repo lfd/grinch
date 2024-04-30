@@ -87,10 +87,15 @@ find_mountpoint(const char *pathname, const char **_fsname)
 {
 	struct mountpoint *mp, *cand;
 	const char *fsname;
+	char successor;
 
 	mp = NULL;
 	list_for_each_entry(cand, &mountpoints, mountpoints) {
 		if (strncmp(cand->path.name, pathname, cand->path.len))
+			continue;
+
+		successor = pathname[cand->path.len];
+		if (successor != '\0' && successor != '/')
 			continue;
 
 		if (!mp) {
