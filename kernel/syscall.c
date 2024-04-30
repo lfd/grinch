@@ -133,15 +133,16 @@ int syscall(unsigned long no, unsigned long arg1,
 			ret = sys_getdents(arg1, (void *)arg2, arg3);
 			break;
 
-		case SYS_usleep:
+		/* custom grinch syscalls */
+		case SYS_grinch_usleep:
 			ret = usleep(arg1);
 			break;
 
-		case SYS_gettime:
+		case SYS_grinch_gettime:
 			ret = timer_get_wall();
 			break;
 
-		case SYS_create_grinch_vm:
+		case SYS_grinch_create_grinch_vm:
 			ret = vm_create_grinch();
 			break;
 

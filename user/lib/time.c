@@ -15,5 +15,5 @@
 
 unsigned long gettime(void)
 {
-	return syscall_0(SYS_gettime);
+	return syscall_0(SYS_grinch_gettime);
 }

@@ -13,6 +13,7 @@
 #ifndef _SYSCALL_COMMON_H
 #define _SYSCALL_COMMON_H
 
+/* standard almost POSIX-compatible syscalls */
 #define SYS_read		0
 #define SYS_write		1
 #define SYS_open		2
@@ -26,9 +27,15 @@
 #define SYS_exit		60
 #define SYS_getdents		141
 #define SYS_wait		260
-#define SYS_usleep		1337
-#define SYS_gettime		1338
-#define SYS_create_grinch_vm	1339
-#define SYS_grinch_kstat	1340
+
+#define SYSCALL_MAX		260
+
+/* custom grinch syscalls */
+#define SYS_grinch_base			1000
+#define SYS_grinch(x)			(SYS_grinch_base + (x))
+#define SYS_grinch_usleep		SYS_grinch(0)
+#define SYS_grinch_gettime		SYS_grinch(1)
+#define SYS_grinch_create_grinch_vm	SYS_grinch(2)
+#define SYS_grinch_kstat		SYS_grinch(3)
 
 #endif /* _SYSCALL_COMMON_H */
