@@ -31,6 +31,7 @@
 #define ENODEV		19
 #define ENOTDIR		20
 #define EINVAL		22
+#define EFBIG		27
 #define ERANGE		34
 #define ENOSYS		38
 #define	EMSGSIZE	97

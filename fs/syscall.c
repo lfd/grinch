@@ -107,6 +107,9 @@ unsigned long sys_read(int fd, char __user *buf, size_t count)
 	struct file *file;
 	ssize_t bread;
 
+	if ((ssize_t)count < 0)
+		return -EFBIG;
+
 	handle = get_handle(fd);
 	if (IS_ERR(handle))
 		return PTR_ERR(handle);
@@ -139,6 +142,9 @@ unsigned long sys_write(int fd, const char __user *buf, size_t count)
 {
 	struct file_handle *handle;
 	struct file *file;
+
+	if ((ssize_t)count < 0)
+		return -EFBIG;
 
 	handle = get_handle(fd);
 	if (IS_ERR(handle))
