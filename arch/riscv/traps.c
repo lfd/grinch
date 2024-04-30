@@ -32,13 +32,20 @@ void arch_handle_irq(struct registers *regs, u64 scause);
 static void handle_syscall(void)
 {
 	struct registers *regs;
+	struct syscall_args args;
 
 	/* we had an ecall, so skip 4b of instructions */
 	regs = &current_task()->regs;
 	regs->pc += 4;
 
-	syscall(regs->a7, regs->a0, regs->a1, regs->a2, regs->a3, regs->a4,
-		regs->a5);
+	args.arg1 = regs->a0;
+	args.arg2 = regs->a1;
+	args.arg3 = regs->a2;
+	args.arg4 = regs->a3;
+	args.arg5 = regs->a4;
+	args.arg6 = regs->a5;
+
+	syscall(regs->a7, &args);
 }
 
 void arch_handle_irq(struct registers *regs, u64 scause)

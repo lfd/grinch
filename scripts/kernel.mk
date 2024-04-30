@@ -1,3 +1,5 @@
+SYSCALL_HEADER = common/include/generated/syscall.h
+
 ARCH_DIR = arch/$(ARCH)
 include $(ARCH_DIR)/inc.mk
 include fs/inc.mk
@@ -88,3 +90,6 @@ clean_kernel:
 	$(RMRF) fs/*.{o,a} kernel/*.{o,a,ld}
 	$(RMRF) lib/*.{o,a} lib/libfdt/*.{o,a}
 	$(RMRF) mm/*.{o,a}
+	$(RMRF) kernel/syscall_table.c
+	$(RMRF) include/generated
+	$(RMRF) common/include/generated

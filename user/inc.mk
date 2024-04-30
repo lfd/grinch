@@ -36,7 +36,7 @@ LIBC_BUILTIN = user/lib/built-in.a
 
 $(LIBC_BUILTIN): $(LIBC_OBJS)
 
-user/%.o: user/%.c
+user/%.o: user/%.c $(SYSCALL_HEADER)
 	$(QUIET) "[CC-U]  $@"
 	$(VERBOSE) $(CC) -c $(CFLAGS_USER) -o $@ $<
 

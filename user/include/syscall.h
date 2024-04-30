@@ -15,7 +15,7 @@
 
 #include <errno.h>
 
-#include <grinch/syscall_common.h>
+#include <generated/syscall.h>
 #include <arch/syscall.h>
 
 #define syscall_0(no)				\

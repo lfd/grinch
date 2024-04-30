@@ -114,7 +114,7 @@ static int task_notify_wait(struct task *parent, struct task *child)
 	return 0;
 }
 
-long sys_wait(pid_t pid, int __user *wstatus, int options)
+SYSCALL_DEF3(wait, pid_t, pid, int __user *, wstatus, int, options)
 {
 	struct task *task, *child;
 	int err;
@@ -420,7 +420,7 @@ out:
 	spin_unlock(&task_lock);
 }
 
-long sys_fork(void)
+SYSCALL_DEF0(fork)
 {
 	struct task *this, *new;
 	struct file_handle *fh;

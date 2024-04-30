@@ -35,7 +35,7 @@ static struct file_handle *get_handle(int fd)
 	return handle;
 }
 
-long sys_open(const char *_path, int oflag)
+SYSCALL_DEF2(open, const char __user *, _path, int, oflag)
 {
 	struct process *process;
 	char path[MAX_PATHLEN];
@@ -80,7 +80,7 @@ unlock_out:
 	return ret;
 }
 
-long sys_close(int fd)
+SYSCALL_DEF1(close, int, fd)
 {
 	struct file_handle *handle;
 	struct task *task;
@@ -103,7 +103,7 @@ unlock_out:
 	return err;
 }
 
-long sys_read(int fd, char __user *buf, size_t count)
+SYSCALL_DEF3(read, int, fd, char __user *, buf, size_t, count)
 {
 	struct file_handle *handle;
 	struct file *file;
@@ -140,7 +140,7 @@ long sys_read(int fd, char __user *buf, size_t count)
 	return file->fops->register_reader(handle, buf, count);
 }
 
-long sys_write(int fd, const char __user *buf, size_t count)
+SYSCALL_DEF3(write, int, fd, const char __user *, buf, size_t, count)
 {
 	struct file_handle *handle;
 	struct file *file;
@@ -165,7 +165,7 @@ long sys_write(int fd, const char __user *buf, size_t count)
 	return file->fops->write(handle, buf, count);
 }
 
-long sys_stat(const char __user *_pathname, struct stat __user *_st)
+SYSCALL_DEF2(stat, const char __user *, _pathname, struct stat __user *, _st)
 {
 	char pathname[MAX_PATHLEN];
 	struct stat st = { 0 };
@@ -190,7 +190,8 @@ long sys_stat(const char __user *_pathname, struct stat __user *_st)
 	return err;
 }
 
-long sys_getdents(int fd, struct grinch_dirent __user *dents, unsigned int size)
+SYSCALL_DEF3(getdents, int, fd, struct grinch_dirent __user *, dents,
+	     unsigned int, size)
 {
 	struct file_handle *handle;
 	struct file *file;

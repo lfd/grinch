@@ -316,9 +316,9 @@ uargv_free_out:
 }
 
 
-long sys_execve(const char __user *pathname,
-		const char __user *const __user *uargv,
-		const char __user *const __user *uenvp)
+SYSCALL_DEF3(execve, const char __user *, pathname,
+	       const char __user *const __user *, uargv,
+	       const char __user *const __user *, uenvp)
 {
 	long ret;
 	struct task *cur;
@@ -333,7 +333,7 @@ long sys_execve(const char __user *pathname,
 	return ret;
 }
 
-long sys_brk(unsigned long addr)
+SYSCALL_DEF1(brk, unsigned long, addr)
 {
 	struct process *process;
 	unsigned int vma_flags;
@@ -380,7 +380,7 @@ unlock_out:
 	return brk;
 }
 
-long sys_grinch_usleep(unsigned long us)
+SYSCALL_DEF1(grinch_usleep, unsigned long, us)
 {
 	task_sleep_for(current_task(), US_TO_NS(us));
 	this_per_cpu()->schedule = true;
@@ -388,31 +388,31 @@ long sys_grinch_usleep(unsigned long us)
 	return 0;
 }
 
-long sys_exit(long errno)
+SYSCALL_DEF1(exit, long, errno)
 {
 	task_exit(current_task(), errno);
 
 	return 0;
 }
 
-long sys_sched_yield(void)
+SYSCALL_DEF0(sched_yield)
 {
 	this_per_cpu()->schedule = true;
 
 	return 0;
 }
 
-long sys_getpid(void)
+SYSCALL_DEF0(getpid)
 {
 	return current_task()->pid;
 }
 
-long sys_grinch_gettime(void)
+SYSCALL_DEF0(grinch_gettime)
 {
 	return timer_get_wall();
 }
 
-long sys_grinch_kstat(unsigned long no, unsigned long arg)
+SYSCALL_DEF2(grinch_kstat, unsigned long, no, unsigned long, arg)
 {
 	long ret;
 

@@ -24,6 +24,7 @@
 #include <grinch/paging.h>
 #include <grinch/printk.h>
 #include <grinch/platform.h>
+#include <grinch/syscall.h>
 #include <grinch/task.h>
 #include <grinch/vsprintf.h>
 
@@ -399,7 +400,7 @@ int __init vmm_init(void)
 	return 0;
 }
 
-long sys_grinch_create_grinch_vm(void)
+SYSCALL_DEF0(grinch_create_grinch_vm)
 {
 	struct task *task;
 
