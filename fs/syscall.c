@@ -35,20 +35,20 @@ static struct file_handle *get_handle(int fd)
 	return handle;
 }
 
-unsigned long sys_open(const char *_path, int oflag)
+long sys_open(const char *_path, int oflag)
 {
 	struct process *process;
 	char path[MAX_PATHLEN];
 	struct fs_flags flags;
 	struct file *file;
 	struct task *task;
-	unsigned int d;
 	bool must_dir;
-	int err;
+	long ret;
+	int d;
 
-	err = pathname_from_user(path, _path, &must_dir);
-	if (err)
-		return err;
+	ret = pathname_from_user(path, _path, &must_dir);
+	if (ret)
+		return ret;
 
 	flags = get_flags(oflag);
 	flags.must_directory = must_dir;
@@ -60,7 +60,7 @@ unsigned long sys_open(const char *_path, int oflag)
 		if (process->fds[d].fp == NULL)
 			goto found;
 
-	d = -ENOENT;
+	ret = -ENOENT;
 	goto unlock_out;
 
 found:
@@ -73,16 +73,18 @@ found:
 	process->fds[d].flags = flags;
 	process->fds[d].position = 0;
 
+	ret = d;
+
 unlock_out:
 	spin_unlock(&task->lock);
-	return d;
+	return ret;
 }
 
-unsigned long sys_close(int fd)
+long sys_close(int fd)
 {
 	struct file_handle *handle;
 	struct task *task;
-	unsigned long err;
+	long err;
 
 	task = current_task();
 	spin_lock(&task->lock);
@@ -101,7 +103,7 @@ unlock_out:
 	return err;
 }
 
-unsigned long sys_read(int fd, char __user *buf, size_t count)
+long sys_read(int fd, char __user *buf, size_t count)
 {
 	struct file_handle *handle;
 	struct file *file;
@@ -138,7 +140,7 @@ unsigned long sys_read(int fd, char __user *buf, size_t count)
 	return file->fops->register_reader(handle, buf, count);
 }
 
-unsigned long sys_write(int fd, const char __user *buf, size_t count)
+long sys_write(int fd, const char __user *buf, size_t count)
 {
 	struct file_handle *handle;
 	struct file *file;
