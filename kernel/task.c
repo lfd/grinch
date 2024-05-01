@@ -420,7 +420,7 @@ out:
 	spin_unlock(&task_lock);
 }
 
-int do_fork(void)
+long sys_fork(void)
 {
 	struct task *this, *new;
 	struct file_handle *fh;

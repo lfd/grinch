@@ -149,8 +149,6 @@ void sched_dequeue(struct task *task);
 /* invoke scheduler on all CPUs */
 void sched_all(void);
 
-int do_fork(void);
-
 /* utilities */
 void task_set_name(struct task *task, const char *src);
 void tasks_dump(void);

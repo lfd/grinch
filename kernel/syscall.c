@@ -62,6 +62,25 @@ static long sys_grinch_kstat(unsigned long no, unsigned long arg)
 	return ret;
 }
 
+static long sys_exit(long errno)
+{
+	task_exit(current_task(), errno);
+
+	return 0;
+}
+
+static long sys_sched_yield(void)
+{
+	this_per_cpu()->schedule = true;
+
+	return 0;
+}
+
+static long sys_getpid(void)
+{
+	return current_task()->pid;
+}
+
 int syscall(unsigned long no, unsigned long arg1,
 	    unsigned long arg2, unsigned long arg3,
 	    unsigned long arg4, unsigned long arg5,
@@ -71,7 +90,6 @@ int syscall(unsigned long no, unsigned long arg1,
 	long ret;
 
 	cur = current_task();
-
 	if (cur->state != TASK_RUNNING)
 		BUG();
 
@@ -101,37 +119,28 @@ int syscall(unsigned long no, unsigned long arg1,
 			break;
 
 		case SYS_getpid:
-			ret = cur->pid;
+			ret = sys_getpid();
 			break;
 
 		case SYS_fork:
-			ret = do_fork();
+			ret = sys_fork();
 			break;
 
 		case SYS_wait:
 			ret = sys_wait(arg1, (void __user *)arg2, arg3);
-			if (ret < 0)
-				regs_set_retval(&cur->regs, ret);
 			break;
 
 		case SYS_sched_yield:
-			this_per_cpu()->schedule = true;
-			ret = 0;
+			ret = sys_sched_yield();
 			break;
 
 		case SYS_execve:
 			ret = sys_execve((void *)arg1, (void *)arg2,
 					 (void *)arg3);
-			if (ret) {
-				pr("execve failed on task %u: %pe\n",
-				   cur->pid, ERR_PTR(ret));
-				task_exit(cur, ret);
-			}
 			break;
 
 		case SYS_exit:
-			task_exit(cur, arg1);
-			ret = 0;
+			ret = sys_exit(arg1);
 			break;
 
 		case SYS_getdents:
@@ -160,7 +169,14 @@ int syscall(unsigned long no, unsigned long arg1,
 			break;
 	}
 
-	if (no != SYS_exit && no != SYS_execve && no != SYS_wait)
+	/*
+	 * 1. On errors, always set the return value
+	 * 2. We have special treatments for exit,execve,wait
+	 * 3. Syscalls might have killed the task. Check for its existence
+	 */
+	cur = current_task();
+	if ((ret < 0 ||
+	    !(no == SYS_exit || no == SYS_execve || no == SYS_wait)) && cur)
 		regs_set_retval(&cur->regs, ret);
 
 	return 0;
