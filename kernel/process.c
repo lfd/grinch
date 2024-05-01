@@ -267,8 +267,8 @@ int process_handle_fault(struct task *task, void __user *addr, bool is_write)
 	return err;
 }
 
-int sys_execve(const char __user *pathname, char *const __user uargv[],
-	       char *const __user uenvp[])
+long sys_execve(const char __user *pathname, char *const __user uargv[],
+		char *const __user uenvp[])
 {
 	struct uenv_array argv, envp;
 	struct process *process;

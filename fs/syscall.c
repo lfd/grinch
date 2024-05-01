@@ -165,13 +165,13 @@ long sys_write(int fd, const char __user *buf, size_t count)
 	return file->fops->write(handle, buf, count);
 }
 
-int sys_stat(const char __user *_pathname, struct stat __user *_st)
+long sys_stat(const char __user *_pathname, struct stat __user *_st)
 {
 	char pathname[MAX_PATHLEN];
 	struct stat st = { 0 };
 	unsigned long copied;
 	bool must_dir;
-	int err;
+	long err;
 
 	err = pathname_from_user(pathname, _pathname, &must_dir);
 	if (err)
@@ -190,7 +190,7 @@ int sys_stat(const char __user *_pathname, struct stat __user *_st)
 	return err;
 }
 
-int sys_getdents(int fd, struct grinch_dirent __user *dents, unsigned int size)
+long sys_getdents(int fd, struct grinch_dirent __user *dents, unsigned int size)
 {
 	struct file_handle *handle;
 	struct file *file;
