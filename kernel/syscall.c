@@ -23,7 +23,7 @@
 #include <grinch/timer.h>
 #include <grinch/uaccess.h>
 
-static unsigned long usleep(unsigned long us)
+static long sys_grinch_usleep(unsigned long us)
 {
 	task_sleep_for(current_task(), US_TO_NS(us));
 	this_per_cpu()->schedule = true;
@@ -31,9 +31,14 @@ static unsigned long usleep(unsigned long us)
 	return 0;
 }
 
-static int grinch_kstat(unsigned long no, unsigned long arg)
+static long sys_grinch_gettime(void)
 {
-	int ret;
+	return timer_get_wall();
+}
+
+static long sys_grinch_kstat(unsigned long no, unsigned long arg)
+{
+	long ret;
 
 	ret = 0;
 	switch (no) {
@@ -135,11 +140,11 @@ int syscall(unsigned long no, unsigned long arg1,
 
 		/* custom grinch syscalls */
 		case SYS_grinch_usleep:
-			ret = usleep(arg1);
+			ret = sys_grinch_usleep(arg1);
 			break;
 
 		case SYS_grinch_gettime:
-			ret = timer_get_wall();
+			ret = sys_grinch_gettime();
 			break;
 
 		case SYS_grinch_create_grinch_vm:
@@ -147,7 +152,7 @@ int syscall(unsigned long no, unsigned long arg1,
 			break;
 
 		case SYS_grinch_kstat:
-			ret = grinch_kstat(arg1, arg2);
+			ret = sys_grinch_kstat(arg1, arg2);
 			break;
 
 		default:
