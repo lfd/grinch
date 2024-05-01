@@ -22,6 +22,7 @@
 #include <grinch/hypercall.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
+#include <grinch/syscall.h>
 #include <grinch/task.h>
 #include <grinch/percpu.h>
 #include <grinch/timer.h>
@@ -113,7 +114,7 @@ static int task_notify_wait(struct task *parent, struct task *child)
 	return 0;
 }
 
-long task_wait(pid_t pid, int __user *wstatus, int options)
+long sys_wait(pid_t pid, int __user *wstatus, int options)
 {
 	struct task *task, *child;
 	int err;

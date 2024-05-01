@@ -109,7 +109,7 @@ int syscall(unsigned long no, unsigned long arg1,
 			break;
 
 		case SYS_wait:
-			ret = task_wait(arg1, (void __user *)arg2, arg3);
+			ret = sys_wait(arg1, (void __user *)arg2, arg3);
 			if (ret < 0)
 				regs_set_retval(&cur->regs, ret);
 			break;

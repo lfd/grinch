@@ -30,6 +30,7 @@ long sys_execve(const char __user *pathname, char *const __user argv[],
 long sys_stat(const char __user *pathname, struct stat __user *st);
 long sys_getdents(int fd, struct grinch_dirent __user *dents, unsigned int size);
 long sys_brk(unsigned long addr);
+long sys_wait(pid_t pid, int __user *wstatus, int options);
 
 /* custom syscalls */
 long sys_grinch_create_grinch_vm(void);
