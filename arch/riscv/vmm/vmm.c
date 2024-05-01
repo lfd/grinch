@@ -19,6 +19,7 @@
 #include <grinch/gfp.h>
 #include <grinch/fs/initrd.h>
 #include <grinch/fs/vfs.h>
+#include <grinch/syscall.h>
 #include <grinch/panic.h>
 #include <grinch/paging.h>
 #include <grinch/printk.h>
@@ -398,7 +399,7 @@ int __init vmm_init(void)
 	return 0;
 }
 
-int vm_create_grinch(void)
+long sys_grinch_create_grinch_vm(void)
 {
 	struct task *task;
 

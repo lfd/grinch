@@ -60,6 +60,4 @@ void vmachine_set_timer_pending(struct vmachine *vm);
 
 void arch_vmachine_activate(struct vmachine *vm);
 
-int vm_create_grinch(void);
-
 #endif /* _VMM_H */

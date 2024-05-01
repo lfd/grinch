@@ -143,7 +143,7 @@ int syscall(unsigned long no, unsigned long arg1,
 			break;
 
 		case SYS_grinch_create_grinch_vm:
-			ret = vm_create_grinch();
+			ret = sys_grinch_create_grinch_vm();
 			break;
 
 		case SYS_grinch_kstat:

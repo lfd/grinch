@@ -31,4 +31,7 @@ int sys_stat(const char __user *pathname, struct stat __user *st);
 int sys_getdents(int fd, struct grinch_dirent __user *dents, unsigned int size);
 long sys_brk(unsigned long addr);
 
+/* custom syscalls */
+long sys_grinch_create_grinch_vm(void);
+
 #endif /* _SYSCALL_H */
