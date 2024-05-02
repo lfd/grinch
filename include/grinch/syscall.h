@@ -16,10 +16,10 @@
 #include <grinch/dirent.h>
 #include <grinch/stat.h>
 
-int syscall(unsigned long no, unsigned long arg1,
-	    unsigned long arg2, unsigned long arg3,
-	    unsigned long arg4, unsigned long arg5,
-	    unsigned long arg6);
+void syscall(unsigned long no, unsigned long arg1,
+	     unsigned long arg2, unsigned long arg3,
+	     unsigned long arg4, unsigned long arg5,
+	     unsigned long arg6);
 
 long sys_fork(void);
 long sys_open(const char __user *path, int oflag);

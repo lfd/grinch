@@ -29,19 +29,16 @@
 void arch_handle_exception(struct registers *regs, u64 scause);
 void arch_handle_irq(struct registers *regs, u64 scause);
 
-static int handle_syscall(void)
+static void handle_syscall(void)
 {
 	struct registers *regs;
-	int err;
 
 	/* we had an ecall, so skip 4b of instructions */
 	regs = &current_task()->regs;
 	regs->pc += 4;
 
-	err = syscall(regs->a7, regs->a0, regs->a1, regs->a2,
-		      regs->a3, regs->a4, regs->a5);
-
-	return err;
+	syscall(regs->a7, regs->a0, regs->a1, regs->a2, regs->a3, regs->a4,
+		regs->a5);
 }
 
 void arch_handle_irq(struct registers *regs, u64 scause)
@@ -141,7 +138,8 @@ void arch_handle_exception(struct registers *regs, u64 scause)
 			break;
 
 		case EXC_SYSCALL:
-			err = handle_syscall();
+			handle_syscall();
+			err = 0;
 			break;
 
 		case EXC_BREAKPOINT:

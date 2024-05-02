@@ -81,10 +81,10 @@ static long sys_getpid(void)
 	return current_task()->pid;
 }
 
-int syscall(unsigned long no, unsigned long arg1,
-	    unsigned long arg2, unsigned long arg3,
-	    unsigned long arg4, unsigned long arg5,
-	    unsigned long arg6)
+void syscall(unsigned long no, unsigned long arg1,
+	     unsigned long arg2, unsigned long arg3,
+	     unsigned long arg4, unsigned long arg5,
+	     unsigned long arg6)
 {
 	struct task *cur;
 	long ret;
@@ -178,6 +178,4 @@ int syscall(unsigned long no, unsigned long arg1,
 	if ((ret < 0 ||
 	    !(no == SYS_exit || no == SYS_execve || no == SYS_wait)) && cur)
 		regs_set_retval(&cur->regs, ret);
-
-	return 0;
 }
