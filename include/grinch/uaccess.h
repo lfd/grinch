@@ -49,7 +49,7 @@ struct uenv_array {
  * elems = 3
  */
 
-int uenv_dup(struct task *t, char *const __user _user[],
+int uenv_dup(struct task *t, const char *const __user *_user,
 	     struct uenv_array *uenv);
 void uenv_free(struct uenv_array *uenv);
 

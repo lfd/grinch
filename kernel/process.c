@@ -267,8 +267,9 @@ int process_handle_fault(struct task *task, void __user *addr, bool is_write)
 	return err;
 }
 
-static long _sys_execve(const char __user *pathname, char *const __user uargv[],
-			char *const __user uenvp[])
+static long _sys_execve(const char __user *pathname,
+			const char *const __user *uargv,
+			const char *const __user *uenvp)
 {
 	struct uenv_array argv, envp;
 	struct process *process;
@@ -314,8 +315,9 @@ uargv_free_out:
 }
 
 
-long sys_execve(const char __user *pathname, char *const __user uargv[],
-		char *const __user uenvp[])
+long sys_execve(const char __user *pathname,
+		const char __user *const __user *uargv,
+		const char __user *const __user *uenvp)
 {
 	long ret;
 	struct task *cur;

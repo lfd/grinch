@@ -222,11 +222,11 @@ ssize_t ustrlen(const char __user *src)
 	return ustrncpy(NULL, src, ULONG_MAX) - 1;
 }
 
-int uenv_dup(struct task *t, char *const __user _user[],
+int uenv_dup(struct task *t, const char *const __user *_user,
 	     struct uenv_array *uenv)
 {
+	const char __user *const *user;
 	unsigned int elements, *cut;
-	char __user *const *user;
 	char __user *ustring;
 	size_t length;
 	ssize_t ret;

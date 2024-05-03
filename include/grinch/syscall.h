@@ -26,8 +26,9 @@ long sys_open(const char __user *path, int oflag);
 long sys_close(int fd);
 long sys_write(int fd, const char __user *buf, size_t count);
 long sys_read(int fd, char __user *buf, size_t count);
-long sys_execve(const char __user *pathname, char *const __user argv[],
-		char *const __user envp[]);
+long sys_execve(const char __user *pathname,
+		const char __user *const __user *argv,
+		const char __user *const __user *envp);
 long sys_stat(const char __user *pathname, struct stat __user *st);
 long sys_getdents(int fd, struct grinch_dirent __user *dents, unsigned int size);
 long sys_brk(unsigned long addr);
