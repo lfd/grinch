@@ -12,74 +12,10 @@
 
 #define dbg_fmt(x)	"syscall: " x
 
-#include <grinch/alloc.h>
 #include <grinch/errno.h>
-#include <grinch/kstat.h>
 #include <grinch/syscall.h>
 #include <grinch/syscall_common.h>
-#include <grinch/printk.h>
-#include <grinch/percpu.h>
 #include <grinch/task.h>
-#include <grinch/timer.h>
-#include <grinch/uaccess.h>
-
-static long sys_grinch_usleep(unsigned long us)
-{
-	task_sleep_for(current_task(), US_TO_NS(us));
-	this_per_cpu()->schedule = true;
-
-	return 0;
-}
-
-static long sys_grinch_gettime(void)
-{
-	return timer_get_wall();
-}
-
-static long sys_grinch_kstat(unsigned long no, unsigned long arg)
-{
-	long ret;
-
-	ret = 0;
-	switch (no) {
-		case GRINCH_KSTAT_PS:
-			tasks_dump();
-			break;
-
-		case GRINCH_KSTAT_KHEAP:
-			kheap_stats();
-			break;
-
-		case GRINCH_KSTAT_MAPS:
-			process_show_vmas(arg);
-			break;
-
-		default:
-			ret = -ENOSYS;
-			break;
-	}
-
-	return ret;
-}
-
-static long sys_exit(long errno)
-{
-	task_exit(current_task(), errno);
-
-	return 0;
-}
-
-static long sys_sched_yield(void)
-{
-	this_per_cpu()->schedule = true;
-
-	return 0;
-}
-
-static long sys_getpid(void)
-{
-	return current_task()->pid;
-}
 
 void syscall(unsigned long no, unsigned long arg1,
 	     unsigned long arg2, unsigned long arg3,

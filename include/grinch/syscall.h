@@ -33,6 +33,12 @@ long sys_stat(const char __user *pathname, struct stat __user *st);
 long sys_getdents(int fd, struct grinch_dirent __user *dents, unsigned int size);
 long sys_brk(unsigned long addr);
 long sys_wait(pid_t pid, int __user *wstatus, int options);
+long sys_grinch_usleep(unsigned long us);
+long sys_exit(long errno);
+long sys_sched_yield(void);
+long sys_getpid(void);
+long sys_grinch_gettime(void);
+long sys_grinch_kstat(unsigned long no, unsigned long arg);
 
 /* custom syscalls */
 long sys_grinch_create_grinch_vm(void);

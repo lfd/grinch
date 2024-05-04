@@ -17,6 +17,7 @@
 #include <grinch/elf.h>
 #include <grinch/errno.h>
 #include <grinch/fs/vfs.h>
+#include <grinch/kstat.h>
 #include <grinch/printk.h>
 #include <grinch/task.h>
 #include <grinch/uaccess.h>
@@ -377,4 +378,62 @@ long sys_brk(unsigned long addr)
 unlock_out:
 	spin_unlock(&task->lock);
 	return brk;
+}
+
+long sys_grinch_usleep(unsigned long us)
+{
+	task_sleep_for(current_task(), US_TO_NS(us));
+	this_per_cpu()->schedule = true;
+
+	return 0;
+}
+
+long sys_exit(long errno)
+{
+	task_exit(current_task(), errno);
+
+	return 0;
+}
+
+long sys_sched_yield(void)
+{
+	this_per_cpu()->schedule = true;
+
+	return 0;
+}
+
+long sys_getpid(void)
+{
+	return current_task()->pid;
+}
+
+long sys_grinch_gettime(void)
+{
+	return timer_get_wall();
+}
+
+long sys_grinch_kstat(unsigned long no, unsigned long arg)
+{
+	long ret;
+
+	ret = 0;
+	switch (no) {
+		case GRINCH_KSTAT_PS:
+			tasks_dump();
+			break;
+
+		case GRINCH_KSTAT_KHEAP:
+			kheap_stats();
+			break;
+
+		case GRINCH_KSTAT_MAPS:
+			process_show_vmas(arg);
+			break;
+
+		default:
+			ret = -ENOSYS;
+			break;
+	}
+
+	return ret;
 }
