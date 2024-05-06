@@ -179,3 +179,14 @@ int strncmp(const char *s1, const char *s2, size_t n)
 	}
 	return 0;
 }
+
+unsigned int strcount(const char *s, char c)
+{
+	unsigned int ret;
+
+	for (ret = 0; *s; s++)
+		if (*s == c)
+			ret++;
+
+	return ret;
+}

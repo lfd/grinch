@@ -30,14 +30,3 @@ char *strdup(const char *s)
 
 	return tmp;
 }
-
-unsigned int strcount(const char *s, char c)
-{
-	unsigned int ret;
-
-	for (ret = 0; *s; s++)
-		if (*s == c)
-			ret++;
-
-	return ret;
-}

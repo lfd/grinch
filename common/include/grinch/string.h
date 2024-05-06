@@ -37,6 +37,9 @@ char *strrchr(const char *t, int c);
 
 unsigned long int strtoul(const char *cp, char **endptr, unsigned int base);
 
+/* counts the number of occurences of c in s */
+unsigned int strcount(const char *s, char c);
+
 #endif /* __ASSEMBLY__ */
 
 #endif /* _GRINCH_STRING_H */
