@@ -229,6 +229,24 @@ struct fs_flags get_flags(int oflag)
 	return ret;
 }
 
+int vfs_mkdir(const char *pathname, mode_t mode)
+{
+	const struct mountpoint *mp;
+	const char *fsname;
+
+	mp = find_mountpoint(pathname, &fsname);
+	if (!mp)
+		return -ENOENT;
+
+	if (!mp->fs->fs_ops)
+		return -ENOSYS;
+
+	if (!mp->fs->fs_ops->mkdir)
+		return -ENOSYS;
+
+	return mp->fs->fs_ops->mkdir(mp->fs, fsname, mode);
+}
+
 int vfs_stat(const char *pathname, struct stat *st)
 {
 	const struct mountpoint *mp;

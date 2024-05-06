@@ -55,6 +55,8 @@ struct file_system_operations {
 			 const char *fname, struct fs_flags flags);
 	int (*stat)(const struct file_system *fs, const char *pathname,
 		    struct stat *st);
+	int (*mkdir)(const struct file_system *fs, const char *pathname,
+		     mode_t mode);
 };
 
 struct file_system {

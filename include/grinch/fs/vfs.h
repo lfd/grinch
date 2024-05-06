@@ -17,6 +17,7 @@
 
 void *vfs_read_file(const char *pathname, size_t *len);
 int vfs_stat(const char *pathname, struct stat *st);
+int vfs_mkdir(const char *pathname, mode_t mode);
 
 int vfs_init(void);
 

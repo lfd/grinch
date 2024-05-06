@@ -209,3 +209,17 @@ SYSCALL_DEF3(getdents, int, fd, struct grinch_dirent __user *, dents,
 
 	return file->fops->getdents(handle, dents, size);
 }
+
+SYSCALL_DEF2(mkdir, const char __user *, _pathname, mode_t, mode)
+{
+	char pathname[MAX_PATHLEN];
+	int err;
+
+	err = pathname_from_user(pathname, _pathname, NULL);
+	if (err)
+		return err;
+
+	err = vfs_mkdir(pathname, mode);
+
+	return err;
+}

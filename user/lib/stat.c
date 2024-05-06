@@ -20,3 +20,9 @@ int stat(const char *pathname, struct stat *statbuf)
 	return errno_syscall_2(SYS_stat, (unsigned long)pathname,
 			       (unsigned long)statbuf);
 }
+
+int mkdir(const char *pathname, mode_t mode)
+{
+	return errno_syscall_2(SYS_mkdir, (unsigned long)pathname,
+			       (unsigned long)mode);
+}

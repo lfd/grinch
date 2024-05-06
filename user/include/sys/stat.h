@@ -16,5 +16,6 @@
 #include <grinch/stat.h>
 
 int stat(const char *pathname, struct stat *statbuf);
+int mkdir(const char *pathname, mode_t mode);
 
 #endif /* _STAT_H */

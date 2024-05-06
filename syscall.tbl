@@ -10,6 +10,7 @@ getpid		39
 fork		57
 execve		59
 exit		60
+mkdir		83
 getdents	141
 wait		260
 

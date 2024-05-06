@@ -64,6 +64,7 @@ typedef enum { true = 1, false = 0 } bool;
 
 typedef int pid_t;
 typedef long long loff_t;
+typedef unsigned short mode_t;
 
 #define __mayuser
 #define __user
