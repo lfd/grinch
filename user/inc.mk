@@ -5,6 +5,7 @@ APPS += gsh
 APPS += init
 APPS += jittertest
 APPS += ls
+APPS += mkdir
 APPS += test
 APPS += true
 
