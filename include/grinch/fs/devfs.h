@@ -62,7 +62,7 @@ int devfs_register_reader(struct file_handle *h, struct devfs_node *node,
 			  char __user *ubuf, size_t count);
 
 /* /dev mountpoint */
-extern struct file_system devfs;
+extern const struct file_system devfs;
 
 void devfs_chardev_write(struct devfs_node *node, char c);
 ssize_t devfs_chardev_read(struct task *task, struct devfs_node *node,

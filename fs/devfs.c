@@ -391,7 +391,7 @@ static const struct file_system_operations fs_ops_devfs = {
 };
 
 /* This is the /dev "mount point" */
-struct file_system devfs = {
+const struct file_system devfs = {
 	.fs_ops = &fs_ops_devfs,
 };
 
