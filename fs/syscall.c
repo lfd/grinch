@@ -66,7 +66,7 @@ SYSCALL_DEF2(open, const char __user *, _path, int, oflag)
 found:
 	file = file_open(path, flags);
 	if (IS_ERR(file)) {
-		d = PTR_ERR(file);
+		ret = PTR_ERR(file);
 		goto unlock_out;
 	}
 	process->fds[d].fp = file;
