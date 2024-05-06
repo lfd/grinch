@@ -24,7 +24,8 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 
-#define PROMPT	"gsh> "
+#define NAME	"gsh"
+#define PROMPT	NAME "> "
 
 #define ASCII_BACKSPACE	0x8
 #define ASCII_TAB	0x9
@@ -280,8 +281,10 @@ static int parse_command(int argc, char *argv[])
 	}
 
 	executable = executable_get_pathname(cmd);
-	if (!executable)
+	if (!executable) {
+		printf(NAME ": Command not found\n");
 		return -ENOENT;
+	}
 
 	err = start(executable, argv);
 	free(executable);
