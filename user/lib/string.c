@@ -14,6 +14,7 @@
 #include <stdlib.h>
 
 #define STRDUP		strdup
+#define STRNDUP		strndup
 #define ALLOCATOR	malloc
 
 #include "../../common/src/string.c"

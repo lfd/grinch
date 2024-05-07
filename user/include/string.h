@@ -16,5 +16,6 @@
 #include <grinch/string_common.h>
 
 char *strdup(const char *s);
+char *strndup(const char *s, size_t n);
 
 #endif /* _STRING_H */

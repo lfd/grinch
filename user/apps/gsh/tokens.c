@@ -107,20 +107,9 @@ int tokens_from_array(char **array, struct tokens *t)
 	return 0;
 }
 
-static char *strdup_diff(const char *start, const char *end)
+static inline char *strdup_diff(const char *start, const char *end)
 {
-	ptrdiff_t len;
-	char *dst;
-
-	len = end - start;
-	dst = malloc(len + 1);
-	if (!dst)
-		return NULL;
-
-	memcpy(dst, start, len);
-	dst[len] = 0;
-
-	return dst;
+	return strndup(start, end - start);
 }
 
 int tokens_from_string(const char *input_buffer, char delim, struct tokens *t)

@@ -153,6 +153,15 @@ size_t strlen(const char *s)
 	return i;
 }
 
+size_t strnlen(const char *s, size_t n)
+{
+	const char *p;
+
+	p = memchr(s, 0, n);
+
+	return p ? (size_t)(p - s) : n;
+}
+
 void *memcpy(void *dest, const void *src, size_t n)
 {
 	const u8 *s = src;
@@ -204,4 +213,24 @@ char *STRDUP(const char *s)
 		memcpy(tmp, s, len);
 
 	return tmp;
+}
+
+char *STRNDUP(const char *s, size_t n)
+{
+	size_t l;
+	char *new;
+
+	if (!s)
+		return NULL;
+
+	l = strnlen(s, n);
+
+	new = ALLOCATOR(l + 1);
+	if (!new)
+		return NULL;
+
+	memcpy(new, s, l);
+	new[l] = 0;
+
+	return new;
 }
