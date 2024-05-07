@@ -19,7 +19,7 @@
 #include <grinch/errno.h>
 #include <grinch/math64.h>
 #include <grinch/minmax.h>
-#include <grinch/string.h>
+#include <grinch/string_common.h>
 #include <grinch/vsprintf.h>
 
 #define cpu_to_le16(x)	(x)

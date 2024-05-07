@@ -13,8 +13,7 @@
 #ifndef _STRING_H
 #define _STRING_H
 
-/* include the common header */
-#include <grinch/string.h>
+#include <grinch/string_common.h>
 
 char *strdup(const char *s);
 

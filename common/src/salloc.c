@@ -14,7 +14,7 @@
 #include <grinch/errno.h>
 #include <grinch/minmax.h>
 #include <grinch/salloc.h>
-#include <grinch/string.h>
+#include <grinch/string_common.h>
 #include <grinch/types.h>
 
 #define CANARY1	0xdeadbeef
