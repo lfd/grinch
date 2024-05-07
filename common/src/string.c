@@ -11,7 +11,6 @@
  */
 
 #include <grinch/compiler_attributes.h>
-#include <grinch/string.h>
 
 int memcmp(const void *dst, const void *src, size_t count)
 {
