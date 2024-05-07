@@ -216,7 +216,7 @@ void process_destroy(struct task *task)
 	process = &task->process;
 	for (i = 0; i < MAX_FDS; i++)
 		if (process->fds[i].fp)
-			file_close(&process->fds[i]);
+			file_close(process->fds[i].fp);
 
 	uvmas_destroy(process);
 

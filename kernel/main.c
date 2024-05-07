@@ -115,7 +115,7 @@ static int __init init(void)
 
 	for (i = 0; i < 3; i++) {
 		fh = &task->process.fds[i];
-		fh->fp = file_open(ISTR(DEVICE_NAME("console")), fh->flags);
+		fh->fp = file_open(ISTR(DEVICE_NAME("console")));
 		if (IS_ERR(fh->fp))
 			return PTR_ERR(fh->fp);
 	}

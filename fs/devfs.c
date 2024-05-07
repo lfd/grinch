@@ -194,16 +194,6 @@ unlock_out:
 	return err;
 }
 
-static const struct file_operations devfs_root_fops = {
-	.getdents = devfs_getdents,
-};
-
-static const struct file_operations devfs_fops = {
-	.read = devfs_read,
-	.write = devfs_write,
-	.register_reader = devfs_register_reader,
-};
-
 static struct devfs_node *devfs_find_node(const char *name)
 {
 	struct devfs_node *node;
@@ -215,36 +205,43 @@ static struct devfs_node *devfs_find_node(const char *name)
 	return NULL;
 }
 
-static int devfs_open(const struct file_system *fs, struct file *filep,
-		      const char *path, struct fs_flags flags)
+static int devfs_stat(struct file *fp, struct stat *st)
 {
 	struct devfs_node *node;
-	int err;
 
-	if (*path == '\0') {
-		filep->fops = &devfs_root_fops;
-		filep->drvdata = NULL;
+	node = fp->drvdata;
+	/* Null-Node is the root directory at the moment */
+	if (!node) {
+		st->st_mode = S_IFDIR;
 		return 0;
 	}
 
-	if (flags.must_directory)
-		return -ENOENT;
+	st->st_size = PAGE_SIZE;
+	switch (node->type) {
+		case DEVFS_REGULAR:
+		case DEVFS_CHARDEV:
+			st->st_mode = S_IFCHR;
+			break;
 
-	spin_lock(&devfs_lock);
-	node = devfs_find_node(path);
-	if (!node) {
-		err = -ENOENT;
-		goto unlock_out;
+		case DEVFS_SYMLINK:
+			st->st_mode = S_IFLNK;
+			break;
+
+		default:
+			st->st_mode = S_IFREG;
+			break;
 	}
 
-	filep->fops = &devfs_fops;
-	filep->drvdata = node;
-	err = 0;
-
-unlock_out:
-	spin_unlock(&devfs_lock);
-	return err;
+	return 0;
 }
+
+static const struct file_operations devfs_fops = {
+	.read = devfs_read,
+	.write = devfs_write,
+	.stat = devfs_stat,
+	.getdents = devfs_getdents,
+	.register_reader = devfs_register_reader,
+};
 
 int __init devfs_create_symlink(const char *dst, const char *src)
 {
@@ -424,39 +421,28 @@ unlock_out:
 	return err;
 }
 
-static int
-devfs_stat(const struct file_system *fs, const char *pathname, struct stat *st)
+static int devfs_open(struct file *dir, struct file *filep, const char *path)
 {
 	struct devfs_node *node;
 	int err;
 
-	if (*pathname == '\0') {
-		st->st_mode = S_IFDIR;
-		return 0;
+	spin_lock(&devfs_lock);
+
+	if (*path == '\0') {
+		node = NULL;
+		filep->is_directory = true;
+		goto set_out;
 	}
 
-	spin_lock(&devfs_lock);
-	node = devfs_find_node(pathname);
+	node = devfs_find_node(path);
 	if (!node) {
 		err = -ENOENT;
 		goto unlock_out;
 	}
 
-	st->st_size = PAGE_SIZE;
-	switch (node->type) {
-		case DEVFS_REGULAR:
-		case DEVFS_CHARDEV:
-			st->st_mode = S_IFCHR;
-			break;
-
-		case DEVFS_SYMLINK:
-			st->st_mode = S_IFLNK;
-			break;
-
-		default:
-			st->st_mode = S_IFREG;
-			break;
-	}
+set_out:
+	filep->fops = &devfs_fops;
+	filep->drvdata = node;
 	err = 0;
 
 unlock_out:
@@ -466,7 +452,6 @@ unlock_out:
 
 static const struct file_system_operations fs_ops_devfs = {
 	.open_file = devfs_open,
-	.stat = devfs_stat,
 };
 
 /* This is the /dev "mount point" */

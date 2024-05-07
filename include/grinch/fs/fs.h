@@ -38,36 +38,45 @@ struct file_handle {
 };
 
 struct file_operations {
+	/* File operations */
 	ssize_t (*read)(struct file_handle *, char *ubuf, size_t count);
 	ssize_t (*write)(struct file_handle *, const char *ubuf, size_t count);
+	/* File + Directory operations */
 	void (*close)(struct file *);
+
 	int (*register_reader)(struct file_handle *h, char *ubuf, size_t count);
+	int (*stat)(struct file *filep, struct stat *st);
+
+	/* Directory operations */
 	int (*getdents)(struct file_handle *h, struct grinch_dirent *udents,
 			unsigned int size);
+	int (*mkdir)(struct file *dir, struct file *filep, const char *name, mode_t mode);
+	int (*create)(struct file *dir, struct file *filep, const char *name, mode_t mode);
 };
 
 struct file {
 	const struct file_operations *fops;
 	void *drvdata;
+	bool is_directory;
 };
 
 struct file_system_operations {
-	int (*open_file)(const struct file_system *fs, struct file *filep,
-			 const char *fname, struct fs_flags flags);
-	int (*stat)(const struct file_system *fs, const char *pathname,
-		    struct stat *st);
-	int (*mkdir)(const struct file_system *fs, const char *pathname,
-		     mode_t mode);
+	int (*open_file)(struct file *dir, struct file *filep,
+			 const char *fname);
 };
 
 struct file_system {
 	const struct file_system_operations *fs_ops;
 };
 
-/* Routines */
-struct file *file_open(const char *path, struct fs_flags flags);
-void file_close(struct file_handle *handle);
+/* Opens a file, and increments references to the file */
+struct file *file_open(const char *path);
+struct file *file_open_create(const char *path, bool create);
 
-void file_get(struct file *file);
+/* Releases the file */
+void file_close(struct file *file);
+
+/* Duplicates a file handle (e.g., used in fork()) */
+void file_dup(struct file *file);
 
 #endif /* _FS_FS_H */

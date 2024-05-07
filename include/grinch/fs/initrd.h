@@ -13,6 +13,7 @@
 #ifndef _FS_INITRD_H
 #define _FS_INITRD_H
 
+/* used for passing ram disk to VMs */
 struct initrd {
 	paddr_t pstart;
 	size_t size;
@@ -21,9 +22,9 @@ struct initrd {
 
 extern struct initrd initrd;
 
-int initrd_init(void);
-
-/* /initrd mountpoint */
+/* Initrdfs variables and helpers */
 extern const struct file_system initrdfs;
+
+int initrd_init(void);
 
 #endif /* _FS_INITRD_H */

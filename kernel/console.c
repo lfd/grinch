@@ -142,7 +142,7 @@ open_console:
 	if (err)
 		return err;
 
-	fp = file_open(ISTR(DEVICE_NAME("console")), kstdout.flags);
+	fp = file_open(ISTR(DEVICE_NAME("console")));
 	if (IS_ERR(fp)) {
 		pri("Error opening console %s: %pe\n", src, fp);
 		return PTR_ERR(fp);

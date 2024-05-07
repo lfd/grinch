@@ -96,7 +96,7 @@ SYSCALL_DEF2(open, const char __user *, _path, int, oflag)
 	goto unlock_out;
 
 found:
-	file = file_open(path, flags);
+	file = file_open_create(path, flags.create);
 	if (IS_ERR(file)) {
 		ret = PTR_ERR(file);
 		goto unlock_out;
@@ -127,7 +127,8 @@ SYSCALL_DEF1(close, int, fd)
 		goto unlock_out;
 	}
 
-	file_close(handle);
+	file_close(handle->fp);
+	handle->fp = NULL;
 	err = 0;
 
 unlock_out:

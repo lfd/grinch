@@ -439,7 +439,7 @@ SYSCALL_DEF0(fork)
 	for (fd = 0; fd < MAX_FDS; fd++) {
 		fh = &this->process.fds[fd];
 		if (fh->fp) {
-			file_get(fh->fp);
+			file_dup(fh->fp);
 			new->process.fds[fd] = *fh;
 		}
 	}

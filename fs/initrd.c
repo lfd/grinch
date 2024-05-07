@@ -18,10 +18,12 @@
 #include <grinch/fs/util.h>
 #include <grinch/gfp.h>
 #include <grinch/minmax.h>
+#include <grinch/string.h>
 #include <grinch/printk.h>
 #include <grinch/task.h>
 #include <grinch/uaccess.h>
 #include <grinch/utils.h>
+#include <grinch/vsprintf.h>
 
 #define CPIO_MAGIC	"070701"
 #define CPIO_TRAILER	"TRAILER!!!"
@@ -39,6 +41,7 @@ struct cpio_header {
 struct cpio_context {
 	struct cpio_header hdr;
 	unsigned int subdir_level;
+	char *pathname;
 };
 
 struct initrd initrd;
@@ -212,9 +215,10 @@ static ssize_t initrd_read(struct file_handle *handle, char *buf, size_t count)
 
 static void initrd_close(struct file *fp)
 {
-	struct cpio_ctx *ctx;
+	struct cpio_context *ctx;
 
 	ctx = fp->drvdata;
+	kfree(ctx->pathname);
 	kfree(ctx);
 }
 
@@ -309,21 +313,33 @@ initrd_getdents(struct file_handle *handle, struct grinch_dirent *udents,
 	return 1;
 }
 
+static int initrd_stat(struct file *filep, struct stat *st)
+{
+	struct cpio_context *ctx;
+	struct cpio_header *hdr;
+
+	ctx = filep->drvdata;
+	hdr = &ctx->hdr;
+
+	st->st_size = hdr->body_len;
+	st->st_mode = hdr->mode;
+
+	return 0;
+}
+
 static const struct file_operations initrd_fops = {
 	.read = initrd_read,
 	.close = initrd_close,
 	.getdents = initrd_getdents,
+	.stat = initrd_stat,
 };
 
-static int initrd_open(const struct file_system *fs, struct file *filep,
-		       const char *path, struct fs_flags flags)
+static int initrd_open(struct file *dir, struct file *filep, const char *path)
 {
-	struct cpio_context *ctx;
+	struct cpio_context *ctx, *dctx;
 	struct cpio_header *hdr;
+	size_t len;
 	int err;
-
-	if (flags.may_write)
-		return -EPERM;
 
 	filep->fops = &initrd_fops;
 	filep->drvdata = kmalloc(sizeof(struct cpio_context));
@@ -332,43 +348,44 @@ static int initrd_open(const struct file_system *fs, struct file *filep,
 
 	ctx = filep->drvdata;
 	hdr = &ctx->hdr;
-	err = cpio_find_file(path, hdr);
-	if (err)
-		goto err_out;
 
-	if (flags.must_directory && !S_ISDIR(hdr->mode)) {
-		err = -ENOTDIR;
-		goto err_out;
+	if (dir) {
+		dctx = dir->drvdata;
+		len = strlen(dctx->pathname) + 1 + strlen(path) + 1;
+
+		ctx->pathname = kmalloc(len);
+		if (!ctx->pathname) {
+			err = -ENOMEM;
+			goto ctx_out;
+		}
+		snprintf(ctx->pathname, len, "%s/%s", dctx->pathname, path);
+	} else {
+		ctx->pathname = kstrdup("");
+		if (!ctx->pathname) {
+			err = -ENOMEM;
+			goto ctx_out;
+		}
 	}
 
+	err = cpio_find_file(ctx->pathname, hdr);
+	if (err)
+		goto free_out;
+
+
+	filep->is_directory = S_ISDIR(hdr->mode);
 	ctx->subdir_level = get_subdir_level(hdr);
 
 	return 0;
 
-err_out:
+free_out:
+	kfree(ctx->pathname);
+ctx_out:
 	kfree(ctx);
 	return err;
 }
 
-static int
-initrd_stat(const struct file_system *fs, const char *pathname, struct stat *st)
-{
-	struct cpio_header hdr;
-	int err;
-
-	err = cpio_find_file(pathname, &hdr);
-	if (err)
-		return err;
-
-	st->st_size = hdr.body_len;
-	st->st_mode = hdr.mode;
-
-	return 0;
-}
-
 static const struct file_system_operations fs_ops_initrd = {
 	.open_file = initrd_open,
-	.stat = initrd_stat,
 };
 
 const struct file_system initrdfs = {

@@ -23,220 +23,332 @@
 #include <grinch/panic.h>
 #include <grinch/printk.h>
 
-static LIST_HEAD(open_files);
-static DEFINE_SPINLOCK(files_lock);
-static LIST_HEAD(mountpoints);
+/*
+ * When looking up dflc entries, having D_DIR set as flag means:
+ *   - Entry must be a directory, if D_CREATE is not set
+ *   - Entry will get a directory, if D_CREATE is set
+ *
+ * If D_DIR is cleared, D_CREATE means:
+ *   - Entry must be a file, if D_CREATE is not set
+ *   - Entry will be created as file, if D_CREATE is set
+ */
+#define D_DIR		(1 << 0)
+#define D_CREATE	(1 << 1)
 
-struct mountpoint {
-	struct {
-		char *name;
-		unsigned int len;
-	} path;
+#define D_ISDIR(x)	!!((x) & D_DIR)
+#define D_ISCREATE(x)	!!((x) & D_CREATE)
+
+/* Directory & File Lookup Cache */
+struct dflc {
+	struct list_head siblings;
+
+	struct dflc *parent;
+
+	const char *name;
+
+	/* children must only be used, if is_directory = true */
+	struct list_head children;
+
 	const struct file_system *fs;
-
-	struct list_head mountpoints;
-};
-
-struct files {
-	struct list_head files;
-
-	const char *pathname;
-	bool is_directory;
 	struct file fp;
+
+	spinlock_t lock;
 	unsigned int refs;
 };
 
-void file_get(struct file *file)
-{
-	struct files *files;
+static struct dflc root = {
+	.name = "",
+	.siblings = LIST_HEAD_INIT(root.siblings),
+	.children = LIST_HEAD_INIT(root.children),
+	.refs = 1, // prevent closing
+	.fp = {
+		.is_directory = true,
+	},
+	.lock = SPIN_LOCK_UNLOCKED,
+};
 
-	files = container_of(file, struct files, fp);
-	spin_lock(&files_lock);
-	files->refs++;
-	spin_unlock(&files_lock);
+static struct dflc dev = {
+	.parent = &root,
+	.siblings = LIST_HEAD_INIT(dev.siblings),
+	.name = "dev",
+	.refs = 1, // prevent closing
+	.children = LIST_HEAD_INIT(dev.children),
+	.fs = &devfs,
+	.lock = SPIN_LOCK_UNLOCKED,
+};
+
+static struct dflc ird = {
+	.parent = &root,
+	.siblings = LIST_HEAD_INIT(ird.siblings),
+	.name = "initrd",
+	.refs = 1, // prevent closing
+	.children = LIST_HEAD_INIT(ird.children),
+	.fs = &initrdfs,
+	.lock = SPIN_LOCK_UNLOCKED,
+};
+
+static inline void dflc_lock(struct dflc *entry)
+{
+	spin_lock(&entry->lock);
 }
 
-/* must hold files_lock */
-static struct file *search_file(const char *path, struct fs_flags flags)
+static inline void dflc_unlock(struct dflc *entry)
 {
-	struct files *files;
-
-	list_for_each_entry(files, &open_files, files) {
-		if (strcmp(path, files->pathname))
-			continue;
-
-		if ((flags.may_read && !files->fp.fops->read) ||
-		    (flags.may_write && !files->fp.fops->write)) {
-			return ERR_PTR(-EINVAL);
-		}
-
-		if (flags.must_directory && !files->is_directory)
-			return ERR_PTR(-ENOTDIR);
-
-		files->refs++;
-		return &files->fp;
-	}
-
-	return ERR_PTR(-ENOENT);
+	spin_unlock(&entry->lock);
 }
 
-static const struct mountpoint *
-find_mountpoint(const char *pathname, const char **_fsname)
+static struct dflc *dflc_get(struct dflc *entry)
 {
-	struct mountpoint *mp, *cand;
-	const char *fsname;
-	char successor;
+	dflc_lock(entry);
+	entry->refs++;
+	dflc_unlock(entry);
 
-	mp = NULL;
-	list_for_each_entry(cand, &mountpoints, mountpoints) {
-		if (strncmp(cand->path.name, pathname, cand->path.len))
-			continue;
-
-		successor = pathname[cand->path.len];
-		if (successor != '\0' && successor != '/')
-			continue;
-
-		if (!mp) {
-			mp = cand;
-			continue;
-		}
-
-		if (cand->path.len > mp->path.len)
-			mp = cand;
-	}
-
-	if (!mp)
-		return NULL;
-
-	if (_fsname) {
-		fsname = pathname + mp->path.len;
-		if (*fsname == '/')
-			fsname++;
-		*_fsname = fsname;
-	}
-
-	return mp;
+	return entry;
 }
 
-/* must hold files_lock */
-static struct file *_file_open(const char *pathname, struct fs_flags flags)
+static void dflc_put(struct dflc *entry)
 {
-	const struct file_system *fs;
-	const struct mountpoint *mp;
-	struct files *files;
-	const char *fsname;
-	int err;
-
-	mp = find_mountpoint(pathname, &fsname);
-	if (!mp)
-		return ERR_PTR(-ENOENT);
-
-	fs = mp->fs;
-
-	files = kzalloc(sizeof(*files));
-	if (!files)
-		return ERR_PTR(-ENOMEM);
-
-	files->pathname = pathname;
-	err = fs->fs_ops->open_file(fs, &files->fp, fsname, flags);
-	if (err) {
-		kfree(files);
-		return ERR_PTR(err);
-	}
-
-	files->refs = 1;
-	list_add(&files->files, &open_files);
-
-	return &files->fp;
-}
-
-struct file *file_open(const char *_path, struct fs_flags flags)
-{
-	struct file *filep;
-	char *path;
-
-	if (flags.create)
-		return ERR_PTR(-ENOSYS);
-
-	path = kstrdup(_path);
-	if (!path)
-		return ERR_PTR(-ENOMEM);
-
-	spin_lock(&files_lock);
-	filep = search_file(path, flags);
-	if (filep != ERR_PTR(-ENOENT)) {
-		kfree(path);
-		goto unlock_out;
-	}
-
-	filep = _file_open(path, flags);
-	if (IS_ERR(filep))
-		kfree(path);
-
-unlock_out:
-	spin_unlock(&files_lock);
-	return filep;
-}
-
-void file_close(struct file_handle *handle)
-{
-	struct files *files;
+	struct dflc *parent;
 	struct file *fp;
 
-	fp = handle->fp;
-	files = container_of(fp, struct files, fp);
+	fp = &entry->fp;
 
-	if (!fp->fops)
+	if (entry->refs == 0)
 		BUG();
 
-	spin_lock(&files_lock);
-	files->refs--;
-	if (files->refs == 0) {
-		if (fp->fops->close)
+	dflc_lock(entry);
+	parent = entry->parent;
+	entry->refs--;
+	if (entry->refs == 0) {
+		if (fp->fops && fp->fops->close)
 			fp->fops->close(fp);
-		kfree(files->pathname);
-		list_del(&files->files);
-		kfree(files);
-	}
-	spin_unlock(&files_lock);
 
-	handle->fp = NULL;
+		if (entry != &root) {
+			kfree(entry->name);
+			list_del(&entry->siblings);
+			kfree(entry);
+		}
+	}
+	dflc_unlock(entry);
+
+	if (parent)
+		dflc_put(parent);
+}
+
+static inline struct dflc *dflc_of(struct file *file)
+{
+	return container_of(file, struct dflc, fp);
+}
+
+void file_dup(struct file *file)
+{
+	struct dflc *entry;
+
+	entry = dflc_of(file);
+	do {
+		dflc_get(entry);
+		entry = entry->parent;
+	} while (entry);
+}
+
+void file_close(struct file *file)
+{
+	struct dflc *entry;
+
+	entry = dflc_of(file);
+	dflc_put(entry);
+}
+
+/*
+ * Lookup, or possibly create the next dflc entry. If an entry exists, this
+ * routine will not check against D_DIR. The caller must do this.
+ *
+ * We must arrive here with the parent's lock being held.
+ */
+static inline struct dflc *
+dflc_lookup_next(struct dflc *parent, const char *_name, size_t n,
+		 unsigned int flags)
+{
+	int (*fun)(struct file *, struct file *, const char *, mode_t);
+	bool directory, create;
+	struct dflc *next;
+	char *name;
+	int err;
+
+	name = kstrndup(_name, n);
+	if (!name)
+		return ERR_PTR(-ENOMEM);
+
+	list_for_each_entry(next, &parent->children, siblings)
+		if (!strcmp(next->name, name)) {
+			kfree(name);
+			goto found;
+		}
+
+	next = kzalloc(sizeof *next);
+	if (!next) {
+		kfree(name);
+		return ERR_PTR(-ENOMEM);
+	}
+	next->name = name;
+
+	directory = D_ISDIR(flags);
+	create = D_ISCREATE(flags);
+
+	if (directory && create) {
+		fun = parent->fp.fops->mkdir;
+		goto fun_out;
+	}
+
+	if (!parent->fs->fs_ops || !parent->fs->fs_ops->open_file) {
+		err = -ENOSYS;
+		goto err_free_out;
+	}
+
+	err = parent->fs->fs_ops->open_file(&parent->fp, &next->fp, next->name);
+	if (!err)
+		goto opened;
+
+	if (err != -ENOENT)
+		goto err_free_out;
+
+	if (!create)
+		goto err_free_out;
+
+	if (!parent->fp.fops) {
+		err = -ENOSYS;
+		goto err_free_out;
+	}
+
+	fun = parent->fp.fops->create;
+
+fun_out:
+	if (!fun) {
+		err = -ENOSYS;
+		goto err_free_out;
+	}
+
+	err = fun(&parent->fp, &next->fp, next->name, 0);
+	if (err)
+		goto err_free_out;
+
+opened:
+	spin_init(&next->lock);
+	next->parent = parent;
+	next->fs = parent->fs;
+	list_add(&next->siblings, &parent->children);
+	INIT_LIST_HEAD(&next->children);
+
+found:
+	dflc_get(next);
+	return next;
+
+err_free_out:
+	kfree(next->name);
+	kfree(next);
+	return ERR_PTR(err);
+}
+
+/* Lookup, or possibly create the dflc entry pathname */
+static struct dflc *dflc_lookup(const char *pathname, unsigned int _flags)
+{
+	struct dflc *parent, *next;
+	const char *start, *end;
+	unsigned int flags;
+	int err;
+
+	if (pathname[0] != '/')
+		return ERR_PTR(-EINVAL);
+
+	parent = dflc_get(&root);
+	if (pathname[1] == '\0')
+		return parent;
+
+	/* Walk through all directories in between */
+	start = end = &pathname[1];
+	flags = D_DIR;
+	do {
+		end = strchrnul(start, '/');
+		if (*end == '\0')
+			flags = _flags;
+
+		dflc_lock(parent);
+		next = dflc_lookup_next(parent, start, end - start, flags);
+		dflc_unlock(parent);
+		if (IS_ERR(next)) {
+			err = PTR_ERR(next);
+			goto put_out;
+		}
+
+		parent = next;
+		if (D_ISDIR(flags) && !parent->fp.is_directory) {
+			err = -ENOTDIR;
+			goto put_out;
+		}
+
+		if (*end == '\0')
+			return parent;
+
+		start = end + 1;
+	} while (1);
+	/* never reached */
+	BUG();
+
+put_out:
+	dflc_put(parent);
+	return ERR_PTR(err);
+}
+
+static struct file *_file_open_create(const char *path, unsigned int flags)
+{
+	struct dflc *dflc;
+
+	dflc = dflc_lookup(path, flags);
+	if (IS_ERR(dflc))
+		return ERR_CAST(dflc);
+
+	return &dflc->fp;
+}
+
+struct file *file_open(const char *pathname)
+{
+	return _file_open_create(pathname, 0);
+}
+
+struct file *file_open_create(const char *pathname, bool create)
+{
+	return _file_open_create(pathname, create ? D_CREATE : 0);
 }
 
 int vfs_mkdir(const char *pathname, mode_t mode)
 {
-	const struct mountpoint *mp;
-	const char *fsname;
+	struct file *dir;
 
-	mp = find_mountpoint(pathname, &fsname);
-	if (!mp)
-		return -ENOENT;
+	dir = _file_open_create(pathname, D_DIR | D_CREATE);
+	if (IS_ERR(dir))
+		return PTR_ERR(dir);
 
-	if (!mp->fs->fs_ops)
-		return -ENOSYS;
+	file_close(dir);
 
-	if (!mp->fs->fs_ops->mkdir)
-		return -ENOSYS;
-
-	return mp->fs->fs_ops->mkdir(mp->fs, fsname, mode);
+	return 0;
 }
 
 int vfs_stat(const char *pathname, struct stat *st)
 {
-	const struct mountpoint *mp;
-	const char *fsname;
+	struct file *fp;
+	int err;
 
-	mp = find_mountpoint(pathname, &fsname);
-	if (!mp)
-		return -ENOENT;
+	fp = file_open(pathname);
+	if (IS_ERR(fp))
+		return PTR_ERR(fp);
 
-	if (!mp->fs->fs_ops)
+	if (!fp->fops->stat)
 		return -ENOSYS;
 
-	if (!mp->fs->fs_ops->stat)
-		return -ENOSYS;
+	err = fp->fops->stat(fp, st);
+	file_close(fp);
 
-	return mp->fs->fs_ops->stat(mp->fs, fsname, st);
+	return err;
 }
 
 void *vfs_read_file(const char *pathname, size_t *len)
@@ -255,7 +367,7 @@ void *vfs_read_file(const char *pathname, size_t *len)
 		return ERR_PTR(-ENOMEM);
 
 	handle.flags.is_kernel = true;
-	handle.fp = file_open(pathname, handle.flags);
+	handle.fp = file_open(pathname);
 	if (IS_ERR(handle.fp))
 		return handle.fp;
 
@@ -270,34 +382,9 @@ void *vfs_read_file(const char *pathname, size_t *len)
 		*len = err;
 
 close_out:
-	file_close(&handle);
+	file_close(handle.fp);
 
 	return ret;
-}
-
-static int __init vfs_mount(const char *path, const struct file_system *fs)
-{
-	struct mountpoint *mp;
-	int err;
-
-	mp = kzalloc(sizeof(*mp));
-	if (!mp)
-		return -ENOMEM;
-
-	mp->path.name = kstrdup(path);
-	if (!mp->path.name) {
-		err = -ENOMEM;
-		goto free_out;
-	}
-	mp->path.len = strlen(mp->path.name);
-	mp->fs = fs;
-
-	list_add(&mp->mountpoints, &mountpoints);
-	return 0;
-
-free_out:
-	kfree(mp);
-	return err;
 }
 
 int __init vfs_init(void)
@@ -310,15 +397,17 @@ int __init vfs_init(void)
 	else if (err)
 		return err;
 
-	err = vfs_mount("/initrd", &initrdfs);
-	if (err)
-		return err;
-
 	err = devfs_init();
 	if (err)
 		return err;
 
-	err = vfs_mount(DEVFS_MOUNTPOINT, &devfs);
+	list_add(&dev.siblings, &root.children);
+	err = devfs.fs_ops->open_file(NULL, &dev.fp, "");
+	if (err)
+		return err;
+
+	list_add(&ird.siblings, &root.children);
+	err = initrdfs.fs_ops->open_file(NULL, &ird.fp, "");
 	if (err)
 		return err;
 
