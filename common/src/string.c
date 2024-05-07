@@ -189,3 +189,19 @@ unsigned int strcount(const char *s, char c)
 
 	return ret;
 }
+
+char *STRDUP(const char *s)
+{
+	size_t len;
+	char *tmp;
+
+	if (!s)
+		return NULL;
+
+	len = strlen(s) + 1;
+	tmp = ALLOCATOR(len);
+	if (tmp)
+		memcpy(tmp, s, len);
+
+	return tmp;
+}

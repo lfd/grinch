@@ -21,7 +21,6 @@
 #include <grinch/fs/vfs.h>
 #include <grinch/errno.h>
 #include <grinch/list.h>
-#include <grinch/kstr.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
 

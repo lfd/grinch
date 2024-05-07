@@ -13,20 +13,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define STRDUP		strdup
+#define ALLOCATOR	malloc
+
 #include "../../common/src/string.c"
-
-char *strdup(const char *s)
-{
-	size_t len;
-	char *tmp;
-
-	if (!s)
-		return NULL;
-
-	len = strlen(s) + 1;
-	tmp = malloc(len);
-	if (tmp)
-		memcpy(tmp, s, len);
-
-	return tmp;
-}

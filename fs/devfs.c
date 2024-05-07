@@ -18,7 +18,6 @@
 #include <grinch/errno.h>
 #include <grinch/fs/devfs.h>
 #include <grinch/fs/util.h>
-#include <grinch/kstr.h>
 #include <grinch/minmax.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
