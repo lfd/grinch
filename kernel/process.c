@@ -426,6 +426,10 @@ SYSCALL_DEF2(grinch_kstat, unsigned long, no, unsigned long, arg)
 			kheap_stats();
 			break;
 
+		case GRINCH_KSTAT_LSOF:
+			vfs_lsof();
+			break;
+
 		case GRINCH_KSTAT_MAPS:
 			process_show_vmas(arg);
 			break;

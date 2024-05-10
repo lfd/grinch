@@ -413,3 +413,21 @@ int __init vfs_init(void)
 
 	return 0;
 }
+
+static void lsof(unsigned int lvl, struct dflc *this)
+{
+	struct dflc *siblings;
+
+	dflc_lock(this);
+	pr("%*s%s%s   (%u)\n", lvl * 2, "",
+	   this->name, this->fp.is_directory ? "/" : "", this->refs);
+	if (this->fp.is_directory)
+		list_for_each_entry(siblings, &this->children, siblings)
+			lsof(lvl + 1, siblings);
+	dflc_unlock(this);
+}
+
+void vfs_lsof(void)
+{
+	lsof(0, &root);
+}

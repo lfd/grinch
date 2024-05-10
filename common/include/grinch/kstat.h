@@ -16,5 +16,6 @@
 #define GRINCH_KSTAT_PS		0 /* dump processes */
 #define GRINCH_KSTAT_KHEAP	1 /* dump kheap stats */
 #define GRINCH_KSTAT_MAPS	2 /* show user VMAs */
+#define GRINCH_KSTAT_LSOF	3 /* show list of open files */
 
 #endif /* _GRINCH_KSTAT_H */

@@ -21,4 +21,6 @@ int vfs_mkdir(const char *pathname, mode_t mode);
 
 int vfs_init(void);
 
+void vfs_lsof(void);
+
 #endif /* _FS_VFS_H */
