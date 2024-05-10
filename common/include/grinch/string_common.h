@@ -34,6 +34,7 @@ int strncmp(const char *s1, const char *s2, size_t count);
 size_t strnlen(const char *s,size_t maxlen);
 size_t strlen(const char *s);
 char *strrchr(const char *t, int c);
+char *strchrnul(const char *s, int c);
 
 unsigned long int strtoul(const char *cp, char **endptr, unsigned int base);
 

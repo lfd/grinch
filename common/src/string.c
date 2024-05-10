@@ -86,6 +86,14 @@ char *strchr(const char *s, int c)
 	return (char *)s;
 }
 
+char *strchrnul(const char *s, int c)
+{
+	for (; *s != (char)c; ++s)
+		if (*s == '\0')
+			return (char *)s;
+	return (char *)s;
+}
+
 char *strncpy(char *dest, const char *src, size_t count)
 {
 	char *tmp = dest;
