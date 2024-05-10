@@ -21,35 +21,20 @@
 #include <grinch/printk.h>
 
 static ssize_t
-serial_read(struct file_handle *h, char *buf, size_t count)
-{
-	struct uart_chip *c;
-	struct device *dev;
-	struct file *fp;
-
-	fp = h->fp;
-	dev = fp->drvdata;
-	c = dev->data;
-
-	return devfs_chardev_read(current_task(), &c->node, h, buf, count);
-}
-
-static ssize_t
-serial_write(struct file_handle *h, const char *buf, size_t count)
+serial_write(struct devfs_node *node, void *user, struct file_handle *fh,
+	     const char *buf, size_t count)
 {
 	unsigned int this_sz, copied, i;
 	struct uart_chip *c;
 	struct device *dev;
 	struct task *task;
-	struct file *fp;
 	size_t written;
 	char tmp[8];
 
-	fp = h->fp;
-	dev = fp->drvdata;
+	dev = user;
 	c = dev->data;
 
-	if (h->flags.is_kernel) {
+	if (fh->flags.is_kernel) {
 		for (written = 0; written < count; written++)
 			uart_write_byte(c, buf[written]);
 
@@ -76,22 +61,6 @@ serial_write(struct file_handle *h, const char *buf, size_t count)
 	return written;
 }
 
-static int
-serial_register_reader(struct file_handle *h, char __user *ubuf, size_t count)
-{
-	struct uart_chip *c;
-	struct device *dev;
-	struct file *fp;
-
-	fp = h->fp;
-	dev = fp->drvdata;
-	c = dev->data;
-
-	return devfs_register_reader(h, &c->node, ubuf, count);
-}
-
-const struct file_operations serial_fops = {
+const struct devfs_ops serial_fops = {
 	.write = serial_write,
-	.read = serial_read,
-	.register_reader = serial_register_reader,
 };

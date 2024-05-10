@@ -31,12 +31,14 @@
 static LIST_HEAD(devfs_nodes);
 static DEFINE_SPINLOCK(devfs_lock);
 
-static ssize_t dev_zero_write(struct file_handle *, const char *, size_t count)
+static ssize_t dev_zero_write(struct devfs_node *, void *, struct file_handle *,
+			      const char *, size_t count)
 {
 	return count;
 }
 
-static ssize_t dev_zero_read(struct file_handle *h, char *ubuf, size_t count)
+static ssize_t dev_zero_read(struct devfs_node *, void *, struct file_handle *h,
+			     char *ubuf, size_t count)
 {
 	if (h->flags.is_kernel) {
 		memset(ubuf, 0, count);
@@ -45,17 +47,18 @@ static ssize_t dev_zero_read(struct file_handle *h, char *ubuf, size_t count)
 		return umemset(current_task(), ubuf, 0, count);
 }
 
-static ssize_t dev_null_read(struct file_handle *, char *, size_t)
+static ssize_t
+dev_null_read(struct devfs_node *, void *, struct file_handle *, char *, size_t)
 {
 	return 0;
 }
 
-static const struct file_operations dev_zero_fops = {
+static const struct devfs_ops dev_zero_fops = {
 	.read = dev_zero_read,
 	.write = dev_zero_write,
 };
 
-static const struct file_operations dev_null_fops = {
+static const struct devfs_ops dev_null_fops = {
 	.read = dev_null_read,
 	.write = dev_zero_write,
 };
@@ -111,8 +114,94 @@ unlock_out:
 	return err;
 }
 
+static ssize_t devfs_read(struct file_handle *fh, char *ubuf, size_t count)
+{
+	struct devfs_node *node;
+
+	node = fh->fp->drvdata;
+	if (node->type == DEVFS_SYMLINK)
+		node = node->drvdata;
+
+	if (node->type == DEVFS_CHARDEV) {
+		return devfs_chardev_read(current_task(), node, fh, ubuf, count);
+	}
+
+	if (!node->fops || !node->fops->read)
+		return -ENOSYS;
+
+	return node->fops->read(node, node->drvdata, fh, ubuf, count);
+}
+
+static ssize_t
+devfs_write(struct file_handle *fh, const char *ubuf, size_t count)
+{
+	struct devfs_node *node;
+
+	node = fh->fp->drvdata;
+	if (node->type == DEVFS_SYMLINK)
+		node = node->drvdata;
+
+	if (!node->fops || !node->fops->write)
+		return -ENOSYS;
+
+	return node->fops->write(node, node->drvdata, fh, ubuf, count);
+}
+
+static int
+devfs_register_reader(struct file_handle *fh, char *ubuf, size_t count)
+{
+	struct devfs_node *node;
+	struct wfe_read *reader;
+	struct task *task;
+	int err;
+
+	node = fh->fp->drvdata;
+	if (node->type == DEVFS_SYMLINK)
+		node = node->drvdata;
+
+	if (node->type != DEVFS_CHARDEV) {
+		BUG();
+		return -ENOSYS;
+	}
+
+	task = current_task();
+	if (task->wfe.type != WFE_NONE)
+		BUG();
+
+	spin_lock(&node->lock);
+
+	if (node->reader) {
+		err = -EBUSY;
+		goto unlock_out;
+	}
+
+	task->wfe.type = WFE_READ;
+
+	reader = &task->wfe.read;
+	reader->fh = fh;
+	reader->ubuf = ubuf;
+	reader->count = count;
+
+	node->reader = reader;
+
+	task_set_wfe(task);
+	this_per_cpu()->schedule = true;
+
+	err = 0;
+
+unlock_out:
+	spin_unlock(&node->lock);
+	return err;
+}
+
 static const struct file_operations devfs_root_fops = {
 	.getdents = devfs_getdents,
+};
+
+static const struct file_operations devfs_fops = {
+	.read = devfs_read,
+	.write = devfs_write,
+	.register_reader = devfs_register_reader,
 };
 
 static struct devfs_node *devfs_find_node(const char *name)
@@ -148,17 +237,8 @@ static int devfs_open(const struct file_system *fs, struct file *filep,
 		goto unlock_out;
 	}
 
-	if (node->type == DEVFS_SYMLINK)
-		node = node->drvdata;
-
-	if ((flags.may_read && !node->fops->read) ||
-	    (flags.may_write && !node->fops->write)) {
-		err = -EBADF;
-		goto unlock_out;
-	}
-
-	filep->fops = node->fops;
-	filep->drvdata = node->drvdata;
+	filep->fops = &devfs_fops;
+	filep->drvdata = node;
 	err = 0;
 
 unlock_out:
@@ -427,41 +507,4 @@ int __init devfs_init(void)
 	}
 
 	return 0;
-}
-
-int devfs_register_reader(struct file_handle *h, struct devfs_node *node,
-			  char __user *ubuf, size_t count)
-{
-	struct wfe_read *reader;
-	struct task *task;
-	int err;
-
-	task = current_task();
-	if (task->wfe.type != WFE_NONE)
-		BUG();
-
-	spin_lock(&node->lock);
-
-	if (node->reader) {
-		err = -EBUSY;
-		goto unlock_out;
-	}
-
-	task->wfe.type = WFE_READ;
-
-	reader = &task->wfe.read;
-	reader->fh = h;
-	reader->ubuf = ubuf;
-	reader->count = count;
-
-	node->reader = reader;
-
-	task_set_wfe(task);
-	this_per_cpu()->schedule = true;
-
-	err = 0;
-
-unlock_out:
-	spin_unlock(&node->lock);
-	return err;
 }

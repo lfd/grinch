@@ -21,14 +21,15 @@
 #include <grinch/arch/sbi.h>
 
 static ssize_t
-sbi_write(struct file_handle *h, const char *buf, size_t count)
+sbi_write(struct devfs_node *node, void *user, struct file_handle *fh,
+	  const char *buf, size_t count)
 {
 	unsigned int this_sz, copied, i;
 	struct task *task;
 	size_t written;
 	char tmp[8];
 
-	if (h->flags.is_kernel) {
+	if (fh->flags.is_kernel) {
 		for (written = 0; written < count; written++)
 			sbi_console_putchar(buf[written]);
 		return written;
@@ -55,7 +56,8 @@ sbi_write(struct file_handle *h, const char *buf, size_t count)
 }
 
 static ssize_t
-sbi_read(struct file_handle *h, char *buf, size_t count)
+sbi_read(struct devfs_node *node, void *user, struct file_handle *fh,
+	 char *buf, size_t count)
 {
 	struct sbiret ret;
 	char c;
@@ -69,7 +71,7 @@ sbi_read(struct file_handle *h, char *buf, size_t count)
 
 	c = (char)ret.error;
 
-	if (h->flags.is_kernel)
+	if (fh->flags.is_kernel)
 		*buf = c;
 	else
 		copy_to_user(current_task(), buf, &c, 1);
@@ -77,7 +79,7 @@ sbi_read(struct file_handle *h, char *buf, size_t count)
 	return 1;
 }
 
-static const struct file_operations sbi_fops = {
+static const struct devfs_ops sbi_fops = {
 	.write = sbi_write,
 	.read = sbi_read,
 };

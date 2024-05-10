@@ -59,7 +59,7 @@ static inline void uart_write_char(struct uart_chip *chip, char c)
 	uart_write_byte(chip, c);
 }
 
-extern const struct file_operations serial_fops;
+extern const struct devfs_ops serial_fops;
 
 #include <grinch/driver.h>
 

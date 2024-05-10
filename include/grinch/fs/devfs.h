@@ -24,10 +24,19 @@
 
 #define DEVICE_NAME(X)		DEVFS_MOUNTPOINT "/" X
 
+struct devfs_node;
+
 enum devfs_type {
 	DEVFS_REGULAR = 0, /* regular devfs node */
 	DEVFS_CHARDEV, /* character device with a ringbuffer */
 	DEVFS_SYMLINK, /* devfs symlink */
+};
+
+struct devfs_ops {
+	ssize_t (*read)(struct devfs_node *node, void *userdata,
+			struct file_handle *fh, char *ubuf, size_t count);
+	ssize_t (*write)(struct devfs_node *node, void *userdata,
+			struct file_handle *fh, const char *ubuf, size_t count);
 };
 
 struct devfs_node {
@@ -37,7 +46,7 @@ struct devfs_node {
 	enum devfs_type type;
 	spinlock_t lock;
 
-	const struct file_operations *fops;
+	const struct devfs_ops *fops;
 	/*
 	 * type == DEVFS_REGULAR -> drvdata points to data of driver
 	 * type == DEVFS_SYMLINK -> drvdata points to destination node
@@ -57,9 +66,6 @@ int devfs_create_symlink(const char *dst, const char *src);
 
 int devfs_node_init(struct devfs_node *node);
 void devfs_node_deinit(struct devfs_node *node);
-
-int devfs_register_reader(struct file_handle *h, struct devfs_node *node,
-			  char __user *ubuf, size_t count);
 
 /* /dev mountpoint */
 extern const struct file_system devfs;
