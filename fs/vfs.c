@@ -18,6 +18,7 @@
 #include <grinch/fs/devfs.h>
 #include <grinch/fs/initrd.h>
 #include <grinch/fs/tmpfs.h>
+#include <grinch/fs/util.h>
 #include <grinch/fs/vfs.h>
 #include <grinch/errno.h>
 #include <grinch/list.h>
@@ -50,6 +51,8 @@ struct dflc {
 	/* children must only be used, if is_directory = true */
 	struct list_head children;
 
+	bool mountpoint;
+
 	const struct file_system *fs;
 	struct file fp;
 
@@ -61,30 +64,9 @@ static struct dflc root = {
 	.name = "",
 	.siblings = LIST_HEAD_INIT(root.siblings),
 	.children = LIST_HEAD_INIT(root.children),
-	.refs = 1, // prevent closing
 	.fp = {
 		.is_directory = true,
 	},
-	.lock = SPIN_LOCK_UNLOCKED,
-};
-
-static struct dflc dev = {
-	.parent = &root,
-	.siblings = LIST_HEAD_INIT(dev.siblings),
-	.name = "dev",
-	.refs = 1, // prevent closing
-	.children = LIST_HEAD_INIT(dev.children),
-	.fs = &devfs,
-	.lock = SPIN_LOCK_UNLOCKED,
-};
-
-static struct dflc ird = {
-	.parent = &root,
-	.siblings = LIST_HEAD_INIT(ird.siblings),
-	.name = "initrd",
-	.refs = 1, // prevent closing
-	.children = LIST_HEAD_INIT(ird.children),
-	.fs = &initrdfs,
 	.lock = SPIN_LOCK_UNLOCKED,
 };
 
@@ -117,8 +99,17 @@ static void dflc_put(struct dflc *entry)
 	if (entry->refs == 0)
 		BUG();
 
-	dflc_lock(entry);
+	/*
+	 * If we release the dflc entry, we will modify the list in the parent.
+	 * Hence, we need to take the lock from the parent. As we might might
+	 * have a reverse lookup-task on another CPU, we need to grab the
+	 * parent's lock first to prevent deadlocks.
+	 */
 	parent = entry->parent;
+	if (parent)
+		dflc_lock(parent);
+	dflc_lock(entry);
+
 	entry->refs--;
 	if (entry->refs == 0) {
 		if (fp->fops && fp->fops->close)
@@ -128,12 +119,17 @@ static void dflc_put(struct dflc *entry)
 			kfree(entry->name);
 			list_del(&entry->siblings);
 			kfree(entry);
+			entry = NULL;
 		}
 	}
-	dflc_unlock(entry);
 
-	if (parent)
+	if (entry)
+		dflc_unlock(entry);
+
+	if (parent) {
+		dflc_unlock(parent);
 		dflc_put(parent);
+	}
 }
 
 static inline struct dflc *dflc_of(struct file *file)
@@ -388,8 +384,49 @@ close_out:
 	return ret;
 }
 
+static int __init
+vfs_mount(const char *mountpoint, const struct file_system *fs)
+{
+	struct dflc *parent;
+	struct file *fp;
+	int err;
+
+	parent = dflc_lookup(mountpoint, D_DIR);
+	if (IS_ERR(parent))
+		return PTR_ERR(parent);
+
+	dflc_lock(parent);
+	if (parent->refs != 1) {
+		err = -EBUSY;
+		goto out;
+	}
+
+	if (parent->mountpoint) {
+		err = -EEXIST;
+		goto out;
+	}
+
+	fp = &parent->fp;
+	if (fp->fops && fp->fops->close)
+		fp->fops->close(fp);
+	memset(fp, 0, sizeof(*fp));
+
+	parent->mountpoint = true;
+	parent->fs = fs;
+	err = fs->fs_ops->mount(fs, fp);
+
+out:
+	dflc_unlock(parent);
+
+	if (err)
+		dflc_put(parent);
+
+	return err;
+}
+
 int __init vfs_init(void)
 {
+	struct file_system *tmpfs;
 	int err;
 
 	err = initrd_init();
@@ -402,13 +439,36 @@ int __init vfs_init(void)
 	if (err)
 		return err;
 
-	list_add(&dev.siblings, &root.children);
-	err = devfs.fs_ops->open_file(NULL, &dev.fp, "");
+	/* hook in tmpfs */
+
+	tmpfs = kzalloc(sizeof(*root.fs));
+	if (!tmpfs)
+		return -ENOMEM;
+
+	err = tmpfs_new(tmpfs);
+	if (err) {
+		kfree(tmpfs);
+		return err;
+	}
+
+	err = vfs_mount("/", tmpfs);
 	if (err)
 		return err;
 
-	list_add(&ird.siblings, &root.children);
-	err = initrdfs.fs_ops->open_file(NULL, &ird.fp, "");
+	/* Create directories */
+	err = vfs_mkdir("/dev", 0);
+	if (err)
+		return err;
+
+	err = vfs_mkdir("/initrd", 0);
+	if (err)
+		return err;
+
+	err = vfs_mount("/dev", &devfs);
+	if (err)
+		return err;
+
+	err = vfs_mount("/initrd", &initrdfs);
 	if (err)
 		return err;
 
@@ -420,8 +480,9 @@ static void lsof(unsigned int lvl, struct dflc *this)
 	struct dflc *siblings;
 
 	dflc_lock(this);
-	pr("%*s%s%s   (%u)\n", lvl * 2, "",
-	   this->name, this->fp.is_directory ? "/" : "", this->refs);
+	pr("%*s%s%s   (%u%s)\n", lvl * 2, "",
+	   this->name, this->fp.is_directory ? "/" : "", this->refs,
+	   this->mountpoint ? ", mp": "");
 	if (this->fp.is_directory)
 		list_for_each_entry(siblings, &this->children, siblings)
 			lsof(lvl + 1, siblings);

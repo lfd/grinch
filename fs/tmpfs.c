@@ -39,13 +39,6 @@ struct tmpfs_entry {
 	spinlock_t lock;
 };
 
-static struct tmpfs_entry root = {
-	.name = "",
-	.is_dir = true,
-	.content.files = LIST_HEAD_INIT(root.content.files),
-	.lock =  SPIN_LOCK_UNLOCKED,
-};
-
 static ssize_t tmpfs_read(struct file_handle *h, char *ubuf, size_t count)
 {
 	struct tmpfs_entry *file;
@@ -288,6 +281,42 @@ static int tmpfs_open(struct file *dir, struct file *file, const char *name)
 	return tmpfs_lookup_entry(dir, file, name, 0);
 };
 
+static int tmpfs_mount(const struct file_system *fs, struct file *dir)
+{
+	struct tmpfs_entry *root;
+
+	root = fs->drvdata;
+
+	dir->is_directory = root->is_dir;
+	dir->fops = &tmpfs_fops;
+	dir->drvdata = root;
+
+	return 0;
+}
+
+static const struct file_system_operations tmpfs_ops = {
+	.open_file = tmpfs_open,
+	.mount = tmpfs_mount,
+};
+
+int tmpfs_new(struct file_system *fs)
+{
+	struct tmpfs_entry *root;
+
+	root = kzalloc(sizeof(*root));
+	if (!root)
+		return -ENOMEM;
+
+	spin_init(&root->lock);
+	root->is_dir = true;
+	INIT_LIST_HEAD(&root->content.files);
+
+	fs->fs_ops = &tmpfs_ops;
+	fs->drvdata = root;
+
+	return 0;
+}
+
 static const struct file_operations tmpfs_fops = {
 	.read = tmpfs_read,
 	.write = tmpfs_write,
@@ -295,10 +324,6 @@ static const struct file_operations tmpfs_fops = {
 	.create = tmpfs_create,
 	.getdents = tmpfs_getdents,
 	.mkdir = tmpfs_mkdir,
-};
-
-static const struct file_system_operations tmpfs_ops = {
-        .open_file = tmpfs_open,
 };
 
 const struct file_system tmpfs = {

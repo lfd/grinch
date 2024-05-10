@@ -427,20 +427,12 @@ static int devfs_open(struct file *dir, struct file *filep, const char *path)
 	int err;
 
 	spin_lock(&devfs_lock);
-
-	if (*path == '\0') {
-		node = NULL;
-		filep->is_directory = true;
-		goto set_out;
-	}
-
 	node = devfs_find_node(path);
 	if (!node) {
 		err = -ENOENT;
 		goto unlock_out;
 	}
 
-set_out:
 	filep->fops = &devfs_fops;
 	filep->drvdata = node;
 	err = 0;
@@ -450,8 +442,18 @@ unlock_out:
 	return err;
 }
 
+static int devfs_mount(const struct file_system *fs, struct file *dir)
+{
+	dir->is_directory = true;
+	dir->fops = &devfs_fops;
+	dir->drvdata = NULL;
+
+	return 0;
+}
+
 static const struct file_system_operations fs_ops_devfs = {
 	.open_file = devfs_open,
+	.mount = devfs_mount,
 };
 
 /* This is the /dev "mount point" */

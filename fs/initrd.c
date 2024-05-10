@@ -334,43 +334,27 @@ static const struct file_operations initrd_fops = {
 	.stat = initrd_stat,
 };
 
-static int initrd_open(struct file *dir, struct file *filep, const char *path)
+
+static int _initrd_open(struct file *filep, char *pathname)
 {
-	struct cpio_context *ctx, *dctx;
+	struct cpio_context *ctx;
 	struct cpio_header *hdr;
-	size_t len;
 	int err;
 
-	filep->fops = &initrd_fops;
-	filep->drvdata = kmalloc(sizeof(struct cpio_context));
-	if (!filep->drvdata)
-		return -ENOMEM;
-
-	ctx = filep->drvdata;
-	hdr = &ctx->hdr;
-
-	if (dir) {
-		dctx = dir->drvdata;
-		len = strlen(dctx->pathname) + 1 + strlen(path) + 1;
-
-		ctx->pathname = kmalloc(len);
-		if (!ctx->pathname) {
-			err = -ENOMEM;
-			goto ctx_out;
-		}
-		snprintf(ctx->pathname, len, "%s/%s", dctx->pathname, path);
-	} else {
-		ctx->pathname = kstrdup("");
-		if (!ctx->pathname) {
-			err = -ENOMEM;
-			goto ctx_out;
-		}
+	ctx = kmalloc(sizeof(*ctx));
+	if (!ctx) {
+		err = -ENOMEM;
+		goto pathname_out;
 	}
+
+	filep->drvdata = ctx;
+	filep->fops = &initrd_fops;
+	hdr = &ctx->hdr;
+	ctx->pathname = pathname;
 
 	err = cpio_find_file(ctx->pathname, hdr);
 	if (err)
 		goto free_out;
-
 
 	filep->is_directory = S_ISDIR(hdr->mode);
 	ctx->subdir_level = get_subdir_level(hdr);
@@ -378,14 +362,44 @@ static int initrd_open(struct file *dir, struct file *filep, const char *path)
 	return 0;
 
 free_out:
-	kfree(ctx->pathname);
-ctx_out:
 	kfree(ctx);
+
+pathname_out:
+	kfree(pathname);
+
 	return err;
+}
+
+static int initrd_open(struct file *dir, struct file *filep, const char *path)
+{
+	struct cpio_context *dctx;
+	char *pathname;
+	size_t len;
+
+	dctx = dir->drvdata;
+	len = strlen(dctx->pathname) + 1 + strlen(path) + 1;
+	pathname = kmalloc(len);
+	if (!pathname)
+		return -ENOMEM;
+	snprintf(pathname, len, "%s/%s", dctx->pathname, path);
+
+	return _initrd_open(filep, pathname);
+}
+
+static int initrd_mount(const struct file_system *fs, struct file *dir)
+{
+	char *pathname;
+
+	pathname = kstrdup("");
+	if (!pathname)
+		return -ENOMEM;
+
+	return _initrd_open(dir, pathname);
 }
 
 static const struct file_system_operations fs_ops_initrd = {
 	.open_file = initrd_open,
+	.mount = initrd_mount,
 };
 
 const struct file_system initrdfs = {

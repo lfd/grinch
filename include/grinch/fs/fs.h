@@ -63,10 +63,12 @@ struct file {
 struct file_system_operations {
 	int (*open_file)(struct file *dir, struct file *filep,
 			 const char *fname);
+	int (*mount)(const struct file_system *fs, struct file *dir);
 };
 
 struct file_system {
 	const struct file_system_operations *fs_ops;
+	void *drvdata;
 };
 
 /* Opens a file, and increments references to the file */

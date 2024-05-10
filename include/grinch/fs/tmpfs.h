@@ -11,4 +11,4 @@
  * the COPYING file in the top-level directory.
  */
 
-extern const struct file_system tmpfs;
+int tmpfs_new(struct file_system *fs);
