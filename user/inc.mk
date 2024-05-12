@@ -7,6 +7,7 @@ APPS += jittertest
 APPS += ls
 APPS += mkdir
 APPS += test
+APPS += touch
 APPS += true
 
 INCLUDES_USER = -Iuser/include -Icommon/include -Iuser/lib/$(ARCH)/include
