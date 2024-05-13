@@ -12,6 +12,8 @@
 
 #define dbg_fmt(x)	"fs-syscall: " x
 
+#include <asm-generic/fcntl.h>
+
 #include <grinch/errno.h>
 #include <grinch/fs/vfs.h>
 #include <grinch/fs/util.h>
@@ -20,6 +22,36 @@
 #include <grinch/printk.h>
 #include <grinch/task.h>
 #include <grinch/uaccess.h>
+
+static struct fs_flags get_flags(int oflag)
+{
+	struct fs_flags ret = { 0 };
+
+	switch (oflag & O_ACCMODE) {
+		case O_RDONLY:
+			ret.may_read = true;
+			ret.may_write = false;
+			break;
+
+		case O_WRONLY:
+			ret.may_read = false;
+			ret.may_write = true;
+			break;
+
+		case O_RDWR:
+			ret.may_read = true;
+			ret.may_write = true;
+			break;
+	}
+
+	if (oflag & O_NONBLOCK)
+		ret.nonblock = true;
+
+	if (oflag & O_CREAT)
+		ret.create = true;
+
+	return ret;
+}
 
 static struct file_handle *get_handle(int fd)
 {

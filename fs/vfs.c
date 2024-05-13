@@ -12,7 +12,6 @@
 
 #define dbg_fmt(x)	"vfs: " x
 
-#include <asm-generic/fcntl.h>
 #include <asm/spinlock.h>
 
 #include <grinch/alloc.h>
@@ -202,36 +201,6 @@ void file_close(struct file_handle *handle)
 	spin_unlock(&files_lock);
 
 	handle->fp = NULL;
-}
-
-struct fs_flags get_flags(int oflag)
-{
-	struct fs_flags ret = { 0 };
-
-	switch (oflag & O_ACCMODE) {
-		case O_RDONLY:
-			ret.may_read = true;
-			ret.may_write = false;
-			break;
-
-		case O_WRONLY:
-			ret.may_read = false;
-			ret.may_write = true;
-			break;
-
-		case O_RDWR:
-			ret.may_read = true;
-			ret.may_write = true;
-			break;
-	}
-
-	if (oflag & O_NONBLOCK)
-		ret.nonblock = true;
-
-	if (oflag & O_CREAT)
-		ret.create = true;
-
-	return ret;
 }
 
 int vfs_mkdir(const char *pathname, mode_t mode)
