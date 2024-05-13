@@ -55,6 +55,11 @@ static inline bool IS_ERR(const void *ptr)
 	return IS_ERR_VALUE((unsigned long)ptr);
 }
 
+static inline void *ERR_CAST(const void *ptr)
+{
+		return (void *) ptr;
+}
+
 const char *errname(int err);
 
 #endif /* _GRINCH_ERRNO_H */
