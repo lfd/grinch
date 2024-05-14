@@ -175,6 +175,22 @@ int __init initrd_init(void)
 	return 0;
 }
 
+static int initrd_create(struct file *dir, struct file *filep,
+			 const char *name, mode_t mode)
+{
+	return -EROFS;
+}
+
+static ssize_t initrd_write(struct file_handle *, const char *, size_t)
+{
+	return -EROFS;
+}
+
+static int initrd_mkdir(struct file *, struct file *, const char *, mode_t)
+{
+	return -EROFS;
+}
+
 static ssize_t initrd_read(struct file_handle *handle, char *buf, size_t count)
 {
 	struct cpio_context *ctx;
@@ -332,9 +348,12 @@ static int initrd_stat(struct file *filep, struct stat *st)
 
 static const struct file_operations initrd_fops = {
 	.read = initrd_read,
+	.write = initrd_write,
 	.close = initrd_close,
 	.getdents = initrd_getdents,
+	.mkdir = initrd_mkdir,
 	.stat = initrd_stat,
+	.create = initrd_create,
 };
 
 
