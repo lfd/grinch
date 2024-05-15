@@ -19,7 +19,9 @@ typedef struct {
 	int unsigned spin; /* has to have offset 0 */
 } spinlock_t;
 
-#define DEFINE_SPINLOCK(X)	spinlock_t X = { .spin = 0, }
+#define SPIN_LOCK_UNLOCKED	{ .spin = 0, }
+
+#define DEFINE_SPINLOCK(X)	spinlock_t X = SPIN_LOCK_UNLOCKED
 
 static inline void spin_init(spinlock_t *lock)
 {
