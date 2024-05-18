@@ -158,6 +158,9 @@ int salloc_realloc(void *base, void *old, size_t size, void **_new)
 	void *new;
 	int err;
 
+	if (old == NULL)
+		return salloc_alloc(base, size, _new);
+
 	m_old = chunk_of(old);
 	err = check_chunk(m_old);
 	if (err)
