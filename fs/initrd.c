@@ -220,18 +220,10 @@ static void initrd_close(struct file *fp)
 
 static unsigned int get_subdir_level(struct cpio_header *hdr)
 {
-	unsigned int ret;
-	const char *name;
-
 	if (!strcmp(hdr->name, "."))
 		return 0;
 
-	ret = 1;
-	for (name = hdr->name; *name; name++)
-		if (*name == '/')
-			ret++;
-
-	return ret;
+	return 1 + strcount(hdr->name, '/');
 }
 
 static int
