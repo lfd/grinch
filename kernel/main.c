@@ -93,9 +93,7 @@ static int __init init(void)
 
 	err = process_from_fs(task, ISTR("/initrd/bin/init"), NULL, NULL);
 	if (err) {
-		task_exit(task, err);
-		task_destroy(task);
-		return err;
+		goto exit_out;
 	}
 
 	/* stdin */
@@ -116,8 +114,10 @@ static int __init init(void)
 	for (i = 0; i < 3; i++) {
 		fh = &task->process.fds[i];
 		fh->fp = file_open(ISTR(DEVICE_NAME("console")));
-		if (IS_ERR(fh->fp))
-			return PTR_ERR(fh->fp);
+		if (IS_ERR(fh->fp)) {
+			err = PTR_ERR(fh->fp);
+			goto exit_out;
+		}
 	}
 
 	task->state = TASK_RUNNABLE;
@@ -127,6 +127,11 @@ static int __init init(void)
 	sched_enqueue(task);
 
 	return 0;
+
+exit_out:
+	task_exit(task, err);
+	task_destroy(task);
+	return err;
 }
 
 void cmain(unsigned long boot_cpu, paddr_t __fdt)
