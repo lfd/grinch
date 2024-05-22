@@ -16,8 +16,11 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <sys/stat.h>
+
 int test_vfs(void);
 
 /* fs-specific test routines */
 int test_devfs(void);
 int test_initrd(void);
+int test_tmpfs(void);

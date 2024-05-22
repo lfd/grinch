@@ -26,5 +26,10 @@ int test_vfs(void)
 	if (err)
 		return err;
 
+	printf("Testing tmpfs\n");
+	err = test_tmpfs();
+	if (err)
+		return err;
+
 	return err;
 }
