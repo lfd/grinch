@@ -10,30 +10,21 @@
  * the COPYING file in the top-level directory.
  */
 
-#include "syscalls.h"
 #include "vfs.h"
 
-int main(void);
-
-APP_NAME(test);
-
-int main(void)
+int test_vfs(void)
 {
 	int err;
 
-	printf_set_prefix(true);
-
-	printf("Testing Syscalls\n");
-	err = test_syscalls();
+	printf(" -> devfs\n");
+	err = test_devfs();
 	if (err)
-		goto out;
+		return err;
 
-	printf("Testing VFS API\n");
-	err = test_vfs();
+	printf(" -> initrd\n");
+	err = test_initrd();
 	if (err)
-		goto out;
+		return err;
 
-out:
-	printf("%pe\n", ERR_PTR(err));
 	return err;
 }
