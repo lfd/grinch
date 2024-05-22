@@ -218,6 +218,9 @@ static void initrd_close(struct file *fp)
 	struct cpio_context *ctx;
 
 	ctx = fp->drvdata;
+	if (!ctx)
+		return;
+
 	kfree(ctx->pathname);
 	kfree(ctx);
 }
@@ -366,6 +369,7 @@ free_out:
 
 pathname_out:
 	kfree(pathname);
+	filep->drvdata = NULL;
 
 	return err;
 }
