@@ -392,12 +392,12 @@ int vfs_mkdir(const char *pathname, mode_t mode)
 	return 0;
 }
 
-int vfs_stat(const char *pathname, struct stat *st)
+int vfs_stat_at(struct file *at, const char *pathname, struct stat *st)
 {
 	struct file *fp;
 	int err;
 
-	fp = file_open(pathname);
+	fp = file_open_at(at, pathname);
 	if (IS_ERR(fp))
 		return PTR_ERR(fp);
 
@@ -417,7 +417,7 @@ void *vfs_read_file(const char *pathname, size_t *len)
 	ssize_t err;
 	void *ret;
 
-	err = vfs_stat(pathname, &st);
+	err = vfs_stat_at(NULL, pathname, &st);
 	if (err)
 		return ERR_PTR(err);
 

@@ -233,7 +233,7 @@ SYSCALL_DEF2(stat, const char __user *, _pathname, struct stat __user *, _st)
 	if (IS_ERR(pathname))
 		return PTR_ERR(pathname);
 
-	err = vfs_stat(pathname, &st);
+	err = vfs_stat_at(cwd(), pathname, &st);
 	if (err)
 		goto path_out;
 
