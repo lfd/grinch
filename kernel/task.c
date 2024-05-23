@@ -466,13 +466,16 @@ SYSCALL_DEF0(fork)
 
 	return new->pid;
 
-destroy_out:
-	spin_unlock(&new->lock);
-	task_exit(new, err);
-	task_destroy(new);
-
 unlock_out:
 	spin_unlock(&this->lock);
+
+	return err;
+
+destroy_out:
+	spin_unlock(&new->lock);
+	spin_unlock(&this->lock);
+	task_exit(new, err);
+	task_destroy(new);
 
 	return err;
 }
