@@ -117,6 +117,11 @@ static inline struct process *current_process(void)
 	return &cur->process;
 }
 
+static inline struct file *cwd(void)
+{
+	return current_process()->cwd.file;
+}
+
 extern struct task *init_task;
 
 struct task *task_alloc_new(const char *name);

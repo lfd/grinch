@@ -109,7 +109,7 @@ SYSCALL_DEF2(open, const char __user *, _pathname, int, oflag)
 	goto unlock_out;
 
 found:
-	file = file_ocreate_at(NULL, pathname, flags.create);
+	file = file_ocreate_at(cwd(), pathname, flags.create);
 	if (IS_ERR(file)) {
 		ret = PTR_ERR(file);
 		goto unlock_out;
