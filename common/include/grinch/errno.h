@@ -35,6 +35,7 @@
 #define EROFS		30
 #define ERANGE		34
 #define ENOSYS		38
+#define ENAMETOOLONG	78
 #define	EMSGSIZE	97
 
 #define MAX_ERRNO	97

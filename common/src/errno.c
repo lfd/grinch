@@ -33,6 +33,7 @@ static const char *errnames[] = {
 	ERRNAME(EROFS),
 	ERRNAME(ERANGE),
 	ERRNAME(ENOSYS),
+	ERRNAME(ENAMETOOLONG),
 	ERRNAME(EMSGSIZE),
 };
 
