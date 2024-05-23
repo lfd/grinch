@@ -198,7 +198,7 @@ ssize_t ustrncpy(char *dst, const char *src, unsigned long count)
 		remaining = bytes_in_page(direct);
 		while (remaining) {
 			if (count == 0)
-				return copied;
+				return -ERANGE;
 
 			if (dst) {
 				*dst = *direct;
@@ -219,7 +219,13 @@ ssize_t ustrncpy(char *dst, const char *src, unsigned long count)
 
 ssize_t ustrlen(const char __user *src)
 {
-	return ustrncpy(NULL, src, ULONG_MAX) - 1;
+	ssize_t len;
+
+	len = ustrncpy(NULL, src, ULONG_MAX);
+	if (len < 0)
+		return len;
+
+	return len - 1;
 }
 
 int uenv_dup(struct task *t, const char *const __user *_user,

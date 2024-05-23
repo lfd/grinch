@@ -92,10 +92,7 @@ int pathname_from_user(char *dst, const char __user *path, bool *must_dir)
 	int err;
 
 	len = ustrncpy(dst, path, MAX_PATHLEN);
-	/* pathname too long */
-	if (unlikely(len == MAX_PATHLEN))
-		return -ERANGE;
-	else if (unlikely(len < 0))
+	if (unlikely(len < 0))
 		return len;
 
 	err = pathname_sanitise_dir(dst, must_dir);
