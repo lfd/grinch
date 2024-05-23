@@ -247,22 +247,31 @@ err_free_out:
 }
 
 /* Lookup, or possibly create the dflc entry pathname */
-static struct dflc *dflc_lookup(const char *pathname, unsigned int _flags)
+static struct dflc *
+dflc_lookup_at(struct file *at, const char *pathname, unsigned int _flags)
 {
 	struct dflc *parent, *next;
 	const char *start, *end;
 	unsigned int flags;
 	int err;
 
-	if (pathname[0] != '/')
-		return ERR_PTR(-EINVAL);
+	if (pathname[0] == '/') {
+		parent = &root;
+		dflc_get(parent);
+		pathname++;
+	} else {
+		if (!at)
+			return ERR_PTR(-EINVAL);
 
-	parent = dflc_get(&root);
-	if (pathname[1] == '\0')
+		file_dup(at);
+		parent = dflc_of(at);
+	}
+
+	if (pathname[0] == '\0')
 		return parent;
 
 	/* Walk through all directories in between */
-	start = end = &pathname[1];
+	start = end = pathname;
 	flags = D_DIR;
 	do {
 		end = strchrnul(start, '/');
@@ -296,32 +305,33 @@ put_out:
 	return ERR_PTR(err);
 }
 
-static struct file *_file_open_create(const char *path, unsigned int flags)
+static struct file *
+_file_ocreate_at(struct file *at, const char *path, unsigned int flags)
 {
 	struct dflc *dflc;
 
-	dflc = dflc_lookup(path, flags);
+	dflc = dflc_lookup_at(at, path, flags);
 	if (IS_ERR(dflc))
 		return ERR_CAST(dflc);
 
 	return &dflc->fp;
 }
 
-struct file *file_open(const char *pathname)
+struct file *file_open_at(struct file *at, const char *pathname)
 {
-	return _file_open_create(pathname, 0);
+	return _file_ocreate_at(at, pathname, 0);
 }
 
-struct file *file_open_create(const char *pathname, bool create)
+struct file *file_ocreate_at(struct file *at, const char *pathname, bool create)
 {
-	return _file_open_create(pathname, create ? D_CREATE : 0);
+	return _file_ocreate_at(at, pathname, create ? D_CREATE : 0);
 }
 
 int vfs_mkdir(const char *pathname, mode_t mode)
 {
 	struct file *dir;
 
-	dir = _file_open_create(pathname, D_DIR | D_CREATE);
+	dir = _file_ocreate_at(NULL, pathname, D_DIR | D_CREATE);
 	if (IS_ERR(dir))
 		return PTR_ERR(dir);
 
@@ -391,7 +401,7 @@ vfs_mount(const char *mountpoint, const struct file_system *fs)
 	struct file *fp;
 	int err;
 
-	parent = dflc_lookup(mountpoint, D_DIR);
+	parent = dflc_lookup_at(NULL, mountpoint, D_DIR);
 	if (IS_ERR(parent))
 		return PTR_ERR(parent);
 
