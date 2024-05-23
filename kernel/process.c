@@ -16,6 +16,7 @@
 #include <grinch/alloc.h>
 #include <grinch/elf.h>
 #include <grinch/errno.h>
+#include <grinch/fs/util.h>
 #include <grinch/fs/vfs.h>
 #include <grinch/kstat.h>
 #include <grinch/printk.h>
@@ -277,17 +278,14 @@ static long _sys_execve(const char __user *pathname,
 	char buf[MAX_PATHLEN];
 	struct task *this;
 	const char *name;
-	ssize_t ret;
 	int err;
 
 	this = current_task();
 	process = &this->process;
-	ret = ustrncpy(buf, pathname, sizeof(buf));
-	/* pathname too long */
-	if (unlikely(ret == sizeof(buf)))
-		return -ERANGE;
-	else if (unlikely(ret < 0))
-		return ret;
+
+	err = pathname_from_user(buf, pathname, NULL);
+	if (err)
+		return err;
 
 	err = uenv_dup(this, uargv, &argv);
 	if (err)
