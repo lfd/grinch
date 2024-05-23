@@ -28,10 +28,6 @@ static int pathname_sanitise_dir(char *pathname, bool *_must_dir)
 	if (pathname[0] == '\0')
 		return -EINVAL;
 
-	/* Don't support relative paths */
-	if (pathname[0] != '/')
-		return -EINVAL;
-
 	/* Special treatment for "/" */
 	if (pathname[1] == '\0') {
 		must_dir = true;
@@ -40,7 +36,7 @@ static int pathname_sanitise_dir(char *pathname, bool *_must_dir)
 
 	must_dir = false;
 	is_dot = false;
-	pos = dst = pathname + 1;
+	pos = dst = pathname;
 	for (;;) {
 		if (pos[0] == '\0') {
 			if (is_dot)
