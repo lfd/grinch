@@ -51,6 +51,9 @@ static struct fs_flags get_flags(int oflag)
 	if (oflag & O_CREAT)
 		ret.create = true;
 
+	if (oflag & O_DIRECTORY)
+		ret.directory = true;
+
 	return ret;
 }
 
@@ -83,8 +86,16 @@ SYSCALL_DEF2(open, const char __user *, _pathname, int, oflag)
 	if (IS_ERR(pathname))
 		return PTR_ERR(pathname);
 
+	/*
+	 * We either must have a directory, if the pathname ends on a /, oder
+	 * O_DIRECTORY is set
+	 */
 	flags = get_flags(oflag);
-	flags.must_directory = must_dir;
+	must_dir = must_dir | flags.directory;
+	if (flags.create && must_dir) {
+		ret = -EINVAL;
+		goto free_out;
+	}
 
 	task = current_task();
 	spin_lock(&task->lock);
@@ -102,6 +113,13 @@ found:
 		ret = PTR_ERR(file);
 		goto unlock_out;
 	}
+
+	if (must_dir && !file->is_directory) {
+		file_close(file);
+		ret = -ENOTDIR;
+		goto unlock_out;
+	}
+
 	process->fds[d].fp = file;
 	process->fds[d].flags = flags;
 	process->fds[d].position = 0;
@@ -109,8 +127,10 @@ found:
 	ret = d;
 
 unlock_out:
-	kfree(pathname);
 	spin_unlock(&task->lock);
+free_out:
+	kfree(pathname);
+
 	return ret;
 }
 
