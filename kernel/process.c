@@ -269,27 +269,27 @@ int process_handle_fault(struct task *task, void __user *addr, bool is_write)
 	return err;
 }
 
-static long _sys_execve(const char __user *pathname,
+static long _sys_execve(const char __user *_pathname,
 			const char *const __user *uargv,
 			const char *const __user *uenvp)
 {
 	struct uenv_array argv, envp;
 	struct process *process;
-	char buf[MAX_PATHLEN];
 	struct task *this;
 	const char *name;
+	char *pathname;
 	int err;
 
 	this = current_task();
 	process = &this->process;
 
-	err = pathname_from_user(buf, pathname, NULL);
-	if (err)
-		return err;
+	pathname = pathname_from_user(_pathname, NULL);
+	if (IS_ERR(pathname))
+		return PTR_ERR(pathname);
 
 	err = uenv_dup(this, uargv, &argv);
 	if (err)
-		return err;
+		goto pathname_out;
 
 	err = uenv_dup(this, uenvp, &envp);
 	if (err)
@@ -303,12 +303,15 @@ static long _sys_execve(const char __user *pathname,
 	process->vma_heap = NULL;
 	this_per_cpu()->pt_needs_update = true;
 
-	err = process_from_fs(this, buf, &argv, &envp);
+	err = process_from_fs(this, pathname, &argv, &envp);
 
 	uenv_free(&envp);
 
 uargv_free_out:
 	uenv_free(&argv);
+
+pathname_out:
+	kfree(pathname);
 
 	return err;
 }

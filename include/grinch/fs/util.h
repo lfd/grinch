@@ -15,7 +15,7 @@
 
 #include <grinch/dirent.h>
 
-int pathname_from_user(char *dst, const char __user *path, bool *must_dir);
+char *pathname_from_user(const char __user *pathname, bool *must_dir);
 int copy_dirent(struct grinch_dirent __mayuser *udent, bool is_kernel,
 		struct grinch_dirent *src, const char *name,
 		unsigned int size);

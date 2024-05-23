@@ -12,6 +12,7 @@
 
 #include <grinch/fs/util.h>
 
+#include <grinch/alloc.h>
 #include <grinch/errno.h>
 #include <grinch/string.h>
 #include <grinch/task.h>
@@ -86,20 +87,23 @@ out:
 	return 0;
 }
 
-int pathname_from_user(char *dst, const char __user *path, bool *must_dir)
+char *pathname_from_user(const char __user *_pathname, bool *must_dir)
 {
+	char pathname[MAX_PATHLEN];
 	ssize_t len;
 	int err;
 
-	len = ustrncpy(dst, path, MAX_PATHLEN);
-	if (unlikely(len < 0))
-		return len;
+	len = ustrncpy(pathname, _pathname, MAX_PATHLEN);
+	if (unlikely(len < 0)) {
+		err = (len == -ERANGE) ? -ENAMETOOLONG : len;
+		return ERR_PTR(err);
+	}
 
-	err = pathname_sanitise_dir(dst, must_dir);
+	err = pathname_sanitise_dir(pathname, must_dir);
 	if (err)
-		return err;
+		return ERR_PTR(err);
 
-	return 0;
+	return kstrdup(pathname);
 }
 
 int copy_dirent(struct grinch_dirent __mayuser *udent, bool is_kernel,

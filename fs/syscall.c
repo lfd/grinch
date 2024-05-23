@@ -14,6 +14,7 @@
 
 #include <asm-generic/fcntl.h>
 
+#include <grinch/alloc.h>
 #include <grinch/errno.h>
 #include <grinch/fs/vfs.h>
 #include <grinch/fs/util.h>
@@ -67,20 +68,20 @@ static struct file_handle *get_handle(int fd)
 	return handle;
 }
 
-SYSCALL_DEF2(open, const char __user *, _path, int, oflag)
+SYSCALL_DEF2(open, const char __user *, _pathname, int, oflag)
 {
 	struct process *process;
-	char path[MAX_PATHLEN];
 	struct fs_flags flags;
 	struct file *file;
 	struct task *task;
+	char *pathname;
 	bool must_dir;
 	long ret;
 	int d;
 
-	ret = pathname_from_user(path, _path, &must_dir);
-	if (ret)
-		return ret;
+	pathname = pathname_from_user(_pathname, &must_dir);
+	if (IS_ERR(pathname))
+		return PTR_ERR(pathname);
 
 	flags = get_flags(oflag);
 	flags.must_directory = must_dir;
@@ -96,7 +97,7 @@ SYSCALL_DEF2(open, const char __user *, _path, int, oflag)
 	goto unlock_out;
 
 found:
-	file = file_open_create(path, flags.create);
+	file = file_open_create(pathname, flags.create);
 	if (IS_ERR(file)) {
 		ret = PTR_ERR(file);
 		goto unlock_out;
@@ -108,6 +109,7 @@ found:
 	ret = d;
 
 unlock_out:
+	kfree(pathname);
 	spin_unlock(&task->lock);
 	return ret;
 }
@@ -200,25 +202,30 @@ SYSCALL_DEF3(write, int, fd, const char __user *, buf, size_t, count)
 
 SYSCALL_DEF2(stat, const char __user *, _pathname, struct stat __user *, _st)
 {
-	char pathname[MAX_PATHLEN];
 	struct stat st = { 0 };
 	unsigned long copied;
+	char *pathname;
 	bool must_dir;
 	long err;
 
-	err = pathname_from_user(pathname, _pathname, &must_dir);
-	if (err)
-		return err;
+	pathname = pathname_from_user(_pathname, &must_dir);
+	if (IS_ERR(pathname))
+		return PTR_ERR(pathname);
 
 	err = vfs_stat(pathname, &st);
 	if (err)
-		return err;
+		goto path_out;
 
-	if (must_dir && !S_ISDIR(st.st_mode))
-		return -ENOTDIR;
+	if (must_dir && !S_ISDIR(st.st_mode)) {
+		err = -ENOTDIR;
+		goto path_out;
+	}
 
 	copied = copy_to_user(current_task(), _st, &st, sizeof(st));
 	err = copied == sizeof(st) ? 0 : -EFAULT;
+
+path_out:
+	kfree(pathname);
 
 	return err;
 }
@@ -245,14 +252,15 @@ SYSCALL_DEF3(getdents, int, fd, struct grinch_dirent __user *, dents,
 
 SYSCALL_DEF2(mkdir, const char __user *, _pathname, mode_t, mode)
 {
-	char pathname[MAX_PATHLEN];
+	char *pathname;
 	int err;
 
-	err = pathname_from_user(pathname, _pathname, NULL);
-	if (err)
-		return err;
+	pathname = pathname_from_user(_pathname, NULL);
+	if (IS_ERR(pathname))
+		return PTR_ERR(pathname);
 
 	err = vfs_mkdir(pathname, mode);
+	kfree(pathname);
 
 	return err;
 }
