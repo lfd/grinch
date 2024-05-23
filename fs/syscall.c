@@ -280,7 +280,7 @@ SYSCALL_DEF2(mkdir, const char __user *, _pathname, mode_t, mode)
 	if (IS_ERR(pathname))
 		return PTR_ERR(pathname);
 
-	err = vfs_mkdir(pathname, mode);
+	err = vfs_mkdir_at(cwd(), pathname, mode);
 	kfree(pathname);
 
 	return err;

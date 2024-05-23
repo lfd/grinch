@@ -379,11 +379,11 @@ char *file_realpath(struct file *file)
 	return kstrdup(buf);
 }
 
-int vfs_mkdir(const char *pathname, mode_t mode)
+int vfs_mkdir_at(struct file *at, const char *pathname, mode_t mode)
 {
 	struct file *dir;
 
-	dir = _file_ocreate_at(NULL, pathname, D_DIR | D_CREATE);
+	dir = _file_ocreate_at(at, pathname, D_DIR | D_CREATE);
 	if (IS_ERR(dir))
 		return PTR_ERR(dir);
 
