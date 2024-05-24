@@ -74,6 +74,8 @@ static int tmpfs_write(const char *fname)
 		goto close_out;
 	}
 
+	return 0;
+
 close_out:
 	close(fd);
 	return err;
