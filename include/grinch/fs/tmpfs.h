@@ -11,4 +11,11 @@
  * the COPYING file in the top-level directory.
  */
 
+#ifndef _FS_TMPFS_H
+#define _FS_TMPFS_H
+
+#include <grinch/fs/vfs.h>
+
 int tmpfs_new(struct file_system *fs);
+
+#endif /* _FS_TMPFS_H */

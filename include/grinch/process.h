@@ -14,7 +14,7 @@
 #ifndef _PROCESS_H
 #define _PROCESS_H
 
-#include <grinch/fs/fs.h>
+#include <grinch/fs/vfs.h>
 #include <grinch/vma.h>
 #include <grinch/uaccess.h>
 

@@ -13,7 +13,6 @@
 
 #include <grinch/alloc.h>
 #include <grinch/errno.h>
-#include <grinch/fs/fs.h>
 #include <grinch/fs/tmpfs.h>
 #include <grinch/fs/util.h>
 #include <grinch/printk.h>
