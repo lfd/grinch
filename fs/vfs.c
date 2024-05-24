@@ -261,6 +261,7 @@ dflc_lookup_at(struct file *at, const char *pathname, unsigned int _flags)
 	struct dflc *parent, *next;
 	const char *start, *end;
 	unsigned int flags;
+	size_t len;
 	int err;
 
 	if (pathname[0] == '/') {
@@ -286,20 +287,38 @@ dflc_lookup_at(struct file *at, const char *pathname, unsigned int _flags)
 		if (*end == '\0')
 			flags = _flags;
 
+		len = end - start;
+		if (!strncmp(start, ".", len))
+			goto cont;
+
+		if (!strncmp(start, "..", len)) {
+			next = parent;
+			if (next->parent) {
+				next = next->parent;
+				dflc_lock(next);
+				_dflc_put(parent);
+				dflc_unlock(next);
+				parent = next;
+			}
+			goto check;
+		}
+
 		dflc_lock(parent);
-		next = dflc_lookup_next(parent, start, end - start, flags);
+		next = dflc_lookup_next(parent, start, len, flags);
 		dflc_unlock(parent);
 		if (IS_ERR(next)) {
 			err = PTR_ERR(next);
 			goto put_out;
 		}
 
+check:
 		parent = next;
 		if (D_ISDIR(flags) && !parent->fp.is_directory) {
 			err = -ENOTDIR;
 			goto put_out;
 		}
 
+cont:
 		if (*end == '\0')
 			return parent;
 
