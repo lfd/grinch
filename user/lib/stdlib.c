@@ -50,33 +50,30 @@ found:
 
 /* FIXME: malloc, realloc and free need later a lock for thread safety. */
 
+int heap_init(void)
+{
+	int err;
+
+	/* errno is already set by (s)brk */
+	heap.base = sbrk(0);
+	if (heap.base == (void *)-1) {
+		heap.base = NULL;
+		return -errno;
+	}
+
+	err = brk(heap.base + HEAP_SIZE);
+	if (err == -1)
+		return -errno;
+
+	heap.size = HEAP_SIZE;
+
+	return salloc_init(heap.base, heap.size);
+}
+
 void *malloc(size_t size)
 {
 	void *ret;
 	int err;
-
-	if (!heap.base) {
-		/* errno is already set by (s)brk */
-		heap.base = sbrk(0);
-		if (heap.base == (void *)-1) {
-			heap.base = NULL;
-			return NULL;
-		}
-
-		err = brk(heap.base + HEAP_SIZE);
-		if (err)
-			return NULL;
-
-		heap.size = HEAP_SIZE;
-
-		err = salloc_init(heap.base, heap.size);
-		if (err) {
-			heap.size = 0;
-			errno = -err;
-
-			return NULL;
-		}
-	}
 
 	err = salloc_alloc(heap.base, size, &ret);
 	if (err) {
@@ -90,11 +87,6 @@ void *malloc(size_t size)
 void free(void *ptr)
 {
 	int err;
-
-	if (!heap.base) {
-		dprintf(stderr, "Heap not initialised\n");
-		exit(-EINVAL);
-	}
 
 	err = salloc_free(ptr);
 	if (err) {

@@ -17,6 +17,12 @@ int main(int argc, char *argv[], char *envp[]);
 
 int cmain(int argc, char *argv[], char *envp[])
 {
+	int err;
+
+	err = heap_init();
+	if (err)
+		return err;
+
 	environ = envp;
 	return main(argc, argv, envp);
 }
