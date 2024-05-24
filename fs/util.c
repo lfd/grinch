@@ -22,56 +22,31 @@
 static int pathname_sanitise_dir(char *pathname, bool *_must_dir)
 {
 	char *dst, *pos;
-	bool must_dir, is_dot;
+	bool must_dir;
 
 	/* Don't support empty paths */
 	if (pathname[0] == '\0')
 		return -EINVAL;
 
-	/* Special treatment for "/" */
-	if (pathname[1] == '\0') {
-		must_dir = true;
-		goto out;
-	}
-
-	must_dir = false;
-	is_dot = false;
 	pos = dst = pathname;
 	for (;;) {
-		if (pos[0] == '\0') {
-			if (is_dot)
-				return -EINVAL;
+		must_dir = false;
+		*dst++ = *pos++;
+		if (pos[-1] == '/') {
+			must_dir = true;
+			while (*pos == '/')
+				pos++;
+		}
 
-			if (dst[-1] == '/') {
-				dst[-1] = 0;
-				must_dir = true;
-			} else
-				*dst = 0;
+		if (pos[0] == '\0') {
+			*dst = '\0';
 			break;
 		}
-
-		if (pos[0] == '.') {
-			if (pos[-1] == '/')
-				is_dot = true;
-		} else if (pos[0] != '/')
-			is_dot = false;
-
-		if (pos[0] == '/') {
-			if (is_dot)
-				return -EINVAL;
-			else if (dst[-1] == '/')
-				goto skip;
-		}
-		*dst = pos[0];
-		dst++;
-
-skip:
-		pos++;
-		while (pos[0] == '/' && pos[1] == '/')
-			pos++;
 	}
 
-out:
+	if (must_dir)
+		dst[-1] = '\0';
+
 	if (_must_dir)
 		*_must_dir = must_dir;
 
