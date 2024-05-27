@@ -257,8 +257,7 @@ static char *executable_get_pathname(const char *cmd)
 	struct stat st;
 	int err;
 
-	/* Do we have an absolute path? */
-	if (*cmd == '/')
+	if (*cmd == '/' || *cmd == '.')
 		return strdup(cmd);
 
 	if (!paths.tokens)
