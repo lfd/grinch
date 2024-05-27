@@ -89,27 +89,14 @@ static struct dflc *dflc_get(struct dflc *entry)
 	return entry;
 }
 
-static void dflc_put(struct dflc *entry)
+/* decrease refcount of a single entry */
+static void _dflc_put(struct dflc *entry)
 {
-	struct dflc *parent;
 	struct file *fp;
 
-	fp = &entry->fp;
-
-	if (entry->refs == 0)
-		BUG();
-
-	/*
-	 * If we release the dflc entry, we will modify the list in the parent.
-	 * Hence, we need to take the lock from the parent. As we might might
-	 * have a reverse lookup-task on another CPU, we need to grab the
-	 * parent's lock first to prevent deadlocks.
-	 */
-	parent = entry->parent;
-	if (parent)
-		dflc_lock(parent);
 	dflc_lock(entry);
 
+	fp = &entry->fp;
 	entry->refs--;
 	if (entry->refs == 0) {
 		if (fp->fops && fp->fops->close)
@@ -125,6 +112,27 @@ static void dflc_put(struct dflc *entry)
 
 	if (entry)
 		dflc_unlock(entry);
+}
+
+/* recursively release the entry */
+static void dflc_put(struct dflc *entry)
+{
+	struct dflc *parent;
+
+	if (entry->refs == 0)
+		BUG();
+
+	/*
+	 * If we release the dflc entry, we will modify the list in the parent.
+	 * Hence, we need to take the lock from the parent. As we might might
+	 * have a reverse lookup-task on another CPU, we need to grab the
+	 * parent's lock first to prevent deadlocks.
+	 */
+	parent = entry->parent;
+	if (parent)
+		dflc_lock(parent);
+
+	_dflc_put(entry);
 
 	if (parent) {
 		dflc_unlock(parent);
