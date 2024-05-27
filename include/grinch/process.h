@@ -41,8 +41,8 @@ struct task *process_alloc_new(const char *name);
 void process_destroy(struct task *task);
 int process_handle_fault(struct task *task, void __user *addr, bool is_write);
 
-int process_from_fs(struct task *task, const char *pathname,
-		    struct uenv_array *argv, struct uenv_array *envp);
+int process_from_path(struct task *task, struct file *at, const char *pathname,
+		      struct uenv_array *argv, struct uenv_array *envp);
 
 int process_setcwd(struct task *t, const char *pathname);
 

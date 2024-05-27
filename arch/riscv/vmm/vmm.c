@@ -275,17 +275,24 @@ static int vm_memcpy(struct vmachine *vm, unsigned long offset,
 
 static int vm_load_file(struct vmachine *vm, const char *filename, size_t offset)
 {
+	struct file *file;
+	void *content;
 	size_t len;
-	void *file;
 	int err;
 
 	if (offset >= vm->memregion.size)
 		return -ERANGE;
 
-	file = vfs_read_file(filename, &len);
-	if (IS_ERR(file)) {
-		pr("Unable to read from VFS: %s\n", filename);
+	file = file_open_at(NULL, filename);
+	if (IS_ERR(file))
 		return PTR_ERR(file);
+
+	content = vfs_read_file(file, &len);
+	file_close(file);
+
+	if (IS_ERR(content)) {
+		pr("Unable to read from VFS: %s\n", filename);
+		return PTR_ERR(content);
 	}
 
 	if (len > vm->memregion.size - offset) {
@@ -293,8 +300,8 @@ static int vm_load_file(struct vmachine *vm, const char *filename, size_t offset
 		return -ENOMEM;
 	}
 
-	err = vm_memcpy(vm, offset, file, len);
-	kfree(file);
+	err = vm_memcpy(vm, offset, content, len);
+	kfree(content);
 
 	return err;
 }

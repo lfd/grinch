@@ -430,42 +430,32 @@ int vfs_stat(struct file *file, struct stat *st)
 	return file->fops->stat(file, st);
 }
 
-void *vfs_read_file(const char *pathname, size_t *len)
+void *vfs_read_file(struct file *file, size_t *len)
 {
-	struct file_handle handle = { 0 };
+	struct file_handle handle = {
+		.flags.is_kernel = true,
+		.fp = file,
+	};
 	struct stat st = { 0 };
 	ssize_t err;
 	void *ret;
 
-	handle.flags.is_kernel = true;
-	handle.fp = file_open_at(NULL, pathname);
-	if (IS_ERR(handle.fp))
-		return handle.fp;
-
 	err = vfs_stat(handle.fp, &st);
-	if (err) {
-		ret = ERR_PTR(err);
-		goto close_out;
-	}
+	if (err)
+		return ERR_PTR(err);
 
 	ret = kmalloc(st.st_size);
-	if (!ret) {
-		ret = ERR_PTR(-ENOMEM);
-		goto close_out;
-	}
+	if (!ret)
+		return ERR_PTR(-ENOMEM);
 
 	err = handle.fp->fops->read(&handle, ret, st.st_size);
 	if (err < 0) {
 		kfree(ret);
-		ret = ERR_PTR(err);
-		goto close_out;
+		return ERR_PTR(err);
 	}
 
 	if (len)
 		*len = err;
-
-close_out:
-	file_close(handle.fp);
 
 	return ret;
 }

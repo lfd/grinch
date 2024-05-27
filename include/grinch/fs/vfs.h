@@ -86,7 +86,7 @@ char *file_realpath(struct file *file);
 /* VFS operations */
 int vfs_init(void);
 
-void *vfs_read_file(const char *pathname, size_t *len);
+void *vfs_read_file(struct file *file, size_t *len);
 int vfs_stat(struct file *file, struct stat *st);
 
 int vfs_mkdir_at(struct file *at, const char *pathname, mode_t mode);

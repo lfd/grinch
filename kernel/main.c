@@ -91,10 +91,10 @@ static int __init init(void)
 	if (IS_ERR(task))
 		return PTR_ERR(task);
 
-	err = process_from_fs(task, ISTR("/initrd/bin/init"), NULL, NULL);
-	if (err) {
+	err = process_from_path(task, NULL, ISTR("/initrd/bin/init"),
+				NULL, NULL);
+	if (err)
 		goto exit_out;
-	}
 
 	/* stdin */
 	fh = &task->process.fds[0];

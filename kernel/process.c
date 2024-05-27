@@ -193,13 +193,19 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr,
 	return 0;
 }
 
-int process_from_fs(struct task *task, const char *pathname,
-		    struct uenv_array *argv, struct uenv_array *envp)
+int process_from_path(struct task *task, struct file *at, const char *pathname,
+		      struct uenv_array *argv, struct uenv_array *envp)
 {
+	struct file *file;
 	void *elf;
 	int err;
 
-	elf = vfs_read_file(pathname, NULL);
+	file = file_open_at(at, pathname);
+	if (IS_ERR(file))
+		return PTR_ERR(file);
+
+	elf = vfs_read_file(file, NULL);
+	file_close(file);
 	if (IS_ERR(elf))
 		return PTR_ERR(elf);
 
@@ -311,7 +317,7 @@ static long _sys_execve(const char __user *_pathname,
 	process->vma_heap = NULL;
 	this_per_cpu()->pt_needs_update = true;
 
-	err = process_from_fs(this, pathname, &argv, &envp);
+	err = process_from_path(this, cwd(), pathname, &argv, &envp);
 
 	uenv_free(&envp);
 
