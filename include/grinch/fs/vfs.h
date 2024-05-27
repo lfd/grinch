@@ -88,6 +88,7 @@ void file_close(struct file *file);
 /* Duplicates a file handle (e.g., used in fork()) */
 void file_dup(struct file *file);
 
+char *file_realpath(struct file *file);
 
 /* VFS operations */
 int vfs_init(void);

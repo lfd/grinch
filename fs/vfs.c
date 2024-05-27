@@ -327,6 +327,58 @@ struct file *file_ocreate_at(struct file *at, const char *pathname, bool create)
 	return _file_ocreate_at(at, pathname, create ? D_CREATE : 0);
 }
 
+static char *_file_realpath(char *buf, size_t *len, struct dflc *entry)
+{
+	struct dflc *parent;
+	const char *name;
+	size_t this_len;
+
+	parent = entry->parent;
+	if (parent) {
+		buf = _file_realpath(buf, len, parent);
+		if (IS_ERR(buf))
+			return buf;
+	}
+
+	dflc_lock(entry);
+	this_len = strlen(entry->name);
+	name = entry->name;
+
+	if (*len < (this_len + 1)) {
+		dflc_unlock(entry);
+		return ERR_PTR(-ENAMETOOLONG);
+	}
+
+	strncpy(buf, name, this_len);
+	dflc_unlock(entry);
+	buf[this_len] = '/';
+	this_len += 1;
+
+	*len -= this_len;
+
+	return buf + this_len;
+}
+
+char *file_realpath(struct file *file)
+{
+	char buf[MAX_PATHLEN];
+	struct dflc *this;
+	size_t len, pos;
+
+	this = dflc_of(file);
+	len = sizeof(buf);
+	_file_realpath(buf, &len, this);
+
+	if (len == 0)
+		return ERR_PTR(-ENAMETOOLONG);
+
+	pos = sizeof(buf) - len;
+	pos = pos == 1 ? pos : pos - 1;
+	buf[pos] = '\0';
+
+	return kstrdup(buf);
+}
+
 int vfs_mkdir(const char *pathname, mode_t mode)
 {
 	struct file *dir;
