@@ -113,7 +113,7 @@ static int __init init(void)
 
 	for (i = 0; i < 3; i++) {
 		fh = &task->process.fds[i];
-		fh->fp = file_open(ISTR(DEVICE_NAME("console")));
+		fh->fp = file_open_at(NULL, ISTR(DEVICE_NAME("console")));
 		if (IS_ERR(fh->fp)) {
 			err = PTR_ERR(fh->fp);
 			goto exit_out;

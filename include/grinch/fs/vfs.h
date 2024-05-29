@@ -74,12 +74,6 @@ struct file_system {
 
 /* Opens a file, and increments references to the file */
 struct file *file_open_at(struct file *at, const char *path);
-static inline struct file *file_open(const char *path)
-{
-	return file_open_at(NULL, path);
-}
-
-
 struct file *file_ocreate_at(struct file *at, const char *path, bool create);
 
 /* Releases the file */
