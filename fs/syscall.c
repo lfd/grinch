@@ -225,6 +225,7 @@ SYSCALL_DEF2(stat, const char __user *, _pathname, struct stat __user *, _st)
 {
 	struct stat st = { 0 };
 	unsigned long copied;
+	struct file *file;
 	char *pathname;
 	bool must_dir;
 	long err;
@@ -233,7 +234,14 @@ SYSCALL_DEF2(stat, const char __user *, _pathname, struct stat __user *, _st)
 	if (IS_ERR(pathname))
 		return PTR_ERR(pathname);
 
-	err = vfs_stat_at(cwd(), pathname, &st);
+	file = file_open_at(cwd(), pathname);
+	if (IS_ERR(file)) {
+		err = PTR_ERR(file);
+		goto path_out;
+	}
+
+	err = vfs_stat(file, &st);
+	file_close(file);
 	if (err)
 		goto path_out;
 

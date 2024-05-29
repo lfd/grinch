@@ -419,22 +419,15 @@ int vfs_mkdir_at(struct file *at, const char *pathname, mode_t mode)
 	return 0;
 }
 
-int vfs_stat_at(struct file *at, const char *pathname, struct stat *st)
+int vfs_stat(struct file *file, struct stat *st)
 {
-	struct file *fp;
-	int err;
-
-	fp = file_open_at(at, pathname);
-	if (IS_ERR(fp))
-		return PTR_ERR(fp);
-
-	if (!fp->fops->stat)
+	if (!file->fops)
 		return -ENOSYS;
 
-	err = fp->fops->stat(fp, st);
-	file_close(fp);
+	if (!file->fops->stat)
+		return -ENOSYS;
 
-	return err;
+	return file->fops->stat(file, st);
 }
 
 void *vfs_read_file(const char *pathname, size_t *len)
@@ -444,18 +437,22 @@ void *vfs_read_file(const char *pathname, size_t *len)
 	ssize_t err;
 	void *ret;
 
-	err = vfs_stat_at(NULL, pathname, &st);
-	if (err)
-		return ERR_PTR(err);
-
-	ret = kmalloc(st.st_size);
-	if (!ret)
-		return ERR_PTR(-ENOMEM);
-
 	handle.flags.is_kernel = true;
-	handle.fp = file_open(pathname);
+	handle.fp = file_open_at(NULL, pathname);
 	if (IS_ERR(handle.fp))
 		return handle.fp;
+
+	err = vfs_stat(handle.fp, &st);
+	if (err) {
+		ret = ERR_PTR(err);
+		goto close_out;
+	}
+
+	ret = kmalloc(st.st_size);
+	if (!ret) {
+		ret = ERR_PTR(-ENOMEM);
+		goto close_out;
+	}
 
 	err = handle.fp->fops->read(&handle, ret, st.st_size);
 	if (err < 0) {
