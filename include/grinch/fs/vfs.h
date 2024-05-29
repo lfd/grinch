@@ -91,10 +91,6 @@ void *vfs_read_file(const char *pathname, size_t *len);
 int vfs_stat(struct file *file, struct stat *st);
 
 int vfs_mkdir_at(struct file *at, const char *pathname, mode_t mode);
-static inline int vfs_mkdir(const char *pathname, mode_t mode)
-{
-	return vfs_mkdir_at(NULL, pathname, mode);
-}
 
 void vfs_lsof(void);
 

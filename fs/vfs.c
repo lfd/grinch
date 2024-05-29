@@ -526,7 +526,6 @@ int __init vfs_init(void)
 		return err;
 
 	/* hook in tmpfs */
-
 	tmpfs = kzalloc(sizeof(*root.fs));
 	if (!tmpfs)
 		return -ENOMEM;
@@ -542,11 +541,11 @@ int __init vfs_init(void)
 		return err;
 
 	/* Create directories */
-	err = vfs_mkdir("/dev", 0);
+	err = vfs_mkdir_at(NULL, DEVFS_MOUNTPOINT, 0);
 	if (err)
 		return err;
 
-	err = vfs_mkdir("/initrd", 0);
+	err = vfs_mkdir_at(NULL, "/initrd", 0);
 	if (err)
 		return err;
 
