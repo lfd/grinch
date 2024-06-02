@@ -346,6 +346,8 @@ static int initrd_stat(struct file *filep, struct stat *st)
 	return 0;
 }
 
+static int initrd_open(struct file *dir, struct file *filep, const char *path);
+
 static const struct file_operations initrd_fops = {
 	.read = initrd_read,
 	.write = initrd_write,
@@ -354,8 +356,8 @@ static const struct file_operations initrd_fops = {
 	.mkdir = initrd_mkdir,
 	.stat = initrd_stat,
 	.create = initrd_create,
+	.open = initrd_open,
 };
-
 
 static int _initrd_open(struct file *filep, char *pathname)
 {
@@ -421,7 +423,6 @@ static int initrd_mount(const struct file_system *fs, struct file *dir)
 }
 
 static const struct file_system_operations fs_ops_initrd = {
-	.open_file = initrd_open,
 	.mount = initrd_mount,
 };
 

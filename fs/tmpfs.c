@@ -291,7 +291,6 @@ static int tmpfs_mount(const struct file_system *fs, struct file *dir)
 }
 
 static const struct file_system_operations tmpfs_ops = {
-	.open_file = tmpfs_open,
 	.mount = tmpfs_mount,
 };
 
@@ -320,6 +319,7 @@ static const struct file_operations tmpfs_fops = {
 	.create = tmpfs_create,
 	.getdents = tmpfs_getdents,
 	.mkdir = tmpfs_mkdir,
+	.open = tmpfs_open,
 };
 
 const struct file_system tmpfs = {

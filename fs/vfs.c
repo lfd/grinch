@@ -205,12 +205,12 @@ dflc_lookup_next(struct dflc *parent, const char *_name, size_t n,
 		goto fun_out;
 	}
 
-	if (!parent->fs->fs_ops || !parent->fs->fs_ops->open_file) {
+	if (!parent->fp.fops || !parent->fp.fops->open) {
 		err = -ENOSYS;
 		goto err_free_out;
 	}
 
-	err = parent->fs->fs_ops->open_file(&parent->fp, &next->fp, next->name);
+	err = parent->fp.fops->open(&parent->fp, &next->fp, next->name);
 	if (!err)
 		goto opened;
 

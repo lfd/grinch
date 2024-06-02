@@ -235,12 +235,15 @@ static int devfs_stat(struct file *fp, struct stat *st)
 	return 0;
 }
 
+static int devfs_open(struct file *dir, struct file *filep, const char *path);
+
 static const struct file_operations devfs_fops = {
 	.read = devfs_read,
 	.write = devfs_write,
 	.stat = devfs_stat,
 	.getdents = devfs_getdents,
 	.register_reader = devfs_register_reader,
+	.open = devfs_open,
 };
 
 int __init devfs_create_symlink(const char *dst, const char *src)
@@ -452,7 +455,6 @@ static int devfs_mount(const struct file_system *fs, struct file *dir)
 }
 
 static const struct file_system_operations fs_ops_devfs = {
-	.open_file = devfs_open,
 	.mount = devfs_mount,
 };
 

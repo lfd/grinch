@@ -52,6 +52,7 @@ struct file_operations {
 			unsigned int size);
 	int (*mkdir)(struct file *dir, struct file *filep, const char *name, mode_t mode);
 	int (*create)(struct file *dir, struct file *filep, const char *name, mode_t mode);
+	int (*open)(struct file *dir, struct file *filep, const char *fname);
 };
 
 struct file {
@@ -61,8 +62,6 @@ struct file {
 };
 
 struct file_system_operations {
-	int (*open_file)(struct file *dir, struct file *filep,
-			 const char *fname);
 	int (*mount)(const struct file_system *fs, struct file *dir);
 };
 
