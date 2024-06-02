@@ -30,6 +30,7 @@
 #define EEXIST		17
 #define ENODEV		19
 #define ENOTDIR		20
+#define EISDIR		21
 #define EINVAL		22
 #define EFBIG		27
 #define EROFS		30
