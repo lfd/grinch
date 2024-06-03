@@ -52,7 +52,18 @@ static int ls_file_st(const char *pathname, struct stat *st)
 			break;
 	}
 
-	printf("%-32s %-13s %10llu\n", pathname, type, st->st_size);
+	printf("%c%c%c%c%c%c%c%c%c %-13s %10llu	%-32s\n",
+	       (st->st_mode & S_IRUSR) ? 'r' : '-',
+	       (st->st_mode & S_IWUSR) ? 'w' : '-',
+	       (st->st_mode & S_IXUSR) ? 'x' : '-',
+	       (st->st_mode & S_IRGRP) ? 'r' : '-',
+	       (st->st_mode & S_IWGRP) ? 'w' : '-',
+	       (st->st_mode & S_IXGRP) ? 'x' : '-',
+	       (st->st_mode & S_IROTH) ? 'r' : '-',
+	       (st->st_mode & S_IWOTH) ? 'w' : '-',
+	       (st->st_mode & S_IXOTH) ? 'x' : '-',
+	       type, st->st_size, pathname);
+
 	return 0;
 }
 
