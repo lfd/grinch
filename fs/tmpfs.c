@@ -25,9 +25,9 @@
 struct tmpfs_entry {
 	struct list_head files;
 
-	bool is_dir;
-
 	char *name;
+	mode_t mode;
+
 	union {
 		void *raw;
 		struct list_head files;
@@ -54,7 +54,7 @@ static ssize_t tmpfs_read(struct file_handle *h, char *ubuf, size_t count)
 	file = h->fp->drvdata;
 	spin_lock(&file->lock);
 
-	if (file->is_dir) {
+	if (S_ISDIR(file->mode)) {
 		ret = -EBADF;
 		goto unlock_out;
 	}
@@ -99,7 +99,7 @@ static ssize_t tmpfs_write(struct file_handle *h, const char *buf, size_t count)
 	file = h->fp->drvdata;
 	spin_lock(&file->lock);
 
-	if (file->is_dir) {
+	if (S_ISDIR(file->mode)) {
 		ret = -EBADF;
 		goto unlock_out;
 	}
@@ -146,7 +146,7 @@ static int tmpfs_getdents(struct file_handle *h, struct grinch_dirent *udents,
 
 	dir = h->fp->drvdata;
 	spin_lock(&dir->lock);
-	if (!dir->is_dir)
+	if (!S_ISDIR(dir->mode))
 		BUG();
 
 	index = 0;
@@ -161,7 +161,7 @@ static int tmpfs_getdents(struct file_handle *h, struct grinch_dirent *udents,
 	goto unlock_out;
 
 found:
-	dent.type = file->is_dir ? DT_DIR : DT_REG;
+	dent.type = S_ISDIR(file->mode) ? DT_DIR : DT_REG;
 	err = copy_dirent(udents, h->flags.is_kernel, &dent, file->name, size);
 	if (err)
 		return err;
@@ -211,7 +211,9 @@ find_create_entry(struct tmpfs_entry *dir, const char *path, unsigned int flags)
 
 	if (directory) {
 		INIT_LIST_HEAD(&entry->content.files);
-		entry->is_dir = true;
+		entry->mode = S_IFDIR;
+	} else {
+		entry->mode = S_IFREG;
 	}
 
 	list_add(&entry->files, &dir->content.files);
@@ -225,12 +227,7 @@ static int tmpfs_stat(struct file *_file, struct stat *st)
 
 	file = _file->drvdata;
 
-	if (file->is_dir) {
-		st->st_mode = S_IFDIR;
-		return 0;
-	}
-
-	st->st_mode = S_IFREG;
+	st->st_mode = file->mode;
 	st->st_size = file->size;
 
 	return 0;
@@ -254,7 +251,7 @@ static int tmpfs_lookup_entry(struct file *_dir, struct file *file, const char *
 
 	file->fops = &tmpfs_fops;
 	file->drvdata = entry;
-	file->is_directory = entry->is_dir;
+	file->is_directory = S_ISDIR(entry->mode);
 	err = 0;
 
 unlock_out:
@@ -286,7 +283,7 @@ static int tmpfs_mount(const struct file_system *fs, struct file *dir)
 
 	root = fs->drvdata;
 
-	dir->is_directory = root->is_dir;
+	dir->is_directory = S_ISDIR(root->mode);
 	dir->fops = &tmpfs_fops;
 	dir->drvdata = root;
 
@@ -307,7 +304,7 @@ int tmpfs_new(struct file_system *fs)
 		return -ENOMEM;
 
 	spin_init(&root->lock);
-	root->is_dir = true;
+	root->mode = S_IFDIR;
 	INIT_LIST_HEAD(&root->content.files);
 
 	fs->fs_ops = &tmpfs_ops;
