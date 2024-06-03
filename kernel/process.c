@@ -470,7 +470,7 @@ int process_setcwd(struct task *t, const char *pathname)
 	if (IS_ERR(f_new))
 		return PTR_ERR(f_new);
 
-	if (!f_new->is_directory) {
+	if (!S_ISDIR(f_new->mode)) {
 		err = -ENOTDIR;
 		goto close_out;
 	}

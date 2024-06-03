@@ -251,7 +251,7 @@ static int tmpfs_lookup_entry(struct file *_dir, struct file *file, const char *
 
 	file->fops = &tmpfs_fops;
 	file->drvdata = entry;
-	file->is_directory = S_ISDIR(entry->mode);
+	file->mode = entry->mode;
 	err = 0;
 
 unlock_out:
@@ -283,7 +283,7 @@ static int tmpfs_mount(const struct file_system *fs, struct file *dir)
 
 	root = fs->drvdata;
 
-	dir->is_directory = S_ISDIR(root->mode);
+	dir->mode = root->mode;
 	dir->fops = &tmpfs_fops;
 	dir->drvdata = root;
 

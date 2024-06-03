@@ -447,7 +447,7 @@ unlock_out:
 
 static int devfs_mount(const struct file_system *fs, struct file *dir)
 {
-	dir->is_directory = true;
+	dir->mode = S_IFDIR;
 	dir->fops = &devfs_fops;
 	dir->drvdata = NULL;
 

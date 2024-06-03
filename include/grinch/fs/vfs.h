@@ -57,8 +57,9 @@ struct file_operations {
 
 struct file {
 	const struct file_operations *fops;
+	mode_t mode;
+
 	void *drvdata;
-	bool is_directory;
 };
 
 struct file_system_operations {

@@ -380,7 +380,7 @@ static int _initrd_open(struct file *filep, char *pathname)
 	if (err)
 		goto free_out;
 
-	filep->is_directory = S_ISDIR(hdr->mode);
+	filep->mode = hdr->mode;
 	ctx->subdir_level = get_subdir_level(hdr);
 
 	return 0;

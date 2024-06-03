@@ -65,7 +65,7 @@ static struct dflc root = {
 	.siblings = LIST_HEAD_INIT(root.siblings),
 	.children = LIST_HEAD_INIT(root.children),
 	.fp = {
-		.is_directory = true,
+		.mode = S_IFDIR,
 	},
 	.lock = SPIN_LOCK_UNLOCKED,
 };
@@ -313,7 +313,7 @@ dflc_lookup_at(struct file *at, const char *pathname, unsigned int _flags)
 
 check:
 		parent = next;
-		if (D_ISDIR(flags) && !parent->fp.is_directory) {
+		if (D_ISDIR(flags) && !S_ISDIR(parent->fp.mode)) {
 			err = -ENOTDIR;
 			goto put_out;
 		}
@@ -556,9 +556,9 @@ static void lsof(unsigned int lvl, struct dflc *this)
 
 	dflc_lock(this);
 	pr("%*s%s%s   (%u%s)\n", lvl * 2, "",
-	   this->name, this->fp.is_directory ? "/" : "", this->refs,
+	   this->name, S_ISDIR(this->fp.mode) ? "/" : "", this->refs,
 	   this->mountpoint ? ", mp": "");
-	if (this->fp.is_directory)
+	if (S_ISDIR(this->fp.mode))
 		list_for_each_entry(siblings, &this->children, siblings)
 			lsof(lvl + 1, siblings);
 	dflc_unlock(this);

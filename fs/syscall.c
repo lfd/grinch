@@ -115,7 +115,7 @@ found:
 		goto unlock_out;
 	}
 
-	if (must_dir && !file->is_directory) {
+	if (must_dir && !S_ISDIR(file->mode)) {
 		file_close(file);
 		ret = -ENOTDIR;
 		goto unlock_out;
