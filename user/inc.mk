@@ -6,6 +6,7 @@ APPS += init
 APPS += jittertest
 APPS += ls
 APPS += mkdir
+APPS += sleep
 APPS += test
 APPS += touch
 APPS += true
