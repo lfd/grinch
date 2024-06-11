@@ -35,7 +35,7 @@ static int vma_alloc_range(page_table_t pt, struct vma *vma, void *base,
 	if (size % PAGE_SIZE)
 		return -EINVAL;
 
-	err = phys_pages_alloc_aligned(&phys, PAGES(size), alignment);
+	err = phys_pages_alloc(&phys, PAGES(size), alignment);
 	if (err)
 		return err;
 

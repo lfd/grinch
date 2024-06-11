@@ -222,8 +222,8 @@ int free_pages(const void *addr, unsigned int pages)
 }
 
 static int
-_phys_pages_alloc_aligned(paddr_t *res, size_t pages, unsigned int alignment,
-			  paddr_t hint)
+_phys_pages_alloc(paddr_t *res, size_t pages, unsigned int alignment,
+		  paddr_t hint)
 {
 	struct memory_area *area;
 	unsigned int i;
@@ -275,15 +275,14 @@ int phys_free_pages(paddr_t phys, unsigned int pages)
 	return -ERANGE;
 }
 
-int phys_pages_alloc_aligned(paddr_t *res, size_t pages, unsigned int alignment)
+int phys_pages_alloc(paddr_t *res, size_t pages, unsigned int alignment)
 {
-	return _phys_pages_alloc_aligned(res, pages, alignment,
-					 INVALID_PHYS_ADDR);
+	return _phys_pages_alloc(res, pages, alignment, INVALID_PHYS_ADDR);
 }
 
 int phys_mark_used(paddr_t addr, size_t pages)
 {
-	return _phys_pages_alloc_aligned(NULL, pages, PAGE_SIZE, addr);
+	return _phys_pages_alloc(NULL, pages, PAGE_SIZE, addr);
 }
 
 void *alloc_pages_aligned(unsigned int pages, unsigned int alignment)

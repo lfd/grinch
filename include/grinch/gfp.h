@@ -26,7 +26,7 @@
 #include <grinch/string.h>
 
 /* Physical Page allocation */
-int phys_pages_alloc_aligned(paddr_t *res, size_t pages, unsigned int alignment);
+int phys_pages_alloc(paddr_t *res, size_t pages, unsigned int alignment);
 int phys_mark_used(paddr_t addr, size_t pages);
 int phys_free_pages(paddr_t from, unsigned int pages);
 

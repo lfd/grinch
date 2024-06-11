@@ -329,7 +329,7 @@ static struct task *vmm_alloc_new(void)
 	vm = &task->vmachine;
 
 	/* Allocate VM specific parts */
-	err = phys_pages_alloc_aligned(&vm->memregion.base, VM_PAGES, PAGE_SIZE);
+	err = phys_pages_alloc(&vm->memregion.base, VM_PAGES, PAGE_SIZE);
 	if (err)
 		goto vmfree_out;
 	vm->memregion.size = VM_PAGES * PAGE_SIZE;
