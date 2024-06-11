@@ -17,18 +17,20 @@
 #include <grinch/printk.h>
 #include <grinch/mm.h>
 
-long mm_bitmap_find_and_allocate(struct bitmap *bitmap, size_t pages, unsigned
-				 int from, unsigned int alignment)
+long mm_bitmap_find_and_allocate(struct bitmap *bitmap, unsigned int pages,
+				 long from, unsigned int alignment)
 {
-	unsigned int start;
+	unsigned long start;
 
 	if (alignment % PAGE_SIZE)
 		return trace_error(-EINVAL);
 	alignment = PAGES(alignment) - 1;
 
 	start = bitmap_find_next_zero_area(bitmap->bitmap, bitmap->bit_max,
-					   from, pages, alignment);
-	if (from && start != from)
+					   from == -1 ? 0 : from,
+					   pages, alignment);
+
+	if (from != -1 && start != (unsigned long)from)
 		return -ENOMEM;
 
 	if (start > bitmap->bit_max)

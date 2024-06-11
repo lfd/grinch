@@ -139,7 +139,7 @@ static int memory_area_alloc_aligned(struct memory_area *area, ptrdiff_t *off,
 				     unsigned int pages, unsigned int alignment,
 				     paddr_t hint)
 {
-	unsigned int page_offset;
+	long page_offset;
 	int err;
 
 	if (hint == INVALID_PHYS_ADDR && !off)
@@ -149,7 +149,7 @@ static int memory_area_alloc_aligned(struct memory_area *area, ptrdiff_t *off,
 	if (hint != INVALID_PHYS_ADDR)
 		page_offset = (hint - area->p.base) / PAGE_SIZE;
 	else
-		page_offset = 0;
+		page_offset = -1;
 
 	spin_lock(&gfp_lock);
 	err = mm_bitmap_find_and_allocate(&area->bitmap, pages, page_offset,

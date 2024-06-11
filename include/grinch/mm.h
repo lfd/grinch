@@ -15,8 +15,8 @@
 
 #include <grinch/bitmap.h>
 
-/* If from (bit) is not zero, then the area MUST start from start. */
-long mm_bitmap_find_and_allocate(struct bitmap *bitmap, size_t pages, unsigned
-				 int from, unsigned int alignment);
+/* The area MUST start from from, if from != -1 */
+long mm_bitmap_find_and_allocate(struct bitmap *bitmap, unsigned int pages,
+				 long from, unsigned int alignment);
 
 #endif /* _MM_H */
