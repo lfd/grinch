@@ -13,6 +13,7 @@
 #ifndef _DRIVER_H
 #define _DRIVER_H
 
+#include <grinch/compiler_attributes.h>
 #include <grinch/fdt.h>
 #include <grinch/list.h>
 #include <grinch/printk.h>

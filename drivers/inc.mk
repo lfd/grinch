@@ -1,4 +1,4 @@
-DRIVERS_OBJS = device.o driver.o pci/pci.o
+DRIVERS_OBJS = device.o driver.o pci/bochs-gpu.o pci/pci.o
 DRIVERS_IRQ_OBJS = irq/irqchip.o
 DRIVERS_SERIAL_OBJS = serial/chardev.o serial/serial.o serial/uart-dummy.o
 DRIVERS_SERIAL_OBJS += serial/uart-8250.o serial/uart-apbuart.o
