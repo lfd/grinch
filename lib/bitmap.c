@@ -13,6 +13,7 @@
 /* partly copied from Linux */
 
 #include <grinch/bitmap.h>
+#include <grinch/bitops.h>
 #include <grinch/compiler_attributes.h>
 
 #define __ALIGN_MASK(x, mask)	(((x) + (mask)) & ~(mask))
@@ -22,45 +23,6 @@
 
 #define BIT_MASK(nr)	(1UL << ((nr) % BITS_PER_LONG))
 #define BIT_WORD(nr)	((nr) / BITS_PER_LONG)
-
-static inline unsigned long swab(unsigned long val)
-{
-	unsigned long tmp;
-
-	tmp = val << 32;
-	tmp |= val >> 32;
-
-	return tmp;
-}
-
-static __always_inline unsigned long __ffs(unsigned long word)
-{
-	int num = 0;
-
-	if ((word & 0xffffffff) == 0) {
-		num += 32;
-		word >>= 32;
-	}
-	if ((word & 0xffff) == 0) {
-		num += 16;
-		word >>= 16;
-	}
-	if ((word & 0xff) == 0) {
-		num += 8;
-		word >>= 8;
-	}
-	if ((word & 0xf) == 0) {
-		num += 4;
-		word >>= 4;
-	}
-	if ((word & 0x3) == 0) {
-		num += 2;
-		word >>= 2;
-	}
-	if ((word & 0x1) == 0)
-		num += 1;
-	return num;
-}
 
 /*
  * This is a common helper function for find_next_bit, find_next_zero_bit, and
@@ -106,7 +68,7 @@ static unsigned long _find_next_bit(const unsigned long *addr1,
 	if (le)
 		tmp = swab(tmp);
 
-	return MIN(start + __ffs(tmp), nbits);
+	return MIN(start + ffsl(tmp), nbits);
 }
 
 static inline
