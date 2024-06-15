@@ -19,6 +19,8 @@
 
 #include <grinch/vm.h>
 
+#include "fb.h"
+
 int main(void);
 
 APP_NAME(init);
@@ -72,6 +74,8 @@ int main(void)
 {
 	int wstatus;
 	pid_t child;
+
+	show_logo();
 
 	start_background("/initrd/bin/gsh",
 			 (char *[]){"gsh", NULL}, false);

@@ -12,7 +12,7 @@ mkdir $tmp/dtb
 
 cp -a user/apps/build/* $tmp/bin/
 cp -a user/dts/*.dtb $tmp/dtb/
-cp -a res/test.txt $tmp/
+cp -a res/logo.raw res/test.txt $tmp/
 cp -a kernel.bin $tmp/
 
 cd $tmp
