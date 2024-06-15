@@ -21,8 +21,8 @@
 #include <grinch/arch/sbi.h>
 
 static ssize_t
-sbi_write(struct devfs_node *node, void *user, struct file_handle *fh,
-	  const char *buf, size_t count)
+sbi_write(struct devfs_node *node, struct file_handle *fh, const char *buf,
+	  size_t count)
 {
 	unsigned int this_sz, copied, i;
 	struct task *task;
@@ -56,8 +56,8 @@ sbi_write(struct devfs_node *node, void *user, struct file_handle *fh,
 }
 
 static ssize_t
-sbi_read(struct devfs_node *node, void *user, struct file_handle *fh,
-	 char *buf, size_t count)
+sbi_read(struct devfs_node *node, struct file_handle *fh, char *buf,
+	 size_t count)
 {
 	struct sbiret ret;
 	char c;

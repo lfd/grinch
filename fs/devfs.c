@@ -31,13 +31,13 @@
 static LIST_HEAD(devfs_nodes);
 static DEFINE_SPINLOCK(devfs_lock);
 
-static ssize_t dev_zero_write(struct devfs_node *, void *, struct file_handle *,
+static ssize_t dev_zero_write(struct devfs_node *, struct file_handle *,
 			      const char *, size_t count)
 {
 	return count;
 }
 
-static ssize_t dev_zero_read(struct devfs_node *, void *, struct file_handle *h,
+static ssize_t dev_zero_read(struct devfs_node *, struct file_handle *h,
 			     char *ubuf, size_t count)
 {
 	if (h->flags.is_kernel) {
@@ -48,7 +48,7 @@ static ssize_t dev_zero_read(struct devfs_node *, void *, struct file_handle *h,
 }
 
 static ssize_t
-dev_null_read(struct devfs_node *, void *, struct file_handle *, char *, size_t)
+dev_null_read(struct devfs_node *, struct file_handle *, char *, size_t)
 {
 	return 0;
 }
@@ -129,7 +129,7 @@ static ssize_t devfs_read(struct file_handle *fh, char *ubuf, size_t count)
 	if (!node->fops || !node->fops->read)
 		return -ENOSYS;
 
-	return node->fops->read(node, node->drvdata, fh, ubuf, count);
+	return node->fops->read(node, fh, ubuf, count);
 }
 
 static ssize_t
@@ -144,7 +144,7 @@ devfs_write(struct file_handle *fh, const char *ubuf, size_t count)
 	if (!node->fops || !node->fops->write)
 		return -ENOSYS;
 
-	return node->fops->write(node, node->drvdata, fh, ubuf, count);
+	return node->fops->write(node, fh, ubuf, count);
 }
 
 static int

@@ -21,8 +21,8 @@
 #include <grinch/printk.h>
 
 static ssize_t
-serial_write(struct devfs_node *node, void *user, struct file_handle *fh,
-	     const char *buf, size_t count)
+serial_write(struct devfs_node *node, struct file_handle *fh, const char *buf,
+	     size_t count)
 {
 	unsigned int this_sz, copied, i;
 	struct uart_chip *c;
@@ -31,7 +31,7 @@ serial_write(struct devfs_node *node, void *user, struct file_handle *fh,
 	size_t written;
 	char tmp[8];
 
-	dev = user;
+	dev = node->drvdata;
 	c = dev->data;
 
 	if (fh->flags.is_kernel) {

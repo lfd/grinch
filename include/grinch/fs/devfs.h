@@ -33,10 +33,10 @@ enum devfs_type {
 };
 
 struct devfs_ops {
-	ssize_t (*read)(struct devfs_node *node, void *userdata,
-			struct file_handle *fh, char *ubuf, size_t count);
-	ssize_t (*write)(struct devfs_node *node, void *userdata,
-			struct file_handle *fh, const char *ubuf, size_t count);
+	ssize_t (*read)(struct devfs_node *node, struct file_handle *fh,
+			char *ubuf, size_t count);
+	ssize_t (*write)(struct devfs_node *node, struct file_handle *fh,
+			 const char *ubuf, size_t count);
 };
 
 struct devfs_node {
