@@ -20,6 +20,7 @@
 #include <grinch/fs/util.h>
 #include <grinch/fs/vfs.h>
 #include <grinch/kstat.h>
+#include <grinch/pci.h>
 #include <grinch/printk.h>
 #include <grinch/task.h>
 #include <grinch/uaccess.h>
@@ -440,6 +441,10 @@ SYSCALL_DEF2(grinch_kstat, unsigned long, no, unsigned long, arg)
 
 		case GRINCH_KSTAT_KHEAP:
 			kheap_stats();
+			break;
+
+		case GRINCH_KSTAT_LSPCI:
+			pci_lspci();
 			break;
 
 		case GRINCH_KSTAT_LSOF:

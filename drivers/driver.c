@@ -18,6 +18,7 @@
 #include <grinch/device.h>
 #include <grinch/driver.h>
 #include <grinch/ioremap.h>
+#include <grinch/pci.h>
 #include <grinch/symbols.h>
 
 #define for_each_driver(X)					\
@@ -106,6 +107,8 @@ int __init driver_init(void)
 		if (err)
 			return err;
 	}
+
+	pci_scan();
 
 	return 0;
 }

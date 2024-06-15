@@ -39,10 +39,17 @@ SECTIONS
 		__bootparams_start = .;
 		KEEP(*(.init.bootparams));
 		__bootparams_end = .;
+
 		. = ALIGN(16);
 		__drivers_start = .;
 		KEEP(*(.drivers));
 		__drivers_end = .;
+
+		. = ALIGN(16);
+		__pci_drivers_start = .;
+		KEEP(*(.pci_drivers));
+		__pci_drivers_end = .;
+
 		. = ALIGN(16);
 		*(.init.rodata);
 		__init_ro_end = .;
