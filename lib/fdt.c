@@ -148,13 +148,30 @@ static int _fdt_read_cells(const fdt32_t *cells, unsigned int n, uint64_t *value
 	return 0;
 }
 
+int fdt_addr_sz(const void *fdt, int off, int *_ac, int *_sc)
+{
+	int ac, sc;
+
+	ac = fdt_address_cells(fdt, off);
+	if (ac < 0)
+		return ac;
+
+	sc = fdt_size_cells(fdt, off);
+	if (sc < 0)
+		return sc;
+
+	*_ac = ac;
+	*_sc = sc;
+
+	return 0;
+}
+
 int fdt_read_reg(const void *fdt, int nodeoffset, int idx,
 		 void *addrp, u64 *sizep)
 {
-	int parent;
-	int ac, sc, reg_stride;
-	int res;
+	int ac, sc, res, reg_stride;
 	const fdt32_t *reg;
+	int parent;
 
 	reg = fdt_getprop(fdt, nodeoffset, "reg", &res);
 	if (res < 0)
@@ -167,13 +184,9 @@ int fdt_read_reg(const void *fdt, int nodeoffset, int idx,
 	if (parent < 0)
 		return parent;
 
-	ac = fdt_address_cells(fdt, parent);
-	if (ac < 0)
-		return ac;
-
-	sc = fdt_size_cells(fdt, parent);
-	if (sc < 0)
-		return sc;
+	res = fdt_addr_sz(fdt, parent, &ac, &sc);
+	if (res < 0)
+		return res;
 
 	reg_stride = ac + sc;
 
@@ -219,4 +232,28 @@ int fdt_read_u64(const void *fdt, int nodeoffset, const char *name, u64 *res)
 	}
 
 	return 0;
+}
+
+int fdt_read_u32_array(const void *fdt, int nodeoffset, const char *name,
+		       u32 *array, size_t min, size_t sz)
+{
+	const int *res;
+	size_t count;
+	int len;
+
+        res = fdt_getprop(_fdt, nodeoffset, name, &len);
+	if (!res)
+		return -ENOENT;
+
+	if ((len / sizeof(*array)) - min < sz)
+		return -ERANGE;
+
+	res += min;
+	count = sz;
+	while (count--) {
+		*array = fdt32_to_cpu(*res);
+		array++, res++;
+	}
+
+	return sz;
 }
