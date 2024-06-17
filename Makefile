@@ -4,8 +4,8 @@ ARCH ?= riscv
 #INITCONST_STR=1
 
 VERSION=3
-PATCHLEVEL=14
-EXTRAVERSION=-rc0
+PATCHLEVEL=15
+EXTRAVERSION=
 
 all: kernel.bin user/initrd.cpio tools
 
