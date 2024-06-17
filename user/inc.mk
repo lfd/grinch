@@ -19,6 +19,7 @@ LIBC_OBJS = $(ARCH)/entry.o
 LIBC_OBJS += ctype.o
 LIBC_OBJS += dirent.o
 LIBC_OBJS += errno.o
+LIBC_OBJS += fb.o
 LIBC_OBJS += fcntl.o
 LIBC_OBJS += grinch.o
 LIBC_OBJS += ioctl.o
