@@ -37,6 +37,8 @@ struct devfs_ops {
 			char *ubuf, size_t count);
 	ssize_t (*write)(struct devfs_node *node, struct file_handle *fh,
 			 const char *ubuf, size_t count);
+	long (*ioctl)(struct devfs_node *node, unsigned long op,
+		      unsigned long arg);
 };
 
 struct devfs_node {

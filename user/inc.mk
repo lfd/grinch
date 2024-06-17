@@ -21,6 +21,7 @@ LIBC_OBJS += dirent.o
 LIBC_OBJS += errno.o
 LIBC_OBJS += fcntl.o
 LIBC_OBJS += grinch.o
+LIBC_OBJS += ioctl.o
 LIBC_OBJS += salloc.o
 LIBC_OBJS += stdio.o
 LIBC_OBJS += sched.o

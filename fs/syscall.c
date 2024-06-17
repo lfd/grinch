@@ -356,3 +356,22 @@ out:
 
 	return err;
 }
+
+SYSCALL_DEF3(ioctl, int, fd, unsigned long, op, unsigned long, arg)
+{
+	struct file_handle *handle;
+	struct file *file;
+
+	handle = get_handle(fd);
+	if (IS_ERR(handle))
+		return PTR_ERR(handle);
+
+	file = handle->fp;
+	if (!file->fops)
+		return -EBADF;
+
+	if (!file->fops->ioctl)
+		return -EBADF;
+
+	return file->fops->ioctl(file, op, arg);
+}

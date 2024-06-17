@@ -41,6 +41,7 @@ struct file_operations {
 	/* File operations */
 	ssize_t (*read)(struct file_handle *, char *ubuf, size_t count);
 	ssize_t (*write)(struct file_handle *, const char *ubuf, size_t count);
+	long (*ioctl)(struct file *file, unsigned long op, unsigned long arg);
 	/* File + Directory operations */
 	void (*close)(struct file *);
 

@@ -147,6 +147,20 @@ devfs_write(struct file_handle *fh, const char *ubuf, size_t count)
 	return node->fops->write(node, fh, ubuf, count);
 }
 
+static long devfs_ioctl(struct file *file, unsigned long op, unsigned long arg)
+{
+	struct devfs_node *node;
+
+	node = file->drvdata;
+	if (node->type == DEVFS_SYMLINK)
+		node = node->drvdata;
+
+	if (!node->fops || !node->fops->ioctl)
+		return -ENOSYS;
+
+	return node->fops->ioctl(node, op, arg);
+}
+
 static int
 devfs_register_reader(struct file_handle *fh, char *ubuf, size_t count)
 {
@@ -244,6 +258,7 @@ static const struct file_operations devfs_fops = {
 	.getdents = devfs_getdents,
 	.register_reader = devfs_register_reader,
 	.open = devfs_open,
+	.ioctl = devfs_ioctl,
 };
 
 int __init devfs_create_symlink(const char *dst, const char *src)
