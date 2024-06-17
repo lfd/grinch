@@ -72,17 +72,17 @@ static inline void regs_set_retval(struct registers *r, unsigned long val)
 	r->a0 = val;
 }
 
-static inline void cpu_relax(void)
+static __always_inline void cpu_relax(void)
 {
 	asm volatile ("" : : : "memory");
 }
 
-static inline void wait_for_interrupt(void)
+static __always_inline void wait_for_interrupt(void)
 {
 	asm volatile("wfi\n" : : : "memory");
 }
 
-static inline void mb(void)
+static __always_inline void mb(void)
 {
 	asm volatile("fence iorw, iorw\n" : : : "memory");
 }
@@ -93,17 +93,17 @@ static inline void cpu_do_idle(void)
 	wait_for_interrupt();
 }
 
-static inline void local_hfence_vvma_all(void)
+static __always_inline void local_hfence_vvma_all(void)
 {
 	asm volatile(".insn 0x22000073"); /* hfence.vvma zero, zero */
 }
 
-static inline void local_flush_tlb_all(void)
+static __always_inline void local_flush_tlb_all(void)
 {
 	asm volatile("sfence.vma" : : : "memory");
 }
 
-static inline void local_flush_tlb_page(paddr_t page_addr)
+static __always_inline void local_flush_tlb_page(paddr_t page_addr)
 {
 	asm volatile("sfence.vma /* rd, */ zero, %[addr]"
 		     : : [addr] "r" (page_addr));

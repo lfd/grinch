@@ -13,6 +13,7 @@
 #ifndef _ALLOC_H
 #define _ALLOC_H
 
+#include <grinch/compiler_attributes.h>
 #include <grinch/string.h>
 
 int kheap_init(void);
@@ -22,7 +23,7 @@ size_t kheap_size(void);
 void *kmalloc(size_t size);
 void kfree(const void *p);
 
-static inline void *kzalloc(size_t size)
+static __always_inline void *kzalloc(size_t size)
 {
 	void *ret;
 

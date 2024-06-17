@@ -66,22 +66,22 @@ struct per_cpu {
 	struct task *current_task;
 } __aligned(PAGE_SIZE);
 
-static inline struct per_cpu *this_per_cpu(void)
+static __always_inline struct per_cpu *this_per_cpu(void)
 {
 	return (struct per_cpu*)PERCPU_BASE;
 }
 
-static inline unsigned long this_cpu_id(void)
+static __always_inline unsigned long this_cpu_id(void)
 {
 	return this_per_cpu()->cpuid;
 }
 
-static inline struct per_cpu *per_cpu(unsigned long cpuid)
+static __always_inline struct per_cpu *per_cpu(unsigned long cpuid)
 {
 	return (struct per_cpu*)VMGRINCH_END - (cpuid + 1);
 }
 
-static inline page_table_t this_root_table_page(void)
+static __always_inline page_table_t this_root_table_page(void)
 {
 	return this_per_cpu()->root_table_page;
 }

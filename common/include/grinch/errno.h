@@ -43,22 +43,22 @@
 
 #define IS_ERR_VALUE(x)	unlikely((unsigned long)(void *)(x) >= (unsigned long)-MAX_ERRNO)
 
-static inline void *ERR_PTR(long error)
+static __always_inline void *ERR_PTR(long error)
 {
 	return (void *)error;
 }
 
-static inline long PTR_ERR(const void *ptr)
+static __always_inline long PTR_ERR(const void *ptr)
 {
 	return (long)ptr;
 }
 
-static inline bool IS_ERR(const void *ptr)
+static __always_inline bool IS_ERR(const void *ptr)
 {
 	return IS_ERR_VALUE((unsigned long)ptr);
 }
 
-static inline void *ERR_CAST(const void *ptr)
+static __always_inline void *ERR_CAST(const void *ptr)
 {
 		return (void *) ptr;
 }
