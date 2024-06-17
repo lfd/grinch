@@ -13,6 +13,7 @@
 #define dbg_fmt(x) "ioremap: " x
 
 #include <grinch/bitmap.h>
+#include <grinch/bitops.h>
 #include <grinch/errno.h>
 #include <grinch/ioremap.h>
 #include <grinch/paging.h>
@@ -24,8 +25,8 @@ static unsigned long ioremap_bitmap[BITMAP_ELEMS(IOREMAP_PAGES)];
 
 void __init *ioremap(paddr_t paddr, size_t size)
 {
-	unsigned int start;
-	unsigned int pages;
+	unsigned int start, pages, paddr_al, size_al;
+	unsigned long align_mask;
 	void *ret;
 	int err;
 
@@ -33,9 +34,15 @@ void __init *ioremap(paddr_t paddr, size_t size)
 	size = page_up(size);
 	pages = PAGES(size);
 
-	/* Don't care about alignment at the moment. */
+	paddr_al = ffsl(paddr);
+	size_al = ffsl(size);
+	if (size_al <= paddr_al)
+		align_mask = PAGES(1 << size_al) - 1;
+	else
+		align_mask = 0;
+
 	start = bitmap_find_next_zero_area(ioremap_bitmap, IOREMAP_PAGES,
-					   0, pages, 0);
+					   0, pages, align_mask);
 	if (start > IOREMAP_PAGES)
 		return ERR_PTR(-ENOMEM);
 
