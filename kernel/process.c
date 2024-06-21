@@ -180,8 +180,8 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr,
 			return PTR_ERR(vma);
 
 		src = (void *)ehdr + phdr->p_offset;
-		copied = copy_to_user(task, base, src, phdr->p_memsz);
-		if (copied != phdr->p_memsz)
+		copied = copy_to_user(task, base, src, phdr->p_filesz);
+		if (copied != phdr->p_filesz)
 			return -ERANGE;
 
 		if (base + vma_size > task->process.brk)
