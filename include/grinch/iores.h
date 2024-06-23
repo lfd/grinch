@@ -24,4 +24,9 @@ struct mmio_area {
 	size_t size;
 };
 
+struct mmio_resource {
+	struct mmio_area phys;
+	void *base;
+};
+
 #endif /* _GRINCH_IORES_H */
