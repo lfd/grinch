@@ -91,6 +91,8 @@ static int __init drivers_probe(enum driver_prio prio)
 			dev->of.node = sub;
 			dev->of.match = match;
 
+			dev->name = drv->name;
+
 			err = drv->of.probe(dev);
 			if (err) {
 				pri("Driver %s failed probing %s: %pe\n",

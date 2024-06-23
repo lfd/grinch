@@ -138,8 +138,9 @@ static int __init plic_init(struct device *dev, void *vaddr)
 
 		ctx = plic_get_context(_fdt, dev->of.node, cpu);
 		if (ctx < 0) {
-			pri("Unable to get context for CPU %u: %pe\n",
-			    cpu, ERR_PTR(ctx));
+			dev_pri_warn(dev,
+				     "Unable to get context for CPU %u: %pe\n",
+				     cpu, ERR_PTR(ctx));
 			return ctx;
 		}
 		pcpu->plic.ctx = ctx;

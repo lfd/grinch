@@ -75,7 +75,7 @@ static void __init uart_deinit(struct device *dev)
 	if (c->base) {
 		err = iounmap(c->base, c->size);
 		if (err)
-			pr("Error during unmap\n");
+			dev_pr_crit(dev, "Error during unmap\n");
 	}
 
 	node = &c->node;
@@ -137,7 +137,7 @@ int __init uart_probe_generic(struct device *dev)
 			break;
 
 		default:
-			pri("Invalid IO width: %d\n", io_width);
+			dev_pri_warn(dev, "Invalid IO width: %d\n", io_width);
 			err = -EINVAL;
 			goto error_out;
 	}
@@ -151,21 +151,21 @@ int __init uart_probe_generic(struct device *dev)
 
 	c->irq = irq;
 	if (irq != IRQ_INVALID) {
-		pri("UART: using IRQ %d\n", irq);
+		dev_pri(dev, "UART: using IRQ %d\n", irq);
 		err = irq_register_handler(irq, serial_rcv, c);
 		if (err) {
-			pri("Unable to register IRQ %d (%pe)\n",
-			   irq, ERR_PTR(err));
+			dev_pri(dev, "Unable to register IRQ %d (%pe)\n",
+				irq, ERR_PTR(err));
 			goto error_out;
 		}
 		err = irqchip_enable_irq(this_cpu_id(), irq, 5, 4);
 		if (err) {
-			pri("Unable to enable IRQ %d (%pe)\n",
-			   irq, ERR_PTR(err));
+			dev_pri(dev, "Unable to enable IRQ %d (%pe)\n",
+				irq, ERR_PTR(err));
 			goto error_out;
 		}
 	} else
-		pri("No IRQ found!\n");
+		dev_pri(dev, "No IRQ found!\n");
 
 	d = dev->of.match->data;
 	c = dev->data;
@@ -179,7 +179,7 @@ int __init uart_probe_generic(struct device *dev)
 	if (err)
 		goto error_out;
 
-	pri("Registered as %s\n", node->name);
+	dev_pri(dev, "Registered as %s\n", node->name);
 	uart_no++;
 
 	return 0;

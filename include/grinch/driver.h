@@ -16,6 +16,24 @@
 #include <grinch/fdt.h>
 #include <grinch/list.h>
 
+#define _dev_prr(dev, header, fmt, ...)		_prr(header, "%s: " fmt, dev->name, ##__VA_ARGS__)
+#define _dev_prri(dev, header, fmt, ...)	_prri(header, "%s: " fmt, dev->name, ##__VA_ARGS__)
+
+#define dev_pr(dev, fmt, ...)	_dev_prr(dev, PR_DEFAULT, fmt, ##__VA_ARGS__)
+#define dev_pri(dev, fmt, ...)	_dev_prri(dev, PR_DEFAULT, fmt, ##__VA_ARGS__)
+
+#define dev_pr_crit(dev, fmt, ...) _dev_prr(dev, PR_CRIT, fmt, ##__VA_ARGS__)
+#define dev_pri_crit(dev, fmt, ...) _dev_prri(dev, PR_CRIT, fmt, ##__VA_ARGS__)
+
+#define dev_pr_warn(dev, fmt, ...) _dev_prr(dev, PR_WARN, fmt, ##__VA_ARGS__)
+#define dev_pri_warn(dev, fmt, ...) _dev_prri(dev, PR_WARN, fmt, ##__VA_ARGS__)
+
+#define dev_pr_info(dev, fmt, ...) _dev_prr(dev, PR_INFO, fmt, ##__VA_ARGS__)
+#define dev_pri_info(dev, fmt, ...) _dev_prri(dev, PR_INFO, fmt, ##__VA_ARGS__)
+
+#define dev_pr_dbg(dev, fmt, ...) _dev_prr(dev, PR_DEBUG, fmt, ##__VA_ARGS__)
+#define dev_pri_dbg(dev, fmt, ...) _dev_prri(dev, PR_DEBUG, fmt, ##__VA_ARGS__)
+
 enum driver_prio {
 	PRIO_0 = 0, /* Highest */
 	PRIO_1, /* Lowest */
@@ -23,6 +41,7 @@ enum driver_prio {
 };
 
 struct device {
+	const char *name;
 	struct list_head devices;
 	struct {
 		const char *path;
