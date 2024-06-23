@@ -105,4 +105,5 @@ static const struct of_device_id uart_apbuart_matches[] = {
 	{ /* Sentinel */ }
 };
 
-DECLARE_DRIVER(APBUART, PRIO_1, NULL, uart_probe_generic, uart_apbuart_matches);
+DECLARE_DRIVER(APBUART, "APBUart", PRIO_1, NULL, uart_probe_generic,
+	       uart_apbuart_matches);

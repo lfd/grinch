@@ -61,5 +61,5 @@ static const struct of_device_id uart_uartlite_matches[] = {
 	{ /* Sentinel */ }
 };
 
-DECLARE_DRIVER(uartlite, PRIO_1, NULL, uart_probe_generic,
+DECLARE_DRIVER(uartlite, "uartlite", PRIO_1, NULL, uart_probe_generic,
 	       uart_uartlite_matches);

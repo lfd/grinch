@@ -105,4 +105,4 @@ static int __init tty_sbi_init(void)
 	return err;
 }
 
-DECLARE_DRIVER(TTYSBI, PRIO_1, tty_sbi_init, NULL, NULL)
+DECLARE_DRIVER(TTYSBI, "tty-sbi", PRIO_1, tty_sbi_init, NULL, NULL);

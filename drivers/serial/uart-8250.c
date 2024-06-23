@@ -97,4 +97,5 @@ static const struct of_device_id uart_8250_matches[] = {
 	{},
 };
 
-DECLARE_DRIVER(UART8250, PRIO_1, NULL, uart_probe_generic, uart_8250_matches);
+DECLARE_DRIVER(UART8250, "uart-8250", PRIO_1, NULL, uart_probe_generic,
+	       uart_8250_matches);

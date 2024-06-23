@@ -42,14 +42,14 @@ struct driver {
 	} of;
 };
 
-#define DECLARE_DRIVER(NAME, PRIO, INIT, PROBE, MATCHES)		\
-static const struct driver 						\
-__driver_##NAME __used __section(".drivers") = {			\
-	.name = #NAME,							\
-	.prio = PRIO,							\
-	.init = INIT,							\
-	.of.probe = PROBE,						\
-	.of.matches = MATCHES,						\
+#define DECLARE_DRIVER(ID, NAME, PRIO, INIT, PROBE, MATCHES)	\
+static const struct driver 					\
+__driver_##ID __used __section(".drivers") = {			\
+	.name = NAME,						\
+	.prio = PRIO,						\
+	.init = INIT,						\
+	.of.probe = PROBE,					\
+	.of.matches = MATCHES,					\
 };
 
 struct device *device_find_of_path(const char *path);
