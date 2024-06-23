@@ -48,7 +48,7 @@ static int __init xplic_probe(struct device *dev)
 
 	pri("base: 0x%llx, size: 0x%lx\n", (u64)dev->mmio.paddr, dev->mmio.size);
 
-	vbase = ioremap(dev->mmio.paddr, dev->mmio.size);
+	vbase = ioremap_area(&dev->mmio);
 	if (IS_ERR(vbase))
 		return PTR_ERR(vbase);
 

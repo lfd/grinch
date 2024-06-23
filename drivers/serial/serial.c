@@ -140,7 +140,7 @@ int __init uart_probe_generic(struct device *dev)
 			goto error_out;
 	}
 
-	c->base = ioremap(dev->mmio.paddr, dev->mmio.size);
+	c->base = ioremap_area(&dev->mmio);
 	c->size = dev->mmio.size;
 	if (IS_ERR(c->base)) {
 		err = PTR_ERR(c->base);
