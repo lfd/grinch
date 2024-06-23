@@ -48,6 +48,8 @@ struct device {
 		int node;
 		const struct of_device_id *match;
 	} of;
+	struct mmio_area mmio;
+
 	void *data;
 };
 

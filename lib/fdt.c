@@ -167,11 +167,11 @@ int fdt_addr_sz(const void *fdt, int off, int *_ac, int *_sc)
 }
 
 int fdt_read_reg(const void *fdt, int nodeoffset, int idx,
-		 void *addrp, u64 *sizep)
+		 struct mmio_area *area)
 {
-	int ac, sc, res, reg_stride;
+	int ac, sc, parent, res, reg_stride;
 	const fdt32_t *reg;
-	int parent;
+	u64 addr, size;
 
 	reg = fdt_getprop(fdt, nodeoffset, "reg", &res);
 	if (res < 0)
@@ -195,16 +195,16 @@ int fdt_read_reg(const void *fdt, int nodeoffset, int idx,
 	if ((res % (reg_stride * sizeof(*reg))) != 0)
 		return -FDT_ERR_BADVALUE;
 
-	if (addrp) {
-		res = _fdt_read_cells(&reg[reg_stride * idx], ac, addrp);
-		if (res < 0)
-			return res;
-	}
-	if (sizep) {
-		res = _fdt_read_cells(&reg[ac + reg_stride * idx], sc, sizep);
-		if (res < 0)
-			return res;
-	}
+	res = _fdt_read_cells(&reg[reg_stride * idx], ac, &addr);
+	if (res < 0)
+		return res;
+
+	res = _fdt_read_cells(&reg[ac + reg_stride * idx], sc, &size);
+	if (res < 0)
+		return res;
+
+	area->paddr = addr;
+	area->size = size;
 
 	return 0;
 }

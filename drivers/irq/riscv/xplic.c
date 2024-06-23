@@ -37,20 +37,18 @@ static __initconst const struct of_device_id aplic_compats[] = {
 
 static int __init xplic_probe(struct device *dev)
 {
-	paddr_t pbase;
-	int err;
 	void *vbase;
-	u64 size;
+	int err;
 
 	irqchip_fn = (const struct irqchip_fn *)(dev->of.match->data);
 
-	err = fdt_read_reg(_fdt, dev->of.node, 0, &pbase, &size);
+	err = fdt_read_reg(_fdt, dev->of.node, 0, &dev->mmio);
 	if (err)
 		return err;
 
-	pri("base: 0x%llx, size: 0x%llx\n", (u64)pbase, size);
+	pri("base: 0x%llx, size: 0x%lx\n", (u64)dev->mmio.paddr, dev->mmio.size);
 
-	vbase = ioremap(pbase, size);
+	vbase = ioremap(dev->mmio.paddr, dev->mmio.size);
 	if (IS_ERR(vbase))
 		return PTR_ERR(vbase);
 

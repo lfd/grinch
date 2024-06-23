@@ -14,6 +14,7 @@
 #define _FDT_H
 
 #include <libfdt.h>
+#include <grinch/iores.h>
 
 struct of_device_id {
 	char compatible[32];
@@ -24,8 +25,8 @@ extern unsigned char *_fdt;
 
 int fdt_init(paddr_t pfdt);
 
-int fdt_read_reg(const void *fdt, int nodeoffset, int idx, void *addrp,
-		 u64 *sizep);
+int fdt_read_reg(const void *fdt, int nodeoffset, int idx,
+		 struct mmio_area *mmio);
 
 int fdt_addr_sz(const void *fdt, int off, int *_ac, int *_sc);
 

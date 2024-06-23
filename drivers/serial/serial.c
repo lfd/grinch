@@ -91,12 +91,10 @@ int __init uart_probe_generic(struct device *dev)
 	struct devfs_node *node;
 	int err, io_width = 1;
 	struct uart_chip *c;
-	paddr_t uart_base;
 	const int *res;
-	u64 uart_size;
 	u32 irq;
 
-	err = fdt_read_reg(_fdt, dev->of.node, 0, &uart_base, &uart_size);
+	err = fdt_read_reg(_fdt, dev->of.node, 0, &dev->mmio);
 	if (err)
 		return err;
 
@@ -142,8 +140,8 @@ int __init uart_probe_generic(struct device *dev)
 			goto error_out;
 	}
 
-	c->base = ioremap(uart_base, uart_size);
-	c->size = uart_size;
+	c->base = ioremap(dev->mmio.paddr, dev->mmio.size);
+	c->size = dev->mmio.size;
 	if (IS_ERR(c->base)) {
 		err = PTR_ERR(c->base);
 		goto error_out;

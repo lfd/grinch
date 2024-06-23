@@ -391,21 +391,21 @@ err_out:
 
 }
 
-static int __init phys_mem_init(paddr_t addrp, size_t sizep)
+static int __init phys_mem_init(struct mmio_area *area)
 {
 	int err;
 
-	pri("Found main memory: %llx, size: %lx\n", addrp, sizep);
+	pri("Found main memory: %llx, size: %lx\n", area->paddr, area->size);
 	/*
 	 * Create a direct physical R/W mapping, so that the kernel may easily
 	 * access every single byte of physical memory.
 	 */
 	err = map_range(this_per_cpu()->root_table_page, (void *)DIR_PHYS_BASE,
-			addrp, sizep, GRINCH_MEM_RW);
+			area->paddr, area->size, GRINCH_MEM_RW);
 	if (err)
 		return err;
 
-	err = create_memory_area(addrp, sizep, (void *)DIR_PHYS_BASE);
+	err = create_memory_area(area->paddr, area->size, (void *)DIR_PHYS_BASE);
 	if (err)
 		return err;
 
@@ -415,10 +415,9 @@ static int __init phys_mem_init(paddr_t addrp, size_t sizep)
 int __init phys_mem_init_fdt(void)
 {
 	int child, err, len, memory, ac, sc, parent;
+	struct mmio_area mem;
 	const char *uname;
 	const void *reg;
-	paddr_t addrp;
-	size_t sizep;
 
 	memory = fdt_path_offset(_fdt, ISTR("/memory"));
 	if (memory <= 0) {
@@ -447,11 +446,11 @@ int __init phys_mem_init_fdt(void)
 		return trace_error(-EINVAL);
 	}
 
-	err = fdt_read_reg(_fdt, memory, 0, &addrp, (u64*)&sizep);
-	if (err < 0)
+	err = fdt_read_reg(_fdt, memory, 0, &mem);
+	if (err)
 		return trace_error(err);
 
-	err = phys_mem_init(addrp, sizep);
+	err = phys_mem_init(&mem);
 	if (err)
 		return trace_error(err);
 
@@ -466,15 +465,15 @@ int __init phys_mem_init_fdt(void)
 
 		uname = fdt_get_name(_fdt, child, NULL);
 
-		err = fdt_read_reg(_fdt, child, 0, &addrp, (u64*)&sizep);
+		err = fdt_read_reg(_fdt, child, 0, &mem);
 		if (err) {
 			pri("Error reserving area %s\n", uname);
 			return trace_error(err);
 		}
 
 		pri("Reserving memory area %s (0x%llx len: 0x%lx)\n",
-		   uname, addrp, sizep);
-		phys_mark_used(addrp, PAGES(page_up(sizep)));
+		   uname, mem.paddr, mem.size);
+		phys_mark_used(mem.paddr, PAGES(page_up(mem.size)));
 	}
 
 	return err;
