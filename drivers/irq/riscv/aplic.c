@@ -15,12 +15,8 @@
 #include <asm/cpu.h>
 
 #include <grinch/errno.h>
-#include <grinch/fdt.h>
-#include <grinch/ioremap.h>
+#include <grinch/init.h>
 #include <grinch/irqchip.h>
-#include <grinch/percpu.h>
-#include <grinch/printk.h>
-#include <grinch/mmio.h>
 
 static int aplic_enable_irq(unsigned long hart, u32 irq, u32 prio, u32 thres)
 {

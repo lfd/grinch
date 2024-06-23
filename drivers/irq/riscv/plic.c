@@ -16,8 +16,6 @@
 
 #include <grinch/driver.h>
 #include <grinch/errno.h>
-#include <grinch/fdt.h>
-#include <grinch/ioremap.h>
 #include <grinch/irqchip.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
