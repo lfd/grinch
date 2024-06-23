@@ -48,7 +48,7 @@ struct device {
 		int node;
 		const struct of_device_id *match;
 	} of;
-	struct mmio_area mmio;
+	struct mmio_resource mmio;
 
 	void *data;
 };
@@ -77,5 +77,8 @@ int driver_init(void);
 
 /* Device helper routines */
 struct device *dev_find_of_path(const char *path);
+
+// FIXME: Devices may have multiple MMIO resources
+int dev_map_iomem(struct device *dev);
 
 #endif /* _DRIVER_H */

@@ -32,7 +32,7 @@ static void aplic_handle_irq(void)
 {
 }
 
-static int __init aplic_init(struct device *dev, void *vaddr)
+static int __init aplic_init(struct device *dev)
 {
 	return -ENOSYS;
 }

@@ -18,7 +18,6 @@
 #include <grinch/console.h>
 #include <grinch/driver.h>
 #include <grinch/errno.h>
-#include <grinch/fdt.h>
 #include <grinch/init.h>
 #include <grinch/printk.h>
 #include <grinch/ringbuf.h>

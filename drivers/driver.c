@@ -17,6 +17,7 @@
 #include <grinch/alloc.h>
 #include <grinch/driver.h>
 #include <grinch/errno.h>
+#include <grinch/ioremap.h>
 #include <grinch/printk.h>
 #include <grinch/init.h>
 #include <grinch/symbols.h>
@@ -132,4 +133,20 @@ int __init driver_init(void)
 	}
 
 	return 0;
+}
+
+int __init dev_map_iomem(struct device *dev)
+{
+	int err;
+
+	err = fdt_read_reg(_fdt, dev->of.node, 0, &dev->mmio.phys);
+	if (err)
+		return err;
+
+	dev_pri(dev, "base: 0x%llx, size: 0x%lx\n",
+	        (u64)dev->mmio.phys.paddr, dev->mmio.phys.size);
+
+	err = ioremap_res(&dev->mmio);
+
+	return err;
 }

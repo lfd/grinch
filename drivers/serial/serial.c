@@ -15,7 +15,6 @@
 #include <asm/cpu.h>
 #include <grinch/alloc.h>
 #include <grinch/errno.h>
-#include <grinch/fdt.h>
 #include <grinch/ioremap.h>
 #include <grinch/percpu.h>
 #include <grinch/irqchip.h>
@@ -94,10 +93,6 @@ int __init uart_probe_generic(struct device *dev)
 	const int *res;
 	u32 irq;
 
-	err = fdt_read_reg(_fdt, dev->of.node, 0, &dev->mmio);
-	if (err)
-		return err;
-
 	res = fdt_getprop(_fdt, dev->of.node, ISTR("reg-io-width"), &err);
 	if (err > 0)
 		io_width = fdt32_to_cpu(*res);
@@ -107,6 +102,10 @@ int __init uart_probe_generic(struct device *dev)
 		irq = 0;
 	else
 		irq = fdt32_to_cpu(*res);
+
+	err = dev_map_iomem(dev);
+	if (err)
+		return err;
 
 	c = kzalloc(sizeof(*c));
 	if (!c)
@@ -140,13 +139,8 @@ int __init uart_probe_generic(struct device *dev)
 			goto error_out;
 	}
 
-	c->base = ioremap_area(&dev->mmio);
-	c->size = dev->mmio.size;
-	if (IS_ERR(c->base)) {
-		err = PTR_ERR(c->base);
-		goto error_out;
-	}
-
+	c->base = dev->mmio.base;
+	c->size = dev->mmio.phys.size;
 	c->irq = irq;
 	if (irq != IRQ_INVALID) {
 		dev_pri(dev, "UART: using IRQ %d\n", irq);

@@ -18,7 +18,6 @@
 #include <grinch/driver.h>
 #include <grinch/errno.h>
 #include <grinch/printk.h>
-#include <grinch/fdt.h>
 #include <grinch/ioremap.h>
 #include <grinch/irqchip.h>
 
@@ -37,22 +36,15 @@ static __initconst const struct of_device_id aplic_compats[] = {
 
 static int __init xplic_probe(struct device *dev)
 {
-	void *vbase;
 	int err;
 
 	irqchip_fn = (const struct irqchip_fn *)(dev->of.match->data);
 
-	err = fdt_read_reg(_fdt, dev->of.node, 0, &dev->mmio);
+	err = dev_map_iomem(dev);
 	if (err)
 		return err;
 
-	pri("base: 0x%llx, size: 0x%lx\n", (u64)dev->mmio.paddr, dev->mmio.size);
-
-	vbase = ioremap_area(&dev->mmio);
-	if (IS_ERR(vbase))
-		return PTR_ERR(vbase);
-
-	err = irqchip_fn->init(dev, vbase);
+	err = irqchip_fn->init(dev);
 	if (err)
 		return err;
 

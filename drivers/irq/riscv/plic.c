@@ -125,13 +125,13 @@ static int plic_get_context(const void *fdt, int off, unsigned int cpu)
 	return -ENOENT;
 }
 
-static int __init plic_init(struct device *dev, void *vaddr)
+static int __init plic_init(struct device *dev)
 {
 	unsigned int cpu, irq;
 	struct per_cpu *pcpu;
 	int ctx;
 
-	plic = vaddr;
+	plic = dev->mmio.base;
 
 	for_each_available_cpu(cpu) {
 		pcpu = per_cpu(cpu);

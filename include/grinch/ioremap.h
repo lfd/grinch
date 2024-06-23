@@ -23,9 +23,15 @@ static inline void *ioremap_area(struct mmio_area *area)
 
 static inline int ioremap_res(struct mmio_resource *res)
 {
-	res->base = ioremap_area(&res->phys);
+	void *base;
 
-	return IS_ERR(res->base) ? PTR_ERR(res->base) : 0;
+	base = ioremap_area(&res->phys);
+	if (IS_ERR(base))
+		return PTR_ERR(base);
+
+	res->base = base;
+
+	return 0;
 }
 
 int iounmap(const void *vaddr, size_t size);
