@@ -31,7 +31,7 @@ LIST_HEAD(devices);
 
 #define for_each_device(X)	list_for_each_entry((X), &devices, devices)
 
-struct device *device_find_of_path(const char *path)
+struct device *dev_find_of_path(const char *path)
 {
 	struct device *dev;
 

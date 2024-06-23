@@ -118,7 +118,7 @@ int __init console_init(void)
 	pri("stdout-path: %s\n", stdoutpath);
 
 	// FIXME: _this_ is hacky.
-	dev = device_find_of_path(stdoutpath);
+	dev = dev_find_of_path(stdoutpath);
 	if (!dev)
 		goto remain;
 

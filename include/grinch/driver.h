@@ -52,7 +52,9 @@ __driver_##ID __used __section(".drivers") = {			\
 	.of.matches = MATCHES,					\
 };
 
-struct device *device_find_of_path(const char *path);
 int driver_init(void);
+
+/* Device helper routines */
+struct device *dev_find_of_path(const char *path);
 
 #endif /* _DRIVER_H */
