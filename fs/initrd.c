@@ -158,11 +158,11 @@ int __init initrd_init(void)
 	initrd.vbase = p2v(initrd.pstart);
 
 	initrd.size = end - start;
-	pri("initrd: found at 0x%llx (SZ: 0x%lx)\n", initrd.pstart, initrd.size);
+	pri("found at 0x%llx (SZ: 0x%lx)\n", initrd.pstart, initrd.size);
 	err = cpio_size(initrd.vbase, &initrd.size);
 	if (err)
 		return err;
-	pri("initrd: real size: 0x%lx\n", initrd.size);
+	pri("real size: 0x%lx\n", initrd.size);
 
 	page_start = start & PAGE_MASK;
 	initrd_pages = PAGES(page_up(start + initrd.size) - page_start);
