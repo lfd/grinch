@@ -16,8 +16,9 @@ INCLUDES_KERNEL=-Iinclude/ \
                 -Ilib/libfdt/ \
                 -Iarch/$(ARCH)/include/
 
-CFLAGS_KERNEL=$(CFLAGS_COMMON) $(CFLAGS_ARCH) $(CFLAGS_STANDALONE) $(INCLUDES_KERNEL)
+CFLAGS_KERNEL_COMMON=$(CFLAGS_COMMON) $(CFLAGS_ARCH) $(CFLAGS_STANDALONE) $(INCLUDES_KERNEL)
 
+CFLAGS_KERNEL = $(CFLAGS_KERNEL_COMMON)
 LDFLAGS_KERNEL = $(LDFLAGS_COMMON) $(LDFLAGS_ARCH)
 AFLAGS_KERNEL = $(AFLAGS_COMMON)
 
@@ -51,7 +52,7 @@ include/generated/version.h: scripts/mkversion_h Makefile
 
 arch/$(ARCH)/asm_defines.S: arch/$(ARCH)/asm_defines.c
 	$(QUIET) "[GEN]   $@"
-	$(VERBOSE) $(CC) $(CFLAGS_KERNEL) -S -o $@ $^
+	$(VERBOSE) $(CC) $(CFLAGS_KERNEL_COMMON) -S -o $@ $^
 
 vmgrinch.o: $(ARCH_DIR)/built-in.a drivers/built-in.a fs/built-in.a kernel/built-in.a lib/built-in.a mm/built-in.a
 	$(QUIET) "[LD]    $@"
