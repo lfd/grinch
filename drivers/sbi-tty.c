@@ -11,12 +11,8 @@
  */
 
 #include <grinch/driver.h>
-#include <grinch/errno.h>
 #include <grinch/fs/devfs.h>
-#include <grinch/init.h>
 #include <grinch/minmax.h>
-#include <grinch/uaccess.h>
-#include <grinch/task.h>
 
 #include <grinch/arch/sbi.h>
 

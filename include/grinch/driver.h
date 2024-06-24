@@ -15,6 +15,7 @@
 
 #include <grinch/fdt.h>
 #include <grinch/list.h>
+#include <grinch/printk.h>
 
 #define _dev_prr(dev, header, fmt, ...)		_prr(header, "%s: " fmt, dev->name, ##__VA_ARGS__)
 #define _dev_prri(dev, header, fmt, ...)	_prri(header, "%s: " fmt, dev->name, ##__VA_ARGS__)

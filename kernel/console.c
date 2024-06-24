@@ -18,11 +18,7 @@
 #include <grinch/console.h>
 #include <grinch/driver.h>
 #include <grinch/errno.h>
-#include <grinch/init.h>
-#include <grinch/printk.h>
-#include <grinch/ringbuf.h>
 #include <grinch/serial.h>
-#include <grinch/vsprintf.h>
 
 #ifdef ARCH_RISCV
 #define DEFAULT_CONSOLE	"ttySBI"

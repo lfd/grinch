@@ -12,9 +12,6 @@
 
 #define dbg_fmt(x)	"main: " x
 
-#include <asm/irq.h>
-#include <asm/isa.h>
-
 #include <grinch/alloc.h>
 #include <grinch/arch.h>
 #include <grinch/boot.h>
@@ -29,9 +26,6 @@
 #include <grinch/paging.h>
 #include <grinch/percpu.h>
 #include <grinch/platform.h>
-#include <grinch/printk.h>
-#include <grinch/smp.h>
-#include <grinch/task.h>
 #include <grinch/version.h>
 
 static const char __initconst logo[] =

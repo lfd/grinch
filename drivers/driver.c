@@ -16,10 +16,7 @@
 
 #include <grinch/alloc.h>
 #include <grinch/driver.h>
-#include <grinch/errno.h>
 #include <grinch/ioremap.h>
-#include <grinch/printk.h>
-#include <grinch/init.h>
 #include <grinch/symbols.h>
 
 #define for_each_driver(X)					\

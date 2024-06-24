@@ -16,9 +16,6 @@
 #include <asm/irq.h>
 
 #include <grinch/driver.h>
-#include <grinch/errno.h>
-#include <grinch/printk.h>
-#include <grinch/ioremap.h>
 #include <grinch/irqchip.h>
 
 const struct irqchip_fn *irqchip_fn;

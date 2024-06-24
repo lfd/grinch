@@ -15,10 +15,8 @@
 #include <asm/cpu.h>
 
 #include <grinch/driver.h>
-#include <grinch/errno.h>
 #include <grinch/irqchip.h>
 #include <grinch/percpu.h>
-#include <grinch/printk.h>
 #include <grinch/mmio.h>
 
 #define CTX_MAX		32
