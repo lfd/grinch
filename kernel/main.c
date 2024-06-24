@@ -57,7 +57,6 @@ static const char __initconst hello[] =
 "\n      -> Welcome to Grinch " VERSION_STRING " <- \n\n\n";
 
 static bool __initdata do_memtest;
-static bool __initdata do_init = true;
 
 unsigned int grinch_id;
 
@@ -66,12 +65,6 @@ static void __init memtest_parse(const char *)
 	do_memtest = true;
 }
 bootparam(memtest, memtest_parse);
-
-static void __init noinit_parse(const char *)
-{
-	do_init = false;
-}
-bootparam(noinit, noinit_parse);
 
 static int __init init(void)
 {
@@ -208,11 +201,9 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 	if (err && err != -ENOENT)
 		goto out;
 
-	if (do_init) {
-		err = init();
-		if (err)
-			goto out;
-	}
+	err = init();
+	if (err)
+		goto out;
 
 	err = paging_discard_init();
 	if (err)

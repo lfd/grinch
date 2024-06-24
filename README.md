@@ -124,7 +124,6 @@ Basic features:
 
 | Parameter   | Values | Description                   |
 | ---         | ---    | ---                           |
-| noinit      | /      | Don't start userland          |
 | timer_hz    | int    | Timer frequency               |
 | loglevel    | int    | loglevel. Highest=0, Default=1|
 | kheap_size  | int    | Kernel Heap size (e.g., 8M)   |
