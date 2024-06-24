@@ -21,6 +21,7 @@
 #include <grinch/fdt.h>
 #include <grinch/fs/devfs.h>
 #include <grinch/fs/vfs.h>
+#include <grinch/gcov.h>
 #include <grinch/gfp.h>
 #include <grinch/memtest.h>
 #include <grinch/paging.h>
@@ -132,6 +133,7 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 
 	irq_disable();
 
+	gcov_init();
 	guest_init();
 
 	_puts(ISTR("\n" UNAME_A "\n"));
@@ -225,4 +227,5 @@ const struct vmgrinch_header __attribute__((section(".header")))
 vmgrinch_header = {
 	.signature = VMGRINCH_SIGNATURE,
 	.entry = vmgrinch_start,
+	.gcov_info_head = GCOV_HEAD,
 };

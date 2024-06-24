@@ -2,6 +2,7 @@ ARCH ?= riscv
 
 #DEBUG_OUTPUT=1
 #INITCONST_STR=1
+#GCOV=1
 
 VERSION=3
 PATCHLEVEL=15
@@ -66,7 +67,7 @@ endif
 
 define clean_objects
 	$(QUIET) "[CLEAN]" $1
-	$(VERBOSE) $(RMRF) $(1)/built-in.a $(2)
+	$(VERBOSE) $(RMRF) $(1)/built-in.a $(2) $(2:.o=.gcno)
 endef
 
 define clean_file

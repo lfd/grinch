@@ -4,6 +4,8 @@
 *.o
 *.ld
 *.dtb
+*.gcna
+*.gcno
 
 include/generated/
 common/include/generated/

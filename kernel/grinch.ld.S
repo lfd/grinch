@@ -78,6 +78,11 @@ SECTIONS
 		*(.srodata.*)
 		*(.rodata)
 		*(.rodata.*)
+
+		. = ALIGN(8);
+		__init_array_start = .;
+		KEEP(*(.init_array.*)) *(.init_array)
+		__init_array_end = .;
 	}
 	__rodata_end = .;
 

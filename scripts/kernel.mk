@@ -22,6 +22,10 @@ CFLAGS_KERNEL = $(CFLAGS_KERNEL_COMMON)
 LDFLAGS_KERNEL = $(LDFLAGS_COMMON) $(LDFLAGS_ARCH)
 AFLAGS_KERNEL = $(AFLAGS_COMMON)
 
+ifdef GCOV
+    CFLAGS_KERNEL += -fprofile-arcs -ftest-coverage -fprofile-update=atomic -DGCOV=1
+endif
+
 ASM_DEFINES = arch/$(ARCH)/include/asm/asm_defines.h
 GENERATED = $(ASM_DEFINES) include/generated/version.h include/generated/compile.h
 

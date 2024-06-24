@@ -6,4 +6,8 @@ struct vmgrinch_header {
 		u64 __entry;
 		void *entry;
 	};
+	union {
+		u64 __gcov_info_head;
+		void *gcov_info_head;
+	};
 } __attribute__((packed));
