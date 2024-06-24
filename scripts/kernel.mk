@@ -84,13 +84,10 @@ objd: vmgrinch.elf
 objdS: vmgrinch.elf
 	$(OBJDUMP) -dS $^ | less
 
-clean_kernel:
-	$(RMRF) vmgrinch.o
-	$(RMRF) $(GENERATED)
-	$(RMRF) arch/$(ARCH)/asm_defines.S
-	$(RMRF) fs/*.{o,a} kernel/*.{o,a,ld}
-	$(RMRF) lib/*.{o,a} lib/libfdt/*.{o,a}
-	$(RMRF) mm/*.{o,a}
-	$(RMRF) kernel/syscall_table.c
-	$(RMRF) include/generated
-	$(RMRF) common/include/generated
+clean_core:
+	$(call clean_file,vmgrinch.o)
+	$(call clean_files,generated,$(GENERATED))
+	$(call clean_file,arch/$(ARCH)/asm_defines.S)
+	$(call clean_file,kernel/syscall_table.c)
+	$(call clean_file,include/generated)
+	$(call clean_file,common/include/generated)

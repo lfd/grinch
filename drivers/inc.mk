@@ -22,7 +22,6 @@ drivers/serial/built-in.a: $(DRIVERS_SERIAL_OBJS)
 drivers/built-in.a: drivers/irq/built-in.a drivers/serial/built-in.a $(DRIVERS_OBJS)
 
 clean_drivers:
-	$(RMRF) $(DRIVERS_OBJS)
-	$(RMRF) $(DRIVERS_SERIAL_OBJS)
-	$(RMRF) $(DRIVERS_IRQ_OBJS)
-	$(RMRF) drivers/irq/built-in.a drivers/serial/built-in.a drivers/built-in.a
+	$(call clean_objects,drivers/serial,$(DRIVERS_SERIAL_OBJS))
+	$(call clean_objects,drivers/irq,$(DRIVERS_IRQ_OBJS))
+	$(call clean_objects,drivers,$(DRIVERS_OBJS))

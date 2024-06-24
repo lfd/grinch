@@ -8,3 +8,6 @@ FS_OBJS += vfs.o
 FS_OBJS := $(addprefix fs/, $(FS_OBJS))
 
 fs/built-in.a: $(FS_OBJS)
+
+clean_fs:
+	$(call clean_objects,fs,$(FS_OBJS))

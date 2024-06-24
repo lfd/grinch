@@ -23,5 +23,4 @@ ARCH_OBJS := $(addprefix $(ARCH_DIR)/, $(ARCH_OBJS))
 arch/riscv/built-in.a: $(ARCH_OBJS)
 
 clean_arch:
-	$(RMRF) $(ARCH_DIR)/*.{o,a}
-	$(RMRF) $(ARCH_DIR)/vmm/*.{o,a}
+	$(call clean_objects,arch/riscv,$(ARCH_OBJS))

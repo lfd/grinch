@@ -65,7 +65,10 @@ UC = $(shell echo '$1' | tr '[:lower:]' '[:upper:]')
 
 define define_app
 clean_$(1):
-	$(RMRF) user/apps/$(1)/*.{o,a}
+	$(call clean_files,user/apps/$(1),\
+		$($(call UC,$(1))_OBJS)\
+		user/apps/$(1)/built-in.a\
+		user/apps/$(1)/$(1)_linked.o)
 
 user/apps/$(1)/built-in.a: $(LIBC_BUILTIN) $($(call UC,$(1))_OBJS)
 
@@ -79,21 +82,18 @@ endef
 
 $(foreach app,$(APPS),$(eval $(call define_app,$(app))))
 
-clean_user: $(patsubst %,clean_%,$(APPS))
-	$(RMRF) user/user.ld
-	$(RMRF) user/*.{elf,o,a}
-	$(RMRF) user/lib/*.{o,a}
-	$(RMRF) user/lib/$(ARCH)/*.{o,a}
-	$(RMRF) user/initrd.cpio
-	$(RMRF) user/dts/*.dts user/dts/*.dtb
-	$(RMRF) user/apps/build
-
 define app_of
 	user/apps/build/$(1)
 endef
 
 USER_APPS=$(foreach app,$(APPS),$(call app_of,$(app)))
+USER_DTBS = user/dts/freechips,lfd-rocket.dtb user/dts/riscv-virtio,qemu.dtb
 
-user/initrd.cpio: $(USER_APPS) res/test.txt kernel.bin user/dts/freechips,lfd-rocket.dtb user/dts/riscv-virtio,qemu.dtb
+user/initrd.cpio: $(USER_APPS) res/test.txt kernel.bin $(USER_DTBS)
 	$(QUIET) "[CPIO]  $@"
 	$(VERBOSE) ./scripts/create_cpio $@ $^
+
+clean_user: $(patsubst %,clean_%,$(APPS))
+	$(call clean_objects,user/lib,$(LIBC_OBJS))
+	$(call clean_files,user/dts,$(USER_DTBS) $(USER_DTBS:.dtb=.dts))
+	$(call clean_files,user,user/user.ld user/initrd.cpio user/apps/build)

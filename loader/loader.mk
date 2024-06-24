@@ -29,7 +29,5 @@ endif
 kernel.bin: kernel.elf
 
 clean_loader:
-	$(RMRF) kernel.elf
-	$(RMRF) loader/loader.ld
-	$(RMRF) $(LOADER_OBJS)
-	$(RMRF) $(ARCH_LOADER_DIR)/built-in.a $(ARCH_LOADER_DIR)/loader.o
+	$(call clean_file,kernel.elf)
+	$(call clean_objects,$(ARCH_LOADER_DIR),$(LOADER_OBJS) $(ARCH_LOADER_DIR)/loader.o loader/loader.ld)

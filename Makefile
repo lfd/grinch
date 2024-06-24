@@ -64,6 +64,21 @@ ifeq ($(DEBUG_OUTPUT), 1)
 CFLAGS_COMMON += -DDEBUG
 endif
 
+define clean_objects
+	$(QUIET) "[CLEAN]" $1
+	$(VERBOSE) $(RMRF) $(1)/built-in.a $(2)
+endef
+
+define clean_file
+	$(QUIET) "[CLEAN]" $1
+	$(VERBOSE) $(RMRF) $(1)
+endef
+
+define clean_files
+	$(QUIET) "[CLEAN]" $1
+	$(VERBOSE) $(RMRF) $(2)
+endef
+
 include scripts/kernel.mk
 include user/inc.mk
 include tools/inc.mk
@@ -105,10 +120,10 @@ $(UBOOT_BIN):
 debug: kernel.bin
 	$(GDB) -x scripts/debug.gdb $^
 
-clean: clean_user clean_arch clean_drivers clean_kernel clean_loader clean_tools
-	$(RMRF) *.dtb
-	$(RMRF) *.elf
-	$(RMRF) *.bin
+clean: clean_core clean_lib clean_mm clean_fs clean_user clean_arch clean_drivers clean_kernel clean_loader clean_tools
+	$(call clean_file,kernel.bin)
+	$(call clean_file,vmgrinch.bin)
+	$(call clean_file,vmgrinch.elf)
 
 mrproper: clean
 	$(MAKE) -C $(D_UBOOT) mrproper

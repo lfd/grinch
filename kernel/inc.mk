@@ -17,3 +17,7 @@ $(SYSCALL_HEADER): tools/mksyscalltbl syscall.tbl
 kernel/syscall_table.c: tools/mksyscalltbl syscall.tbl
 	$(QUIET) "[SYSCL]" $@
 	$(VERBOSE) $^ source $@
+
+clean_kernel:
+	$(call clean_objects,kernel,$(KERNEL_OBJS))
+	$(call clean_file,kernel/grinch.ld)
