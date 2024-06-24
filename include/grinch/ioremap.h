@@ -35,3 +35,19 @@ static inline int ioremap_res(struct mmio_resource *res)
 }
 
 int iounmap(const void *vaddr, size_t size);
+
+static inline int iounmap_res(struct mmio_resource *res)
+{
+	int err;
+
+	if (!res->base)
+		return 0;
+
+	err = iounmap(res->base, res->phys.size);
+	if (err)
+		return err;
+
+	res->base = NULL;
+
+	return 0;
+}
