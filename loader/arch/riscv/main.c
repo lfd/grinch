@@ -17,6 +17,7 @@
 #include <grinch/symbols.h>
 #include <grinch/string.h>
 #include <grinch/loader.h>
+#include <grinch/vmgrinch_header.h>
 
 /* Set PTE access bits to RWX + AD to prevent page faults */
 #define PAGE_FLAGS_DEFAULT				\
@@ -93,6 +94,6 @@ loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr)
 
 	loader_copy_grinch();
 
-	grinch_entry = (void*)VMGRINCH_BASE;
+	grinch_entry = ((struct vmgrinch_header *)VMGRINCH_BASE)->entry;
 	grinch_entry(hart_id, fdt, p_grinch_dst);
 }

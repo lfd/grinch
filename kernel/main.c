@@ -27,6 +27,7 @@
 #include <grinch/percpu.h>
 #include <grinch/platform.h>
 #include <grinch/version.h>
+#include <grinch/vmgrinch_header.h>
 
 static const char __initconst logo[] =
 "\n\n"
@@ -219,3 +220,9 @@ out:
 		arch_shutdown(err);
 	}
 }
+
+const struct vmgrinch_header __attribute__((section(".header")))
+vmgrinch_header = {
+	.signature = VMGRINCH_SIGNATURE,
+	.entry = vmgrinch_start,
+};

@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -26,6 +26,7 @@ extern unsigned char __rw_data_start[], __rw_data_end[];
 extern unsigned char __internal_page_pool_start[];
 extern unsigned char __internal_page_pool_pages[];
 extern unsigned char __num_os_pages[];
+extern unsigned char vmgrinch_start[];
 
 #define _load_addr	((void *)&__load_addr)
 

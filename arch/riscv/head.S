@@ -14,15 +14,15 @@
 
 #include <grinch/percpu.h>
 
-.section .header, "ax"
+.section .text, "ax"
 
 .macro lpc reg, symbol
 1:	auipc	\reg, %pcrel_hi (\symbol)
 	addi	\reg, \reg, %pcrel_lo (1b)
 .endm
 
-.globl start
-start:
+.globl vmgrinch_start
+vmgrinch_start:
 	/*
 	 * We arrive here with:
 	 * a0: hartid

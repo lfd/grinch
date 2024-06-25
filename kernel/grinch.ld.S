@@ -13,16 +13,17 @@
 #include <asm-generic/grinch_layout.h>
 #include <asm-generic/paging.h>
 
-ENTRY(start)
+ENTRY(vmgrinch_start)
 SECTIONS
 {
 	. = VMGRINCH_BASE;
 
 	__load_addr = .;
-	.header		: { *(.header) }
 	.text		: {
-		*(.text)
-		*(.text.*)
+		KEEP(*(.header));
+		. = ALIGN(16);
+		*(.text);
+		*(.text.*);
 	}
 
 	. = ALIGN(PAGE_SIZE);
