@@ -4,7 +4,7 @@
 *.o
 *.ld
 *.dtb
-*.gcna
+*.gcda
 *.gcno
 
 include/generated/
@@ -25,3 +25,4 @@ user/dts/*.dts
 qemu.dts
 
 tools/dump_layout
+tools/gcov_extract
