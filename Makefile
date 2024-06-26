@@ -103,7 +103,7 @@ $(UBOOT_BIN):
 	$(MAKE) -C $(UBOOT_PFX) $(MAKEARGS_UBOOT) u-boot-nodtb.bin
 
 debug: kernel.bin
-	$(GDB) $^
+	$(GDB) -x scripts/debug.gdb $^
 
 clean: clean_user clean_arch clean_drivers clean_kernel clean_loader clean_tools
 	$(RMRF) *.dtb
