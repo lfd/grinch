@@ -112,6 +112,18 @@ qemu.dts: kernel.bin user/initrd.cpio
 	dtc -I dtb -O dts /tmp/qemu_tmp.dtb -o $@
 	rm -f /tmp/qemu_tmp.dtb
 
+.PHONY: vmgrinch.dump
+vmgrinch.dump: scripts/vmgrinch_dump.gdb vmgrinch.elf kernel.elf
+	$(GDB) -x $<
+
+vmgrinch.info: vmgrinch.dump tools/gcov_extract
+	./tools/gcov_extract $<
+	lcov -c -d . -o $@
+
+gcov: vmgrinch.info
+	mkdir -p gcov
+	genhtml $< -o gcov/
+
 $(UBOOT_BIN):
 	mkdir -p $(UBOOT_PFX)
 	cp -av res/u-boot/$(UBOOT_CFG) $(UBOOT_PFX)/.config
@@ -122,9 +134,7 @@ debug: kernel.bin
 	$(GDB) -x scripts/debug.gdb $^
 
 clean: clean_core clean_lib clean_mm clean_fs clean_user clean_arch clean_drivers clean_kernel clean_loader clean_tools
-	$(call clean_file,kernel.bin)
-	$(call clean_file,vmgrinch.bin)
-	$(call clean_file,vmgrinch.elf)
+	$(call clean_files,all,kernel.bin vmgrinch.bin vmgrinch.elf vmgrinch.dump vmgrinch.info gcov)
 
 mrproper: clean
 	$(MAKE) -C $(D_UBOOT) mrproper

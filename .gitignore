@@ -4,8 +4,13 @@
 *.o
 *.ld
 *.dtb
+
+# GCOV stuff
 *.gcda
 *.gcno
+vmgrinch.dump
+vmgrinch.info
+gcov/
 
 include/generated/
 common/include/generated/
