@@ -14,6 +14,7 @@
 
 #include <asm/cpu.h>
 #include <grinch/alloc.h>
+#include <grinch/device.h>
 #include <grinch/errno.h>
 #include <grinch/ioremap.h>
 #include <grinch/percpu.h>

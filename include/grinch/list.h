@@ -18,6 +18,7 @@
 #include <asm-generic/rwonce.h>
 
 #include <grinch/container_of.h>
+#include <grinch/types.h>
 
 #define POISON_POINTER_DELTA	0
 

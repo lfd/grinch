@@ -16,7 +16,7 @@
 
 #include <grinch/bootparam.h>
 #include <grinch/console.h>
-#include <grinch/driver.h>
+#include <grinch/device.h>
 #include <grinch/errno.h>
 #include <grinch/serial.h>
 

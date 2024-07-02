@@ -15,6 +15,7 @@
 #include <asm/csr.h>
 #include <asm/irq.h>
 
+#include <grinch/device.h>
 #include <grinch/driver.h>
 #include <grinch/irqchip.h>
 

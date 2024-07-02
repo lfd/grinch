@@ -12,6 +12,7 @@
 
 #define dbg_fmt(x) "serial: " x
 
+#include <grinch/device.h>
 #include <grinch/errno.h>
 #include <grinch/minmax.h>
 #include <grinch/serial.h>
