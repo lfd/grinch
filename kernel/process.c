@@ -14,6 +14,7 @@
 
 #include <grinch/align.h>
 #include <grinch/alloc.h>
+#include <grinch/device.h>
 #include <grinch/elf.h>
 #include <grinch/errno.h>
 #include <grinch/fs/util.h>
@@ -447,6 +448,10 @@ SYSCALL_DEF2(grinch_kstat, unsigned long, no, unsigned long, arg)
 
 		case GRINCH_KSTAT_MAPS:
 			process_show_vmas(arg);
+			break;
+
+		case GRINCH_KSTAT_LSDEV:
+			dev_list();
 			break;
 
 		default:

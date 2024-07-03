@@ -18,7 +18,12 @@
 #include <grinch/device.h>
 #include <grinch/driver.h>
 #include <grinch/ioremap.h>
+#include <grinch/panic.h>
 #include <grinch/symbols.h>
+
+#define IDX_INVALID	(unsigned int)(-1)
+
+static unsigned int dev_idx;
 
 static DEFINE_SPINLOCK(devices_lock);
 static LIST_HEAD(devices);
@@ -46,38 +51,32 @@ out:
 
 void __init dev_add(struct device *dev)
 {
+	if (dev->idx != IDX_INVALID)
+		BUG();
+
 	spin_lock(&devices_lock);
+	dev->idx = dev_idx++;
 	list_add(&dev->devices, &devices);
 	spin_unlock(&devices_lock);
 }
 
-static void __init dev_remove(struct device *dev)
+void __init dev_remove(struct device *dev)
 {
+	if (dev->idx == IDX_INVALID)
+		return;
+
 	spin_lock(&devices_lock);
 	list_del(&dev->devices);
 	spin_unlock(&devices_lock);
+
+	dev->idx = IDX_INVALID;
 }
 
-void dev_destroy(struct device *dev)
+void __init dev_init(struct device *dev, const char *name)
 {
-	dev_remove(dev);
-
-	kfree(dev->of.path);
-	kfree(dev);
-}
-
-struct device * __init dev_create(const char *name)
-{
-	struct device *dev;
-
-	dev = kzalloc(sizeof(*dev));
-	if (!dev)
-		return ERR_PTR(-ENOMEM);
-
 	INIT_LIST_HEAD(&dev->devices);
 	dev->name = name;
-
-	return dev;
+	dev->idx = IDX_INVALID;
 }
 
 int __init dev_map_iomem(struct device *dev)
@@ -94,4 +93,14 @@ int __init dev_map_iomem(struct device *dev)
 	err = ioremap_res(&dev->mmio);
 
 	return err;
+}
+
+void dev_list(void)
+{
+	struct device *dev;
+
+	spin_lock(&devices_lock);
+	for_each_device(dev)
+		pr("%u: %s\n", dev->idx, dev->name);
+	spin_unlock(&devices_lock);
 }

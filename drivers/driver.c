@@ -61,10 +61,11 @@ static int __init drivers_probe(enum driver_prio prio)
 			}
 
 			pri("%s: Initialising device %s\n", drv->name, path);
-			dev = dev_create(drv->name);
-			if (IS_ERR(dev))
-				return PTR_ERR(dev);
+			dev = kzalloc(sizeof(*dev));
+			if (!dev)
+				return -ENOMEM;
 
+			dev_init(dev, drv->name);
 			dev->of.path = kstrdup(path);
 			dev->of.node = sub;
 			dev->of.match = match;
@@ -73,7 +74,8 @@ static int __init drivers_probe(enum driver_prio prio)
 			if (err) {
 				pri("Driver %s failed probing %s: %pe\n",
 				    drv->name, path, ERR_PTR(err));
-				dev_destroy(dev);
+				kfree(dev->of.path);
+				kfree(dev);
 				continue;
 			}
 

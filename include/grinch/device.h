@@ -35,6 +35,7 @@
 #define dev_pri_dbg(dev, fmt, ...) _dev_prri(dev, PR_DEBUG, fmt, ##__VA_ARGS__)
 
 struct device {
+	unsigned int idx;
 	const char *name;
 
 	struct list_head devices;
@@ -54,9 +55,10 @@ struct device *dev_find_of_path(const char *path);
 // FIXME: Devices may have multiple MMIO resources
 int dev_map_iomem(struct device *dev);
 
-struct device *dev_create(const char *name);
-
+void dev_init(struct device *dev, const char *name);
 void dev_add(struct device *dev);
-void dev_destroy(struct device *dev);
+void dev_remove(struct device *dev);
+
+void dev_list(void);
 
 #endif /* _DEVICE_H */

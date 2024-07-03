@@ -188,6 +188,8 @@ static int gsh_kstat(char *argv[])
 		err = gsh_ps(NULL);
 	else if (!strcmp(arg, "kheap"))
 		err = grinch_kstat(GRINCH_KSTAT_KHEAP, 0);
+	else if (!strcmp(arg, "lsdev"))
+		err = grinch_kstat(GRINCH_KSTAT_LSDEV, 0);
 	else if (!strcmp(arg, "lsof"))
 		err = grinch_kstat(GRINCH_KSTAT_LSOF, 0);
 	else if (!strcmp(arg, "maps")) {
