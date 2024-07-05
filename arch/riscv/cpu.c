@@ -10,9 +10,9 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <asm/cpu.h>
 #include <asm/irq.h>
 
+#include <grinch/cpu.h>
 #include <grinch/errno.h>
 #include <grinch/boot.h>
 #include <grinch/hypercall.h>
@@ -126,7 +126,7 @@ void arch_do_idle(void)
 		irqchip_fn->handle_irq();
 }
 
-void __init guest_init(void)
+void __init arch_guest_init(void)
 {
 	int ret;
 

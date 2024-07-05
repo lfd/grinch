@@ -12,21 +12,14 @@
 
 #define dbg_fmt(x)	"task: " x
 
-#include <asm/irq.h>
-#include <asm/spinlock.h>
-
 #include <grinch/alloc.h>
 #include <grinch/arch.h>
 #include <grinch/boot.h>
+#include <grinch/cpu.h>
 #include <grinch/errno.h>
-#include <grinch/hypercall.h>
-#include <grinch/panic.h>
-#include <grinch/printk.h>
+#include <grinch/string.h>
 #include <grinch/syscall.h>
 #include <grinch/task.h>
-#include <grinch/percpu.h>
-#include <grinch/timer.h>
-#include <grinch/uaccess.h>
 
 #define GRINCH_VM_PID_OFFSET	10000
 

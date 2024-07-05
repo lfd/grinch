@@ -15,6 +15,7 @@
 #include <asm/irq.h>
 
 #include <grinch/arch.h>
+#include <grinch/cpu.h>
 #include <grinch/errno.h>
 #include <grinch/hypercall.h>
 #include <grinch/percpu.h>

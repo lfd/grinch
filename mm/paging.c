@@ -12,8 +12,7 @@
 
 #define dbg_fmt(x) "page: " x
 
-#include <asm/cpu.h>
-
+#include <grinch/cpu.h>
 #include <grinch/gfp.h>
 #include <grinch/paging.h>
 #include <grinch/percpu.h>

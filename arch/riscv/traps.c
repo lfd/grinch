@@ -10,18 +10,13 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <asm/cpu.h>
-#include <asm/irq.h>
 #include <asm/isa.h>
 
+#include <grinch/cpu.h>
 #include <grinch/irqchip.h>
 #include <grinch/panic.h>
-#include <grinch/printk.h>
-#include <grinch/percpu.h>
-#include <grinch/symbols.h>
 #include <grinch/syscall.h>
 #include <grinch/task.h>
-#include <grinch/timer.h>
 
 #include <grinch/arch/sbi.h>
 

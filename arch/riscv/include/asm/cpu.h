@@ -10,8 +10,8 @@
  * the COPYING file in the top-level directory.
  */
 
-#ifndef _CPU_H
-#define _CPU_H
+#ifndef _ASM_CPU_H
+#define _ASM_CPU_H
 
 #ifndef __ASSEMBLY__
 
@@ -107,8 +107,6 @@ static __always_inline void local_flush_tlb_page(paddr_t page_addr)
 		     : : [addr] "r" (page_addr));
 }
 
-void flush_tlb_all(void);
-
 static __always_inline void __noreturn cpu_halt(void)
 {
 	irq_disable();
@@ -119,13 +117,8 @@ static __always_inline void __noreturn cpu_halt(void)
 	__builtin_unreachable();
 }
 
-void dump_regs(struct registers *a);
-void dump_exception(struct trap_context *ctx);
-
-void guest_init(void);
-
-extern bool grinch_is_guest;
+void flush_tlb_all(void);
 
 #endif /* __ASSEMBLY__ */
 
-#endif /* _CPU_H */
+#endif /* _ASM_CPU_H */

@@ -14,7 +14,7 @@
 
 #include <grinch/bitmap.h>
 #include <grinch/bitops.h>
-#include <grinch/errno.h>
+#include <grinch/cpu.h>
 #include <grinch/ioremap.h>
 #include <grinch/paging.h>
 #include <grinch/percpu.h>

@@ -10,13 +10,12 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <asm/irq.h>
 #include <asm/spinlock.h>
 
+#include <grinch/cpu.h>
 #include <grinch/hypercall.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
-#include <grinch/percpu.h>
 #include <grinch/stackdump.h>
 
 #define PANIC_PREFIX	"P A N I C: "

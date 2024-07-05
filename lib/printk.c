@@ -10,19 +10,18 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <asm/spinlock.h>
-
 #include <ctype.h>
 
 #include <grinch/boot.h>
+#include <grinch/cpu.h>
 #include <grinch/bootparam.h>
 #include <grinch/console.h>
 #include <grinch/minmax.h>
-#include <grinch/panic.h>
 #include <grinch/printk.h>
-#include <grinch/serial.h>
+#include <grinch/string.h>
 #include <grinch/timer.h>
 #include <grinch/vsprintf.h>
+
 
 #ifdef DEBUG
 #define LOGLEVEL_DEFAULT	9

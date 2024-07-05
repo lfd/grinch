@@ -17,6 +17,7 @@
 #include <grinch/boot.h>
 #include <grinch/bootparam.h>
 #include <grinch/console.h>
+#include <grinch/cpu.h>
 #include <grinch/driver.h>
 #include <grinch/fdt.h>
 #include <grinch/fs/devfs.h>
@@ -134,7 +135,7 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 	irq_disable();
 
 	gcov_init();
-	guest_init();
+	arch_guest_init();
 
 	_puts(ISTR("\n" UNAME_A "\n"));
 	if (grinch_is_guest)
