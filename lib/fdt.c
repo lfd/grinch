@@ -117,8 +117,8 @@ int __init fdt_init(paddr_t pfdt)
 	pri("FDT size: %u\n", err);
 
 	_fdt = alloc_pages(PAGES(page_up(err)));
-	if (IS_ERR(_fdt)) {
-		err = PTR_ERR(_fdt);
+	if (!_fdt) {
+		err = -ENOMEM;
 		goto unmap;
 	}
 
