@@ -26,7 +26,7 @@
 
 bool grinch_is_guest;
 
-const char *causes[] = {
+static const char *causes[] = {
 	[EXC_INST_MISALIGNED]		= "Instruction Address Misaligned",
 	[EXC_INST_ACCESS]		= "Instruction Address Fault",
 	[EXC_INST_ILLEGAL]		= "Illegal Instruction",

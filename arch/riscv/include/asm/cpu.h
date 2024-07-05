@@ -20,8 +20,6 @@
 #include <grinch/compiler_attributes.h>
 #include <grinch/types.h>
 
-extern const char *causes[];
-
 struct registers {
 	unsigned long ra;
 	unsigned long sp;
