@@ -202,8 +202,10 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 		goto out;
 
 	err = console_init();
-	if (err && err != -ENOENT)
+	if (err) {
+		pr_crit_i("Error initialising console: %pe\n", ERR_PTR(err));
 		goto out;
+	}
 
 	err = init();
 	if (err)

@@ -15,9 +15,12 @@
 
 #include <grinch/arch/sbi.h>
 
-static inline void arch_early_dbg(char c)
+#define DEFAULT_CONSOLE		"ttySBI"
+
+static inline void arch_early_dbg(const char *str, unsigned int len)
 {
-	sbi_console_putchar(c);
+	while (len--)
+		sbi_console_putchar(*str++);
 }
 
 #endif /* _ARCH_CONSOLE_H */

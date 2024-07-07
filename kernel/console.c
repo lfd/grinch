@@ -20,10 +20,6 @@
 #include <grinch/errno.h>
 #include <grinch/serial.h>
 
-#ifdef ARCH_RISCV
-#define DEFAULT_CONSOLE	"ttySBI"
-#endif
-
 static char __console_buffer[2048];
 static struct ringbuf console_ringbuf = {
 	.buf = __console_buffer,
@@ -31,6 +27,7 @@ static struct ringbuf console_ringbuf = {
 };
 
 static char console_device[DEVFS_MAX_LEN_NAME];
+static void (*_console_puts)(const char *, unsigned int) = arch_early_dbg;
 
 static struct file_handle kstdout = {
 	.flags = {
@@ -56,7 +53,6 @@ static inline void rb_write(char c)
 	ringbuf_write(&console_ringbuf, c);
 }
 
-#if 0
 static void ringbuf_flush(void)
 {
 	unsigned int sz;
@@ -68,22 +64,16 @@ static void ringbuf_flush(void)
 		ringbuf_consume(&console_ringbuf, sz);
 	} while (sz);
 }
-#endif
 
 void console_puts(const char *str)
 {
 	unsigned int i;
 
-	if (!kstdout.fp)
-		for (i = 0; str[i]; i++) {
-			rb_write(str[i]);
-			arch_early_dbg(str[i]);
-		}
-	else {
-		for (i = 0; str[i]; i++)
-			rb_write(str[i]);
-		kstdout_write(str, i);
-	}
+	for (i = 0; str[i]; i++)
+		rb_write(str[i]);
+
+	if (_console_puts)
+		_console_puts(str, i);
 }
 
 int __init console_init(void)
@@ -93,6 +83,7 @@ int __init console_init(void)
 	struct device *dev;
 	struct file *fp;
 	int err, node;
+	bool flush;
 
 	if (*console_device) {
 		src = console_device;
@@ -124,12 +115,8 @@ int __init console_init(void)
 
 remain:
 	pri("Remaining on default console\n");
-#ifdef ARCH_RISCV
 	src = DEFAULT_CONSOLE;
 	goto open_console;
-#else
-	return -ENOENT;
-#endif
 
 open_console:
 	pri("Switching kernel console to %s\n", src);
@@ -144,5 +131,11 @@ open_console:
 	}
 
 	kstdout.fp = fp;
+	/* If we had no early debug console, flush the buffer */
+	flush = _console_puts == NULL;
+	_console_puts = kstdout_write;
+	if (flush)
+		ringbuf_flush();
+
 	return 0;
 }
