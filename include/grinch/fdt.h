@@ -16,6 +16,8 @@
 #include <libfdt.h>
 #include <grinch/iores.h>
 
+struct device;
+
 struct of_device_id {
 	char compatible[32];
 	const void *data;
@@ -56,5 +58,7 @@ int fdt_find_device(const void *fdt, const char *path,
 int fdt_match_device_off(const void *fdt, int offset,
 			 const struct of_device_id *compats,
 			 const struct of_device_id **match);
+
+int fdt_irq_get(struct device *dev);
 
 #endif /* _FDT_H */

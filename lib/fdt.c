@@ -12,6 +12,7 @@
 
 #define dbg_fmt(x) "fdt: " x
 
+#include <grinch/device.h>
 #include <grinch/fdt.h>
 #include <grinch/gfp.h>
 #include <grinch/ioremap.h>
@@ -256,4 +257,15 @@ int fdt_read_u32_array(const void *fdt, int nodeoffset, const char *name,
 	}
 
 	return sz;
+}
+
+int fdt_irq_get(struct device *dev)
+{
+	const int *res;
+
+	res = fdt_getprop(_fdt, dev->of.node, ISTR("interrupts"), NULL);
+	if (IS_ERR(res))
+		return PTR_ERR(res);
+
+	return fdt32_to_cpu(*res);
 }

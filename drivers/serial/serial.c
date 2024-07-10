@@ -98,11 +98,12 @@ int __init uart_probe_generic(struct device *dev)
 	if (err > 0)
 		io_width = fdt32_to_cpu(*res);
 
-	res = fdt_getprop(_fdt, dev->of.node, ISTR("interrupts"), &err);
-	if (IS_ERR(res))
-		irq = 0;
-	else
-		irq = fdt32_to_cpu(*res);
+	err = fdt_irq_get(dev);
+	if (err < 0) {
+		dev_pri(dev, "error finding irq: %pe\n", ERR_PTR(err));
+		irq = IRQ_INVALID;
+	} else
+		irq = err;
 
 	err = dev_map_iomem(dev);
 	if (err)
