@@ -26,7 +26,7 @@ static struct ringbuf console_ringbuf = {
 	.size = sizeof(__console_buffer),
 };
 
-static char console_device[DEVFS_MAX_LEN_NAME];
+static char console_device[20];
 static void (*_console_puts)(const char *, unsigned int) = arch_early_dbg;
 
 static struct file_handle kstdout = {
@@ -39,7 +39,13 @@ static struct file_handle kstdout = {
 
 static void console_parse(const char *str)
 {
+	char *delim;
+
 	strncpy(console_device, str, sizeof(console_device - 1));
+
+	delim = strchrnul(console_device, ',');
+	if (delim)
+		*delim = '\0';
 }
 bootparam(console, console_parse);
 
