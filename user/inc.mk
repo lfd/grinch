@@ -100,7 +100,9 @@ endef
 USER_APPS=$(foreach app,$(APPS),$(call app_of,$(app)))
 USER_DTBS = user/dts/freechips,lfd-rocket.dtb user/dts/riscv-virtio,qemu.dtb
 
-user/initrd.cpio: $(USER_APPS) res/test.txt kernel.bin $(USER_DTBS)
+IMAGES=res/logo.gimg
+
+user/initrd.cpio: $(USER_APPS) $(IMAGES) res/test.txt kernel.bin $(USER_DTBS)
 	$(QUIET) "[CPIO]  $@"
 	$(VERBOSE) ./scripts/create_cpio $@ $^
 
@@ -108,3 +110,4 @@ clean_user: $(patsubst %,clean_%,$(APPS))
 	$(call clean_objects,user/lib,$(LIBC_OBJS))
 	$(call clean_files,user/dts,$(USER_DTBS) $(USER_DTBS:.dtb=.dts))
 	$(call clean_files,user,user/user.ld user/initrd.cpio user/apps/build)
+	$(call clean_files,res,$(IMAGES))

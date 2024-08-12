@@ -10,41 +10,35 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include <grinch/fb.h>
+#include <grinch/gimg.h>
 
 #include "fb.h"
 
-#define XRES	320
-#define YRES	240
-
-static u32 buf[XRES * YRES];
+#define XRES	800
+#define YRES	600
 
 void show_logo(void)
 {
 	struct grinch_fb_modeinfo mode = {
 		.xres = XRES,
 		.yres = YRES,
-		.pixmode = GRINCH_FB_PIXMODE_XRGB,
 	};
 	struct grinch_fb fb;
-	int err, fd;
-
-	fd = open("/initrd/logo.raw", O_RDONLY);
-	if (fd == -1)
-		return;
-
-	read(fd, buf, sizeof(buf));
-	close(fd);
+	struct gimg *logo;
+	struct gcoord off;
+	void *framebuffer;
+	int err;
 
 	err = grinch_fb_open(&fb, "/dev/fb0");
 	if (err)
 		return;
-
-	grinch_fb_modeinfo(&fb);
 
 	if (grinch_fb_pixmode_supported(&fb, GRINCH_FB_PIXMODE_XRGB))
 		mode.pixmode = GRINCH_FB_PIXMODE_XRGB;
@@ -55,11 +49,29 @@ void show_logo(void)
 
 	err = grinch_fb_modeset(&fb, &mode);
 	if (err)
-		return;
+		goto close_out;
 
 	grinch_fb_modeinfo(&fb);
 
-	write(fb.fd, buf, sizeof(buf));
+	err = gimg_load("/initrd/logo.gimg", &logo);
+	if (err)
+		goto close_out;
 
+	framebuffer = malloc(fb.info.fb_size);
+	if (!framebuffer)
+		goto unload_out;
+
+	off.x = (mode.xres - logo->width) / 2;
+	off.y = (mode.yres - logo->height) / 2;
+	gimg_to_fb(framebuffer, &fb.info, logo, off);
+
+	write(fb.fd, framebuffer, fb.info.fb_size);
+
+	free(framebuffer);
+
+unload_out:
+	gimg_unload(logo);
+
+close_out:
 	grinch_fb_close(&fb);
 }
