@@ -1,6 +1,7 @@
 DRIVERS_OBJS = device.o
 DRIVERS_OBJS += driver.o
 DRIVERS_OBJS += fb/bochs.o
+DRIVERS_OBJS += fb/host.o
 DRIVERS_OBJS += pci/pci.o
 
 DRIVERS_IRQ_OBJS = irq/irqchip.o

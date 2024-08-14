@@ -14,10 +14,7 @@
 
 #include <grinch/alloc.h>
 #include <grinch/const.h>
-#include <grinch/device.h>
 #include <grinch/errno.h>
-#include <grinch/minmax.h>
-#include <grinch/fs/devfs.h>
 #include <grinch/fs/vfs.h>
 #include <grinch/pci.h>
 #include <grinch/printk.h>
@@ -25,7 +22,7 @@
 #include <grinch/mmio.h>
 
 #include <grinch/string.h>
-#include <grinch/fb_abi.h>
+#include <grinch/fb/host.h>
 
 #define VGA_ATTRIBUTE_INDEX	0x3C0
 #define VGA_MISC_WRITE		0x3C2
@@ -54,12 +51,8 @@
 	(1 << GRINCH_FB_PIXMODE_R5G5B5)
 
 struct bochs_gpu {
-	u32 *fb;
 	void *ctl;
 	unsigned int mmio_size;
-
-	struct grinch_fb_screeninfo info;
-	struct devfs_node node;
 };
 
 static void _vga_write8(struct bochs_gpu *gpu, u16 port, u8 value)
@@ -82,27 +75,14 @@ static void dispi_write(struct bochs_gpu *gpu, u16 reg, u16 value)
 	_vga_write16(gpu, BOCHS_DISPI_BASE + (reg << 1), value);
 }
 
-static ssize_t bochs_write(struct devfs_node *node, struct file_handle *fh,
-			   const char *ubuf, size_t count)
+static int
+bochs_set_mode(struct fb_host *host, struct grinch_fb_modeinfo *mode)
 {
 	struct bochs_gpu *gpu;
-
-	gpu = node->drvdata;
-	count = min(count, gpu->info.fb_size);
-
-	if (fh->flags.is_kernel)
-		memcpy(gpu->fb, ubuf, count);
-	else
-		copy_from_user(current_task(), gpu->fb, ubuf, count);
-
-	return count;
-}
-
-static int
-bochs_set_mode(struct bochs_gpu *gpu, struct grinch_fb_modeinfo *mode)
-{
-	u32 bpp;
 	u64 new_size;
+	u32 bpp;
+
+	gpu = fb_priv(host);
 
 	switch (mode->pixmode) {
 		case GRINCH_FB_PIXMODE_XRGB:
@@ -122,6 +102,7 @@ bochs_set_mode(struct bochs_gpu *gpu, struct grinch_fb_modeinfo *mode)
 			break;
 
 		default:
+			dev_pr_warn(host->dev, "Unknown pixmode\n");
 			return -EINVAL;
 	}
 
@@ -129,9 +110,9 @@ bochs_set_mode(struct bochs_gpu *gpu, struct grinch_fb_modeinfo *mode)
 	if (new_size > gpu->mmio_size)
 		return -EIO;
 
-	gpu->info.bpp = bpp;
-	gpu->info.fb_size = new_size;
-	gpu->info.mode = *mode;
+	host->info.bpp = bpp;
+	host->info.fb_size = new_size;
+	host->info.mode = *mode;
 
 	dispi_write(gpu, VBE_DISPI_INDEX_BPP, bpp);
 	dispi_write(gpu, VBE_DISPI_INDEX_XRES, mode->xres);
@@ -145,53 +126,11 @@ bochs_set_mode(struct bochs_gpu *gpu, struct grinch_fb_modeinfo *mode)
 	return 0;
 }
 
-static long
-bochs_ioctl(struct devfs_node *node, unsigned long op, unsigned long arg)
-{
-	struct grinch_fb_modeinfo mode;
-	struct bochs_gpu *gpu;
-	void __user *uarg;
-	unsigned long ret;
-	long err;
-
-	uarg = (void __user *)arg;
-	gpu = node->drvdata;
-
-	switch (op) {
-		case GRINCH_FB_SCREENINFO:
-			ret = copy_to_user(current_task(), uarg, &gpu->info,
-					   sizeof(gpu->info));
-			if (ret != sizeof(gpu->info))
-				return -EFAULT;
-
-			err = 0;
-			break;
-
-		case GRINCH_FB_MODESET:
-			ret = copy_from_user(current_task(), &mode, uarg,
-					     sizeof(mode));
-			if (ret != sizeof(mode))
-				return -EFAULT;
-
-			err = bochs_set_mode(gpu, &mode);
-			break;
-
-		default:
-			err = -EINVAL;
-	}
-
-	return err;
-}
-
-static const struct devfs_ops bochs_fops = {
-	.write = bochs_write,
-	.ioctl = bochs_ioctl,
-};
-
 static int
 bochs_gpu_probe(struct pci_device *dev, const struct pci_device_id *id)
 {
 	struct grinch_fb_modeinfo mode;
+	struct fb_host *host;
 	struct bochs_gpu *gpu;
 	int err;
 
@@ -201,16 +140,18 @@ bochs_gpu_probe(struct pci_device *dev, const struct pci_device_id *id)
 
 	pci_device_enable(dev);
 
-	gpu = kzalloc(sizeof(*gpu));
-	if (!gpu)
+	host = fb_host_alloc(sizeof(*gpu), &dev->dev);
+	if (!host)
 		return -ENOMEM;
 
-	gpu->fb = dev->bars[0].iomem.base;
+	gpu = fb_priv(host);
+
+	host->fb = dev->bars[0].iomem.base;
 	gpu->mmio_size = dev->bars[0].iomem.phys.size;
 	gpu->ctl = dev->bars[2].iomem.base;
 	dev->data = gpu;
 
-	gpu->info.pixmodes_supported = BOCHS_PIXMODES;
+	host->info.pixmodes_supported = BOCHS_PIXMODES;
 
 	mode.pixmode = GRINCH_FB_PIXMODE_XRGB;
 	mode.xres = 320;
@@ -219,26 +160,27 @@ bochs_gpu_probe(struct pci_device *dev, const struct pci_device_id *id)
 	vga_write8(gpu, VGA_MISC_WRITE, 0x1);
 	vga_write8(gpu, VGA_ATTRIBUTE_INDEX, 0x20);
 	dispi_write(gpu, VBE_DISPI_INDEX_ENABLE, 0);
-	bochs_set_mode(gpu, &mode);
+	bochs_set_mode(host, &mode);
 	dispi_write(gpu, VBE_DISPI_INDEX_ENABLE,
 		    VBE_DISPI_ENABLED | VBE_DISPI_LFB_ENABLED);
 
-	/* We only have one single gpu driver, so this is okay at the moment */
-	memcpy(gpu->node.name, "fb0", 4);
-	gpu->node.type = DEVFS_REGULAR;
-	gpu->node.fops = &bochs_fops;
-	gpu->node.drvdata = gpu;
-	err = devfs_node_init(&gpu->node);
-	if (err)
-		return err;
+	host->set_mode = bochs_set_mode;
 
-	err = devfs_node_register(&gpu->node);
+	err = fb_host_add(host);
 	if (err)
-		return err;
+		goto dealloc_out;
 
-	pci_pr(dev, "%s: probed\n", gpu->node.name);
+	pci_pr(dev, "%s: probed\n", host->node.name);
 
 	return 0;
+
+//remove_out:
+// 	fb_host_remove(host);
+
+dealloc_out:
+	fb_host_dealloc(host);
+
+	return err;
 }
 
 static void bochs_gpu_remove(struct pci_device *dev)
