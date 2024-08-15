@@ -47,8 +47,11 @@
 #define VBE_DISPI_ENABLED			0x01
 #define VBE_DISPI_LFB_ENABLED			0x40
 
-#define BOCHS_PIXMODES			\
-	(1 << GRINCH_FB_PIXMODE_XRGB)
+#define BOCHS_PIXMODES			  \
+	(1 << GRINCH_FB_PIXMODE_XRGB)   | \
+	(1 << GRINCH_FB_PIXMODE_RGB)    | \
+	(1 << GRINCH_FB_PIXMODE_R5G6B5)	| \
+	(1 << GRINCH_FB_PIXMODE_R5G5B5)
 
 struct bochs_gpu {
 	u32 *fb;
@@ -106,11 +109,23 @@ bochs_set_mode(struct bochs_gpu *gpu, struct grinch_fb_modeinfo *mode)
 			bpp = 32;
 			break;
 
+		case GRINCH_FB_PIXMODE_RGB:
+			bpp = 24;
+			break;
+
+		case GRINCH_FB_PIXMODE_R5G6B5:
+			bpp = 16;
+			break;
+
+		case GRINCH_FB_PIXMODE_R5G5B5:
+			bpp = 15;
+			break;
+
 		default:
 			return -EINVAL;
 	}
 
-	new_size = mode->xres * mode->yres * (bpp / 8);
+	new_size = mode->xres * mode->yres * ((bpp + 7) / 8);
 	if (new_size > gpu->mmio_size)
 		return -EIO;
 

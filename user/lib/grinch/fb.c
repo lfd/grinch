@@ -27,6 +27,12 @@ static const char *pixmode_string(pixmode_t mode)
 		case GRINCH_FB_PIXMODE_RGB:
 			return "RGB";
 
+		case GRINCH_FB_PIXMODE_R5G6B5:
+			return "R5G6B5";
+
+		case GRINCH_FB_PIXMODE_R5G5B5:
+			return "R5G5B5";
+
 		default:
 			return "Unknown mode";
 	}

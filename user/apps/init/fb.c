@@ -44,8 +44,6 @@ void show_logo(void)
 		mode.pixmode = GRINCH_FB_PIXMODE_XRGB;
 	else if (grinch_fb_pixmode_supported(&fb, GRINCH_FB_PIXMODE_RGB))
 		mode.pixmode = GRINCH_FB_PIXMODE_RGB;
-	else if (grinch_fb_pixmode_supported(&fb, GRINCH_FB_PIXMODE_RBG))
-		mode.pixmode = GRINCH_FB_PIXMODE_RBG;
 
 	err = grinch_fb_modeset(&fb, &mode);
 	if (err)
