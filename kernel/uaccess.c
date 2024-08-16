@@ -23,7 +23,11 @@
 #include <grinch/task.h>
 #include <grinch/uaccess.h>
 
-void *user_to_direct(struct mm *mm, const void *s)
+/* Let's keep the zero page here, until we need to share it */
+static const unsigned long
+zero_page[PAGE_SIZE / sizeof(unsigned long)] __aligned(PAGE_SIZE);
+
+void *user_to_direct(struct mm *mm, const void __user *s)
 {
 	paddr_t pa;
 
@@ -46,6 +50,30 @@ static void *user_to_direct_fault(struct task *t, void __user *s)
 			return NULL;
 
 		ret = user_to_direct(&t->process.mm, s);
+	}
+
+	return ret;
+}
+
+/* This routine is only meant for reading from user pages! */
+static const void *user_to_direct_null(struct task *t, const void __user *s)
+{
+	struct vma *vma;
+	void *ret;
+
+	ret = user_to_direct(&t->process.mm, s);
+	/* If we have a lazy VMA, redirect to the null page. */
+	if (!ret) {
+		vma = uvma_at(&t->process, s);
+		/* No VMA behind from? We're out. */
+		if (!vma)
+			return NULL;
+
+		/* A non-lazy VMA must not fault */
+		if (!(vma->flags & VMA_FLAG_LAZY))
+			BUG();
+
+		ret = (void *)zero_page + page_voffset(s);
 	}
 
 	return ret;
@@ -80,13 +108,13 @@ unsigned long copy_from_user(struct task *t, void *to, const void *from,
 			     unsigned long n)
 {
 	unsigned int remaining;
+	const void *direct;
 	unsigned long sum;
 	size_t written;
-	void *direct;
 
 	sum = 0;
 	while (n) {
-		direct = user_to_direct(&t->process.mm, from);
+		direct = user_to_direct_null(t, from);
 		if (!direct)
 			break;
 
