@@ -51,7 +51,7 @@ const char *salloc_err_str(int err)
 	}
 }
 
-static int __must_check check_chunk(struct memchunk *chunk)
+static int __must_check check_chunk(const struct memchunk *chunk)
 {
 	if (chunk->canary1 != CANARY1 || chunk->canary2 != CANARY2)
 		return -EINVAL;
@@ -68,7 +68,7 @@ static void set_chunk(struct memchunk *m, struct memchunk *before,
 	m->canary2 = CANARY2;
 }
 
-static inline struct memchunk *next_chunk(struct memchunk *this)
+static inline struct memchunk *next_chunk(const struct memchunk *this)
 {
 	if (this->flags & MEMCHUNK_FLAG_LAST)
 		return NULL;
