@@ -22,11 +22,6 @@
 #include <grinch/task.h>
 #include <grinch/uaccess.h>
 
-static inline unsigned int bytes_in_page(const void *p)
-{
-	return PAGE_SIZE - ((uintptr_t)p & PAGE_OFFS_MASK);
-}
-
 void *user_to_direct(struct mm *mm, const void *s)
 {
 	paddr_t pa;
@@ -68,7 +63,7 @@ unsigned long umemset(struct task *t, void *dst, int c, size_t n)
 		if (!direct)
 			break;
 
-		remaining = bytes_in_page(direct);
+		remaining = page_bytes_left(direct);
 		if (n > remaining) {
 			memset(direct, c, remaining);
 			written = remaining;
@@ -99,7 +94,7 @@ unsigned long copy_from_user(struct task *t, void *to, const void *from,
 		if (!direct)
 			break;
 
-		remaining = bytes_in_page(direct);
+		remaining = page_bytes_left(direct);
 		if (n > remaining) {
 			memcpy(to, direct, remaining);
 			written = remaining;
@@ -130,7 +125,7 @@ unsigned long copy_to_user(struct task *t, void *d, const void *s, size_t n)
 		if (!direct)
 			return copied;
 
-		remaining = bytes_in_page(direct);
+		remaining = page_bytes_left(direct);
 		if (n > remaining) {
 			memcpy(direct, s, remaining);
 			written = remaining;
@@ -195,7 +190,7 @@ ssize_t ustrncpy(char *dst, const char *src, unsigned long count)
 		if (!direct)
 			return -EFAULT;
 
-		remaining = bytes_in_page(direct);
+		remaining = page_bytes_left(direct);
 		while (remaining) {
 			if (count == 0)
 				return -ERANGE;

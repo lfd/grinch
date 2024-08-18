@@ -56,6 +56,21 @@ static inline u64 giga_page_up(u64 diff)
 {
 	return (diff + GIGA_PAGE_SIZE - 1) & GIGA_PAGE_MASK;
 }
+
+static inline unsigned int page_offset(const paddr_t addr)
+{
+	return addr & PAGE_OFFS_MASK;
+}
+
+static inline unsigned int page_voffset(const void *page)
+{
+	return (uintptr_t)page & PAGE_OFFS_MASK;
+}
+
+static inline unsigned int page_bytes_left(const void *p)
+{
+	return PAGE_SIZE - page_voffset(p);
+}
 #endif /* __ASSEMBLY__ */
 
 #endif /* _PAGING_COMMON_H */

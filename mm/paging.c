@@ -438,13 +438,13 @@ int paging_duplicate(page_table_t dst, page_table_t src,
 	unsigned long vaddr;
 	unsigned int n;
 
+	if (page_voffset(_vaddr))
+		return -EINVAL;
+
+	if (size % PAGE_SIZE)
+		return -EINVAL;
+
 	vaddr = (unsigned long)_vaddr;
-	if (vaddr & PAGE_OFFS_MASK)
-		return -EINVAL;
-
-	if (size & PAGE_OFFS_MASK)
-		return -EINVAL;
-
 	while (size > 0) {
 		paging = pg.root_paging;
 		n = 0;

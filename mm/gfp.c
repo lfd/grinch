@@ -203,7 +203,7 @@ int free_pages(const void *addr, unsigned int pages)
 	struct memory_area *area;
 	unsigned int start;
 
-	if ((unsigned long)addr & PAGE_OFFS_MASK)
+	if (page_voffset(addr))
 		return -EINVAL;
 
 	area = find_area(addr);
@@ -259,7 +259,7 @@ int phys_free_pages(paddr_t phys, unsigned int pages)
 	struct memory_area *area;
 	unsigned int i, start;
 
-	if (phys & PAGE_OFFS_MASK)
+	if (page_offset(phys))
 		return -EINVAL;
 
 	for_each_valid_memory_area(i, area) {
