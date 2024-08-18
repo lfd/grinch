@@ -21,7 +21,7 @@
 #include <grinch/const.h>
 #include <grinch/salloc.h>
 
-#define HEAP_SIZE	(32 * KIB)
+#define HEAP_SIZE	(4 * KIB)
 
 char **environ;
 
