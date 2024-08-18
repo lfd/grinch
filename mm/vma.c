@@ -90,7 +90,7 @@ static bool is_user_range(void *_base, size_t size)
 	return false;
 }
 
-static bool vma_collides(struct vma *vma, void *base, size_t size)
+static bool vma_collides(const struct vma *vma, const void *base, size_t size)
 {
 	return base < (vma->base + vma->size) && (base + size) > vma->base;
 }
@@ -215,7 +215,7 @@ int uvma_duplicate(struct task *dst, struct task *src, struct vma *vma)
 }
 
 static struct vma *
-uvma_find_size(struct process *p, void __user *base, size_t size)
+uvma_find_size(const struct process *p, const void __user *base, size_t size)
 {
 	struct vma *vma;
 
@@ -226,12 +226,12 @@ uvma_find_size(struct process *p, void __user *base, size_t size)
 	return NULL;
 }
 
-struct vma *uvma_find(struct process *p, void __user *base)
+struct vma *uvma_find(const struct process *p, const void __user *base)
 {
 	return uvma_find_size(p, base, 1);
 }
 
-bool uvma_collides(struct process *p, void __user *base, size_t size)
+bool uvma_collides(const struct process *p, const void __user *base, size_t size)
 {
 	struct vma *vma;
 
