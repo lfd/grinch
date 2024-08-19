@@ -90,9 +90,30 @@ static bool is_user_range(void *_base, size_t size)
 	return false;
 }
 
-static bool vma_collides(const struct vma *vma, const void *base, size_t size)
+static struct vma *
+__uvma_at(const struct process *p, const void __user *base, size_t size)
 {
-	return base < (vma->base + vma->size) && (base + size) > vma->base;
+	struct vma *vma;
+
+	/* Overflow and sanity check */
+	if (base + size < base || !size)
+		BUG();
+
+	list_for_each_entry(vma, &p->mm.vmas, vmas)
+		if (base + size > vma->base && base < vma->base + vma->size)
+			return vma;
+
+	return NULL;
+}
+
+struct vma *uvma_at(const struct process *p, const void __user *base)
+{
+	return __uvma_at(p, base, 1);
+}
+
+bool uvma_collides(const struct process *p, const void __user *base, size_t size)
+{
+	return __uvma_at(p, base, size) ? true : false;
 }
 
 static int uvma_destroy(struct process *p, struct vma *vma)
@@ -149,9 +170,8 @@ struct vma *uvma_create(struct task *t, void *base, size_t size,
 		return ERR_PTR(-ERANGE);
 
 	/* Check that the VMA won't collide with any other VMA */
-	list_for_each_entry(vma, &t->process.mm.vmas, vmas)
-		if (vma_collides(vma, base, size))
-			return ERR_PTR(-EINVAL);
+	if (uvma_collides(&t->process, base, size))
+		return ERR_PTR(-EINVAL);
 
 	vma = kmalloc(sizeof(*vma));
 	if (!vma)
@@ -212,32 +232,6 @@ int uvma_duplicate(struct task *dst, struct task *src, struct vma *vma)
 	}
 
 	return 0;
-}
-
-static struct vma *
-uvma_find_size(const struct process *p, const void __user *base, size_t size)
-{
-	struct vma *vma;
-
-	list_for_each_entry(vma, &p->mm.vmas, vmas)
-		if (vma_collides(vma, base, size))
-			return vma;
-
-	return NULL;
-}
-
-struct vma *uvma_find(const struct process *p, const void __user *base)
-{
-	return uvma_find_size(p, base, 1);
-}
-
-bool uvma_collides(const struct process *p, const void __user *base, size_t size)
-{
-	struct vma *vma;
-
-	vma = uvma_find_size(p, base, size);
-
-	return vma ? true : false;
 }
 
 int uvma_handle_fault(struct task *t, struct vma *vma, void __user *addr)

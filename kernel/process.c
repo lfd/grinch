@@ -266,7 +266,7 @@ int process_handle_fault(struct task *task, void __user *addr, bool is_write)
 	struct vma *vma;
 	int err;
 
-	vma = uvma_find(&task->process, addr);
+	vma = uvma_at(&task->process, addr);
 	if (!vma) {
 		pr_warn("PID %d: No VMA found %p\n", task->pid, addr);
 		return -ENOENT;

@@ -48,7 +48,7 @@ void uvmas_destroy(struct process *task);
 
 int uvma_duplicate(struct task *t, struct task *src, struct vma *vma);
 
-struct vma *uvma_find(const struct process *p, const void __user *addr);
+struct vma *uvma_at(const struct process *p, const void __user *addr);
 bool uvma_collides(const struct process *p, const void __user *base, size_t size);
 
 int uvma_handle_fault(struct task *t, struct vma *vma, void __user *addr);
