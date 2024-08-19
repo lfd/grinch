@@ -10,9 +10,14 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <asm-generic/paging.h>
+
 #include <errno.h>
 #include <syscall.h>
+#include <stdio.h>
 #include <unistd.h>
+
+static void *curbrk;
 
 void __noreturn exit(int status)
 {
@@ -83,7 +88,7 @@ int brk(void *addr)
 {
 	void *new;
 
-	new = __brk(addr);
+	curbrk = new = __brk(addr);
 	if (IS_ERR(new)) {
 		errno = -PTR_ERR(new);
 		return -1;
@@ -94,24 +99,33 @@ int brk(void *addr)
 
 void *sbrk(intptr_t increment)
 {
-	void *current, *addr;
+	void *oldbrk;
 
-	current = __brk(NULL);
-	if (IS_ERR(current)) {
-		errno = -PTR_ERR(current);
+	if (increment % PAGE_SIZE) {
+		dprintf(stderr, "Invalid sbrk()\n");
+		exit(-EINVAL);
+	}
+
+	if (!curbrk) {
+		if (brk(0) < 0)
+			return (void *)-1;
+	}
+
+	if (!increment)
+		return curbrk;
+
+	oldbrk = curbrk;
+	if (increment > 0
+	    ? ((uintptr_t)oldbrk + (uintptr_t)increment < (uintptr_t)oldbrk)
+	    : ((uintptr_t)oldbrk < (uintptr_t)-increment)) {
+		errno = -ENOMEM;
 		return (void *)-1;
 	}
 
-	if (increment == 0)
-		return current;
-
-	addr = __brk(current + increment);
-	if (IS_ERR(addr)) {
-		errno = -PTR_ERR(addr);
+	if (brk(oldbrk + increment) < 0)
 		return (void *)-1;
-	}
 
-	return addr;
+	return oldbrk;
 }
 
 char *getcwd(char *buf, size_t size)
