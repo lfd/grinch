@@ -15,6 +15,7 @@
 #include <grinch/align.h>
 #include <grinch/alloc.h>
 #include <grinch/gfp.h>
+#include <grinch/minmax.h>
 #include <grinch/panic.h>
 #include <grinch/paging.h>
 #include <grinch/printk.h>
@@ -64,13 +65,8 @@ unsigned long umemset(struct task *t, void *dst, int c, size_t n)
 			break;
 
 		remaining = page_bytes_left(direct);
-		if (n > remaining) {
-			memset(direct, c, remaining);
-			written = remaining;
-		} else {
-			memset(direct, c, n);
-			written = n;
-		}
+		written = min(n, remaining);
+		memset(direct, c, written);
 
 		ret += written;
 		n -= written;
@@ -95,13 +91,8 @@ unsigned long copy_from_user(struct task *t, void *to, const void *from,
 			break;
 
 		remaining = page_bytes_left(direct);
-		if (n > remaining) {
-			memcpy(to, direct, remaining);
-			written = remaining;
-		} else {
-			memcpy(to, direct, n);
-			written = n;
-		}
+		written = min(n, remaining);
+		memcpy(to, direct, written);
 
 		n -= written;
 		to += written;
@@ -126,13 +117,8 @@ unsigned long copy_to_user(struct task *t, void *d, const void *s, size_t n)
 			return copied;
 
 		remaining = page_bytes_left(direct);
-		if (n > remaining) {
-			memcpy(direct, s, remaining);
-			written = remaining;
-		} else {
-			memcpy(direct, s, n);
-			written = n;
-		}
+		written = min(remaining, n);
+		memcpy(direct, s, written);
 
 		n -= written;
 		s += written;
