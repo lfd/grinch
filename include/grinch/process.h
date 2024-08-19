@@ -26,8 +26,12 @@
 
 struct process {
 	struct mm mm;
-	void __user *brk;
-	struct vma *vma_heap;
+
+	/* Heap aka. program break */
+	struct {
+		void __user *base;
+		struct vma *vma;
+	} brk;
 
 	struct {
 		char *pathname;

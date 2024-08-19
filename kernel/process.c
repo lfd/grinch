@@ -154,7 +154,7 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr,
 
 	/* Load process */
 	phdr = (Elf64_Phdr*)((void*)ehdr + ehdr->e_phoff);
-	task->process.brk = NULL;
+	task->process.brk.base = NULL;
 	for (d = 0; d < ehdr->e_phnum; d++, phdr++) {
 		if (phdr->p_type != PT_LOAD)
 			continue;
@@ -186,8 +186,8 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr,
 		if (copied != phdr->p_filesz)
 			return -ERANGE;
 
-		if (base + vma_size > task->process.brk)
-			task->process.brk = base + vma_size;
+		if (base + vma_size > task->process.brk.base)
+			task->process.brk.base = base + vma_size;
 	}
 
 	task_set_context(task, ehdr->e_entry, (uintptr_t)stack_top);
@@ -315,8 +315,8 @@ static long _sys_execve(const char __user *_pathname,
 	task_set_name(this, name);
 
 	uvmas_destroy(process);
-	process->brk = NULL;
-	process->vma_heap = NULL;
+	process->brk.base = NULL;
+	process->brk.vma = NULL;
 	this_per_cpu()->pt_needs_update = true;
 
 	err = process_from_path(this, cwd(), pathname, &argv, &envp);
@@ -363,7 +363,7 @@ SYSCALL_DEF1(brk, unsigned long, addr)
 	process = &task->process;
 
 	spin_lock(&task->lock);
-	brk = (unsigned long)process->brk;
+	brk = (unsigned long)process->brk.base;
 	if (!addr)
 		goto unlock_out;
 
@@ -377,7 +377,7 @@ SYSCALL_DEF1(brk, unsigned long, addr)
 	size = addr - brk;
 
 	/* We don't support shrinking or extending the heap at the moment */
-	if (process->vma_heap) {
+	if (process->brk.vma) {
 		brk = -ENOSYS;
 		goto unlock_out;
 	}
@@ -389,7 +389,7 @@ SYSCALL_DEF1(brk, unsigned long, addr)
 		goto unlock_out;
 	}
 
-	process->vma_heap = vma_heap;
+	process->brk.vma = vma_heap;
 	brk = brk + size;
 
 unlock_out:
