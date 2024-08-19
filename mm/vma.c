@@ -267,6 +267,43 @@ int uvma_handle_fault(struct task *t, struct vma *vma, void __user *addr)
 
 int uvma_resize(const struct process *p, struct vma *vma, size_t size)
 {
-	/* Only a stub - not yet implemented */
-	return -ENOSYS;
+	int err;
+
+	/*
+	 * Currently, we only support resizing on lazy-allocated VMAs. The
+	 * reason is that non-lazy VMAs currently can't fragment, while lazy
+	 * allocated VMAs can. If we also should ever support resizing for
+	 * non-lazy VMAs, then we will have to address destruction of VMAs
+	 * (uvma_dealloc_range) accordingly.
+	 */
+	if (!(vma->flags & VMA_FLAG_LAZY))
+		return -ENOSYS;
+
+	/* No page-unaligned resizes, or resize to zero */
+	if (size % PAGE_SIZE || size == 0)
+		return -EINVAL;
+
+	/* We have nothing to do */
+	if (size == vma->size)
+		return 0;
+
+	if (size < vma->size) {
+		err = uvma_dealloc_range(p->mm.page_table, vma,
+					 vma->base + size, vma->size - size);
+		if (err)
+			return err;
+	} else {
+		if (uvma_collides(p, vma->base + vma->size, size - vma->size))
+			return -ERANGE;
+
+		/*
+		 * In case of lazy VMAs: nothing to do. If we ever support
+		 * non-lazy growth, then we will have to call uvma_alloc_range
+		 * here.
+		 */
+	}
+
+	vma->size = size;
+
+	return 0;
 }
