@@ -59,6 +59,49 @@ free_out:
 	return err;
 }
 
+static int
+uvma_dealloc_range(page_table_t pt, struct vma *vma, void *base, size_t size)
+{
+	paddr_t phys;
+	size_t step;
+	void *this;
+	int err;
+
+	step = (vma->flags & VMA_FLAG_LAZY) ? PAGE_SIZE : vma->size;
+	for (this = base; this < base + size; this += step) {
+		phys = paging_get_phys(pt, this);
+		if (phys == INVALID_PHYS_ADDR)
+			continue;
+
+		err = phys_free_pages(phys, PAGES(step));
+		if (err)
+			return err;
+	}
+
+	err = unmap_range(pt, base, size);
+	if (err)
+		return -EINVAL;
+
+	return 0;
+}
+
+static int uvma_dealloc(page_table_t pt, struct vma *vma)
+{
+	return uvma_dealloc_range(pt, vma, vma->base, vma->size);
+}
+
+static void uvma_destroy(page_table_t pt, struct vma *vma)
+{
+	int err;
+
+	kfree(vma->name);
+	vma->name = NULL;
+
+	err = uvma_dealloc(pt, vma);
+	if (err)
+		BUG();
+}
+
 static inline int
 vma_alloc(page_table_t pt, struct vma *vma, unsigned int alignment)
 {
@@ -116,45 +159,14 @@ bool uvma_collides(const struct process *p, const void __user *base, size_t size
 	return __uvma_at(p, base, size) ? true : false;
 }
 
-static int uvma_destroy(struct process *p, struct vma *vma)
-{
-	paddr_t phys;
-	size_t step;
-	void *base;
-	int err;
-
-	kfree(vma->name);
-	vma->name = NULL;
-
-	step = (vma->flags & VMA_FLAG_LAZY) ? PAGE_SIZE : vma->size;
-	for (base = vma->base; base < vma->base + vma->size; base += step) {
-		phys = paging_get_phys(p->mm.page_table, base);
-		if (phys == INVALID_PHYS_ADDR)
-			continue;
-
-		err = phys_free_pages(phys, PAGES(step));
-		if (err)
-			return err;
-	}
-
-	err = unmap_range(p->mm.page_table, vma->base, vma->size);
-	if (err)
-		return -EINVAL;
-
-	return 0;
-}
-
 void uvmas_destroy(struct process *p)
 {
 	struct list_head *pos, *q;
 	struct vma *tmp;
-	int err;
 
 	list_for_each_safe(pos, q, &p->mm.vmas) {
 		tmp = list_entry(pos, struct vma, vmas);
-		err = uvma_destroy(p, tmp);
-		if (err)
-			BUG();
+		uvma_destroy(p->mm.page_table, tmp);
 		list_del(pos);
 		kfree(tmp);
 	}
