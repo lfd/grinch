@@ -47,6 +47,7 @@ struct vma *uvma_create(struct task *task, void *base, size_t size,
 void uvmas_destroy(struct process *task);
 
 int uvma_duplicate(struct task *t, struct task *src, struct vma *vma);
+int uvma_resize(const struct process *p, struct vma *vma, size_t size);
 
 struct vma *uvma_at(const struct process *p, const void __user *addr);
 bool uvma_collides(const struct process *p, const void __user *base, size_t size);

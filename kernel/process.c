@@ -353,44 +353,54 @@ SYSCALL_DEF3(execve, const char __user *, pathname,
 SYSCALL_DEF1(brk, unsigned long, addr)
 {
 	struct process *process;
+	unsigned long base, brk;
 	unsigned int vma_flags;
 	struct vma *vma_heap;
 	struct task *task;
-	unsigned long brk;
 	size_t size;
 
 	task = current_task();
 	process = &task->process;
 
-	spin_lock(&task->lock);
-	brk = (unsigned long)process->brk.base;
-	if (!addr)
-		goto unlock_out;
+	base = (unsigned long)process->brk.base;
 
-	/* can not shift break to the left */
-	if (addr < brk) {
+	spin_lock(&task->lock);
+	if (!addr)
+		goto report_out;
+
+	/* We only support page-wise changes of the program break */
+	if (addr % PAGE_SIZE)
+		return -EINVAL;
+
+	/* We can not shift break to the left */
+	if (addr < base) {
+		brk = -EINVAL;
+		goto unlock_out;
+	}
+	size = addr - base;
+
+	/* Zero-size VMAs are not allowed */
+	if (size == 0) {
 		brk = -EINVAL;
 		goto unlock_out;
 	}
 
-	addr = page_up(addr);
-	size = addr - brk;
-
-	/* We don't support shrinking or extending the heap at the moment */
-	if (process->brk.vma) {
-		brk = -ENOSYS;
-		goto unlock_out;
+	if (!process->brk.vma) {
+		vma_flags = VMA_FLAG_USER | VMA_FLAG_RW | VMA_FLAG_LAZY;
+		vma_heap = uvma_create(task, process->brk.base, size, vma_flags, "[heap]");
+		if (IS_ERR(vma_heap)) {
+			brk = PTR_ERR(vma_heap);
+			goto unlock_out;
+		}
+		process->brk.vma = vma_heap;
+	} else {
+		brk = uvma_resize(process, process->brk.vma, size);
+		if (brk)
+			goto unlock_out;
 	}
 
-	vma_flags = VMA_FLAG_USER | VMA_FLAG_RW | VMA_FLAG_LAZY;
-	vma_heap = uvma_create(task, (void *)brk, size, vma_flags, "[heap]");
-	if (IS_ERR(vma_heap)) {
-		brk = PTR_ERR(vma_heap);
-		goto unlock_out;
-	}
-
-	process->brk.vma = vma_heap;
-	brk = brk + size;
+report_out:
+	brk = base + (process->brk.vma ? process->brk.vma->size : 0);
 
 unlock_out:
 	spin_unlock(&task->lock);

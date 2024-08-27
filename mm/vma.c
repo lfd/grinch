@@ -252,3 +252,9 @@ int uvma_handle_fault(struct task *t, struct vma *vma, void __user *addr)
 
 	return 0;
 }
+
+int uvma_resize(const struct process *p, struct vma *vma, size_t size)
+{
+	/* Only a stub - not yet implemented */
+	return -ENOSYS;
+}
