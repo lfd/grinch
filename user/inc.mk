@@ -37,6 +37,7 @@ LIBC_OBJS += wait.o
 
 # grinch-specific stuff
 LIBC_OBJS += grinch/fb.o
+LIBC_OBJS += grinch/gpaint.o
 LIBC_OBJS += grinch/grinch.o
 
 LIBC_OBJS := $(addprefix user/lib/, $(LIBC_OBJS))
