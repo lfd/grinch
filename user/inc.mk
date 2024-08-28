@@ -15,13 +15,12 @@ INCLUDES_USER = -Iuser/include -Icommon/include -Iuser/lib/$(ARCH)/include
 CFLAGS_USER = $(CFLAGS_COMMON) $(CFLAGS_ARCH) $(CFLAGS_STANDALONE) $(INCLUDES_USER)
 LDFLAGS_USER = $(LDFLAGS_COMMON) $(LDFLAGS_ARCH)
 
+# libc stuff
 LIBC_OBJS = $(ARCH)/entry.o
 LIBC_OBJS += ctype.o
 LIBC_OBJS += dirent.o
 LIBC_OBJS += errno.o
-LIBC_OBJS += fb.o
 LIBC_OBJS += fcntl.o
-LIBC_OBJS += grinch.o
 LIBC_OBJS += ioctl.o
 LIBC_OBJS += salloc.o
 LIBC_OBJS += stdio.o
@@ -35,6 +34,11 @@ LIBC_OBJS += time.o
 LIBC_OBJS += unistd.o
 LIBC_OBJS += vsprintf.o
 LIBC_OBJS += wait.o
+
+# grinch-specific stuff
+LIBC_OBJS += grinch/fb.o
+LIBC_OBJS += grinch/grinch.o
+
 LIBC_OBJS := $(addprefix user/lib/, $(LIBC_OBJS))
 
 LIBC_BUILTIN = user/lib/built-in.a
