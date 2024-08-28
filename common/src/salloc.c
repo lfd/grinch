@@ -98,7 +98,7 @@ int salloc_init(void *base, size_t size)
 	return 0;
 }
 
-int salloc_alloc(void *base, size_t size, void **dst)
+int salloc_alloc(void *base, size_t size, void **dst, size_t *increase)
 {
 	struct memchunk *this, *other, *tmp;
 	unsigned int flags, remaining;
@@ -114,10 +114,20 @@ int salloc_alloc(void *base, size_t size, void **dst)
 			return err;
 
 		if (this->flags & MEMCHUNK_FLAG_USED || this->size < size) {
-			this = next_chunk(this);
-			if (!this)
-				return -ENOMEM;
-			continue;
+			tmp = next_chunk(this);
+			if (tmp) {
+				this = tmp;
+				continue;
+			}
+
+			/* out of memory, this points to the last memchunk */
+			if (increase) {
+				if (this->flags & MEMCHUNK_FLAG_USED)
+					*increase = sizeof(struct memchunk) + size;
+				else
+					*increase = size - this->size;
+			}
+			return -ENOMEM;
 		}
 
 		this->flags |= MEMCHUNK_FLAG_USED;
@@ -152,21 +162,51 @@ int salloc_alloc(void *base, size_t size, void **dst)
 	return 0;
 }
 
-int salloc_realloc(void *base, void *old, size_t size, void **_new)
+int salloc_increase(void *base, size_t increase)
+{
+	struct memchunk *this, *next;
+	int err;
+
+	this = base;
+	do {
+		err = check_chunk(this);
+		if (err)
+			return err;
+
+		next = next_chunk(this);
+		if (!next)
+			break;
+
+		this = next;
+	} while (true);
+
+	if (this->flags & MEMCHUNK_FLAG_USED) {
+		this->flags &= ~MEMCHUNK_FLAG_LAST;
+		next = next_chunk(this);
+		set_chunk(next, this, increase - sizeof(struct memchunk),
+			  MEMCHUNK_FLAG_LAST);
+	} else
+		this->size += increase;
+
+	return 0;
+}
+
+int salloc_realloc(void *base, void *old, size_t size, void **_new,
+		   size_t *increase)
 {
 	struct memchunk *m_old, *m_new;
 	void *new;
 	int err;
 
 	if (old == NULL)
-		return salloc_alloc(base, size, _new);
+		return salloc_alloc(base, size, _new, increase);
 
 	m_old = chunk_of(old);
 	err = check_chunk(m_old);
 	if (err)
 		return err;
 
-	err = salloc_alloc(base, size, &new);
+	err = salloc_alloc(base, size, &new, increase);
 	if (err)
 		return err;
 

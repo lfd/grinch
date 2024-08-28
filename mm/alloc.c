@@ -104,7 +104,7 @@ void *kmalloc(size_t size)
 	}
 
 	spin_lock(&alloc_lock);
-	err = salloc_alloc(vma_kheap.base, size, &ret);
+	err = salloc_alloc(vma_kheap.base, size, &ret, NULL);
 	spin_unlock(&alloc_lock);
 
 	if (err == -ENOMEM)

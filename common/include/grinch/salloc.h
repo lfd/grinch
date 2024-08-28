@@ -15,11 +15,21 @@
 
 typedef void (*salloc_printer)(const char *format, ...);
 
-/* Routines */
+/*
+ * Routines.
+ *
+ * If the argument increase is set and salloc_{re}alloc return ENOMEM, then
+ * increase contains the number of bytes the underlying structure has to be
+ * extended.
+ */
 int __must_check salloc_init(void *base, size_t size);
-int __must_check salloc_alloc(void *base, size_t size, void **dst);
+int __must_check salloc_alloc(void *base, size_t size, void **dst,
+			      size_t *increase);
 int __must_check salloc_free(const void *ptr);
-int __must_check salloc_realloc(void *base, void *old, size_t size, void **new);
+int __must_check salloc_realloc(void *base, void *old, size_t size, void **new,
+				size_t *increase);
+
+int __must_check salloc_increase(void *base, size_t size);
 
 /* Utilities */
 int __must_check salloc_fsck(salloc_printer pr, void *base, size_t size);

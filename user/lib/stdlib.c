@@ -75,7 +75,7 @@ void *malloc(size_t size)
 	void *ret;
 	int err;
 
-	err = salloc_alloc(heap.base, size, &ret);
+	err = salloc_alloc(heap.base, size, &ret, NULL);
 	if (err) {
 		errno = -err;
 		return NULL;
@@ -100,7 +100,7 @@ void *realloc(void *ptr, size_t size)
 	void *new;
 	int err;
 
-	err = salloc_realloc(heap.base, ptr, size, &new);
+	err = salloc_realloc(heap.base, ptr, size, &new, NULL);
 	if (!err)
 		return new;
 
