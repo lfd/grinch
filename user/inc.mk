@@ -37,6 +37,7 @@ LIBC_OBJS += wait.o
 
 # grinch-specific stuff
 LIBC_OBJS += grinch/fb.o
+LIBC_OBJS += grinch/gimg.o
 LIBC_OBJS += grinch/gpaint.o
 LIBC_OBJS += grinch/grinch.o
 
@@ -45,6 +46,10 @@ LIBC_OBJS := $(addprefix user/lib/, $(LIBC_OBJS))
 LIBC_BUILTIN = user/lib/built-in.a
 
 $(LIBC_BUILTIN): $(LIBC_OBJS)
+
+%.gimg: ./scripts/img2gimg %.png
+	$(QUIET) "[GIMG]  $@"
+	$(VERBOSE) $^ $@
 
 user/%.o: user/%.c $(SYSCALL_HEADER)
 	$(QUIET) "[CC-U]  $@"

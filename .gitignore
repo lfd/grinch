@@ -4,6 +4,7 @@
 *.o
 *.ld
 *.dtb
+*.gimg
 
 # GCOV stuff
 *.gcda

@@ -59,12 +59,14 @@ Build & Installation
 --------------------
 
 It is recommended to compile everything on your local machine with a cross
-compiler. You will need a cross toolchain:
+compiler. You will need a cross toolchain and following requirements:
 
 - dtc
 - cpio
 - qemu-system-riscv64
 - riscv64-linux-gnu-
+- Python3
+- python-pillow
 
 To clone grinch, run:
 
