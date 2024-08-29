@@ -19,16 +19,26 @@
 #define GRINCH_FB_SCREENINFO	0
 #define GRINCH_FB_MODESET	1
 
+#define GRINCH_FB_PIXMODE_XRGB	0 // 32-Bit
+#define GRINCH_FB_PIXMODE_RGB	1 // 24-Bit
+#define GRINCH_FB_PIXMODE_RBG	2 // 24-Bit
+
+typedef u8 pixmode_t;
+
 struct grinch_fb_modeinfo {
 	u32 xres;
 	u32 yres;
-	u8 bpp;
+	pixmode_t pixmode;
 };
 
 struct grinch_fb_screeninfo {
 	struct grinch_fb_modeinfo mode;
-	u32 fb_size; /* size of fb in current resolution */
-	u32 mmio_size; /* size of full mmio-mapped frame buffer */
+
+	/* size of one frame of the framebuffer in the current mode */
+	u32 fb_size;
+	u32 bpp;
+
+	u64 pixmodes_supported;
 };
 
 #endif /* _GRINCH_FB_ABI_H */

@@ -47,9 +47,13 @@
 #define VBE_DISPI_ENABLED			0x01
 #define VBE_DISPI_LFB_ENABLED			0x40
 
+#define BOCHS_PIXMODES			\
+	(1 << GRINCH_FB_PIXMODE_XRGB)
+
 struct bochs_gpu {
 	u32 *fb;
 	void *ctl;
+	unsigned int mmio_size;
 
 	struct grinch_fb_screeninfo info;
 	struct devfs_node node;
@@ -94,11 +98,27 @@ static ssize_t bochs_write(struct devfs_node *node, struct file_handle *fh,
 static int
 bochs_set_mode(struct bochs_gpu *gpu, struct grinch_fb_modeinfo *mode)
 {
-	/* Only support 32-bit mode at the moment */
-	if (mode->bpp != 32)
-		return -EINVAL;
+	u32 bpp;
+	u64 new_size;
 
-	dispi_write(gpu, VBE_DISPI_INDEX_BPP, mode->bpp);
+	switch (mode->pixmode) {
+		case GRINCH_FB_PIXMODE_XRGB:
+			bpp = 32;
+			break;
+
+		default:
+			return -EINVAL;
+	}
+
+	new_size = mode->xres * mode->yres * (bpp / 8);
+	if (new_size > gpu->mmio_size)
+		return -EIO;
+
+	gpu->info.bpp = bpp;
+	gpu->info.fb_size = new_size;
+	gpu->info.mode = *mode;
+
+	dispi_write(gpu, VBE_DISPI_INDEX_BPP, bpp);
 	dispi_write(gpu, VBE_DISPI_INDEX_XRES, mode->xres);
 	dispi_write(gpu, VBE_DISPI_INDEX_YRES, mode->yres);
 	dispi_write(gpu, VBE_DISPI_INDEX_BANK, 0);
@@ -106,9 +126,6 @@ bochs_set_mode(struct bochs_gpu *gpu, struct grinch_fb_modeinfo *mode)
 	dispi_write(gpu, VBE_DISPI_INDEX_VIRT_HEIGHT, mode->yres);
 	dispi_write(gpu, VBE_DISPI_INDEX_X_OFFSET, 0);
 	dispi_write(gpu, VBE_DISPI_INDEX_Y_OFFSET, 0);
-
-	gpu->info.fb_size = mode->xres * mode->yres * sizeof(u32);
-	gpu->info.mode = *mode;
 
 	return 0;
 }
@@ -174,11 +191,13 @@ bochs_gpu_probe(struct pci_device *dev, const struct pci_device_id *id)
 		return -ENOMEM;
 
 	gpu->fb = dev->bars[0].iomem.base;
+	gpu->mmio_size = dev->bars[0].iomem.phys.size;
 	gpu->ctl = dev->bars[2].iomem.base;
-	gpu->info.mmio_size = dev->bars[0].iomem.phys.size;
 	dev->data = gpu;
 
-	mode.bpp = 32;
+	gpu->info.pixmodes_supported = BOCHS_PIXMODES;
+
+	mode.pixmode = GRINCH_FB_PIXMODE_XRGB;
 	mode.xres = 320;
 	mode.yres = 240;
 

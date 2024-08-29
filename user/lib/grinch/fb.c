@@ -12,10 +12,25 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <stdio.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 
 #include <grinch/fb.h>
+
+static const char *pixmode_string(pixmode_t mode)
+{
+	switch (mode) {
+		case GRINCH_FB_PIXMODE_XRGB:
+			return "XRGB";
+
+		case GRINCH_FB_PIXMODE_RGB:
+			return "RGB";
+
+		default:
+			return "Unknown mode";
+	}
+}
 
 static int grinch_fb_screeninfo(int fd, struct grinch_fb_screeninfo *info)
 {
@@ -35,6 +50,14 @@ int grinch_fb_modeset(struct grinch_fb *fb, struct grinch_fb_modeinfo *mode)
 		return -errno;
 
 	return 0;
+}
+
+void grinch_fb_modeinfo(struct grinch_fb *fb)
+{
+	printf("Screen resolution: %ux%u, Bits per Pixel: %u, Pixelmode: %s"
+	       " framebuffer size: 0x%x\n",
+	       fb->info.mode.xres, fb->info.mode.yres, fb->info.bpp,
+	       pixmode_string(fb->info.mode.pixmode), fb->info.fb_size);
 }
 
 int grinch_fb_open(struct grinch_fb *fb, const char *dev)

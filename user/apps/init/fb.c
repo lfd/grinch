@@ -20,7 +20,6 @@
 
 #define XRES	320
 #define YRES	240
-#define BPP	32
 
 static u32 buf[XRES * YRES];
 
@@ -29,7 +28,7 @@ void show_logo(void)
 	struct grinch_fb_modeinfo mode = {
 		.xres = XRES,
 		.yres = YRES,
-		.bpp = BPP,
+		.pixmode = GRINCH_FB_PIXMODE_XRGB,
 	};
 	struct grinch_fb fb;
 	int err, fd;
@@ -45,12 +44,20 @@ void show_logo(void)
 	if (err)
 		return;
 
+	grinch_fb_modeinfo(&fb);
+
+	if (grinch_fb_pixmode_supported(&fb, GRINCH_FB_PIXMODE_XRGB))
+		mode.pixmode = GRINCH_FB_PIXMODE_XRGB;
+	else if (grinch_fb_pixmode_supported(&fb, GRINCH_FB_PIXMODE_RGB))
+		mode.pixmode = GRINCH_FB_PIXMODE_RGB;
+	else if (grinch_fb_pixmode_supported(&fb, GRINCH_FB_PIXMODE_RBG))
+		mode.pixmode = GRINCH_FB_PIXMODE_RBG;
+
 	err = grinch_fb_modeset(&fb, &mode);
 	if (err)
 		return;
 
-	printf("Screen resolution %ux%u\n",
-	       fb.info.mode.xres, fb.info.mode.yres);
+	grinch_fb_modeinfo(&fb);
 
 	write(fb.fd, buf, sizeof(buf));
 

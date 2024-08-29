@@ -23,6 +23,13 @@ struct grinch_fb {
 int grinch_fb_open(struct grinch_fb *fb, const char *dev);
 void grinch_fb_close(struct grinch_fb *fb);
 
+static inline bool
+grinch_fb_pixmode_supported(struct grinch_fb *fb, pixmode_t mode)
+{
+	return fb->info.pixmodes_supported & (1UL << mode);
+}
+
+void grinch_fb_modeinfo(struct grinch_fb *fb);
 int grinch_fb_modeset(struct grinch_fb *fb, struct grinch_fb_modeinfo *mode);
 
 #endif /* _GRINCH_FB_H */
