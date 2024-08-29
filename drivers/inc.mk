@@ -1,9 +1,15 @@
-DRIVERS_OBJS = device.o driver.o pci/pci.o
+DRIVERS_OBJS = device.o
+DRIVERS_OBJS += driver.o
 DRIVERS_OBJS += fb/bochs.o
+DRIVERS_OBJS += pci/pci.o
 
 DRIVERS_IRQ_OBJS = irq/irqchip.o
-DRIVERS_SERIAL_OBJS = serial/chardev.o serial/serial.o serial/uart-dummy.o
-DRIVERS_SERIAL_OBJS += serial/uart-8250.o serial/uart-apbuart.o
+
+DRIVERS_SERIAL_OBJS = serial/chardev.o
+DRIVERS_SERIAL_OBJS += serial/serial.o
+DRIVERS_SERIAL_OBJS += serial/uart-dummy.o
+DRIVERS_SERIAL_OBJS += serial/uart-8250.o
+DRIVERS_SERIAL_OBJS += serial/uart-apbuart.o
 
 ifeq ($(ARCH),riscv)
 	DRIVERS_OBJS += sbi-tty.o
