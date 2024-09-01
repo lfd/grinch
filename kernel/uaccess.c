@@ -27,6 +27,17 @@
 static const unsigned long
 zero_page[PAGE_SIZE / sizeof(unsigned long)] __aligned(PAGE_SIZE);
 
+bool is_urange(const void *_base, size_t size)
+{
+	u64 base = (u64)_base;
+
+	if (base >= USER_START && base < USER_END &&
+	    (base + size) <= USER_END)
+		return true;
+
+	return false;
+}
+
 void *user_to_direct(struct mm *mm, const void __user *s)
 {
 	paddr_t pa;

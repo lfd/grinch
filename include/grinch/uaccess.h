@@ -15,6 +15,17 @@
 
 struct mm;
 
+/* Utilities */
+
+/* Check if a given memory range is fully in userspace */
+bool is_urange(const void *_base, size_t size);
+
+/* Check if an address is a userspace address */
+static inline bool is_uaddr(const void *addr)
+{
+	return is_urange(addr, 0);
+}
+
 /* Write to user */
 unsigned long umemset(struct task *t, void __user *dst, int c, size_t n);
 unsigned long copy_to_user(struct task *t, void __user *d,

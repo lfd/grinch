@@ -122,17 +122,6 @@ int kvma_create(struct vma *vma)
 	return 0;
 }
 
-static bool is_user_range(void *_base, size_t size)
-{
-	u64 base = (u64)_base;
-
-	if (base >= USER_START && base < USER_END &&
-	    (base + size) <= USER_END)
-		return true;
-
-	return false;
-}
-
 static struct vma *
 __uvma_at(const struct process *p, const void __user *base, size_t size)
 {
@@ -178,7 +167,7 @@ struct vma *uvma_create(struct task *t, void *base, size_t size,
 	struct vma *vma;
 	int err;
 
-	if (!is_user_range(base, size))
+	if (!is_urange(base, size))
 		return ERR_PTR(-ERANGE);
 
 	/* Check that the VMA won't collide with any other VMA */
