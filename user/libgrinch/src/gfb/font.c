@@ -10,6 +10,8 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <string.h>
+
 #include <grinch/gfb/font.h>
 
 const struct gfont *fonts[] = {
@@ -28,3 +30,45 @@ const struct gfont *fonts[] = {
 	&font_ter_16x32,
 	NULL
 };
+
+static void gfont_putc(struct gfb_handle *h, const struct gfont *desc,
+		       struct gcolor color, struct gcoord coord, char c)
+{
+	struct gcoord dest;
+	unsigned int y, x;
+	const u16 *line;
+
+	if (c >= desc->charcount) // actually - place empty character?
+		return;
+
+	line = desc->data + c * desc->height;
+	for (y = 0; y < desc->height; y++) {
+		for (x = 0; x < desc->width; x++) {
+			if (*line & (1 << x)) {
+				dest.y = coord.y;
+				dest.x = coord.x + x;
+				h->gfb->setpixel(h, dest, color);
+			}
+		}
+		coord.y++;
+		line++;
+	}
+}
+
+/* returns the number of characters that were not printed */
+int gfont_puts(struct gfb_handle *h, const struct gfont *desc,
+	       struct gcolor color, struct gcoord coord, const char *s)
+{
+	unsigned int i, max;
+
+	if (coord.y + desc->height > h->gfb->info.mode.yres)
+		return strlen(s);
+
+	max = (h->gfb->info.mode.xres - coord.x) / desc->width;
+	for (i = 0; s[i] && i < max; i++) {
+		gfont_putc(h, desc, color, coord, s[i]);
+		coord.x += desc->width;
+	}
+
+	return strlen(s + i);
+}

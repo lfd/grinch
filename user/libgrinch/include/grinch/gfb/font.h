@@ -44,4 +44,12 @@ extern const struct gfont *fonts[];
 
 #define for_each_font(X)	for ((X) = fonts; *(X); (X)++)
 
+int gfont_puts(struct gfb_handle *h, const struct gfont *font,
+	       struct gcolor color, struct gcoord coord, const char *s);
+
+static inline unsigned int gfont_width(const struct gfont *font, size_t len)
+{
+	return font->width * len;
+}
+
 #endif /* _GFB_FONT_H */

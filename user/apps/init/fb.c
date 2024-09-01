@@ -19,6 +19,7 @@
 
 #include <grinch/gfb/gimg.h>
 #include <grinch/gfb/gpaint.h>
+#include <grinch/gfb/font.h>
 
 #include "fb.h"
 
@@ -27,14 +28,16 @@
 
 void show_logo(void)
 {
+	const char *msg = "Welcome to Grinch!";
 	struct gfb_mode mode = {
 		.xres = XRES,
 		.yres = YRES,
 	};
+	const struct gfont **font;
+	struct gcoord coord, off;
 	struct gfb_handle h;
 	struct gcolor color;
 	struct gimg *logo;
-	struct gcoord off;
 	struct gfb gfb;
 	int err;
 
@@ -70,6 +73,14 @@ void show_logo(void)
 	off.x = (mode.xres - logo->width) / 2;
 	off.y = (mode.yres - logo->height) / 2;
 	gimg_to_fb(&h, logo, off);
+
+	color.r = color.g = color.b = 0x0;
+	coord.y = 0;
+	for_each_font(font) {
+		coord.x = (mode.xres - gfont_width(*font, strlen(msg))) / 2;
+		gfont_puts(&h, *font, color, coord, msg);
+		coord.y += (*font)->height;
+	}
 
 	write(gfb.fd, h.fb, gfb.info.fb_size);
 
