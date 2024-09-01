@@ -21,8 +21,9 @@
 
 #define GRINCH_FB_PIXMODE_XRGB		0 // 32-Bit
 #define GRINCH_FB_PIXMODE_RGB		1 // 24-Bit
-#define GRINCH_FB_PIXMODE_R5G6B5	2 // 16-Bit mode R5G6B5 - Bochs
-#define GRINCH_FB_PIXMODE_R5G5B5	3 // 15 (16)-Bit mode R5G5B5 - Bochs
+#define GRINCH_FB_PIXMODE_RBG		2 // 24-Bit
+#define GRINCH_FB_PIXMODE_R5G6B5	3 // 16-Bit mode R5G6B5 - Bochs
+#define GRINCH_FB_PIXMODE_R5G5B5	4 // 15 (16)-Bit mode R5G5B5 - Bochs
 
 typedef u8 pixmode_t;
 

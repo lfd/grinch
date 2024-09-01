@@ -36,6 +36,18 @@ static void setpixel_rgb(void *fb, struct grinch_fb_screeninfo *info,
 	dst[2] = color.r;
 }
 
+static void setpixel_rbg(void *fb, struct grinch_fb_screeninfo *info,
+			  struct gcoord coord, struct gcolor color)
+{
+	u8 *dst;
+
+	dst = fb + (24 / 8) * (coord.y * info->mode.xres + coord.x);
+
+	dst[0] = color.g;
+	dst[1] = color.b;
+	dst[2] = color.r;
+}
+
 static void setpixel_r5g6b5(void *fb, struct grinch_fb_screeninfo *info,
 			    struct gcoord coord, struct gcolor color)
 {
@@ -69,6 +81,9 @@ g_setpixel g_get_setpixel(struct grinch_fb_screeninfo *info)
 
 		case GRINCH_FB_PIXMODE_RGB:
 			return setpixel_rgb;
+
+		case GRINCH_FB_PIXMODE_RBG:
+			return setpixel_rbg;
 
 		case GRINCH_FB_PIXMODE_R5G6B5:
 			return setpixel_r5g6b5;
