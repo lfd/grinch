@@ -23,6 +23,7 @@
 #include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/symbols.h>
+#include <grinch/uaccess.h>
 
 #define KMM_PAGES	PAGES(GRINCH_SIZE)
 #define KMM_SIZE	(KMM_PAGES * PAGE_SIZE)
@@ -49,11 +50,12 @@ struct memory_area {
 /*
  * For the moment, we have two areas:
  *   0: Kernel Memory area. Here lives grinch and some free pages.
- *   1: Physical Memory. Here lives the whole physical memory.
+ *   1: Physical Memory. Here lives the whole physical memory. The whole
+ *      grinch/KMM area is marked as used here.
  */
 static struct memory_area memory_areas[2] =
 {
-	{
+	[0] = {
 		.bitmap = {
 			.bitmap = (unsigned long[BITMAP_ELEMS(KMM_PAGES)]){},
 			.bit_max = KMM_PAGES,
@@ -63,6 +65,8 @@ static struct memory_area memory_areas[2] =
 			.base = (void *)VMGRINCH_BASE,
 			.end = (void *)VMGRINCH_BASE + KMM_PAGES * PAGE_SIZE,
 		},
+	},
+	[1] = {
 	},
 };
 #define KMM_AREA	(&memory_areas[0])
@@ -299,12 +303,28 @@ void *alloc_pages_aligned(unsigned int pages, unsigned int alignment)
 paddr_t v2p(const void *virt)
 {
 	struct memory_area *area;
+	paddr_t phys;
 
+	/*
+	 * If virt is inside the grinch area of direct physical area, we can go
+	 * through regular memora areas.
+	 */
 	area = find_area(virt);
-	if (!area)
-		panic("Unable to resolve address %p\n", virt);
+	if (area)
+		return memory_area_v2p(area, virt);
 
-	return memory_area_v2p(area, virt);
+	if (is_uaddr(virt))
+		panic("Don't resolve userspace addresses via v2p()!\n");
+
+	/*
+	 * Perform a PTW walk. This could indeed be implemented more efficient.
+	 * But we're usually not in a hot path here, so keep it simple.
+	 */
+	phys = paging_get_phys(this_per_cpu()->root_table_page, virt);
+	if (phys != INVALID_PHYS_ADDR)
+		return phys;
+
+	panic("Unable to resolve address %p\n", virt);
 }
 
 void *p2v(paddr_t phys)
