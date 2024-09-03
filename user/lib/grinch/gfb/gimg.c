@@ -17,7 +17,7 @@
 #include <unistd.h>
 
 #include <grinch/minmax.h>
-#include <grinch/gimg.h>
+#include <grinch/gfb/gimg.h>
 
 inline struct gcolor gimg_getpixel(struct gimg *img, struct gcoord c)
 {
@@ -33,24 +33,21 @@ inline struct gcolor gimg_getpixel(struct gimg *img, struct gcoord c)
 	return ret;
 }
 
-void gimg_to_fb(void *buf, struct grinch_fb_screeninfo *info, struct gimg *img,
-		struct gcoord off)
+void
+gimg_to_fb(struct gfb_handle *h, struct gimg *img, struct gcoord off)
 {
 	struct gcoord c, max, dst;
-	g_setpixel setpixel;
 	struct gcolor src;
 
-	setpixel = g_get_setpixel(info);
-
-	max.x = min(off.x + img->width, info->mode.xres) - off.x;
-	max.y = min(off.y + img->height, info->mode.yres) - off.y;
+	max.x = min(off.x + img->width, h->gfb->info.mode.xres) - off.x;
+	max.y = min(off.y + img->height, h->gfb->info.mode.yres) - off.y;
 
 	for (c.y = 0; c.y < max.y; c.y++)
 		for (c.x = 0; c.x < max.x; c.x++) {
 			src = gimg_getpixel(img, c);
 			dst.y = c.y + off.y;
 			dst.x = c.x + off.x;
-			setpixel(buf, info, dst, src);
+			h->gfb->setpixel(h, dst, src);
 		}
 }
 

@@ -13,8 +13,7 @@
 #ifndef _GIMG_H
 #define _GIMG_H
 
-#include <grinch/fb.h>
-#include <grinch/gpaint.h>
+#include <grinch/gfb/gfb.h>
 
 struct gimg {
 	unsigned int width;
@@ -27,7 +26,7 @@ int gimg_load(const char *fname, struct gimg **img);
 void gimg_unload(struct gimg *img);
 struct gcolor gimg_getpixel(struct gimg *img, struct gcoord c);
 
-void gimg_to_fb(void *fb, struct grinch_fb_screeninfo *info, struct gimg *img,
-		struct gcoord off);
+void
+gimg_to_fb(struct gfb_handle *h, struct gimg *img, struct gcoord off);
 
 #endif /* _GIMG_H */

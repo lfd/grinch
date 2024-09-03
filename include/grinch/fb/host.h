@@ -16,12 +16,12 @@
 
 struct fb_host {
 	struct devfs_node node;
-	struct grinch_fb_screeninfo info;
+	struct gfb_screeninfo info;
 	struct device *dev;
 
 	spinlock_t lock;
 
-	int (*set_mode)(struct fb_host *host, struct grinch_fb_modeinfo *mode);
+	int (*set_mode)(struct fb_host *host, struct gfb_mode *mode);
 
 	// FIXME: we should support multiple framebuffers
 	void *fb;

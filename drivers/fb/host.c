@@ -35,7 +35,6 @@ struct fb_host * __init fb_host_alloc(unsigned int sz, struct device *dev)
 {
 	struct fb_host *host;
 
-
 	host = kzalloc(sizeof(*host) + sz);
 	if (!host)
 		return NULL;
@@ -49,8 +48,8 @@ struct fb_host * __init fb_host_alloc(unsigned int sz, struct device *dev)
 static long
 fb_host_ioctl(struct devfs_node *node, unsigned long op, unsigned long arg)
 {
-	struct grinch_fb_modeinfo mode;
 	struct fb_host *host;
+	struct gfb_mode mode;
 	void __user *uarg;
 	unsigned long ret;
 	long err;
@@ -61,7 +60,7 @@ fb_host_ioctl(struct devfs_node *node, unsigned long op, unsigned long arg)
 	spin_lock(&host->lock);
 
 	switch (op) {
-		case GRINCH_FB_SCREENINFO:
+		case GFB_IOCTL_SCREENINFO:
 			ret = copy_to_user(current_task(), uarg, &host->info,
 					   sizeof(host->info));
 			if (ret != sizeof(host->info))
@@ -70,7 +69,7 @@ fb_host_ioctl(struct devfs_node *node, unsigned long op, unsigned long arg)
 			err = 0;
 			break;
 
-		case GRINCH_FB_MODESET:
+		case GFB_IOCTL_MODESET:
 			ret = copy_from_user(current_task(), &mode, uarg,
 					     sizeof(mode));
 			if (ret != sizeof(mode))

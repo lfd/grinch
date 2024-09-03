@@ -45,10 +45,10 @@
 #define VBE_DISPI_LFB_ENABLED			0x40
 
 #define BOCHS_PIXMODES			  \
-	(1 << GRINCH_FB_PIXMODE_XRGB)   | \
-	(1 << GRINCH_FB_PIXMODE_RGB)    | \
-	(1 << GRINCH_FB_PIXMODE_R5G6B5)	| \
-	(1 << GRINCH_FB_PIXMODE_R5G5B5)
+	(1 << GFB_PIXMODE_XRGB)   | \
+	(1 << GFB_PIXMODE_RGB)    | \
+	(1 << GFB_PIXMODE_R5G6B5)	| \
+	(1 << GFB_PIXMODE_R5G5B5)
 
 struct bochs_gpu {
 	void *ctl;
@@ -75,8 +75,7 @@ static void dispi_write(struct bochs_gpu *gpu, u16 reg, u16 value)
 	_vga_write16(gpu, BOCHS_DISPI_BASE + (reg << 1), value);
 }
 
-static int
-bochs_set_mode(struct fb_host *host, struct grinch_fb_modeinfo *mode)
+static int bochs_set_mode(struct fb_host *host, struct gfb_mode *mode)
 {
 	struct bochs_gpu *gpu;
 	u64 new_size;
@@ -85,19 +84,19 @@ bochs_set_mode(struct fb_host *host, struct grinch_fb_modeinfo *mode)
 	gpu = fb_priv(host);
 
 	switch (mode->pixmode) {
-		case GRINCH_FB_PIXMODE_XRGB:
+		case GFB_PIXMODE_XRGB:
 			bpp = 32;
 			break;
 
-		case GRINCH_FB_PIXMODE_RGB:
+		case GFB_PIXMODE_RGB:
 			bpp = 24;
 			break;
 
-		case GRINCH_FB_PIXMODE_R5G6B5:
+		case GFB_PIXMODE_R5G6B5:
 			bpp = 16;
 			break;
 
-		case GRINCH_FB_PIXMODE_R5G5B5:
+		case GFB_PIXMODE_R5G5B5:
 			bpp = 15;
 			break;
 
@@ -129,9 +128,9 @@ bochs_set_mode(struct fb_host *host, struct grinch_fb_modeinfo *mode)
 static int
 bochs_gpu_probe(struct pci_device *dev, const struct pci_device_id *id)
 {
-	struct grinch_fb_modeinfo mode;
-	struct fb_host *host;
 	struct bochs_gpu *gpu;
+	struct fb_host *host;
+	struct gfb_mode mode;
 	int err;
 
 	err = pci_map_bars(dev);
@@ -153,7 +152,7 @@ bochs_gpu_probe(struct pci_device *dev, const struct pci_device_id *id)
 
 	host->info.pixmodes_supported = BOCHS_PIXMODES;
 
-	mode.pixmode = GRINCH_FB_PIXMODE_XRGB;
+	mode.pixmode = GFB_PIXMODE_XRGB;
 	mode.xres = 320;
 	mode.yres = 240;
 

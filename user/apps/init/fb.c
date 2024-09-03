@@ -17,7 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <grinch/gimg.h>
+#include <grinch/gfb/gimg.h>
 
 #include "fb.h"
 
@@ -26,52 +26,53 @@
 
 void show_logo(void)
 {
-	struct grinch_fb_modeinfo mode = {
+	struct gfb_mode mode = {
 		.xres = XRES,
 		.yres = YRES,
 	};
-	struct grinch_fb fb;
+	struct gfb_handle h;
 	struct gimg *logo;
 	struct gcoord off;
-	void *framebuffer;
+	struct gfb gfb;
 	int err;
 
-	err = grinch_fb_open(&fb, "/dev/fb0");
+	err = gfb_open(&gfb, "/dev/fb0");
 	if (err)
 		return;
 
-	if (grinch_fb_pixmode_supported(&fb, GRINCH_FB_PIXMODE_XRGB))
-		mode.pixmode = GRINCH_FB_PIXMODE_XRGB;
-	else if (grinch_fb_pixmode_supported(&fb, GRINCH_FB_PIXMODE_RGB))
-		mode.pixmode = GRINCH_FB_PIXMODE_RGB;
-	else if (grinch_fb_pixmode_supported(&fb, GRINCH_FB_PIXMODE_RBG))
-		mode.pixmode = GRINCH_FB_PIXMODE_RBG;
+	if (gfb_pixmode_supported(&gfb, GFB_PIXMODE_XRGB))
+		mode.pixmode = GFB_PIXMODE_XRGB;
+	else if (gfb_pixmode_supported(&gfb, GFB_PIXMODE_RGB))
+		mode.pixmode = GFB_PIXMODE_RGB;
+	else if (gfb_pixmode_supported(&gfb, GFB_PIXMODE_RBG))
+		mode.pixmode = GFB_PIXMODE_RBG;
 
-	err = grinch_fb_modeset(&fb, &mode);
+	err = gfb_modeset(&gfb, &mode);
 	if (err)
 		goto close_out;
 
-	grinch_fb_modeinfo(&fb);
+	gfb_modeinfo(&gfb);
 
 	err = gimg_load("/initrd/logo.gimg", &logo);
 	if (err)
 		goto close_out;
 
-	framebuffer = malloc(fb.info.fb_size);
-	if (!framebuffer)
+	h.gfb = &gfb;
+	h.fb = malloc(gfb.info.fb_size);
+	if (!h.fb)
 		goto unload_out;
 
 	off.x = (mode.xres - logo->width) / 2;
 	off.y = (mode.yres - logo->height) / 2;
-	gimg_to_fb(framebuffer, &fb.info, logo, off);
+	gimg_to_fb(&h, logo, off);
 
-	write(fb.fd, framebuffer, fb.info.fb_size);
+	write(gfb.fd, h.fb, gfb.info.fb_size);
 
-	free(framebuffer);
+	free(h.fb);
 
 unload_out:
 	gimg_unload(logo);
 
 close_out:
-	grinch_fb_close(&fb);
+	gfb_close(&gfb);
 }
