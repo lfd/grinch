@@ -52,7 +52,7 @@ endif
 CFLAGS_COMMON=$(OPT) \
               -fno-strict-aliasing \
               -fno-omit-frame-pointer -fno-stack-protector \
-              -ffunction-sections \
+              -ffunction-sections -fdata-sections \
               -Wall -Wextra -Wno-unused-parameter \
               -Wstrict-prototypes -Wtype-limits \
               -Wmissing-declarations -Wmissing-prototypes \

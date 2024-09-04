@@ -73,6 +73,8 @@ SECTIONS
 		__bss_start = .;
 		*(.bss)
 		. = ALIGN(8);
+		*(.bss.*)
+		. = ALIGN(8);
 		*(.sbss)
 		. = ALIGN(8);
 	}
