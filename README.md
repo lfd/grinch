@@ -140,10 +140,11 @@ Basic features:
 | init        | str    | init executable               |
 
 Development features:
-| Parameter   | Values | Description                   |
-| ---         | ---    | ---                           |
-| memtest     | /      | Do memory test                |
-| malloc_fsck | /      | Run sanity checker for kalloc |
+| Parameter     | Values | Description                   |
+| ---           | ---    | ---                           |
+| memtest       | /      | Do memory test                |
+| malloc_fsck   | /      | Run sanity checker for kalloc |
+| ttp_maxevents | int    | No of maxevents for timed TPs |
 
 Authors & License
 -----------------

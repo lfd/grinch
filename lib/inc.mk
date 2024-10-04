@@ -9,6 +9,7 @@ LIB_OBJS += ringbuf.o
 LIB_OBJS += string.o
 LIB_OBJS += strtox.o
 LIB_OBJS += time.o
+LIB_OBJS += ttp.o
 LIB_OBJS += vsprintf.o
 
 LIBFDT_OBJS = libfdt/fdt.o

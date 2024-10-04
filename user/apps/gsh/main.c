@@ -59,6 +59,16 @@ const struct gcall gcalls[] = {
 	{"lspci", GCALL_LSPCI},
 	{"lsof", GCALL_LSOF},
 	{"maps", GCALL_MAPS},
+	{"ttp", GCALL_TTP},
+	{},
+};
+
+const struct gcall gcall_ttpcalls[] = {
+        {"start", GCALL_TTP_START},
+        {"stop", GCALL_TTP_STOP},
+        {"reset", GCALL_TTP_RESET},
+        {"dump", GCALL_TTP_DUMP},
+	{},
 };
 
 static struct tokens paths;
@@ -165,6 +175,17 @@ static int start(const char *cmd, char *argv[], char *env[])
 	return 0;
 }
 
+static int gcall_lookup_argument(const struct gcall *gc, const char *cmd)
+{
+	const struct gcall *tc;
+
+	for (tc = gc; tc->name; tc++)
+		if (!strcmp(tc->name, cmd))
+			return tc->no;
+
+	return -1;
+}
+
 static int gsh_version(char *argv[])
 {
 	printf("Grinch Shell v0.1\n");
@@ -191,36 +212,43 @@ static int gsh_ps(char *argv[])
 
 static int gsh_kstat(char *argv[])
 {
-	const struct gcall *gc;
-	unsigned long arg;
+	int gcall_no, err;
 	const char *cmd;
-	unsigned int i;
-	int err;
+	long arg;
 
 	cmd = argv[1];
 	if (!cmd)
 		return -EINVAL;
 
-	for (i = 0; i < ARRAY_SIZE(gcalls); i++) {
-		gc = gcalls + i;
-		if (!strcmp(gc->name, cmd))
-				goto call;
-	}
+	gcall_no = gcall_lookup_argument(gcalls, cmd);
+	if (gcall_no == -1)
+		return -ENOSYS;
 
-	return -ENOSYS;
-
+	goto call;
 call:
-	if (gc->no == GCALL_MAPS || gc->no == GCALL_LOGLEVEL) {
-		if (argv[2] != 0)
-			arg = strtoul(argv[2], NULL, 0);
-		else
-			arg = getpid();
-	} else {
-		arg = 0;
+	switch (gcall_no) {
+		case GCALL_MAPS:
+		case GCALL_LOGLEVEL:
+			if (argv[2] != 0)
+			        arg = strtoul(argv[2], NULL, 0);
+			else
+			        arg = getpid();
+			break;
+
+		case GCALL_TTP:
+			if (argv[2] == 0)
+	                        return -EINVAL;
+			arg = gcall_lookup_argument(gcall_ttpcalls, argv[2]);
+			if (arg == -1)
+				return -EINVAL;
+			break;
+
+		default:
+			arg = 0;
+			break;
 	}
 
-	err = gcall(gc->no, arg);
-
+	err = gcall(gcall_no, arg);
 	if (err == -1)
 		return -errno;
 

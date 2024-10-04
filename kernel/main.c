@@ -28,6 +28,7 @@
 #include <grinch/paging.h>
 #include <grinch/percpu.h>
 #include <grinch/platform.h>
+#include <grinch/ttp.h>
 #include <grinch/version.h>
 #include <grinch/vmgrinch_header.h>
 
@@ -215,6 +216,10 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 	}
 
 	err = init();
+	if (err)
+		goto out;
+
+	err = ttp_init();
 	if (err)
 		goto out;
 

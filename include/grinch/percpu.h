@@ -30,6 +30,7 @@
 #include <grinch/symbols.h>
 #include <grinch/smp.h>
 #include <grinch/time_abi.h>
+#include <grinch/ttp.h>
 
 struct per_cpu {
 	union {
@@ -51,6 +52,8 @@ struct per_cpu {
 	bool schedule;
 	bool idling;
 	bool handle_events;
+
+	struct ttp_storage ttp_stor;
 
 	struct {
 		timeu_t next;

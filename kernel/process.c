@@ -26,6 +26,7 @@
 #include <grinch/uaccess.h>
 #include <grinch/percpu.h>
 #include <grinch/syscall.h>
+#include <grinch/ttp.h>
 
 #ifdef ARCH_RISCV
 #define ELF_ARCH EM_RISCV
@@ -335,7 +336,6 @@ pathname_out:
 	return err;
 }
 
-
 SYSCALL_DEF3(execve, const char __user *, pathname,
 	       const char __user *const __user *, uargv,
 	       const char __user *const __user *, uenvp)
@@ -486,6 +486,10 @@ SYSCALL_DEF2(grinch_call, unsigned long, no, unsigned long, arg)
 
 		case GCALL_LOGLEVEL:
 			loglevel_set(arg);
+			break;
+
+		case GCALL_TTP:
+			ret = gcall_ttp(arg);
 			break;
 
 		default:
