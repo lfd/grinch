@@ -13,9 +13,9 @@
 #ifndef _GRINCH_GRINCH_H
 #define _GRINCH_GRINCH_H
 
-#include <grinch/kstat.h>
+#include <grinch/gcall.h>
 
-int grinch_kstat(unsigned long no, unsigned long arg1);
+int gcall(unsigned long no, unsigned long arg1);
 
 /* Gets CWD to a fresh buffer. NULL in case of errors */
 char *grinch_getcwd(void);

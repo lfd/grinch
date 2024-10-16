@@ -46,6 +46,20 @@ struct gsh_builtin {
 	int (*fun)(char *argv[]);
 };
 
+struct gcall {
+	const char *name;
+	unsigned int no;
+};
+
+const struct gcall gcalls[] = {
+	{"kheap", GCALL_KHEAP},
+	{"ps", GCALL_PS},
+	{"lsdev", GCALL_LSDEV},
+	{"lspci", GCALL_LSPCI},
+	{"lsof", GCALL_LSOF},
+	{"maps", GCALL_MAPS},
+};
+
 static struct tokens paths;
 static struct tokens orig_env;
 
@@ -171,38 +185,40 @@ static int gsh_help(char *argv[])
 
 static int gsh_ps(char *argv[])
 {
-	return grinch_kstat(GRINCH_KSTAT_PS, 0);
+	return gcall(GCALL_PS, 0);
 }
 
 static int gsh_kstat(char *argv[])
 {
-	const char *arg;
-	pid_t pid;
+	const struct gcall *gc;
+	unsigned long arg;
+	const char *cmd;
+	unsigned int i;
 	int err;
 
-	arg = argv[1];
-	if (!arg)
+	cmd = argv[1];
+	if (!cmd)
 		return -EINVAL;
 
-	if (!strcmp(arg, "ps"))
-		err = gsh_ps(NULL);
-	else if (!strcmp(arg, "kheap"))
-		err = grinch_kstat(GRINCH_KSTAT_KHEAP, 0);
-	else if (!strcmp(arg, "lsdev"))
-		err = grinch_kstat(GRINCH_KSTAT_LSDEV, 0);
-	else if (!strcmp(arg, "lspci"))
-		err = grinch_kstat(GRINCH_KSTAT_LSPCI, 0);
-	else if (!strcmp(arg, "lsof"))
-		err = grinch_kstat(GRINCH_KSTAT_LSOF, 0);
-	else if (!strcmp(arg, "maps")) {
-		if (argv[2] != 0)
-			pid = strtoul(argv[2], NULL, 0);
-		else
-			pid = getpid();
+	for (i = 0; i < ARRAY_SIZE(gcalls); i++) {
+		gc = gcalls + i;
+		if (!strcmp(gc->name, cmd))
+				goto call;
+	}
 
-		err = grinch_kstat(GRINCH_KSTAT_MAPS, pid);
-	} else
-		return -ENOSYS;
+	return -ENOSYS;
+
+call:
+	if (gc->no == GCALL_MAPS) {
+		if (argv[2] != 0)
+			arg = strtoul(argv[2], NULL, 0);
+		else
+			arg = getpid();
+	} else {
+		arg = 0;
+	}
+
+	err = gcall(gc->no, arg);
 
 	if (err == -1)
 		return -errno;

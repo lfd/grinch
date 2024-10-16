@@ -19,7 +19,7 @@
 #include <grinch/errno.h>
 #include <grinch/fs/util.h>
 #include <grinch/fs/vfs.h>
-#include <grinch/kstat.h>
+#include <grinch/gcall.h>
 #include <grinch/pci.h>
 #include <grinch/printk.h>
 #include <grinch/task.h>
@@ -439,33 +439,33 @@ SYSCALL_DEF0(grinch_gettime)
 	return timer_get_wall();
 }
 
-SYSCALL_DEF2(grinch_kstat, unsigned long, no, unsigned long, arg)
+SYSCALL_DEF2(grinch_call, unsigned long, no, unsigned long, arg)
 {
 	long ret;
 
 	ret = 0;
 	switch (no) {
-		case GRINCH_KSTAT_PS:
+		case GCALL_PS:
 			tasks_dump();
 			break;
 
-		case GRINCH_KSTAT_KHEAP:
+		case GCALL_KHEAP:
 			kheap_stats();
 			break;
 
-		case GRINCH_KSTAT_LSPCI:
+		case GCALL_LSPCI:
 			pci_lspci();
 			break;
 
-		case GRINCH_KSTAT_LSOF:
+		case GCALL_LSOF:
 			vfs_lsof();
 			break;
 
-		case GRINCH_KSTAT_MAPS:
+		case GCALL_MAPS:
 			process_show_vmas(arg);
 			break;
 
-		case GRINCH_KSTAT_LSDEV:
+		case GCALL_LSDEV:
 			dev_list();
 			break;
 
