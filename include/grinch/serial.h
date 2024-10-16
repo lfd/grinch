@@ -42,22 +42,8 @@ struct uart_chip {
 	spinlock_t lock;
 };
 
-static inline void uart_write_byte(struct uart_chip *chip, unsigned char b)
-{
-	spin_lock(&chip->lock);
-	while (chip->driver->is_busy(chip))
-		cpu_relax();
-	chip->driver->write_byte(chip, b);
-	spin_unlock(&chip->lock);
-}
-
-static inline void uart_write_char(struct uart_chip *chip, char c)
-{
-	if (c == '\n')
-		uart_write_byte(chip, '\r');
-	
-	uart_write_byte(chip, c);
-}
+void uart_write_byte(struct uart_chip *chip, unsigned char b);
+void uart_write_char(struct uart_chip *chip, char c);
 
 extern const struct devfs_ops serial_fops;
 

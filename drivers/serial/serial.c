@@ -61,6 +61,23 @@ static int serial_rcv(void *_c)
 	return err;
 }
 
+void uart_write_byte(struct uart_chip *chip, unsigned char b)
+{
+	spin_lock(&chip->lock);
+	while (chip->driver->is_busy(chip))
+		cpu_relax();
+	chip->driver->write_byte(chip, b);
+	spin_unlock(&chip->lock);
+}
+
+void uart_write_char(struct uart_chip *chip, char c)
+{
+	if (c == '\n')
+		uart_write_byte(chip, '\r');
+
+	uart_write_byte(chip, c);
+}
+
 static void __init uart_deinit(struct device *dev)
 {
 	struct devfs_node *node;

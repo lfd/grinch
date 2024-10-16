@@ -37,7 +37,7 @@ serial_write(struct devfs_node *node, struct file_handle *fh, const char *buf,
 
 	if (fh->flags.is_kernel) {
 		for (written = 0; written < count; written++)
-			uart_write_byte(c, buf[written]);
+			uart_write_char(c, buf[written]);
 
 		return written;
 	}
@@ -53,7 +53,7 @@ serial_write(struct devfs_node *node, struct file_handle *fh, const char *buf,
 		written += this_sz;
 
 		for (i = 0; i < copied; i++)
-			uart_write_byte(c, tmp[i]);
+			uart_write_char(c, tmp[i]);
 
 		if (copied != this_sz)
 			return written;
