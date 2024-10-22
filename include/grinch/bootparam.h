@@ -22,11 +22,11 @@ struct grinch_bootparam {
 };
 
 #define bootparam(NAME, PARSE)						\
-static const char bootparam_##NAME##_str[] __initconst = #NAME;		\
+static const char __bootparam_##NAME##_str[] __initconst = #NAME;	\
 									\
-static const struct grinch_bootparam bootparam_##NAME			\
+static const struct grinch_bootparam __bootparam_##NAME			\
 	__initbootparams = {						\
-	.name = bootparam_##NAME##_str,					\
+	.name = __bootparam_##NAME##_str,				\
 	.parse = PARSE,							\
 }
 
