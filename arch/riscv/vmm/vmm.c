@@ -16,10 +16,10 @@
 #include <asm/isa.h>
 
 #include <grinch/alloc.h>
-#include <grinch/gfp.h>
+#include <grinch/fdt.h>
 #include <grinch/fs/initrd.h>
 #include <grinch/fs/vfs.h>
-#include <grinch/syscall.h>
+#include <grinch/gfp.h>
 #include <grinch/panic.h>
 #include <grinch/paging.h>
 #include <grinch/printk.h>
@@ -35,9 +35,14 @@
  * 4MiB for grinch
  * 4KiB for DTB
  */
-#define VM_SIZE_RAW	(4 * MIB)
-#define VM_PAGES	(PAGES(VM_SIZE_RAW) + 1)
-#define VM_FDT_OFFSET	VM_SIZE_RAW
+#define FDT_SIZE		PAGE_SIZE
+#define VM_SIZE_RAW		(6 * MIB + FDT_SIZE)
+#define VM_PAGES		PAGES(VM_SIZE_RAW)
+#define VM_FDT_OFFSET		(VM_SIZE_RAW - PAGE_SIZE)
+#define VM_INITRD_OFFSET	(4 * MIB)
+
+#define VM_INITRD_ADDR		(VM_GPHYS_BASE + VM_INITRD_OFFSET)
+#define VM_FDT_ADDR		(VM_GPHYS_BASE + VM_FDT_OFFSET)
 
 #define GUEST_ROOT_PT_PAGES	(1 << 2)
 
@@ -61,6 +66,8 @@
 	(1UL << EXC_INST_PAGE_FAULT) |		\
 	(1UL << EXC_LOAD_PAGE_FAULT) |		\
 	(1UL << EXC_STORE_PAGE_FAULT))
+
+#define FDT_CHECK(STMT)	{ err = STMT; if (err) goto free_out; }
 
 void vmachine_set_timer_pending(struct vmachine *vm)
 {
@@ -273,6 +280,79 @@ static int vm_memcpy(struct vmachine *vm, unsigned long offset,
 	return 0;
 }
 
+static int vm_create_dtb(struct vmachine *vm)
+{
+	void *fdt;
+	int err;
+
+	fdt = kmalloc(FDT_SIZE);
+	if (!fdt)
+		return -ENOMEM;
+
+	err = fdt_create(fdt, FDT_SIZE);
+	if (err) {
+		err = -ENOMEM;
+		goto free_out;
+	}
+
+	FDT_CHECK(fdt_finish_reservemap(fdt));
+
+	/* "/" begin */
+	FDT_CHECK(fdt_begin_node(fdt, ""));
+	FDT_CHECK(fdt_property_string(fdt, "model", "riscv-grinchvm"));
+	FDT_CHECK(fdt_property_u32(fdt, "#address-cells", 2));
+	FDT_CHECK(fdt_property_u32(fdt, "#size-cells", 2));
+
+	/* "/cpus" begin */
+	FDT_CHECK(fdt_begin_node(fdt, "cpus"));
+	FDT_CHECK(fdt_property_u32(fdt, "#address-cells", 1));
+	FDT_CHECK(fdt_property_u32(fdt, "#size-cells", 0));
+	FDT_CHECK(fdt_property_u32(fdt, "timebase-frequency",
+				   riscv_timebase_frequency));
+
+	FDT_CHECK(fdt_begin_node(fdt, "cpu@0"));
+	FDT_CHECK(fdt_property_string(fdt, "device_type", "cpu"));
+	FDT_CHECK(fdt_property_string(fdt, "riscv,isa", "rv64imafdc"));
+	FDT_CHECK(fdt_property_string(fdt, "compatible", "riscv"));
+	FDT_CHECK(fdt_property_u32(fdt, "reg", 0));
+	FDT_CHECK(fdt_property_string(fdt, "status", "okay"));
+	FDT_CHECK(fdt_end_node(fdt));
+
+	FDT_CHECK(fdt_end_node(fdt));
+	/* "/cpus" end */
+
+	/* "/chosen" begin */
+	FDT_CHECK(fdt_begin_node(fdt, "chosen"));
+	FDT_CHECK(fdt_property_u32(fdt, "linux,initrd-start", VM_INITRD_ADDR));
+	FDT_CHECK(fdt_property_u32(fdt, "linux,initrd-end",
+		  VM_INITRD_ADDR + initrd.size));
+	FDT_CHECK(fdt_property_string(fdt, "bootargs", "console=ttySBI timer_hz=0"));
+	FDT_CHECK(fdt_end_node(fdt));
+	/* "/cpus" end */
+
+	/* "/memory@a0000000" begin */
+	FDT_CHECK(fdt_begin_node(fdt, "memory@a0000000"));
+	FDT_CHECK(fdt_property_string(fdt, "device_type", "memory"));
+	FDT_CHECK(fdt_property_reg_u64_simple(fdt, "reg", VM_GPHYS_BASE, VM_SIZE_RAW));
+	FDT_CHECK(fdt_end_node(fdt));
+	/* "/memory@a0000000" end */
+
+	FDT_CHECK(fdt_end_node(fdt));
+	/* "/" end */
+
+	FDT_CHECK(fdt_finish(fdt));
+
+	err = vm_memcpy(vm, VM_FDT_OFFSET, fdt, FDT_SIZE);
+	kfree(fdt);
+
+	return err;
+
+free_out:
+	pr_crit("unable to create VMs Device Tree: %s\n", fdt_strerror(err));
+	kfree(fdt);
+	return err;
+}
+
 static int vm_load_file(struct vmachine *vm, const char *filename, size_t offset)
 {
 	struct file *file;
@@ -310,7 +390,6 @@ static struct task *vmm_alloc_new(void)
 {
 	struct task *task, *parent;
 	struct vmachine *vm;
-	char buf[128];
 	int err;
 
 	/* Allocate basic structures */
@@ -339,19 +418,18 @@ static struct task *vmm_alloc_new(void)
 	if (err)
 		goto vmfree_out;
 
-	pr_dbg("Copying VM device tree...\n");
-	snprintf(buf, sizeof(buf), "/initrd/dtb/%s.dtb", platform_model);
-	err = vm_load_file(vm, buf, VM_FDT_OFFSET);
+	pr_dbg("Copying initrd...\n");
+	err = vm_memcpy(vm, VM_INITRD_OFFSET, initrd.vbase, initrd.size);
 	if (err)
 		goto vmfree_out;
 
-	pr_dbg("Copying initrd...\n");
-	err = vm_memcpy(vm, 1 * MIB, initrd.vbase, initrd.size);
+	pr_dbg("Create Machine's FDT...\n");
+	err = vm_create_dtb(vm);
 	if (err)
 		goto vmfree_out;
 
 	task->regs.a0 = 0;
-	task->regs.a1 = VM_GPHYS_BASE + VM_FDT_OFFSET;
+	task->regs.a1 = VM_FDT_ADDR;
 	vm->vregs.vs = true;
 
 	/* setup G-Stage paging */
