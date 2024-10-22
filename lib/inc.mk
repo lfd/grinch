@@ -12,6 +12,8 @@ LIB_OBJS += vsprintf.o
 
 LIBFDT_OBJS = libfdt/fdt.o
 LIBFDT_OBJS += libfdt/fdt_ro.o
+LIBFDT_OBJS += libfdt/fdt_strerror.o
+LIBFDT_OBJS += libfdt/fdt_sw.o
 LIBFDT_OBJS += libfdt/fdt_addresses.o
 
 LIB_OBJS := $(addprefix lib/, $(LIB_OBJS))
