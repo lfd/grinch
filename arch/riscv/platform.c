@@ -75,8 +75,11 @@ int __init arch_platform_init(void)
 
 		ic = fdt_subnode_offset(_fdt, child,
 					ISTR("interrupt-controller"));
-		if (ic < 0)
-			return trace_error(-EINVAL);
+		if (ic < 0) {
+			pr_warn_i("No interrupt controller reference "
+				  "for HART %lu\n", hart_id);
+			continue;
+		}
 
 		err = fdt_read_u32(_fdt, ic, "phandle", &phandle);
 		if (err)

@@ -100,15 +100,21 @@ static void plic_handle_irq(void)
 	plic_write_reg(0x200000 + 0x4 + 0x1000 * this_ctx(), source);
 }
 
-static int plic_get_context(const void *fdt, int off, unsigned int cpu)
+static int __init plic_get_context(const void *fdt, int off, unsigned int cpu)
 {
-	unsigned int cpu_phandle, phandle;
+	int cpu_phandle, phandle;
 	const u32* iext;
 	int entry, size;
 
 	cpu_phandle = per_cpu(cpu)->plic.cpu_phandle;
+	if (cpu_phandle < 0) {
+		pr_warn_i("No interrupt controller reference for CPU %u\n",
+			  cpu);
+		return cpu_phandle;
+	}
 
-	iext = (const u32 *)fdt_getprop(fdt, off, "interrupts-extended", &size);
+	iext = (const u32 *)
+		fdt_getprop(fdt, off, ISTR("interrupts-extended"), &size);
 	if (!iext)
 		return -ENOENT;
 	size /= sizeof(u32);

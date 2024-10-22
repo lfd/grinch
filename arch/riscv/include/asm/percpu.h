@@ -16,6 +16,6 @@
 		 * Offset of interrupt-controller	\
 		 * phandle node in device-tree.		\
 		 */					\
-		unsigned int cpu_phandle;		\
+		int cpu_phandle;			\
 		u16 ctx;				\
 	} plic;
