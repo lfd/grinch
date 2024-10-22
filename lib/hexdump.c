@@ -14,32 +14,53 @@
 
 #include <grinch/hexdump.h>
 #include <grinch/printk.h>
+#include <grinch/vsprintf.h>
+
+static void printer(char **dst, const char *fmt, ...)
+{
+	int written;
+	va_list ap;
+
+	va_start(ap, fmt);
+	written = vsnprintf(*dst, 32, fmt, ap);
+	va_end(ap);
+
+	if (written < 0)
+		return;
+
+	*dst += written;
+}
 
 void hexdump(const void *addr, unsigned long size)
 {
 	const unsigned char* p = (const unsigned char*)addr;
 	unsigned long i, j;
+	char line[96]; /* suffices for all cases */
+	char *dst;
 
 	for (i = 0; i < size; i += 16) {
-		printk("%06lx: ", i);
+		dst = line;
+		printer(&dst, "%08lx: ", i);
+
 		for (j = 0; j < 16; j++) {
 			if (i + j < size)
-				printk("%02x ", p[i + j]);
+				printer(&dst, "%02x ", p[i + j]);
 			else
-				printk("   ");
+				printer(&dst, "   ");
 
 			if (j % 8 == 7)
-				printk(" ");
+				printer(&dst, " ");
 		}
 
-		printk(" ");
+		printer(&dst, " ");
 		for (j = 0; j < 16; j++) {
 			if (i + j < size)
-				printk("%c", isprint(p[i + j]) ? p[i + j] : '.');
+				printer(&dst, "%c", isprint(p[i + j]) ? p[i + j] : '.');
 			else
-				printk(" ");
+				printer(&dst, " ");
 		}
 
-		printk("\n");
+		printer(&dst, "\n");
+		printk("%s", line);
 	}
 }
