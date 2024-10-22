@@ -326,7 +326,8 @@ static int vm_create_dtb(struct vmachine *vm)
 	FDT_CHECK(fdt_property_u32(fdt, "linux,initrd-start", VM_INITRD_ADDR));
 	FDT_CHECK(fdt_property_u32(fdt, "linux,initrd-end",
 		  VM_INITRD_ADDR + initrd.size));
-	FDT_CHECK(fdt_property_string(fdt, "bootargs", "console=ttySBI timer_hz=0"));
+	FDT_CHECK(fdt_property_string(fdt, "bootargs",
+		"console=ttySBI timer_hz=0 init=/initrd/bin/jittertest"));
 	FDT_CHECK(fdt_end_node(fdt));
 	/* "/cpus" end */
 
