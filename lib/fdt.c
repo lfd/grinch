@@ -269,3 +269,15 @@ int fdt_irq_get(struct device *dev)
 
 	return fdt32_to_cpu(*res);
 }
+
+int fdt_property_reg_u64_simple(void *fdt, const char *name, u64 addr, u64 sz)
+{
+	uint32_t reg[4];
+
+	reg[0] = cpu_to_fdt32((addr >> 32) & 0xffffffff);
+	reg[1] = cpu_to_fdt32(addr & 0xffffffff);
+	reg[2] = cpu_to_fdt32((sz >> 32) & 0xffffffff);
+	reg[3] = cpu_to_fdt32(sz & 0xffffffff);
+
+	return fdt_property(fdt, name, reg, sizeof(reg));
+}

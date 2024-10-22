@@ -61,4 +61,7 @@ int fdt_match_device_off(const void *fdt, int offset,
 
 int fdt_irq_get(struct device *dev);
 
+/* FDT manipulation */
+int fdt_property_reg_u64_simple(void *fdt, const char *name, u64 addr, u64 sz);
+
 #endif /* _FDT_H */
