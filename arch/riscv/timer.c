@@ -25,7 +25,7 @@
 
 #include <grinch/arch/sbi.h>
 
-static u32 timebase_frequency;
+u32 riscv_timebase_frequency;
 
 static __initdata int _err;
 
@@ -36,7 +36,7 @@ static inline u64 get_time(void)
 
 unsigned long arch_timer_ticks_to_time(unsigned long ticks)
 {
-	return NS * ticks / timebase_frequency;
+	return NS * ticks / riscv_timebase_frequency;
 }
 
 unsigned long arch_timer_get(void)
@@ -49,7 +49,7 @@ void arch_timer_set(unsigned long ns)
 	struct sbiret ret;
 	u64 then;
 
-	then = (u64)ns * timebase_frequency / NS;
+	then = (u64)ns * riscv_timebase_frequency / NS;
 
 	// FIXME: implement SSTC
 	ret = sbi_set_timer(then);
@@ -84,7 +84,7 @@ int __init arch_timer_init(void)
 		return -ENOENT;
 
 	err = fdt_read_u32(_fdt, nodeoffset, ISTR("timebase-frequency"),
-			   &timebase_frequency);
+			   &riscv_timebase_frequency);
 	if (err) {
 		pri("No valid timebase frequency found\n");
 		return err;

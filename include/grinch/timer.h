@@ -13,6 +13,8 @@
 #ifndef _TIMER_H
 #define _TIMER_H
 
+#include <grinch/arch/timer.h>
+
 #define US_TO_NS(x)	((x) * 1000ULL)
 #define MS_TO_NS(x)	(US_TO_NS((x) * 1000ULL))
 #define S_TO_NS(x)	(MS_TO_NS((x) * 1000ULL))
