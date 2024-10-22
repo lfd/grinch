@@ -1,6 +1,18 @@
-LIB_OBJS = bitmap.o ctype.o errno.o fdt.o hexdump.o panic.o printk.o
-LIB_OBJS += ringbuf.o string.o strtox.o vsprintf.o
-LIBFDT_OBJS = libfdt/fdt.o libfdt/fdt_ro.o libfdt/fdt_addresses.o
+LIB_OBJS = bitmap.o
+LIB_OBJS += ctype.o
+LIB_OBJS += errno.o
+LIB_OBJS += fdt.o
+LIB_OBJS += hexdump.o
+LIB_OBJS += panic.o
+LIB_OBJS += printk.o
+LIB_OBJS += ringbuf.o
+LIB_OBJS += string.o
+LIB_OBJS += strtox.o
+LIB_OBJS += vsprintf.o
+
+LIBFDT_OBJS = libfdt/fdt.o
+LIBFDT_OBJS += libfdt/fdt_ro.o
+LIBFDT_OBJS += libfdt/fdt_addresses.o
 
 LIB_OBJS := $(addprefix lib/, $(LIB_OBJS))
 LIBFDT_OBJS := $(addprefix lib/, $(LIBFDT_OBJS))
