@@ -35,9 +35,17 @@ static unsigned int loglevel = LOGLEVEL_DEFAULT;
 
 static void __init loglevel_parse(const char *arg)
 {
-	loglevel = min(strtoul(arg, NULL, 10), 10UL);
+	unsigned int level;
+
+	level = min(strtoul(arg, NULL, 10), 10UL);
+	loglevel_set(level);
 }
 bootparam(loglevel, loglevel_parse);
+
+void loglevel_set(unsigned int level)
+{
+	loglevel = level;
+}
 
 static int sprint_prefix(char **str, char *end)
 {

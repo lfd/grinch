@@ -19,5 +19,6 @@
 #define GCALL_LSOF	3 /* show list of open files */
 #define GCALL_LSDEV	4 /* show list of devices */
 #define GCALL_LSPCI	5 /* list PCI devices */
+#define GCALL_LOGLEVEL	6 /* set loglevel */
 
 #endif /* _GRINCH_GCALL_H */

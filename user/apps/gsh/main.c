@@ -54,6 +54,7 @@ struct gcall {
 const struct gcall gcalls[] = {
 	{"kheap", GCALL_KHEAP},
 	{"ps", GCALL_PS},
+	{"loglevel", GCALL_LOGLEVEL},
 	{"lsdev", GCALL_LSDEV},
 	{"lspci", GCALL_LSPCI},
 	{"lsof", GCALL_LSOF},
@@ -209,7 +210,7 @@ static int gsh_kstat(char *argv[])
 	return -ENOSYS;
 
 call:
-	if (gc->no == GCALL_MAPS) {
+	if (gc->no == GCALL_MAPS || gc->no == GCALL_LOGLEVEL) {
 		if (argv[2] != 0)
 			arg = strtoul(argv[2], NULL, 0);
 		else

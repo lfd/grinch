@@ -469,6 +469,10 @@ SYSCALL_DEF2(grinch_call, unsigned long, no, unsigned long, arg)
 			dev_list();
 			break;
 
+		case GCALL_LOGLEVEL:
+			loglevel_set(arg);
+			break;
+
 		default:
 			ret = -ENOSYS;
 			break;

@@ -22,6 +22,7 @@ void _puts(const char *msg); /* No prefix */
 void __printf(1, 2) printk(const char *fmt, ...);
 void vprintk(const char *fmt, const char *infix, va_list ap);
 
+void loglevel_set(unsigned int level);
 void printk_init(void);
 
 #define	PR_SOH			"\001"
