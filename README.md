@@ -130,6 +130,7 @@ Basic features:
 | loglevel    | int    | loglevel. Highest=0, Default=1|
 | kheap_size  | int    | Kernel Heap size (e.g., 8M)   |
 | console     | str    | boot console (ttyS0)          |
+| init        | str    | init executable               |
 
 Development features:
 | Parameter   | Values | Description                   |

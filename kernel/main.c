@@ -69,6 +69,14 @@ static void __init memtest_parse(const char *)
 }
 bootparam(memtest, memtest_parse);
 
+static char __initdata f_init[32] = "/initrd/bin/init";
+static void __init init_parse(const char *arg)
+{
+	strncpy(f_init, arg, sizeof(f_init) - 1);
+	f_init[sizeof(f_init) - 1] = 0;
+}
+bootparam(init, init_parse);
+
 static int __init init(void)
 {
 	struct file_handle *fh;
@@ -81,8 +89,7 @@ static int __init init(void)
 	if (IS_ERR(task))
 		return PTR_ERR(task);
 
-	err = process_from_path(task, NULL, ISTR("/initrd/bin/init"),
-				NULL, NULL);
+	err = process_from_path(task, NULL, f_init, NULL, NULL);
 	if (err)
 		goto exit_out;
 
