@@ -18,10 +18,9 @@ struct sbiret {
 	long value;
 };
 
-static inline struct sbiret sbi_ecall(int ext, unsigned long arg0,
-				      unsigned long arg1, unsigned long arg2,
-				      unsigned long arg3, unsigned long arg4,
-				      unsigned long arg5)
+static __always_inline struct sbiret
+sbi_ecall(int ext, unsigned long arg0, unsigned long arg1, unsigned long arg2,
+	  unsigned long arg3, unsigned long arg4, unsigned long arg5)
 {
 	struct sbiret ret;
 
@@ -43,7 +42,7 @@ static inline struct sbiret sbi_ecall(int ext, unsigned long arg0,
 	return ret;
 }
 
-static inline
+static __always_inline
 unsigned long syscall(unsigned long no, unsigned long arg0,
 		      unsigned long arg1, unsigned long arg2,
 		      unsigned long arg3, unsigned long arg4,
