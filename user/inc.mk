@@ -39,6 +39,7 @@ LIBC_OBJS += wait.o
 LIBC_OBJS += grinch/gfb/gfb.o
 LIBC_OBJS += grinch/gfb/gimg.o
 LIBC_OBJS += grinch/grinch.o
+LIBC_OBJS += grinch/hexdump.o
 
 LIBC_OBJS := $(addprefix user/lib/, $(LIBC_OBJS))
 

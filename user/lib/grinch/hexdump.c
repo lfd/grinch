@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023-2024
+ * Copyright (c) OTH Regensburg, 2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -10,8 +10,8 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <grinch/printk.h>
+#include <stdio.h>
 
-#define PRINTER	printk
+#define PRINTER	printf
 
-#include "../common/src/hexdump.c"
+#include "../../common/src/hexdump.c"
