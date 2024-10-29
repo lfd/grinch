@@ -222,6 +222,9 @@ void process_destroy(struct task *task)
 	struct process *process;
 	unsigned int i;
 
+	if (task->type != GRINCH_PROCESS)
+		BUG();
+
 	process = &task->process;
 	for (i = 0; i < MAX_FDS; i++)
 		if (process->fds[i].fp)
