@@ -1,5 +1,14 @@
-KERNEL_OBJS = bootparam.o console.o main.o memtest.o platform.o process.o
-KERNEL_OBJS += smp.o syscall.o task.o timer.o uaccess.o
+KERNEL_OBJS = bootparam.o
+KERNEL_OBJS += console.o
+KERNEL_OBJS += main.o
+KERNEL_OBJS += memtest.o
+KERNEL_OBJS += platform.o
+KERNEL_OBJS += process.o
+KERNEL_OBJS += smp.o
+KERNEL_OBJS += syscall.o
+KERNEL_OBJS += task.o
+KERNEL_OBJS += timer.o
+KERNEL_OBJS += uaccess.o
 
 ifdef GCOV
 KERNEL_OBJS += gcov.o
