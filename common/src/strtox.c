@@ -101,7 +101,7 @@ unsigned long long strntoull(const char *startp, size_t max_chars, char **endp, 
 	return result;
 }
 
-static inline
+inline
 unsigned long long strtoull(const char *cp, char **endp, unsigned int base)
 {
 	return strntoull(cp, INT_MAX, endp, base);

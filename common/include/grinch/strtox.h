@@ -14,5 +14,6 @@
 #define _GRINCH_STRTOX_H
 
 unsigned long int strtoul(const char *cp, char **endptr, unsigned int base);
+unsigned long long strtoull(const char *cp, char **endptr, unsigned int base);
 
 #endif /* _GRINCH_STRTOX_H */
