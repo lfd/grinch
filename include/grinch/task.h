@@ -98,7 +98,7 @@ struct task {
 	};
 };
 
-static inline struct task *current_task(void)
+static __always_inline struct task *current_task(void)
 {
 	return this_per_cpu()->current_task;
 }
@@ -117,7 +117,7 @@ static inline struct process *current_process(void)
 	return &cur->process;
 }
 
-static inline struct file *cwd(void)
+static __always_inline struct file *cwd(void)
 {
 	return current_process()->cwd.file;
 }
