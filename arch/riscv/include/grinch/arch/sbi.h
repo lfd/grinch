@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -10,6 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <grinch/compiler_attributes.h>
 #include <grinch/types.h>
 
 #define SBI_SPEC_VERSION_MAJOR_SHIFT	24
@@ -52,10 +53,11 @@ struct sbiret {
 	long value;
 };
 
-static inline struct sbiret sbi_ecall(int ext, int fid, unsigned long arg0,
-				      unsigned long arg1, unsigned long arg2,
-				      unsigned long arg3, unsigned long arg4,
-				      unsigned long arg5)
+static __always_inline struct sbiret
+sbi_ecall(int ext, int fid, unsigned long arg0,
+	  unsigned long arg1, unsigned long arg2,
+	  unsigned long arg3, unsigned long arg4,
+	  unsigned long arg5)
 {
 	struct sbiret ret;
 
