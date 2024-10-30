@@ -8,7 +8,6 @@ shift
 tmp=$(mktemp -d)
 
 mkdir $tmp/bin
-mkdir $tmp/dtb
 
 cp -a user/apps/build/* $tmp/bin/
 cp -a res/logo.gimg res/test.txt $tmp/
