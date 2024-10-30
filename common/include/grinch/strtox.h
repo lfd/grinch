@@ -10,20 +10,9 @@
  * the COPYING file in the top-level directory.
  */
 
-#ifndef _STDLIB_H
-#define _STDLIB_H
+#ifndef _GRINCH_STRTOX_H
+#define _GRINCH_STRTOX_H
 
-#include <stddef.h>
+unsigned long int strtoul(const char *cp, char **endptr, unsigned int base);
 
-extern char **environ;
-
-char *getenv(const char *name);
-
-int heap_init(void);
-void *malloc(size_t size);
-void free(void *ptr);
-void *realloc(void *ptr, size_t size);
-
-#include <grinch/strtox.h>
-
-#endif /* _STDLIB_H */
+#endif /* _GRINCH_STRTOX_H */

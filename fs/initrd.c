@@ -18,7 +18,7 @@
 #include <grinch/fs/util.h>
 #include <grinch/gfp.h>
 #include <grinch/minmax.h>
-#include <grinch/string.h>
+#include <grinch/strtox.h>
 #include <grinch/printk.h>
 #include <grinch/task.h>
 #include <grinch/uaccess.h>

@@ -36,8 +36,6 @@ size_t strlen(const char *s);
 char *strrchr(const char *t, int c);
 char *strchrnul(const char *s, int c);
 
-unsigned long int strtoul(const char *cp, char **endptr, unsigned int base);
-
 /* counts the number of occurences of c in s */
 unsigned int strcount(const char *s, char c);
 

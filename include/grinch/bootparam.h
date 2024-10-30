@@ -15,6 +15,7 @@
 
 #include <grinch/init.h>
 #include <grinch/types.h>
+#include <grinch/strtox.h>
 
 struct grinch_bootparam {
 	const char *name;
