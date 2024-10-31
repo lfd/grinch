@@ -11,6 +11,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 int main(void);
 
@@ -18,5 +19,5 @@ APP_NAME(true);
 
 int main(void)
 {
-	return 123;
+	return EXIT_SUCCESS;
 }

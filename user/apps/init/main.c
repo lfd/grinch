@@ -13,6 +13,7 @@
 #include <errno.h>
 #include <sched.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include <sys/wait.h>
@@ -98,5 +99,6 @@ int main(void)
 		else
 			printf("Child %d: no regular exit\n", child);
 	}
-	return 0;
+
+	return EXIT_SUCCESS;
 }

@@ -24,5 +24,5 @@ int main(int argc, char **argv)
 	for (envp = environ; *envp; envp++)
 		printf("%s\n", *envp);
 
-	return 0;
+	return EXIT_SUCCESS;
 }

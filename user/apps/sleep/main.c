@@ -29,5 +29,5 @@ int main(int argc, char *argv[])
 	sec = strtoul(argv[1], NULL, 0);
 	sleep(sec);
 
-	return 0;
+	return EXIT_SUCCESS;
 }

@@ -12,6 +12,7 @@
 
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -69,5 +70,5 @@ int main(int argc, char **argv)
 	for (arg = 1; arg < argc; arg++)
 		err |= cat(argv[arg]);
 
-	return err ? -1 : 0;
+	return err ? EXIT_FAILURE : EXIT_SUCCESS;
 }
