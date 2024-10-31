@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 	printf("Jittertest\n");
 
 	if (argc > 2) {
-		dprintf(stderr, "Invalid arguments!\n");
+		dprintf(STDERR_FILENO, "Invalid arguments!\n");
 		return -EINVAL;
 	} else if (argc == 2)
 		max_shots = strtoull(argv[1], NULL, 0);

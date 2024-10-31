@@ -102,7 +102,7 @@ void *sbrk(intptr_t increment)
 	void *oldbrk;
 
 	if (increment % PAGE_SIZE) {
-		dprintf(stderr, "Invalid sbrk()\n");
+		dprintf(STDERR_FILENO, "Invalid sbrk()\n");
 		exit(-EINVAL);
 	}
 

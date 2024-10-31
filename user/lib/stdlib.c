@@ -62,7 +62,8 @@ static int heap_increase(size_t sz)
 	heap.size += sz;
 	err = salloc_increase(heap.base, sz);
 	if (err) {
-		dprintf(stderr, "salloc_increase: %s\n", salloc_err_str(err));
+		dprintf(STDERR_FILENO, "salloc_increase: %s\n",
+			salloc_err_str(err));
 		exit(err);
 	}
 
@@ -121,7 +122,8 @@ void free(void *ptr)
 
 	err = salloc_free(ptr);
 	if (err) {
-		dprintf(stderr, "fault: %p: %s\n", ptr, salloc_err_str(err));
+		dprintf(STDERR_FILENO, "fault: %p: %s\n", ptr,
+			salloc_err_str(err));
 		exit(err);
 	}
 }
@@ -148,6 +150,7 @@ retry:
 	if (err == -ENOMEM)
 		return NULL;
 
-	dprintf(stderr, "realloc fault: %p: %s\n", ptr, salloc_err_str(err));
+	dprintf(STDERR_FILENO, "realloc fault: %p: %s\n", ptr,
+		salloc_err_str(err));
 	exit(err);
 }

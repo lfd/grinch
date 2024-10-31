@@ -151,13 +151,13 @@ int main(int argc, char *argv[])
 	} else if (argc == 2) {
 		pathname = argv[1];
 	} else {
-		dprintf(stderr, "Invalid argument\n");
+		dprintf(STDERR_FILENO, "Invalid argument\n");
 		return -EINVAL;
 	}
 
 	err = ls(pathname);
 	if (err) {
-		dprintf(stderr, "ls: %pe\n", ERR_PTR(err));
+		dprintf(STDERR_FILENO, "ls: %pe\n", ERR_PTR(err));
 	}
 
 	free(cwd);

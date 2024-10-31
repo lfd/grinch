@@ -22,7 +22,7 @@ APP_NAME(cat);
 
 static inline void cat_err(const char *pathname, int err)
 {
-	dprintf(stderr, "cat: %s: %pe\n", pathname, ERR_PTR(-errno));
+	dprintf(STDERR_FILENO, "cat: %s: %pe\n", pathname, ERR_PTR(-errno));
 }
 
 static int cat(const char *pathname)
@@ -44,7 +44,7 @@ static int cat(const char *pathname)
 			return -errno;
 		}
 
-		bytes_written = write(stdout, buf, bytes_read);
+		bytes_written = write(STDOUT_FILENO, buf, bytes_read);
 		if (bytes_written == -1) {
 			cat_err(pathname, -errno);
 			return -errno;

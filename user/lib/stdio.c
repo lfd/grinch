@@ -86,7 +86,7 @@ int __printf(1, 2) printf(const char *fmt, ...)
 	int err;
 
 	va_start(ap, fmt);
-	err = vdprintf(stdout, fmt, ap);
+	err = vdprintf(STDOUT_FILENO, fmt, ap);
 	va_end(ap);
 
 	return err;
@@ -105,7 +105,7 @@ int puts(const char *s)
 
 void perror(const char *s)
 {
-	dprintf(stderr, "%s: %pe\n", s, ERR_PTR(-errno));
+	dprintf(STDERR_FILENO, "%s: %pe\n", s, ERR_PTR(-errno));
 }
 
 void printf_set_prefix(bool on)

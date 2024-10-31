@@ -17,6 +17,10 @@
 #include <grinch/compiler_attributes.h>
 #include <grinch/types.h>
 
+#define STDIN_FILENO	0
+#define STDOUT_FILENO	1
+#define STDERR_FILENO	2
+
 void __noreturn exit(int status);
 pid_t getpid(void);
 pid_t fork(void);

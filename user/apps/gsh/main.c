@@ -66,13 +66,13 @@ static struct tokens orig_env;
 
 static inline void putc(char c)
 {
-	write(stdout, &c, 1);
+	write(STDOUT_FILENO, &c, 1);
 }
 
 static inline void putc_triple(char a, char b, char c)
 {
 	char buf[3] = {a, b, c};
-	write(stdout, &buf, 3);
+	write(STDOUT_FILENO, &buf, 3);
 }
 
 static int read_line(char **_buf)
@@ -105,7 +105,7 @@ static int read_line(char **_buf)
 			buf_sz += GSH_BUF_GROWTH;
 		}
 
-		bread = read(stdin, &c, 1);
+		bread = read(STDIN_FILENO, &c, 1);
 		if (bread == -1) {
 			perror("read");
 			err = -errno;
