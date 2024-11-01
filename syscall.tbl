@@ -10,10 +10,10 @@ sched_yield	24
 getpid		39
 fork		57
 execve		59
-exit		60
 getcwd		79
 chdir		80
 mkdir		83
+exit		93
 nanosleep	101
 clock_gettime	113
 getdents	141
