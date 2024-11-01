@@ -32,7 +32,6 @@ _start:
 	addi	sp, sp, 24
 
 	jal	cmain
-	jal	exit
-	/* should we ever return from exit, loop */
+	/* should we ever return from cmain, loop */
 3:
 	j 3b

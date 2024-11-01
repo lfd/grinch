@@ -11,18 +11,22 @@
  */
 
 #include <stdlib.h>
+#include <unistd.h>
 
 int cmain(int argc, char *argv[], char *envp[]);
 int main(int argc, char *argv[], char *envp[]);
 
-int cmain(int argc, char *argv[], char *envp[])
+int __noreturn cmain(int argc, char *argv[], char *envp[])
 {
 	int err;
 
 	err = heap_init();
 	if (err)
-		return err;
+		goto out;
 
 	environ = envp;
-	return main(argc, argv, envp);
+	err = main(argc, argv, envp);
+
+out:
+	exit(err);
 }
