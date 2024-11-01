@@ -84,9 +84,9 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr,
 {
 	char __user *uargv_string, *uenvp_string;
 	void __user *stack_top;
-	unsigned long uargs[3];
 	unsigned int vma_flags;
 	unsigned long copied;
+	unsigned long argc;
 	Elf64_Phdr *phdr;
 	void *src, *base;
 	struct vma *vma;
@@ -102,7 +102,7 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr,
 	// TODO: Check for out of bounds in ehdr
 
 	/* check if arguments exceed ARG_MAX size */
-	copied = uenv_sz(argv) + uenv_sz(envp) + sizeof(uargs);
+	copied = uenv_sz(argv) + uenv_sz(envp) + sizeof(argc);
 	if (copied > ARG_MAX)
 		return -E2BIG;
 
@@ -140,17 +140,16 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr,
 	stack_top = fill_uenv_table(task, envp, stack_top, uenvp_string);
 	if (IS_ERR(stack_top))
 		return PTR_ERR(stack_top);
-	uargs[2] = (uintptr_t)stack_top;
 
 	stack_top = fill_uenv_table(task, argv, stack_top, uargv_string);
 	if (IS_ERR(stack_top))
 		return PTR_ERR(stack_top);
-	uargs[1] = (uintptr_t)stack_top;
-	uargs[0] = argv ? argv->elements : 0;
 
-	stack_top -= sizeof(uargs);
-	copied = copy_to_user(task, stack_top, &uargs, sizeof(uargs));
-	if (copied != sizeof(uargs))
+	/* store argc */
+	argc = argv ? argv->elements : 0;
+	stack_top -= sizeof(argc);
+	copied = copy_to_user(task, stack_top, &argc, sizeof(argc));
+	if (copied != sizeof(argc))
 		return -ENOMEM;
 
 	/* Load process */

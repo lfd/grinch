@@ -13,19 +13,23 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-int cmain(int argc, char *argv[], char *envp[]);
+int cmain(long *p);
 int main(int argc, char *argv[], char *envp[]);
 
-int __noreturn cmain(int argc, char *argv[], char *envp[])
+int __noreturn cmain(long *p)
 {
-	int err;
+	int argc, err;
+	char **argv;
+
+	argc = p[0];
+	argv = (void *)(p + 1);
 
 	err = heap_init();
 	if (err)
 		goto out;
 
-	environ = envp;
-	err = main(argc, argv, envp);
+	environ = argv + argc + 1;
+	err = main(argc, argv, environ);
 
 out:
 	exit(err);

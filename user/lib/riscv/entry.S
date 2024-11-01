@@ -26,10 +26,8 @@ _start:
 	/* BSS cleared */
 
 2:
-	ld	a0, 0(sp) /* int argc */
-	ld	a1, 8(sp) /* char *argv[] */
-	ld	a2, 16(sp) /* char *envp[] */
-	addi	sp, sp, 24
+	/* pass the stack pointer: points to argc */
+	mv	a0, sp
 
 	jal	cmain
 	/* should we ever return from cmain, loop */
