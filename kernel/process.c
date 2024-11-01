@@ -41,6 +41,11 @@ typedef Elf32_Phdr Elf_Phdr;
 
 #define ARG_MAX		PAGE_SIZE
 
+struct auxv {
+	unsigned long tag;
+	unsigned long value;
+} __packed;
+
 static void __user *
 fill_uenv_table(struct task *t, const struct uenv_array *uenv,
 		void __user *base, char __user *ustring)
@@ -107,16 +112,14 @@ static int process_load_elf(struct task *task, Elf_Ehdr *ehdr,
 			    const struct uenv_array *argv,
 			    const struct uenv_array *envp)
 {
+	void __user *stack_top, __user *tmp, *src, *base;
 	char __user *uargv_string, *uenvp_string;
-	void __user *stack_top, __user *tmp;
-	unsigned int vma_flags;
-	unsigned long copied;
-	unsigned long argc;
-	Elf_Phdr *phdr;
-	void *src, *base;
+	unsigned long argc, copied;
+	unsigned int d, vma_flags;
+	struct auxv aux[1];
 	struct vma *vma;
 	size_t vma_size;
-	unsigned int d;
+	Elf_Phdr *phdr;
 
 	if (memcmp(ehdr->e_ident, ELFMAG, SELFMAG))
 		return trace_error(-EINVAL);
@@ -127,12 +130,15 @@ static int process_load_elf(struct task *task, Elf_Ehdr *ehdr,
 	// TODO: Check for out of bounds in ehdr
 
 	/* check if arguments exceed ARG_MAX size */
-	copied = uenv_sz(argv) + uenv_sz(envp) + sizeof(argc);
+	copied = uenv_sz(argv) + uenv_sz(envp) + sizeof(argc) + sizeof(aux);
 	if (copied > ARG_MAX)
 		return -E2BIG;
 
 	/* Prepare user stack */
 	stack_top = (void *)USER_STACK_TOP;
+
+	aux[0].tag = AT_NULL;
+	aux[0].value = 0;
 
 	vma_flags = VMA_FLAG_USER | VMA_FLAG_RW | VMA_FLAG_LAZY;
 	vma = uvma_create(task, (void *)USER_STACK_BOTTOM, USER_STACK_SIZE,
@@ -168,7 +174,7 @@ static int process_load_elf(struct task *task, Elf_Ehdr *ehdr,
 	 * The resulting address needs to be aligned down to have the stack
 	 * pointer initially on a 64-bit boundary.
 	 */
-	stack_top -= (uenv_elems(envp) + uenv_elems(argv) + 1) * BYTES_PER_LONG;
+	stack_top -= (uenv_elems(envp) + uenv_elems(argv) + 1) * BYTES_PER_LONG + sizeof(aux);
 	stack_top = PTR_ALIGN_DOWN(stack_top, 8);
 
 	tmp = stack_top;
@@ -180,12 +186,18 @@ static int process_load_elf(struct task *task, Elf_Ehdr *ehdr,
 	tmp += sizeof(argc);
 
 	tmp = fill_uenv_table(task, argv, tmp, uargv_string);
-	if (IS_ERR(stack_top))
+	if (IS_ERR(tmp))
 		return PTR_ERR(tmp);
 
 	tmp = fill_uenv_table(task, envp, tmp , uenvp_string);
-	if (IS_ERR(stack_top))
+	if (IS_ERR(tmp))
 		return PTR_ERR(tmp);
+
+	if (sizeof(aux)) {
+		copied = copy_to_user(task, tmp, aux, sizeof(aux));
+		if (copied != sizeof(aux))
+			return -ENOMEM;
+	}
 
 	/* Load process */
 	phdr = (Elf_Phdr*)((void*)ehdr + ehdr->e_phoff);
