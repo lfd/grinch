@@ -12,8 +12,8 @@
 
 .section .text.boot, "ax"
 
-.globl _user_start
-_user_start:
+.globl _start
+_start:
 	/* Clear BSS segment */
 	la	t0, __bss_start
 	la	t1, __bss_qwords

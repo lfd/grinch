@@ -12,12 +12,11 @@
 
 #include <asm-generic/paging.h>
 
-ENTRY(_user_start)
+ENTRY(_start)
 
 SECTIONS
 {
 	. = 0x90000000;
-	__start = .;
 	.text : {
 		KEEP(*(.text.boot))
 		*(.text)
