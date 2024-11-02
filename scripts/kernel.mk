@@ -1,6 +1,15 @@
 SYSCALL_HEADER = common/include/generated/syscall.h
 
-ARCH_DIR = arch/$(ARCH)
+ifeq ($(ARCH),riscv)
+	ARCH_SUPER = riscv
+	ARCH_RISCV = true
+	ARCH_RISCV64 = true
+else
+$(error Unsupported Architecture $(ARCH))
+endif
+
+ARCH_DIR = arch/$(ARCH_SUPER)
+
 include $(ARCH_DIR)/inc.mk
 include fs/inc.mk
 include kernel/inc.mk

@@ -14,13 +14,13 @@ APPS += true
 INCLUDES_USER = -Iuser/include \
 		-Icommon/include \
 		-Iuser/lib/$(ARCH)/include \
-		-Icommon/include/arch/$(ARCH)/
+		-Icommon/include/arch/$(ARCH_SUPER)/
 
 CFLAGS_USER = $(CFLAGS_COMMON) $(CFLAGS_ARCH) $(CFLAGS_STANDALONE) $(INCLUDES_USER)
 LDFLAGS_USER = $(LDFLAGS_COMMON) $(LDFLAGS_ARCH)
 
 # libc stuff
-LIBC_OBJS = $(ARCH)/entry.o
+LIBC_OBJS = $(ARCH_SUPER)/entry.o
 LIBC_OBJS += ctype.o
 LIBC_OBJS += dirent.o
 LIBC_OBJS += div64.o

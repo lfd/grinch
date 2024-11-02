@@ -12,7 +12,7 @@ DRIVERS_SERIAL_OBJS += serial/uart-dummy.o
 DRIVERS_SERIAL_OBJS += serial/uart-8250.o
 DRIVERS_SERIAL_OBJS += serial/uart-apbuart.o
 
-ifeq ($(ARCH),riscv)
+ifdef ARCH_RISCV
 	DRIVERS_OBJS += sbi-tty.o
 	DRIVERS_SERIAL_OBJS += serial/uart-uartlite.o
 

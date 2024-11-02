@@ -3,7 +3,7 @@ LDFLAGS_LOADER = $(LDFLAGS_KERNEL)
 
 LOADER_OBJS = entry.o main.o
 
-ARCH_LOADER_DIR = loader/arch/$(ARCH)
+ARCH_LOADER_DIR = loader/$(ARCH_DIR)
 
 LOADER_OBJS := $(addprefix $(ARCH_LOADER_DIR)/, $(LOADER_OBJS))
 
