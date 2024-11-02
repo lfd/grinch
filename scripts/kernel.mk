@@ -14,7 +14,7 @@ QEMU_ARGS_COMMON=-monitor telnet:127.0.0.1:11111,server,nowait -s
 INCLUDES_KERNEL=-Iinclude/ \
 		-Icommon/include \
                 -Ilib/libfdt/ \
-                -Iarch/$(ARCH)/include/
+                -I$(ARCH_DIR)/include/
 
 CFLAGS_KERNEL_COMMON=$(CFLAGS_COMMON) $(CFLAGS_ARCH) $(CFLAGS_STANDALONE) $(INCLUDES_KERNEL)
 
@@ -26,7 +26,7 @@ ifdef GCOV
     CFLAGS_KERNEL += -fprofile-arcs -ftest-coverage -fprofile-update=atomic -DGCOV=1
 endif
 
-ASM_DEFINES = arch/$(ARCH)/include/asm/asm_defines.h
+ASM_DEFINES = $(ARCH_DIR)/include/asm/asm_defines.h
 GENERATED = $(ASM_DEFINES) include/generated/version.h include/generated/compile.h
 
 %.o: %.c $(GENERATED)
@@ -42,7 +42,7 @@ GENERATED = $(ASM_DEFINES) include/generated/version.h include/generated/compile
 	$(VERBOSE) $(CC) $(CFLAGS_KERNEL) $(AFLAGS_KERNEL) -E -o $@ $^
 	$(VERBOSE) sed -e '/^#/d' -i $@
 
-$(ASM_DEFINES): arch/$(ARCH)/asm_defines.S
+$(ASM_DEFINES): $(ARCH_DIR)/asm_defines.S
 	$(QUIET) "[GEN]   $@"
 	$(VERBOSE) ./scripts/asm-defines.sh $^ > $@
 
@@ -54,7 +54,7 @@ include/generated/version.h: scripts/mkversion_h Makefile
 	$(QUIET) "[GEN]   $@"
 	$(VERBOSE) $< $@ $(VERSION) $(PATCHLEVEL) $(EXTRAVERSION)
 
-arch/$(ARCH)/asm_defines.S: arch/$(ARCH)/asm_defines.c
+$(ARCH_DIR)/asm_defines.S: $(ARCH_DIR)/asm_defines.c
 	$(QUIET) "[GEN]   $@"
 	$(VERBOSE) $(CC) $(CFLAGS_KERNEL_COMMON) -S -o $@ $^
 
@@ -91,7 +91,7 @@ objdS: vmgrinch.elf
 clean_core:
 	$(call clean_file,vmgrinch.o)
 	$(call clean_files,generated,$(GENERATED))
-	$(call clean_file,arch/$(ARCH)/asm_defines.S)
+	$(call clean_file,$(ARCH_DIR)/asm_defines.S)
 	$(call clean_file,kernel/syscall_table.c)
 	$(call clean_file,include/generated)
 	$(call clean_file,common/include/generated)
