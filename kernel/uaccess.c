@@ -29,7 +29,7 @@ zero_page[PAGE_SIZE / sizeof(unsigned long)] __aligned(PAGE_SIZE);
 
 bool is_urange(const void *_base, size_t size)
 {
-	u64 base = (u64)_base;
+	uintptr_t base = (uintptr_t)_base;
 
 	if (base >= USER_START && base < USER_END &&
 	    (base + size) <= USER_END)
