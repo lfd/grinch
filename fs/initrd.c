@@ -71,7 +71,7 @@ static int parse_cpio_header(const char *s, struct cpio_header *hdr)
 	hdr->name = s;
 	hdr->body = hdr->name + CPIO_ALIGN(hdr->name_len);
 	hdr->next_header = hdr->body + hdr->body_len;
-	hdr->next_header = (void *)(((u64)hdr->next_header + 3) & ~3);
+	hdr->next_header = (void *)(((uintptr_t)hdr->next_header + 3) & ~3);
 
 	if (hdr->body[-1] != 0)
 		return -EINVAL;
@@ -216,7 +216,7 @@ static ssize_t initrd_read(struct file_handle *handle, char *buf, size_t count)
 		return -EINVAL;
 
 	src = hdr->body + *off;
-	sz = min((unsigned long)hdr->body_len - *off, count);
+	sz = min((unsigned long long)hdr->body_len - *off, count);
 	if (handle->flags.is_kernel) {
 		memcpy(buf, src, sz);
 		copied = sz;
