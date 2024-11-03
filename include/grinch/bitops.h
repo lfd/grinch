@@ -12,16 +12,6 @@
 
 #include <grinch/compiler_attributes.h>
 
-static inline unsigned long swab(unsigned long val)
-{
-	unsigned long tmp;
-
-	tmp = val << 32;
-	tmp |= val >> 32;
-
-	return tmp;
-}
-
 static __always_inline int ffs(int word)
 {
 	int num = 0;

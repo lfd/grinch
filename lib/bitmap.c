@@ -14,7 +14,7 @@
 
 #include <grinch/bitmap.h>
 #include <grinch/bitops.h>
-#include <grinch/compiler_attributes.h>
+#include <grinch/swab.h>
 
 #define __ALIGN_MASK(x, mask)	(((x) + (mask)) & ~(mask))
 
