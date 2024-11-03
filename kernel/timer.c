@@ -22,7 +22,7 @@
 #include <grinch/timer.h>
 
 static unsigned int timer_hz = 50;
-static unsigned long wall_base;
+static timeu_t wall_base;
 
 static void __init timer_hz_parse(const char *arg)
 {

@@ -36,7 +36,7 @@ static inline u64 get_time(void)
 
 unsigned long arch_timer_ticks_to_time(unsigned long ticks)
 {
-	return NS * ticks / riscv_timebase_frequency;
+	return NSEC_PER_SEC * ticks / riscv_timebase_frequency;
 }
 
 unsigned long arch_timer_get(void)
@@ -49,7 +49,7 @@ void arch_timer_set(unsigned long ns)
 	struct sbiret ret;
 	u64 then;
 
-	then = (u64)ns * riscv_timebase_frequency / NS;
+	then = (u64)ns * riscv_timebase_frequency / NSEC_PER_SEC;
 
 	// FIXME: implement SSTC
 	ret = sbi_set_timer(then);
