@@ -104,7 +104,7 @@ int __init fdt_init(paddr_t pfdt)
 
 	err = fdt_check_header(fdt);
 	if (err) {
-		pri("No valid FDT header behind 0x%llx\n", pfdt);
+		pri("No valid FDT header behind 0x%lx\n", pfdt);
 		err = -EINVAL;
 		goto unmap;
 	}

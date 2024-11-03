@@ -414,7 +414,7 @@ static int __init phys_mem_init(struct mmio_area *area)
 {
 	int err;
 
-	pri("Found main memory: %llx, size: %lx\n", area->paddr, area->size);
+	pri("Found main memory: %lx, size: %lx\n", area->paddr, area->size);
 	/*
 	 * Create a direct physical R/W mapping, so that the kernel may easily
 	 * access every single byte of physical memory.
@@ -490,7 +490,7 @@ int __init phys_mem_init_fdt(void)
 			return trace_error(err);
 		}
 
-		pri("Reserving memory area %s (0x%llx len: 0x%lx)\n",
+		pri("Reserving memory area %s (0x%lx len: 0x%lx)\n",
 		   uname, mem.paddr, mem.size);
 		phys_mark_used(mem.paddr, PAGES(page_up(mem.size)));
 	}

@@ -158,7 +158,7 @@ int __init initrd_init(void)
 	initrd.vbase = p2v(initrd.pstart);
 
 	initrd.size = end - start;
-	pri("found at 0x%llx (SZ: 0x%lx)\n", initrd.pstart, initrd.size);
+	pri("found at 0x%lx (SZ: 0x%lx)\n", initrd.pstart, initrd.size);
 	err = cpio_size(initrd.vbase, &initrd.size);
 	if (err)
 		return err;

@@ -50,8 +50,8 @@ typedef short __s16;
 typedef int __s32;
 typedef char __s8;
 
-typedef u64 uintptr_t;
-typedef s64 intptr_t;
+typedef unsigned long uintptr_t;
+typedef signed long intptr_t;
 
 typedef uintptr_t paddr_t;
 typedef intptr_t ptrdiff_t;

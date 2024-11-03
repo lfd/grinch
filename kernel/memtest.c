@@ -44,7 +44,7 @@ static int __init memtest_kmem(void)
 
 		for (i = page; (void*)i < page + PAGE_SIZE; i++) {
 			if (*i) {
-				pr_raw_i(" -> Page not zero: %p (phys: 0x%llx) = 0x%llx\n", i, v2p(i), *i);
+				pr_raw_i(" -> Page not zero: %p (phys: 0x%lx) = 0x%llx\n", i, v2p(i), *i);
 				break;
 			}
 		}

@@ -258,7 +258,7 @@ static int pci_map_bar(struct pci_device *dev, unsigned int bar_no)
 	}
 
 	pci_pr_info(dev,
-		"BAR%u: %sprefetchable, %u-Bit, size: 0x%lx, mapped: 0x%llx\n",
+		"BAR%u: %sprefetchable, %u-Bit, size: 0x%lx, mapped: 0x%lx\n",
 		bar_no, bar->prefetchable ? "" : "non-",
 		bar->type == PCI_BAR_64 ? 64 : 32, res->phys.size,
 		res->phys.paddr);
