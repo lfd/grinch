@@ -49,11 +49,11 @@ void loglevel_set(unsigned int level)
 
 static int sprint_prefix(char **str, char *end)
 {
-	unsigned long long wall;
+	struct timespec ts;
 	int res;
 
-	wall = timer_get_wall();
-	res = snprintf(*str, end - *str, prefix_fmt, PR_TIME_PARAMS(wall));
+	timer_get_wall(&ts);
+	res = snprintf(*str, end - *str, prefix_fmt, PR_TS_PARAMS(&ts));
 	if (res < 0)
 		return res;
 
@@ -134,5 +134,5 @@ void __init printk_init(void)
 {
 	snprintf(prefix_fmt, sizeof(prefix_fmt), ISTR("[Grinch%s %u %s] "),
 			grinch_is_guest ? ISTR("VM") : ISTR(""), grinch_id,
-			PR_TIME_FMT);
+			PR_TS_FMT);
 }

@@ -53,7 +53,7 @@ struct wfe_child {
 };
 
 struct wfe_timer {
-	unsigned long long expiration;
+	timeu_t expiration;
 };
 
 /* Blocking read from file descriptor */
@@ -136,8 +136,9 @@ void task_handle_fault(void __user *addr, bool is_write);
 
 void task_set_wfe(struct task *task);
 
-void task_sleep_until(struct task *task, unsigned long long wall_ns);
-void task_sleep_for(struct task *task, unsigned long long ns);
+/* task timer handling */
+void task_sleep_until(struct task *task, struct timespec *ts);
+void task_sleep_for(struct task *task, struct timespec *ts);
 void task_cancel_timer(struct task *task);
 
 void arch_vmachine_save(struct vmachine *vm);

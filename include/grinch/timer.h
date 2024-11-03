@@ -20,9 +20,11 @@ int timer_init(void);
 
 void handle_timer(void);
 
-timeu_t timer_get_wall(void);
+void timer_get_wall(struct timespec *ts);
+timeu_t timer_get_wall_ns(void);
+
 timeu_t arch_timer_ticks_to_time(timeu_t ticks);
-timeu_t timer_ticks_to_time(timeu_t ticks);
+void timer_ticks_to_time(timeu_t ticks, struct timespec *ts);
 
 /* Architecture specific routines */
 int arch_timer_init(void);

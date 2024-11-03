@@ -26,7 +26,6 @@
 #include <grinch/uaccess.h>
 #include <grinch/percpu.h>
 #include <grinch/syscall.h>
-#include <grinch/time_abi.h>
 
 #ifdef ARCH_RISCV
 #define ELF_ARCH EM_RISCV
@@ -413,7 +412,10 @@ unlock_out:
 
 SYSCALL_DEF1(grinch_usleep, useconds_t, us)
 {
-	task_sleep_for(current_task(), US_TO_NS(us));
+	struct timespec ts;
+
+	us_to_ts(us, &ts);
+	task_sleep_for(current_task(), &ts);
 	this_per_cpu()->schedule = true;
 
 	return 0;
@@ -441,13 +443,11 @@ SYSCALL_DEF0(getpid)
 SYSCALL_DEF2(clock_gettime, clockid_t, id, struct timespec __user *, _ts)
 {
 	struct timespec ts;
-	u64 ns;
 
 	if (id != 0)
 		return -EINVAL;
 
-	ns = timer_get_wall();
-	ns_to_ts(ns, &ts);
+	timer_get_wall(&ts);
 	if (copy_to_user(current_task(), _ts, &ts, sizeof(ts)) != sizeof(ts))
 		return -EFAULT;
 

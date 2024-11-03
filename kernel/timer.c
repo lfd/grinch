@@ -38,16 +38,26 @@ static void __init timer_hz_parse(const char *arg)
 }
 bootparam(timer_hz, timer_hz_parse);
 
-timeu_t timer_ticks_to_time(timeu_t ticks)
+void timer_ticks_to_time(timeu_t ticks, struct timespec *ts)
 {
-	return arch_timer_ticks_to_time(ticks) - wall_base;
+	timeu_t ns;
+
+	ns = arch_timer_ticks_to_time(ticks) - wall_base;
+	ns_to_ts(ns, ts);
 }
 
-timeu_t timer_get_wall(void)
+void timer_get_wall(struct timespec *ts)
 {
-	if (!wall_base)
-		return 0;
+	if (!wall_base) {
+		*ts = (struct timespec){0};
+		return;
+	}
 
+	ns_to_ts(timer_get_wall_ns(), ts);
+}
+
+timeu_t timer_get_wall_ns(void)
+{
 	return arch_timer_get() - wall_base;
 }
 
@@ -68,7 +78,7 @@ void timer_update(struct task *task)
 void handle_timer(void)
 {
 	struct per_cpu *tpcpu;
-	unsigned long next;
+	timeu_t next;
 
 	tpcpu = this_per_cpu();
 
@@ -77,7 +87,7 @@ void handle_timer(void)
 
 	// FIXME: make me cyclic
 	if (timer_hz)
-		next = timer_get_wall() + HZ_TO_NS(timer_hz);
+		next = timer_get_wall_ns() + HZ_TO_NS(timer_hz);
 	else
 		next = -1;
 	tpcpu->timer.next = next;
@@ -98,6 +108,7 @@ static void __init timer_cpu_init(void *)
 
 int __init timer_init(void)
 {
+	struct timespec ts;
 	int err;
 
 	err = arch_timer_init();
@@ -107,7 +118,8 @@ int __init timer_init(void)
 	pri("Timer Frequency: %uHz\n", timer_hz);
 	wall_base = arch_timer_get();
 
-	pri("Wall base: " PR_TIME_FMT "\n", PR_TIME_PARAMS(wall_base));
+	ns_to_ts(wall_base, &ts);
+	pri("Wall base: " PR_TS_FMT "\n", PR_TS_PARAMS(&ts));
 	on_each_cpu(timer_cpu_init, NULL);
 
 	return err;

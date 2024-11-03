@@ -485,13 +485,16 @@ static bool timer_comp(struct list_head *_a, struct list_head *_b)
 	return a->wfe.timer.expiration > b->wfe.timer.expiration;
 }
 
-void task_sleep_until(struct task *task, unsigned long long wall_ns)
+void task_sleep_until(struct task *task, struct timespec *ts)
 {
+	time_t wall_ns;
+
 	spin_lock(&task_lock);
 
 	if (task->wfe.type != WFE_NONE)
 		BUG();
 
+	wall_ns = ts_to_ns(ts);
 	task->wfe.timer.expiration = wall_ns;
 	task->wfe.type = WFE_TIMER;
 
@@ -509,9 +512,13 @@ void task_sleep_until(struct task *task, unsigned long long wall_ns)
 	spin_unlock(&task_lock);
 }
 
-void task_sleep_for(struct task *task, unsigned long long ns)
+void task_sleep_for(struct task *task, struct timespec *ts)
 {
-	task_sleep_until(task, timer_get_wall() + ns);
+	struct timespec now, until;
+
+	timer_get_wall(&now);
+	until = timespec_add(now, *ts);
+	task_sleep_until(task, &until);
 }
 
 void task_cancel_timer(struct task *task)
@@ -539,7 +546,7 @@ void task_handle_events(void)
 		if (task->wfe.type != WFE_TIMER)
 			BUG();
 
-		if (task->wfe.timer.expiration <= timer_get_wall()) {
+		if (task->wfe.timer.expiration <= timer_get_wall_ns()) {
 			if (task->type == GRINCH_VMACHINE) {
 				vmachine_set_timer_pending(&task->vmachine);
 				if (task->state == TASK_RUNNING) {
