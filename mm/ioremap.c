@@ -34,8 +34,8 @@ void __init *ioremap(paddr_t paddr, size_t size)
 	size = page_up(size);
 	pages = PAGES(size);
 
-	paddr_al = ffsl(paddr);
-	size_al = ffsl(size);
+	paddr_al = __ffsl(paddr);
+	size_al = __ffsl(size);
 	if (size_al <= paddr_al)
 		align_mask = PAGES(1 << size_al) - 1;
 	else

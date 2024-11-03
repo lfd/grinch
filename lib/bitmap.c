@@ -68,7 +68,7 @@ static unsigned long _find_next_bit(const unsigned long *addr1,
 	if (le)
 		tmp = swab(tmp);
 
-	return MIN(start + ffsl(tmp), nbits);
+	return MIN(start + __ffsl(tmp), nbits);
 }
 
 static inline

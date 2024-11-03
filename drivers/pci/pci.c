@@ -225,7 +225,7 @@ static int pci_scan_bar(struct pci_device *dev, unsigned int bar_no)
 		sz = pci_bar_test(dev, bar_no + 1);
 		sz64 |= (u64)sz << 32;
 	}
-	bar->iomem.phys.size = (1 << ffs(sz64));
+	bar->iomem.phys.size = (1 << __ffsl(sz64));
 
 	return 0;
 }

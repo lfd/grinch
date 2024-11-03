@@ -10,12 +10,19 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <grinch/types.h>
 #include <grinch/compiler_attributes.h>
 
-static __always_inline int ffs(int word)
+static __always_inline int __ffsl(unsigned long word)
 {
 	int num = 0;
 
+#if BITS_PER_LONG == 64
+	if ((word & 0xffffffff) == 0) {
+		num += 32;
+		word >>= 32;
+	}
+#endif
 	if ((word & 0xffff) == 0) {
 		num += 16;
 		word >>= 16;
@@ -35,16 +42,4 @@ static __always_inline int ffs(int word)
 	if ((word & 0x1) == 0)
 		num += 1;
 	return num;
-}
-
-static __always_inline int ffsl(long word)
-{
-	int num = 0;
-
-	if ((word & 0xffffffff) == 0) {
-		num += 32;
-		word >>= 32;
-	}
-
-	return num + ffs(word);
 }
