@@ -13,6 +13,8 @@
 #ifndef _TIME_H
 #define _TIME_H
 
-unsigned long gettime(void);
+#include <grinch/time_abi.h>
+
+int clock_gettime(clockid_t clockid, struct timespec *ts);
 
 #endif /* _TIME_H */

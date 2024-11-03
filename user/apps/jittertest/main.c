@@ -16,29 +16,52 @@
 #include <time.h>
 #include <unistd.h>
 
-#define USLEEP	(1000 * 100)
-#define US_MAX	10000
+#define NSEC_PER_SEC		(1000L * 1000L * 1000L)
+#define USLEEP			(1000 * 100)
+#define HISTOGRAM_US_MAX	10000
 
 int main(int argc, char *argv[]);
 
 APP_NAME(jittertest);
 
-static unsigned int histogram[US_MAX];
+static unsigned int histogram[HISTOGRAM_US_MAX];
 static unsigned int min = -1, max;
 static unsigned long long avg;
 
-/* return a measurement value in us */
-static unsigned int single_measurement(void)
+static inline time_t
+calcdiff_ns(const struct timespec *t1, const struct timespec *t2)
 {
-	unsigned long now, then;
+	time_t diff;
 
-	now = gettime();
-	usleep(USLEEP);
-	then = gettime();
+	diff = NSEC_PER_SEC * (t1->tv_sec - t2->tv_sec);
+	diff += t1->tv_nsec - t2->tv_nsec;
 
-	now = ((then - now) - USLEEP * 1000) / 1000;
+	return diff;
+}
 
-	return now;
+/* return a measurement value in us */
+static int single_measurement(unsigned int *meas)
+{
+	struct timespec now, then;
+	int err;
+
+	err = clock_gettime(0, &now);
+	if (err == -1)
+		goto err;
+
+	err = usleep(USLEEP);
+	if (err == -1)
+		goto err;
+
+	err = clock_gettime(0, &then);
+	if (err == -1)
+		goto err;
+
+	*meas = (calcdiff_ns(&then, &now) - USLEEP * 1000) / 1000;
+	return 0;
+
+err:
+	return errno ? -errno : -1;
 }
 
 int main(int argc, char *argv[])
@@ -60,7 +83,10 @@ int main(int argc, char *argv[])
 
 	err = 0;
 	for (shots = 0; shots < max_shots;) {
-		jitter = single_measurement();
+		err = single_measurement(&jitter);
+		if (err)
+			break;
+
 		shots++;
 		avg += jitter;
 
@@ -70,7 +96,7 @@ int main(int argc, char *argv[])
 		if (jitter > max)
 			max = jitter;
 
-		if (jitter >= US_MAX) {
+		if (jitter >= HISTOGRAM_US_MAX) {
 			printf("Exceeded: %uus\n", jitter);
 			err = -ERANGE;
 			break;
@@ -82,7 +108,7 @@ int main(int argc, char *argv[])
 	}
 
 	printf("Measured %llu shots:\n", shots);
-	for (i = 0; i < US_MAX; i++)
+	for (i = 0; i < HISTOGRAM_US_MAX; i++)
 		if (histogram[i])
 			printf("%5lluus: %u\n", i, histogram[i]);
 

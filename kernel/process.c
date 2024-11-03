@@ -438,9 +438,20 @@ SYSCALL_DEF0(getpid)
 	return current_task()->pid;
 }
 
-SYSCALL_DEF0(grinch_gettime)
+SYSCALL_DEF2(clock_gettime, clockid_t, id, struct timespec __user *, _ts)
 {
-	return timer_get_wall();
+	struct timespec ts;
+	u64 ns;
+
+	if (id != 0)
+		return -EINVAL;
+
+	ns = timer_get_wall();
+	ns_to_ts(ns, &ts);
+	if (copy_to_user(current_task(), _ts, &ts, sizeof(ts)) != sizeof(ts))
+		return -EFAULT;
+
+	return 0;
 }
 
 SYSCALL_DEF2(grinch_call, unsigned long, no, unsigned long, arg)

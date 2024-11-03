@@ -13,7 +13,7 @@
 #include <syscall.h>
 #include <time.h>
 
-unsigned long gettime(void)
+int clock_gettime(clockid_t clockid, struct timespec *ts)
 {
-	return syscall_0(SYS_grinch_gettime);
+	return errno_syscall_2(SYS_clock_gettime, clockid, (uintptr_t)ts);
 }
