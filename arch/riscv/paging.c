@@ -17,11 +17,10 @@
 #include <grinch/percpu.h>
 
 #define	PAGE_BITS	12
-#define	WORD_BITS	3 /* 1 << WORD_BITS == sizeof (void *) */
 #define	MAX_FLAG	10
 #define FLAG_MASK	((1 << MAX_FLAG) - 1)
 
-#define	PAGE_LEVEL_BITS		(PAGE_BITS - WORD_BITS)
+#define	PAGE_LEVEL_BITS		VPN_SHIFT
 #define PAGE_LEVEL_MASK(ROOT)	((1 << (PAGE_LEVEL_BITS + 2 * !!(ROOT))) - 1)
 
 #define	UNTRANSLATED_BITS(LEVEL) \

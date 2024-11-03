@@ -14,7 +14,9 @@ QEMU_ARGS_COMMON=-monitor telnet:127.0.0.1:11111,server,nowait -s
 INCLUDES_KERNEL=-Iinclude/ \
 		-Icommon/include \
                 -Ilib/libfdt/ \
-                -I$(ARCH_DIR)/include/
+                -I$(ARCH_DIR)/include/ \
+                -Icommon/include/arch/$(ARCH)/
+
 
 CFLAGS_KERNEL_COMMON=$(CFLAGS_COMMON) $(CFLAGS_ARCH) $(CFLAGS_STANDALONE) $(INCLUDES_KERNEL)
 

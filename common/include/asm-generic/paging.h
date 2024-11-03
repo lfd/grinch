@@ -15,35 +15,31 @@
 
 #include <grinch/const.h>
 #include <grinch/types.h>
+#include <arch/paging.h>
 
 #define PMASK(X)	(~((X) - 1))
 
-/* Applies arm64 and rv64. NOT for rv32. */
-#define PAGE_SHIFT		12
-#define VPN_SHIFT		9
-#define VPN_MASK		((1UL << VPN_SHIFT) - 1)
-
-/* Applies to arm64, rv32 and rv64 */
-#define PTES_PER_PT		(PAGE_SIZE / sizeof(unsigned long))
 #define PAGE_SIZE		_BITUL(PAGE_SHIFT)
 #define PAGE_MASK		PMASK(PAGE_SIZE)
 #define PAGE_OFFS_MASK		(~PAGE_MASK)
 
-#define MEGA_PAGE_SHIFT 	(PAGE_SHIFT + VPN_SHIFT)
 #define MEGA_PAGE_SIZE		_BITUL(MEGA_PAGE_SHIFT)
 #define MEGA_PAGE_MASK		PMASK(MEGA_PAGE_SIZE)
 #define MEGA_PAGE_OFFS_MASK	(~MEGA_PAGE_MASK)
+
+#define PTES_PER_PT		(PAGE_SIZE / sizeof(unsigned long))
 
 #define PAGES(X)		((X) / PAGE_SIZE)
 #define MEGA_PAGES(X)		((X) / MEGA_PAGE_SIZE)
 
 #ifndef __ASSEMBLY__
-static inline u64 page_up(u64 diff)
+
+static inline unsigned long page_up(unsigned long diff)
 {
 	return (diff + PAGE_SIZE - 1) & PAGE_MASK;
 }
 
-static inline u64 mega_page_up(u64 diff)
+static inline unsigned long mega_page_up(unsigned long diff)
 {
 	return (diff + MEGA_PAGE_SIZE - 1) & MEGA_PAGE_MASK;
 }
