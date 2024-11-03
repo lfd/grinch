@@ -232,8 +232,9 @@ static int pci_scan_bar(struct pci_device *dev, unsigned int bar_no)
 
 static int pci_map_bar(struct pci_device *dev, unsigned int bar_no)
 {
-	struct pci_bar *bar;
 	struct mmio_resource *res;
+	struct pci_bar *bar;
+	u64 paddr;
 	int err;
 
 	bar = &dev->bars[bar_no];
@@ -246,10 +247,10 @@ static int pci_map_bar(struct pci_device *dev, unsigned int bar_no)
 		return err;
 	}
 
-	pci_dev_bar_write(dev, bar_no, res->phys.paddr & 0xffffffff);
+	paddr = res->phys.paddr;
+	pci_dev_bar_write(dev, bar_no, paddr & 0xffffffff);
 	if (bar->type == PCI_BAR_64)
-		pci_dev_bar_write(dev, bar_no + 1,
-				  (res->phys.paddr >> 32) & 0xffffffff);
+		pci_dev_bar_write(dev, bar_no + 1, (paddr >> 32) & 0xffffffff);
 
 	err = ioremap_res(res);
 	if (err) {
