@@ -139,12 +139,12 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr,
 	stack_top = fill_uenv_table(task, envp, stack_top, uenvp_string);
 	if (IS_ERR(stack_top))
 		return PTR_ERR(stack_top);
-	uargs[2] = (u64)stack_top;
+	uargs[2] = (uintptr_t)stack_top;
 
 	stack_top = fill_uenv_table(task, argv, stack_top, uargv_string);
 	if (IS_ERR(stack_top))
 		return PTR_ERR(stack_top);
-	uargs[1] = (u64)stack_top;
+	uargs[1] = (uintptr_t)stack_top;
 	uargs[0] = argv ? argv->elements : 0;
 
 	stack_top -= sizeof(uargs);
