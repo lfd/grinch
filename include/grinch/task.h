@@ -135,11 +135,9 @@ void task_save(struct registers *regs);
 void task_handle_fault(void __user *addr, bool is_write);
 
 void task_set_wfe(struct task *task);
+
 void task_sleep_until(struct task *task, unsigned long long wall_ns);
-static inline void task_sleep_for(struct task *task, unsigned long long ns)
-{
-	task_sleep_until(task, timer_get_wall() + ns);
-}
+void task_sleep_for(struct task *task, unsigned long long ns);
 void task_cancel_timer(struct task *task);
 
 void arch_vmachine_save(struct vmachine *vm);

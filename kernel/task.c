@@ -509,6 +509,11 @@ void task_sleep_until(struct task *task, unsigned long long wall_ns)
 	spin_unlock(&task_lock);
 }
 
+void task_sleep_for(struct task *task, unsigned long long ns)
+{
+	task_sleep_until(task, timer_get_wall() + ns);
+}
+
 void task_cancel_timer(struct task *task)
 {
 	spin_lock(&task_lock);
