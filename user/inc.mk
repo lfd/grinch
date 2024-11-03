@@ -13,7 +13,7 @@ APPS += true
 
 INCLUDES_USER = -Iuser/include \
 		-Icommon/include \
-		-Iuser/lib/$(ARCH)/include \
+		-Iuser/lib/$(ARCH_SUPER)/include \
 		-Icommon/include/arch/$(ARCH_SUPER)/
 
 CFLAGS_USER = $(CFLAGS_COMMON) $(CFLAGS_ARCH) $(CFLAGS_STANDALONE) $(INCLUDES_USER)

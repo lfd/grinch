@@ -1,6 +1,6 @@
 SYSCALL_HEADER = common/include/generated/syscall.h
 
-ifeq ($(ARCH),riscv)
+ifeq ($(ARCH),riscv64)
 	ARCH_SUPER = riscv
 	ARCH_RISCV = true
 	ARCH_RISCV64 = true
@@ -24,7 +24,7 @@ INCLUDES_KERNEL=-Iinclude/ \
 		-Icommon/include \
                 -Ilib/libfdt/ \
                 -I$(ARCH_DIR)/include/ \
-                -Icommon/include/arch/$(ARCH)/
+                -Icommon/include/arch/$(ARCH_SUPER)/
 
 
 CFLAGS_KERNEL_COMMON=$(CFLAGS_COMMON) $(CFLAGS_ARCH) $(CFLAGS_STANDALONE) $(INCLUDES_KERNEL)

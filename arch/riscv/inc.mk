@@ -1,23 +1,27 @@
 CROSS_COMPILE ?= riscv64-linux-gnu-
 PLATFORM ?= any
 
-UBOOT_CFG=riscv-qemu.config
+QEMU=qemu-system-$(ARCH)
 
-QEMU=qemu-system-riscv64
+ifdef ARCH_RISCV64
+CFLAGS_DEF_ARCH = -DARCH_RISCV=64 -DARCH=riscv64
+CFLAGS_ARCH = -mcmodel=medany -march=rv64imafdc_zifencei $(CFLAGS_DEF_ARCH)
+LDFLAGS_ARCH = -melf64lriscv
+QEMU_CPU = rv64
+endif
+
+UBOOT_CFG=riscv-qemu.config
 
 QEMU_MACHINE=-machine virt
 
 QEMU_ARGS=-m 64M -smp $(QEMU_CPUS)
 QEMU_ARGS+=-serial stdio -monitor telnet:127.0.0.1:55555,server,nowait
-QEMU_ARGS+=$(QEMU_MACHINE) -cpu rv64,h=true
+QEMU_ARGS+=$(QEMU_MACHINE) -cpu $(QEMU_CPU),h=true
 QEMU_ARGS+=-device VGA
 
 QEMU_UBOOT_ARGS=\
 		-device loader,file=kernel.bin,addr=0x82000000,force-raw=on \
 		-device loader,file=user/initrd.cpio,addr=0x82800000,force-raw=on \
-
-CFLAGS_ARCH = -mcmodel=medany -march=rv64imafdc_zifencei -DARCH_RISCV=1
-LDFLAGS_ARCH = -melf64lriscv
 
 ARCH_OBJS = arch.o cpu.o entry.o head.o isa.o paging.o platform.o
 ARCH_OBJS += sbi.o smp.o stackdump.o task.o timer.o traps.o

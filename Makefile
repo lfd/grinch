@@ -1,4 +1,4 @@
-ARCH ?= riscv
+ARCH ?= riscv64
 
 #DEBUG_OUTPUT=1
 #INITCONST_STR=1

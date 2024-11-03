@@ -55,9 +55,7 @@ static const char __initconst logo_vm[] =
 " |___/";
 
 static const char __initconst hello[] =
-#ifdef ARCH_RISCV
-"       on RISC-V\n"
-#endif
+"       on " __stringify(ARCH) "\n"
 "\n      -> Welcome to Grinch " VERSION_STRING " <- \n\n\n";
 
 static bool __initdata do_memtest;
