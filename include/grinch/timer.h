@@ -20,15 +20,15 @@ int timer_init(void);
 
 void handle_timer(void);
 
-unsigned long timer_get_wall(void);
-unsigned long arch_timer_ticks_to_time(unsigned long ticks);
-unsigned long timer_ticks_to_time(unsigned long ticks);
+timeu_t timer_get_wall(void);
+timeu_t arch_timer_ticks_to_time(timeu_t ticks);
+timeu_t timer_ticks_to_time(timeu_t ticks);
 
 /* Architecture specific routines */
 int arch_timer_init(void);
 
-unsigned long arch_timer_get(void);
-void arch_timer_set(unsigned long ns);
+timeu_t arch_timer_get(void);
+void arch_timer_set(timeu_t ns);
 
 /* task_lock must be held */
 #include <grinch/task.h>

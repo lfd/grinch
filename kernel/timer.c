@@ -38,27 +38,28 @@ static void __init timer_hz_parse(const char *arg)
 }
 bootparam(timer_hz, timer_hz_parse);
 
-unsigned long timer_ticks_to_time(unsigned long ticks)
+timeu_t timer_ticks_to_time(timeu_t ticks)
 {
 	return arch_timer_ticks_to_time(ticks) - wall_base;
 }
 
-unsigned long timer_get_wall(void)
+timeu_t timer_get_wall(void)
 {
 	if (!wall_base)
 		return 0;
+
 	return arch_timer_get() - wall_base;
 }
 
 void timer_update(struct task *task)
 {
-	unsigned long *next;
+	timeu_t *next;
 
 	next = &this_per_cpu()->timer.next;
 	if (task && task->wfe.timer.expiration < *next)
 		*next = task->wfe.timer.expiration;
 
-	if (*next != (unsigned long)-1)
+	if (*next != (timeu_t)-1)
 		arch_timer_set(*next + wall_base);
 	else
 		arch_timer_set(-1);
@@ -84,7 +85,7 @@ void handle_timer(void)
 
 static void __init timer_cpu_init(void *)
 {
-	unsigned long *next;
+	timeu_t *next;
 
 	next = &this_per_cpu()->timer.next;
 	if (timer_hz)

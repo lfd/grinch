@@ -29,27 +29,27 @@ u32 riscv_timebase_frequency;
 
 static __initdata int _err;
 
-static inline u64 get_time(void)
+static inline timeu_t get_time(void)
 {
 	return csr_read(time);
 }
 
-unsigned long arch_timer_ticks_to_time(unsigned long ticks)
+timeu_t arch_timer_ticks_to_time(timeu_t ticks)
 {
 	return NSEC_PER_SEC * ticks / riscv_timebase_frequency;
 }
 
-unsigned long arch_timer_get(void)
+timeu_t arch_timer_get(void)
 {
 	return arch_timer_ticks_to_time(get_time());
 }
 
-void arch_timer_set(unsigned long ns)
+void arch_timer_set(timeu_t ns)
 {
 	struct sbiret ret;
-	u64 then;
+	timeu_t then;
 
-	then = (u64)ns * riscv_timebase_frequency / NSEC_PER_SEC;
+	then = ns * riscv_timebase_frequency / NSEC_PER_SEC;
 
 	// FIXME: implement SSTC
 	ret = sbi_set_timer(then);

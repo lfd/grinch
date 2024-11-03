@@ -29,6 +29,7 @@
 
 #include <grinch/symbols.h>
 #include <grinch/smp.h>
+#include <grinch/time_abi.h>
 
 struct per_cpu {
 	union {
@@ -52,7 +53,7 @@ struct per_cpu {
 	bool handle_events;
 
 	struct {
-		unsigned long next;
+		timeu_t next;
 	} timer;
 
 	struct {
