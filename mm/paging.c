@@ -211,7 +211,7 @@ static int paging_create(const struct paging_structures *pg_structs,
 
 static int _unmap_range(struct paging_structures *pg, const void *vaddr, size_t size)
 {
-	pr_dbg("Unmapping VA: 0x%llx (SZ: 0x%lx)\n", (u64)vaddr, size);
+	pr_dbg("Unmapping VA: 0x%lx (SZ: 0x%lx)\n", (uintptr_t)vaddr, size);
 
 	return paging_destroy(pg, (unsigned long)vaddr, size, 0);
 }
@@ -221,8 +221,8 @@ static int _map_range(struct paging_structures *pg, const void *vaddr,
 {
 	unsigned long flags;
 
-	pr_dbg("Create mapping VA: 0x%llx PA: 0x%llx (%c%c%c%c%c SZ: 0x%lx)\n",
-	       (u64)vaddr, (u64)paddr,
+	pr_dbg("Create mapping VA: 0x%lx PA: 0x%lx (%c%c%c%c%c SZ: 0x%lx)\n",
+	       (uintptr_t)vaddr, paddr,
 	       grinch_flags & GRINCH_MEM_R ? 'R' : '-',
 	       grinch_flags & GRINCH_MEM_W ? 'W' : '-',
 	       grinch_flags & GRINCH_MEM_X ? 'X' : '-',
