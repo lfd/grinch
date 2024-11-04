@@ -18,6 +18,8 @@
 typedef s64 time_t;
 typedef u64 timeu_t;
 
+typedef time_t useconds_t;
+
 typedef int clockid_t;
 
 struct timespec {

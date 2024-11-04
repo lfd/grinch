@@ -36,7 +36,7 @@ pid_t getpid(void)
 	return errno_syscall_0(SYS_getpid);
 }
 
-int usleep(unsigned int usec)
+int usleep(useconds_t usec)
 {
 	return errno_syscall_1(SYS_grinch_usleep, usec);
 }

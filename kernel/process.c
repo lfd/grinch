@@ -26,6 +26,7 @@
 #include <grinch/uaccess.h>
 #include <grinch/percpu.h>
 #include <grinch/syscall.h>
+#include <grinch/time_abi.h>
 
 #ifdef ARCH_RISCV
 #define ELF_ARCH EM_RISCV
@@ -410,7 +411,7 @@ unlock_out:
 	return brk;
 }
 
-SYSCALL_DEF1(grinch_usleep, unsigned long, us)
+SYSCALL_DEF1(grinch_usleep, useconds_t, us)
 {
 	task_sleep_for(current_task(), US_TO_NS(us));
 	this_per_cpu()->schedule = true;

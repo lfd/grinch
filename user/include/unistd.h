@@ -15,7 +15,7 @@
 
 #include <stddef.h>
 #include <grinch/compiler_attributes.h>
-#include <grinch/types.h>
+#include <grinch/time_abi.h>
 
 #define STDIN_FILENO	0
 #define STDOUT_FILENO	1
@@ -28,7 +28,7 @@ pid_t fork(void);
 int execve(const char *pathname, char *const argv[], char *const envp[]);
 
 unsigned int sleep(unsigned int seconds);
-int usleep(unsigned int usec);
+int usleep(useconds_t usec);
 
 int close(int fd);
 ssize_t write(int fd, const void *buf, size_t count);
