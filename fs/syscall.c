@@ -58,11 +58,11 @@ static struct fs_flags get_flags(int oflag)
 	return ret;
 }
 
-static struct file_handle *get_handle(int fd)
+static struct file_handle *get_handle(unsigned int fd)
 {
 	struct file_handle *handle;
 
-	if (fd >= MAX_FDS || fd < 0)
+	if (fd >= MAX_FDS)
 		return ERR_PTR(-EBADF);
 
 	handle = &current_process()->fds[fd];
@@ -135,7 +135,7 @@ free_out:
 	return ret;
 }
 
-SYSCALL_DEF1(close, int, fd)
+SYSCALL_DEF1(close, unsigned int, fd)
 {
 	struct file_handle *handle;
 	struct task *task;
@@ -159,7 +159,7 @@ unlock_out:
 	return err;
 }
 
-SYSCALL_DEF3(read, int, fd, char __user *, buf, size_t, count)
+SYSCALL_DEF3(read, unsigned int, fd, char __user *, buf, size_t, count)
 {
 	struct file_handle *handle;
 	struct file *file;
@@ -196,7 +196,7 @@ SYSCALL_DEF3(read, int, fd, char __user *, buf, size_t, count)
 	return file->fops->register_reader(handle, buf, count);
 }
 
-SYSCALL_DEF3(write, int, fd, const char __user *, buf, size_t, count)
+SYSCALL_DEF3(write, unsigned int, fd, const char __user *, buf, size_t, count)
 {
 	struct file_handle *handle;
 	struct file *file;
@@ -259,7 +259,7 @@ path_out:
 	return err;
 }
 
-SYSCALL_DEF3(getdents, int, fd, struct grinch_dirent __user *, dents,
+SYSCALL_DEF3(getdents, unsigned int, fd, struct grinch_dirent __user *, dents,
 	     unsigned int, size)
 {
 	struct file_handle *handle;
@@ -357,7 +357,7 @@ out:
 	return err;
 }
 
-SYSCALL_DEF3(ioctl, int, fd, unsigned long, op, unsigned long, arg)
+SYSCALL_DEF3(ioctl, unsigned int, fd, unsigned long, op, unsigned long, arg)
 {
 	struct file_handle *handle;
 	struct file *file;
