@@ -357,7 +357,7 @@ out:
 	return err;
 }
 
-SYSCALL_DEF3(ioctl, unsigned int, fd, unsigned long, op, unsigned long, arg)
+SYSCALL_DEF3(ioctl, unsigned int, fd, unsigned int, op, unsigned long, arg)
 {
 	struct file_handle *handle;
 	struct file *file;

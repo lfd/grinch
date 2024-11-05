@@ -46,7 +46,7 @@ struct fb_host * __init fb_host_alloc(unsigned int sz, struct device *dev)
 }
 
 static long
-fb_host_ioctl(struct devfs_node *node, unsigned long op, unsigned long arg)
+fb_host_ioctl(struct devfs_node *node, unsigned int op, unsigned long arg)
 {
 	struct fb_host *host;
 	struct gfb_mode mode;

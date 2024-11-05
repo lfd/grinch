@@ -147,7 +147,7 @@ devfs_write(struct file_handle *fh, const char *ubuf, size_t count)
 	return node->fops->write(node, fh, ubuf, count);
 }
 
-static long devfs_ioctl(struct file *file, unsigned long op, unsigned long arg)
+static long devfs_ioctl(struct file *file, unsigned int op, unsigned long arg)
 {
 	struct devfs_node *node;
 

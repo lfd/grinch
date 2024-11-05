@@ -16,7 +16,7 @@
 
 #include <sys/ioctl.h>
 
-int ioctl(int fd, unsigned long op, ...)
+int ioctl(int fd, int op, ...)
 {
 	va_list ap;
 	void *arg;

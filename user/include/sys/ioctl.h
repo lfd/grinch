@@ -15,6 +15,6 @@
 
 #include <grinch/stat.h>
 
-int ioctl(int fd, unsigned long op, ...);
+int ioctl(int fd, int op, ...);
 
 #endif /* _IOCTL_H */
