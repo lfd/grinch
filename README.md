@@ -8,9 +8,13 @@ Grinch is a minimalist operating systems, mainly developed for educational and
 testing purposes. Grinch is designed to run on RISC-V platforms. It is able to
 run userspace processes (ELF format), and virtual machines. Userland
 applications shall have basic POSIX support. Therefore, grinch comes with its
-own minimalist libc implementation.
+own minimalist libc implementation. For compatibility reasons, the syscall
+interface tries to be compatible with Linux as good as possible.
 
-Don't expect anything to work.
+Grinch contains a minimalist Virtual Machine Monitor that is able to boot
+itself as virtual machine.
+
+Anyway, don't expect anything to work.
 
 <img src="res/logo.png" width="35%"/>
 
@@ -18,9 +22,11 @@ General features
 ----------------
 - Device Tree support
 - Simple scheduler
-- Userland applications (ECHSEs)
+- ELF Userland applications
 - Minimalist driver model
 - Minimalist VFS layer
+- Virtual Machine Monitor
+- GCOV support
 
 Architectural support
 ---------------------
@@ -36,6 +42,7 @@ Architectural support
   - RISC-V SBI console
   - RISC-V H-Extension support
   - SBI support
+  - H-Extensions
 
 #### ARM64 architecture
 - Work in Progress
