@@ -25,5 +25,5 @@ int ioctl(int fd, int op, ...)
 	arg = va_arg(ap, void *);
 	va_end(ap);
 
-	return errno_syscall_3(SYS_ioctl, fd, op, (unsigned long)arg);
+	return syscall(SYS_ioctl, fd, op, arg);
 }

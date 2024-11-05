@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -18,36 +18,31 @@
 #include <generated/syscall.h>
 #include <arch/syscall.h>
 
-#define syscall_0(no)				\
-	syscall((no), 0, 0, 0, 0, 0, 0)
-#define syscall_1(no, arg1)			\
-	syscall((no), (arg1), 0, 0, 0, 0, 0)
-#define syscall_2(no, arg1, arg2)		\
-	syscall((no), (arg1), (arg2), 0, 0, 0, 0)
-#define syscall_3(no, arg1, arg2, arg3)		\
-	syscall((no), (arg1), (arg2), (arg3), 0, 0, 0)
-#define syscall_4(no, arg1, arg2, arg3, arg4)	\
-	syscall((no), (arg1), (arg2), (arg3), (arg4), 0, 0)
-
-static inline
-unsigned long errno_syscall(unsigned long no,
-			    unsigned long arg1,
-			    unsigned long arg2,
-			    unsigned long arg3)
+static inline long __syscall_ret(unsigned long err)
 {
-	long ret;
+	if (err > -4096UL) {
+		errno = -err;
+		return -1;
+	}
 
-	ret = syscall_3(no, arg1, arg2, arg3);
-	if (ret >= 0)
-		return ret;
-
-	errno = -ret;
-	return -1;
+	return err;
 }
 
-#define errno_syscall_0(no)			errno_syscall(no, 0, 0, 0)
-#define errno_syscall_1(no, arg1)		errno_syscall(no, arg1, 0, 0)
-#define errno_syscall_2(no, arg1, arg2)		errno_syscall(no, arg1, arg2, 0)
-#define errno_syscall_3(no, arg1, arg2, arg3)	errno_syscall(no, arg1, arg2, arg3)
+#define __scast(X)	((long)(X))
+
+#define __syscall1(n, arg0)		__syscall1(n, __scast(arg0))
+#define __syscall2(n, arg0, arg1)	__syscall2(n, __scast(arg0), __scast(arg1))
+#define __syscall3(n, arg0, arg1, arg2)	__syscall3(n, __scast(arg0), __scast(arg1), __scast(arg2))
+
+#define __SYSCALL_NARGS_X(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, n,...) n
+#define __SYSCALL_NARGS(...)	__SYSCALL_NARGS_X(__VA_ARGS__, 7, 6, 5, 4, 3, 2, 1, 0,)
+#define __SYSCALL_NO_X(a,b)	a##b
+#define __SYSCALL_NO(no)	__SYSCALL_NO_X(__syscall, no)
+
+/* Calls the syscall, and returns the result as long */
+#define __syscall(...)	__SYSCALL_NO(__SYSCALL_NARGS(__VA_ARGS__))(__VA_ARGS__)
+
+/* Calls the syscall, fills errno, and returns either 0 or -1 as int */
+#define syscall(...)	__syscall_ret(__syscall(__VA_ARGS__))
 
 #endif /* _SYSCALL_H */

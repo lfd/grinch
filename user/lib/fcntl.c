@@ -16,6 +16,5 @@
 
 int open(const char *pathname, int flags)
 {
-	return errno_syscall_2(SYS_open, (unsigned long)pathname,
-			       (unsigned long)flags);
+	return syscall(SYS_open, pathname, flags);
 }

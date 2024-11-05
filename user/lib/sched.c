@@ -16,5 +16,5 @@
 
 int sched_yield(void)
 {
-	return errno_syscall_0(SYS_sched_yield);
+	return syscall(SYS_sched_yield);
 }

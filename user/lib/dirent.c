@@ -17,5 +17,5 @@
 
 int getdents(int fd, struct grinch_dirent *dents, unsigned int size)
 {
-	return errno_syscall_3(SYS_getdents, fd, (unsigned long)dents, size);
+	return syscall(SYS_getdents, fd, dents, size);
 }

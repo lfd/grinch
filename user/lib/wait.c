@@ -17,5 +17,5 @@
 
 int waitpid(pid_t pid, int *wstatus, int options)
 {
-	return errno_syscall_3(SYS_wait, pid, (unsigned long)wstatus, options);
+	return syscall(SYS_wait, pid, wstatus, options);
 }

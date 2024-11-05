@@ -22,12 +22,12 @@
 
 pid_t create_grinch_vm(void)
 {
-	return errno_syscall_0(SYS_grinch_create_grinch_vm);
+	return syscall(SYS_grinch_create_grinch_vm);
 }
 
 int gcall(unsigned long no, unsigned long arg1)
 {
-	return errno_syscall_2(SYS_grinch_call, no, arg1);
+	return syscall(SYS_grinch_call, no, arg1);
 }
 
 char *grinch_getcwd(void)

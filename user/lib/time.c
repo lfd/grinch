@@ -15,5 +15,5 @@
 
 int clock_gettime(clockid_t clockid, struct timespec *ts)
 {
-	return errno_syscall_2(SYS_clock_gettime, clockid, (uintptr_t)ts);
+	return syscall(SYS_clock_gettime, clockid, ts);
 }

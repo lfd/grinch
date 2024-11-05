@@ -15,30 +15,32 @@
 #include <errno.h>
 #include <syscall.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
+
+#define PATH_MAX	4096
 
 static void *curbrk;
 
 void __noreturn exit(int status)
 {
-	syscall_1(SYS_exit, status);
-	for (;;);
-	__builtin_unreachable();
+	for (;;)
+		syscall(SYS_exit, status);
 }
 
 pid_t fork(void)
 {
-	return errno_syscall_0(SYS_fork);
+	return syscall(SYS_fork);
 }
 
 pid_t getpid(void)
 {
-	return errno_syscall_0(SYS_getpid);
+	return syscall(SYS_getpid);
 }
 
 int usleep(useconds_t usec)
 {
-	return errno_syscall_1(SYS_grinch_usleep, usec);
+	return syscall(SYS_grinch_usleep, usec);
 }
 
 unsigned int sleep(unsigned int seconds)
@@ -53,35 +55,27 @@ unsigned int sleep(unsigned int seconds)
 
 ssize_t read(int fd, void *buf, size_t count)
 {
-	return errno_syscall_3(SYS_read, (unsigned long)fd, (unsigned long)buf,
-			       (unsigned long)count);
+	return syscall(SYS_read, fd, buf, count);
 }
 
 ssize_t write(int fd, const void *buf, size_t count)
 {
-	return errno_syscall_3(SYS_write, (unsigned long)fd,
-			       (unsigned long)buf, (unsigned long)count);
+	return syscall(SYS_write, fd, buf, count);
 }
 
 int execve(const char *pathname, char *const argv[], char *const envp[])
 {
-	int ret;
-	ret = syscall_3(SYS_execve, (unsigned long)pathname,
-			(unsigned long)argv, (unsigned long)envp);
-
-	errno = -ret;
-
-	return -1;
+	return syscall(SYS_execve, pathname, argv, envp);
 }
 
 int close(int fd)
 {
-	return errno_syscall_1(SYS_close, fd);
+	return syscall(SYS_close, fd);
 }
 
 static inline void *__brk(void *addr)
 {
-	return (void *)syscall_1(SYS_brk, (unsigned long)addr);
+	return (void *)__syscall(SYS_brk, addr);
 }
 
 int brk(void *addr)
@@ -118,7 +112,7 @@ void *sbrk(intptr_t increment)
 	if (increment > 0
 	    ? ((uintptr_t)oldbrk + (uintptr_t)increment < (uintptr_t)oldbrk)
 	    : ((uintptr_t)oldbrk < (uintptr_t)-increment)) {
-		errno = -ENOMEM;
+		errno = ENOMEM;
 		return (void *)-1;
 	}
 
@@ -130,16 +124,38 @@ void *sbrk(intptr_t increment)
 
 char *getcwd(char *buf, size_t size)
 {
+	char tmp[buf ? 1 : PATH_MAX];
 	int ret;
 
-	ret = errno_syscall_2(SYS_getcwd, (unsigned long)buf, size);
-	if (ret == 0)
-		return buf;
+	/*
+	 * looks a bit ugly, but otherwise the compiler will create an error
+	 * with high optimisation level
+	 */
+	if (buf == NULL) {
+		buf = tmp;
+		size = sizeof(tmp);
+		ret = syscall(SYS_getcwd, buf, size);
+	} else if (!size) {
+		errno = EINVAL;
+		return NULL;
+	} else
+		ret = syscall(SYS_getcwd, buf, size);
 
-	return NULL;
+	if (ret == -1)
+		return NULL;
+
+	if (buf[0] != '/') {
+		errno = ENOENT;
+		return NULL;
+	}
+
+	if (buf == tmp)
+		return strdup(buf);
+
+	return buf;
 }
 
 int chdir(const char *path)
 {
-	return errno_syscall_1(SYS_chdir, (unsigned long)path);
+	return syscall(SYS_chdir, path);
 }
