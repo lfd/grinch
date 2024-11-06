@@ -15,6 +15,7 @@
 #include <asm/cpu.h>
 #include <asm/irq.h>
 
+#include <grinch/div64.h>
 #include <grinch/errno.h>
 #include <grinch/fdt.h>
 #include <grinch/init.h>
@@ -36,7 +37,12 @@ static inline timeu_t get_time(void)
 
 timeu_t arch_timer_ticks_to_time(timeu_t ticks)
 {
-	return NSEC_PER_SEC * ticks / riscv_timebase_frequency;
+	u64 ret;
+
+	ret = NSEC_PER_SEC * ticks;
+	do_div(ret, riscv_timebase_frequency);
+
+	return ret;
 }
 
 timeu_t arch_timer_get(void)
@@ -49,7 +55,8 @@ void arch_timer_set(timeu_t ns)
 	struct sbiret ret;
 	timeu_t then;
 
-	then = ns * riscv_timebase_frequency / NSEC_PER_SEC;
+	then = ns * riscv_timebase_frequency;
+	do_div(then, NSEC_PER_SEC);
 
 	// FIXME: implement SSTC
 	ret = sbi_set_timer(then);
