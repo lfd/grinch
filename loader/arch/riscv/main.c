@@ -43,6 +43,20 @@ static void *loader_page_zalloc(void **next)
 }
 
 /* 2 MiB page size, in case of RV64 (SV39) */
+#if ARCH_RISCV == 32 /* rv32 */
+static inline void enable_mmu(paddr_t l0)
+{
+	enable_mmu_satp(SATP_MODE_32, l0);
+}
+
+static void map_mega(void **next, unsigned long *l0, void *vaddr, paddr_t paddr)
+{
+	unsigned long *l0_entry;
+
+	l0_entry = &l0[vaddr2vpn(vaddr, 1)];
+	*l0_entry = paddr2pte(paddr) | PAGE_FLAGS_DEFAULT;
+}
+#elif ARCH_RISCV == 64 /* rv64 */
 static void map_mega(void **next, unsigned long *l0, void *vaddr, paddr_t paddr)
 {
 	unsigned long *l0_entry, *l1_entry, *l1;
@@ -64,6 +78,7 @@ static inline void enable_mmu(paddr_t l0)
 {
 	enable_mmu_satp(SATP_MODE_39, l0);
 }
+#endif /* rv64 */
 
 void __noreturn
 loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr)
