@@ -15,7 +15,11 @@
 
 /* Check if this applies for ARM64 */
 #define USER_START		_UL(0x1000)
-#define USER_END		(_UL(1) << 38)
+/*
+ * On RV64 we have at least SV39 for paging. On SV39, this is the uppermost
+ * address that comes before VMGRINCH_BASE
+ */
+#define USER_END		(_UL(1) << (39 - 1))
 
 #define USER_STACK_SIZE		(1 * MIB)
 #define USER_STACK_TOP		USER_END

@@ -24,6 +24,9 @@ int main(void)
 	printf("   kheap Base: 0x%16lx\n", KHEAP_BASE);
 	printf("Dir phys Base: 0x%16lx\n", DIR_PHYS_BASE);
 	printf(" Per CPU Base: 0x%16lx\n", PERCPU_BASE);
+	printf("\n");
+	printf("   User Start: 0x%16lx\n", USER_START);
+	printf("   User   End: 0x%16lx\n", USER_END);
 
 	return 0;
 }
