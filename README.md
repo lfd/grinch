@@ -33,10 +33,11 @@ Architectural support
 
 #### RISC-V architecture
 - RISC-V base platform:
+  - RV64 and RV32 support
   - MMU support
-    - SV39 and SV48 paging
+    - SV32, SV39 and SV48 paging
     - SV39x and SV48x paging for VMs
-  - SMP support
+  - SMP support (RV64 only)
   - RISC-V platform Timers
   - RISC-V PLIC interrupt controller
   - RISC-V SBI console
@@ -56,8 +57,11 @@ Architectural support
 Platform support
 ----------------
 - Supported RISC-V boards:
-  - Virtual Target (qemu)
-  - Starfive VisionFive 2
+  - riscv32
+    - Virtual Target (qemu)
+  - riscv64
+    - Virtual Target (qemu)
+    - Starfive VisionFive 2
 
 - ARM64
   - Ongoing

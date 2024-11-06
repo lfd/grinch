@@ -4,6 +4,10 @@ ifeq ($(ARCH),riscv64)
 	ARCH_SUPER = riscv
 	ARCH_RISCV = true
 	ARCH_RISCV64 = true
+else ifeq ($(ARCH),riscv32)
+	ARCH_SUPER = riscv
+	ARCH_RISCV = true
+	ARCH_RISCV32 = true
 else
 $(error Unsupported Architecture $(ARCH))
 endif

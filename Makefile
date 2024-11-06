@@ -1,3 +1,6 @@
+# Supported architectures:
+#  - riscv64
+#  - riscv32 (no SMP)
 ARCH ?= riscv64
 
 #DEBUG_OUTPUT=1

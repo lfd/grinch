@@ -9,6 +9,11 @@ CFLAGS_DEF_ARCH = -DARCH_RISCV=64 -DARCH=riscv64
 CFLAGS_ARCH = -mcmodel=medany -march=rv64imafdc_zifencei $(CFLAGS_DEF_ARCH)
 LDFLAGS_ARCH = -melf64lriscv
 QEMU_CPU = rv64
+else ifdef ARCH_RISCV32
+CFLAGS_DEF_ARCH = -DARCH_RISCV=32 -DARCH=riscv32
+CFLAGS_ARCH = -march=rv32imafdc_zifencei -mabi=ilp32 $(CFLAGS_DEF_ARCH)
+LDFLAGS_ARCH = -melf32lriscv
+QEMU_CPU = rv32
 endif
 
 QEMU_MACHINE=-machine virt
