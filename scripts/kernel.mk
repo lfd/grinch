@@ -26,7 +26,6 @@ INCLUDES_KERNEL=-Iinclude/ \
                 -I$(ARCH_DIR)/include/ \
                 -Icommon/include/arch/$(ARCH_SUPER)/
 
-
 CFLAGS_KERNEL_COMMON=$(CFLAGS_COMMON) $(CFLAGS_ARCH) $(CFLAGS_STANDALONE) $(INCLUDES_KERNEL)
 
 CFLAGS_KERNEL = $(CFLAGS_KERNEL_COMMON)

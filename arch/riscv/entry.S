@@ -10,13 +10,14 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <arch/asm.h>
 #include <asm/asm_defines.h>
 
 .section .text, "ax"
 
 .macro context cmd
 	.irp reg 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31
-		\cmd    x\reg, 8*(\reg - 1)(sp)
+		\cmd    x\reg, SZREG*(\reg - 1)(sp)
 	.endr
 .endm
 
@@ -31,14 +32,14 @@ excp_handler:
 
 save_ctx:
 	addi	sp, sp, -STRUCT_REGISTERS_SIZE
-	context sd
+	context REG_S
 
 	csrr	a0, sepc
-	sd	a0, REG_PC(sp)
+	REG_S	a0, REG_PC(sp)
 
 	/* push SP */
 	csrr	a0, sscratch
-	sd	a0, REG_SP(sp)
+	REG_S	a0, REG_SP(sp)
 	csrw	sscratch, zero
 
 	/* Pass registers */
@@ -60,15 +61,15 @@ save_ctx:
 .globl return_to_user
 return_to_user:
 	/* restore user's PC */
-	ld	a0, REG_PC(sp)
+	REG_L	a0, REG_PC(sp)
 	csrw	sepc, a0
 
 	/* restore user's SP, keep it in sscratch */
-	ld	a0, REG_SP(sp)
+	REG_L	a0, REG_SP(sp)
 	/* No preemption must happen from now on */
 	csrw	sscratch, a0
 
-	context ld
+	context REG_L
 	addi	sp, sp, STRUCT_REGISTERS_SIZE
 
 	csrrw	sp, sscratch, sp

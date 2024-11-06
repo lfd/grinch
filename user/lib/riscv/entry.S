@@ -10,6 +10,8 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <arch/asm.h>
+
 .section .text.boot, "ax"
 
 .globl _start
@@ -19,7 +21,7 @@ _start:
 	la	t1, __bss_qwords
 
 	beqz	t1, 2f
-1:	sd	zero, 0(t0)
+1:	REG_S	zero, 0(t0)
 	addi	t0, t0, 8
 	addi	t1, t1, -1
 	bne	t1, zero, 1b

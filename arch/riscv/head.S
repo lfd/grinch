@@ -10,6 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <arch/asm.h>
 #include <asm/asm_defines.h>
 
 #include <grinch/percpu.h>
@@ -49,15 +50,15 @@ vmgrinch_start:
 
 	/* push fdt location */
 	addi	sp, sp, -8
-	sd	a1, 0(sp) /* fdt */
+	REG_S	a1, 0(sp) /* fdt */
 	addi	sp, sp, -8
-	sd	a0, 0(sp) /* hart-id */
+	REG_S	a0, 0(sp) /* hart-id */
 
 	/* Clear BSS segment */
 	la 	t0, __bss_start
 	la 	t1, __bss_qwords
 
-1:	sd	zero, 0(t0)
+1:	REG_S	zero, 0(t0)
 	addi	t0, t0, 8
 	addi 	t1, t1, -1
 	bne	t1, zero, 1b
@@ -73,9 +74,9 @@ vmgrinch_start:
 	csrw	stvec, t0
 
 	/* pop parameters from stack */
-	ld	a0, 0(sp) /* hart-id */
+	REG_L	a0, 0(sp) /* hart-id */
 	addi	sp, sp, 8
-	ld	a1, 0(sp) /* fdt */
+	REG_L	a1, 0(sp) /* fdt */
 	addi	sp, sp, 8
 
 	/* Terminate stack frame */

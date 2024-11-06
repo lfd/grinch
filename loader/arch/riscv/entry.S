@@ -10,6 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <arch/asm.h>
 #include <asm-generic/paging.h>
 
 #define RISCV_IMAGE_MAGIC	"RISCV\0\0\0"
@@ -62,10 +63,10 @@ _loader_start:
 	/* No BSS? Jump forward. */
 	beqz	t1, 2f
 
-1:	sd	zero, 0(t0)
-	addi	t0, t0, 8
-	addi	t1, t1, -1
-	bne	t1, zero, 1b
+1:	REG_S	zero, 0(t0)
+	addi    t0, t0, 8
+	addi    t1, t1, -1
+	bne     t1, zero, 1b
 2:
 	/* BSS cleared */
 
