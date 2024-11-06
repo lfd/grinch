@@ -52,12 +52,13 @@ static const char *causes[] = {
 
 void dump_regs(struct registers *a)
 {
-	u64 satp;
+	unsigned long satp;
 
 	satp = csr_read(CSR_SATP);
 
-	pr("SATP -- Mode: %llu, PFN: 0x%016llx     STVAL: 0x%016lx\n",
-			satp >> 60, (satp & SATP_PPN) << PAGE_SHIFT,
+	pr("SATP -- Mode: %lu, PFN: 0x%016lx     STVAL: 0x%016lx\n",
+			satp >> SATP_MODE_SHIFT,
+			(satp & SATP_PPN) << PAGE_SHIFT,
 			csr_read(stval));
 	pr(" PC: 0x%016lx RA: 0x%016lx  SP: 0x%016lx\n",
 			a->pc, a->ra, a->sp);
