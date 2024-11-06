@@ -1,4 +1,5 @@
 LIB_OBJS = bitmap.o
+LIB_OBJS += div64.o
 LIB_OBJS += ctype.o
 LIB_OBJS += errno.o
 LIB_OBJS += fdt.o

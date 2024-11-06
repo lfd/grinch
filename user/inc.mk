@@ -23,6 +23,7 @@ LDFLAGS_USER = $(LDFLAGS_COMMON) $(LDFLAGS_ARCH)
 LIBC_OBJS = $(ARCH)/entry.o
 LIBC_OBJS += ctype.o
 LIBC_OBJS += dirent.o
+LIBC_OBJS += div64.o
 LIBC_OBJS += errno.o
 LIBC_OBJS += fcntl.o
 LIBC_OBJS += ioctl.o
