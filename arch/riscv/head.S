@@ -27,7 +27,7 @@ vmgrinch_start:
 	 * We arrive here with:
 	 * a0: hartid
 	 * a1: phys fdt
-	 * a2: offset
+	 * a2: phys base of vmgrinch
 	 */
 
 	/*

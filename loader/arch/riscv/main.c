@@ -42,14 +42,14 @@ static void *loader_page_zalloc(void **next)
 	return tmp;
 }
 
-static void map_2M(void **next, u64 *l0, void *vaddr, paddr_t paddr)
+/* 2 MiB page size, in case of RV64 (SV39) */
+static void map_mega(void **next, unsigned long *l0, void *vaddr, paddr_t paddr)
 {
-	u64 *l0_entry = &l0[vaddr2vpn(vaddr, 2)];
-	u64 *l1_entry;
-	u64 *l1;
+	unsigned long *l0_entry, *l1_entry, *l1;
 
+	l0_entry = &l0[vaddr2vpn(vaddr, 2)];
 	if (*l0_entry & RISCV_PTE_FLAG(V)) {
-		l1 = (u64*)pte2table(*l0_entry);
+		l1 = (unsigned long *)pte2table(*l0_entry);
 	} else {
 		l1 = loader_page_zalloc(next);
 		*l0_entry = paddr2pte((paddr_t)l1) | PAGE_PRESENT_FLAGS;
@@ -59,11 +59,18 @@ static void map_2M(void **next, u64 *l0, void *vaddr, paddr_t paddr)
 	*l1_entry = paddr2pte(paddr) | PAGE_FLAGS_DEFAULT;
 }
 
+/* On RV64, we will use the SV39 paging system for handover */
+static inline void enable_mmu(paddr_t l0)
+{
+	enable_mmu_satp(SATP_MODE_39, l0);
+}
+
 void __noreturn
 loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr)
 {
 	void __noreturn (*grinch_entry)
-		(unsigned long hart_id, paddr_t fdt, u64 dst);
+		(unsigned long hart_id, paddr_t fdt, paddr_t dst);
+	paddr_t p_grinch_dst;
 	void *next, *l0;
 	unsigned int d;
 	paddr_t offset;
@@ -73,12 +80,12 @@ loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr)
 	for (d = 0; d < mega_page_up(__stack_end - __start);
 	     d+= MEGA_PAGE_SIZE) {
 		/* ID map loaded location */
-		map_2M(&next, l0, (void*)load_addr + d, load_addr + d);
+		map_mega(&next, l0, (void*)load_addr + d, load_addr + d);
 		/* linked location of bootloader */
-		map_2M(&next, l0, __start + d, load_addr + d);
+		map_mega(&next, l0, __start + d, load_addr + d);
 	}
 
-	enable_mmu_satp(SATP_MODE_39, (paddr_t)l0);
+	enable_mmu((paddr_t)l0);
 	offset = (paddr_t)__start - load_addr;
 	asm volatile(
 		"add sp, sp, %[offset]\n"
@@ -88,9 +95,9 @@ loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr)
 		: : [offset] "r"(offset) : "a0");
 
 	/* Alright, here we have a working environment */
-	u64 p_grinch_dst = load_addr + mega_page_up(__stack_end - __start);
+	p_grinch_dst = load_addr + mega_page_up(__stack_end - __start);
 	for (d = 0; d < GRINCH_SIZE; d += MEGA_PAGE_SIZE)
-		map_2M(&next, l0, (void*)VMGRINCH_BASE + d, p_grinch_dst + d);
+		map_mega(&next, l0, (void*)VMGRINCH_BASE + d, p_grinch_dst + d);
 
 	loader_copy_grinch();
 
