@@ -15,6 +15,7 @@
 
 #include <grinch/string.h>
 #include <grinch/swab.h>
+#include <grinch/types.h>
 
 #define fdt32_to_cpu(x) __be32_to_cpu(x)
 #define cpu_to_fdt32(x) __cpu_to_be32(x)
@@ -30,13 +31,6 @@
 #else
 #error "NOT IMPLEMENTED"
 #endif
-
-typedef u8 uint8_t;
-typedef u16 uint16_t;
-typedef u32 uint32_t;
-typedef u64 uint64_t;
-
-typedef s32 int32_t;
 
 typedef uint16_t fdt16_t;
 typedef uint32_t fdt32_t;
