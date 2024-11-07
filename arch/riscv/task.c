@@ -10,13 +10,11 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <asm/csr.h>
 #include <asm/isa.h>
 
 #include <grinch/task.h>
-#include <grinch/percpu.h>
+#include <grinch/paging.h>
 #include <grinch/string.h>
-#include <grinch/printk.h>
 
 void task_set_context(struct task *task, unsigned long pc, unsigned long sp)
 {
@@ -27,6 +25,7 @@ void task_set_context(struct task *task, unsigned long pc, unsigned long sp)
 void arch_process_activate(struct process *process)
 {
 	struct per_cpu *tpcpu;
+	size_t len;
 
 	/* Deactivate VMM */
 	if (has_hypervisor())
@@ -36,7 +35,14 @@ void arch_process_activate(struct process *process)
 	csr_clear(sstatus, SR_SPP);
 
 	tpcpu = this_per_cpu();
-	memcpy(tpcpu->root_table_page, process->mm.page_table, PAGE_SIZE / 2);
+#if ARCH_RISCV == 64 /* rv64 */
+	/* On SV39, SV48, …: The lower half belongs to the user */
+	len = PAGE_SIZE / 2;
+#elif ARCH_RISCV == 32 /* rv32 */
+	len = vaddr2vpn((void *)USER_END, 1) * sizeof(unsigned long);
+#endif
+	memcpy(tpcpu->root_table_page, process->mm.page_table, len);
+
 	/* Let's make our life easy */
 	// FIXME: think again about precise cache flushes
 	local_flush_tlb_all();
