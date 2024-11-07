@@ -10,6 +10,8 @@
  * the COPYING file in the top-level directory.
  */
 
+/* Copied and adapted from the Linux Kernel Sources */
+
 #ifndef _MATH64_H
 #define _MATH64_H
 

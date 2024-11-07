@@ -15,7 +15,7 @@
 #include <ctype.h>
 
 #include <grinch/compiler_attributes.h>
-#include <grinch/math64.h>
+#include <grinch/div64.h>
 #include <grinch/strtox.h>
 
 #define KSTRTOX_OVERFLOW	(1U << 31)

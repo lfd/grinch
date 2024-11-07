@@ -16,8 +16,8 @@
 
 #include <ctype.h>
 
+#include <grinch/div64.h>
 #include <grinch/errno.h>
-#include <grinch/math64.h>
 #include <grinch/minmax.h>
 #include <grinch/string_common.h>
 #include <grinch/vsprintf.h>
