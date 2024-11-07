@@ -79,7 +79,7 @@ void __init dev_init(struct device *dev, const char *name)
 	dev->idx = IDX_INVALID;
 }
 
-int __init dev_map_iomem(struct device *dev)
+int __init _dev_map_iomem(struct device *dev, size_t szmax)
 {
 	int err;
 
@@ -89,6 +89,11 @@ int __init dev_map_iomem(struct device *dev)
 
 	dev_pri(dev, "base: 0x%llx, size: 0x%lx\n",
 	        (u64)dev->mmio.phys.paddr, dev->mmio.phys.size);
+
+	if (dev->mmio.phys.size > szmax) {
+		dev_pri(dev, "size limited to 0x%lx\n", szmax);
+		dev->mmio.phys.size = szmax;
+	}
 
 	err = ioremap_res(&dev->mmio);
 

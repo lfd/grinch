@@ -53,7 +53,11 @@ struct device {
 struct device *dev_find_of_path(const char *path);
 
 // FIXME: Devices may have multiple MMIO resources
-int dev_map_iomem(struct device *dev);
+int _dev_map_iomem(struct device *dev, size_t szmax);
+static inline int dev_map_iomem(struct device *dev)
+{
+	return _dev_map_iomem(dev, -1);
+}
 
 void dev_init(struct device *dev, const char *name);
 void dev_add(struct device *dev);
