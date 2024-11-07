@@ -501,7 +501,15 @@ static int __init pci_probe(struct device *dev)
 	struct pci *pci;
 	int err;
 
+	/*
+	 * On 32 bit architectures, restrict the size to 256 MiB. This is
+	 * should be enough and does not waste virtual memory space.
+	 */
+#if defined ARCH_RISCV && ARCH_RISCV == 32
+	err = _dev_map_iomem(dev, 256 * MIB);
+#else
 	err = dev_map_iomem(dev);
+#endif
 	if (err)
 		return err;
 
