@@ -98,8 +98,13 @@ static inline struct sbiret sbi_send_ipi(unsigned long hmask,
 
 static inline struct sbiret sbi_set_timer(u64 stime_value)
 {
+#if ARCH_RISCV == 64
 	return sbi_ecall(SBI_EXT_TIME, SBI_EXT_TIME_SET_TIMER, stime_value,
 			 0, 0, 0, 0, 0);
+#elif ARCH_RISCV == 32
+	return sbi_ecall(SBI_EXT_TIME, SBI_EXT_TIME_SET_TIMER, stime_value,
+			 stime_value >> 32, 0, 0, 0, 0);
+#endif
 }
 
 static inline struct sbiret sbi_rfence(unsigned long fid,

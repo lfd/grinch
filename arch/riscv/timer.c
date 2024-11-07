@@ -32,7 +32,17 @@ static __initdata int _err;
 
 static inline timeu_t get_time(void)
 {
+#if ARCH_RISCV == 64 /* rv64 */
 	return csr_read(time);
+#elif ARCH_RISCV == 32 /* rv32 */
+	u32 hi, lo;
+	do {
+		hi = csr_read(timeh);
+		lo = csr_read(time);
+	} while (hi != csr_read(timeh));
+
+	return ((u64)hi << 32) | lo;
+#endif
 }
 
 timeu_t arch_timer_ticks_to_time(timeu_t ticks)
