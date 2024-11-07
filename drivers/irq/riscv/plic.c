@@ -90,7 +90,7 @@ static void plic_handle_irq(void)
 	source = plic_read_reg(0x200000 + 0x4 + 0x1000 * this_ctx());
 
 	if (source == 0) {
-		pr("Sprurious IRQ!\n");
+		pr_crit("Spurious IRQ!\n");
 		return;
 	}
 
