@@ -41,10 +41,16 @@ void __init *ioremap(paddr_t paddr, size_t size)
 	else
 		align_mask = 0;
 
+retry:
 	start = bitmap_find_next_zero_area(ioremap_bitmap, IOREMAP_PAGES,
 					   0, pages, align_mask);
-	if (start > IOREMAP_PAGES)
-		return ERR_PTR(-ENOMEM);
+	if (start > IOREMAP_PAGES) {
+		if (align_mask == 0)
+			return ERR_PTR(-ENOMEM);
+
+		align_mask = 0;
+		goto retry;
+	}
 
 	ret = (void *)IOREMAP_BASE + (start * PAGE_SIZE) + page_offset(paddr);
 	err = map_range(this_root_table_page(), ret, paddr, size,
