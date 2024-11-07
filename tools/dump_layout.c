@@ -15,18 +15,12 @@
 
 #include <stdio.h>
 
-#define PMASK(X)	(~((X) - 1))
-#define MEGA_PAGE_SIZE	(2 * MIB)
-#define MEGA_PAGE_MASK	PMASK(MEGA_PAGE_SIZE)
-
-#define GIGA_PAGE_SIZE	(1 * GIB)
-
 int main(void)
 {
 	printf("  Grinch Size: %luKiB\n", GRINCH_SIZE / 1024);
 	printf("  Loader Base: 0x%16lx\n", LOADER_BASE);
 	printf("VMGrinch Base: 0x%16lx\n", VMGRINCH_BASE);
-	printf("    I/O Remap: 0x%16lx -- 0x%016lx\n", IOREMAP_BASE, IOREMAP_END);
+	printf("    I/O Remap: 0x%16lx -- 0x%16lx\n", IOREMAP_BASE, IOREMAP_END);
 	printf("   kheap Base: 0x%16lx\n", KHEAP_BASE);
 	printf("Dir phys Base: 0x%16lx\n", DIR_PHYS_BASE);
 	printf(" Per CPU Base: 0x%16lx\n", PERCPU_BASE);
