@@ -16,6 +16,8 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <grinch/div64.h>
+
 #define NSEC_PER_SEC		(1000L * 1000L * 1000L)
 #define USLEEP			(1000 * 100)
 #define HISTOGRAM_US_MAX	10000
@@ -57,7 +59,7 @@ static int single_measurement(unsigned int *meas)
 	if (err == -1)
 		goto err;
 
-	*meas = (calcdiff_ns(&then, &now) - USLEEP * 1000) / 1000;
+	*meas = (unsigned int)(calcdiff_ns(&then, &now) - USLEEP * 1000) / 1000;
 	return 0;
 
 err:
@@ -66,8 +68,8 @@ err:
 
 int main(int argc, char *argv[])
 {
-	unsigned long long max_shots, i, shots;
-	unsigned int jitter;
+	unsigned int i, jitter, shots;
+	unsigned long max_shots;
 	int err;
 
 	printf_set_prefix(true);
@@ -77,7 +79,7 @@ int main(int argc, char *argv[])
 		dprintf(STDERR_FILENO, "Invalid arguments!\n");
 		return -EINVAL;
 	} else if (argc == 2)
-		max_shots = strtoull(argv[1], NULL, 0);
+		max_shots = strtoul(argv[1], NULL, 0);
 	else
 		max_shots = -1;
 
@@ -104,13 +106,14 @@ int main(int argc, char *argv[])
 
 		histogram[jitter]++;
 
-		printf("%5uus (min: %5uus avg: %5lluus max: %5uus)\n", jitter, min, avg / shots, max);
+		printf("%5uus (min: %5uus avg: %5lluus max: %5uus)\n",
+		       jitter, min, div_u64(avg, shots), max);
 	}
 
-	printf("Measured %llu shots:\n", shots);
+	printf("Measured %u shots:\n", shots);
 	for (i = 0; i < HISTOGRAM_US_MAX; i++)
 		if (histogram[i])
-			printf("%5lluus: %u\n", i, histogram[i]);
+			printf("%5uus: %u\n", i, histogram[i]);
 
 	return err;
 }
