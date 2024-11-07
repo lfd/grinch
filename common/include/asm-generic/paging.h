@@ -18,12 +18,13 @@
 
 #define PMASK(X)	(~((X) - 1))
 
-/* Applies to both, arm64 and riscv64 */
+/* Applies arm64 and rv64. NOT for rv32. */
 #define PAGE_SHIFT		12
 #define VPN_SHIFT		9
 #define VPN_MASK		((1UL << VPN_SHIFT) - 1)
 
-#define PTES_PER_PT		(PAGE_SIZE / sizeof(u64))
+/* Applies to arm64, rv32 and rv64 */
+#define PTES_PER_PT		(PAGE_SIZE / sizeof(unsigned long))
 #define PAGE_SIZE		_BITUL(PAGE_SHIFT)
 #define PAGE_MASK		PMASK(PAGE_SIZE)
 #define PAGE_OFFS_MASK		(~PAGE_MASK)
