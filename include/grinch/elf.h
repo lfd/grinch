@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2023
+ * Copyright (c) OTH Regensburg, 2022-2024
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -11,6 +11,13 @@
  */
 
 /* Partly copied from the Linux kernel */
+
+/* 32-bit ELF base types. */
+typedef __u32   Elf32_Addr;
+typedef __u16   Elf32_Half;
+typedef __u32   Elf32_Off;
+typedef __s32   Elf32_Sword;
+typedef __u32   Elf32_Word;
 
 /* 64-bit ELF base types. */
 typedef __u64 Elf64_Addr;
@@ -31,6 +38,23 @@ typedef __s64 Elf64_Sxword;
 
 #define EM_AARCH64	183 /* ARM 64 bit */
 #define EM_RISCV	243 /* RISC-V */
+
+typedef struct elf32_hdr {
+	unsigned char e_ident[EI_NIDENT];
+	Elf32_Half    e_type;
+	Elf32_Half    e_machine;
+	Elf32_Word    e_version;
+	Elf32_Addr    e_entry;  /* Entry point */
+	Elf32_Off     e_phoff;
+	Elf32_Off     e_shoff;
+	Elf32_Word    e_flags;
+	Elf32_Half    e_ehsize;
+	Elf32_Half    e_phentsize;
+	Elf32_Half    e_phnum;
+	Elf32_Half    e_shentsize;
+	Elf32_Half    e_shnum;
+	Elf32_Half    e_shstrndx;
+} Elf32_Ehdr;
 
 typedef struct elf64_hdr {
 	unsigned char e_ident[EI_NIDENT];
@@ -53,6 +77,17 @@ typedef struct elf64_hdr {
 #define PF_W		0x2
 #define PF_X		0x1
 
+typedef struct elf32_phdr {
+	Elf32_Word p_type;
+	Elf32_Off p_offset;
+	Elf32_Addr p_vaddr;
+	Elf32_Addr p_paddr;
+	Elf32_Word p_filesz;
+	Elf32_Word p_memsz;
+	Elf32_Word p_flags;
+	Elf32_Word p_align;
+} Elf32_Phdr;
+
 typedef struct elf64_phdr {
 	Elf64_Word p_type;
 	Elf64_Word p_flags;
@@ -63,4 +98,3 @@ typedef struct elf64_phdr {
 	Elf64_Xword p_memsz;          /* Segment size in memory */
 	Elf64_Xword p_align;          /* Segment alignment, file & memory */
 } Elf64_Phdr;
-
