@@ -29,8 +29,15 @@
 #include <grinch/ttp.h>
 
 #ifdef ARCH_RISCV
-#define ELF_ARCH EM_RISCV
-#endif
+#define ELF_ARCH	EM_RISCV
+#if ARCH_RISCV == 64 /* rv64 */
+typedef Elf64_Ehdr Elf_Ehdr;
+typedef Elf64_Phdr Elf_Phdr;
+#elif ARCH_RISCV == 32 /* rv32 */
+typedef Elf32_Ehdr Elf_Ehdr;
+typedef Elf32_Phdr Elf_Phdr;
+#endif /* rv32 */
+#endif /* riscv */
 
 #define ARG_MAX		PAGE_SIZE
 
@@ -96,7 +103,7 @@ static size_t uenv_sz(const struct uenv_array *uenv)
 	return ret;
 }
 
-static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr,
+static int process_load_elf(struct task *task, Elf_Ehdr *ehdr,
 			    const struct uenv_array *argv,
 			    const struct uenv_array *envp)
 {
@@ -105,7 +112,7 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr,
 	unsigned int vma_flags;
 	unsigned long copied;
 	unsigned long argc;
-	Elf64_Phdr *phdr;
+	Elf_Phdr *phdr;
 	void *src, *base;
 	struct vma *vma;
 	size_t vma_size;
@@ -181,7 +188,7 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr,
 		return PTR_ERR(tmp);
 
 	/* Load process */
-	phdr = (Elf64_Phdr*)((void*)ehdr + ehdr->e_phoff);
+	phdr = (Elf_Phdr*)((void*)ehdr + ehdr->e_phoff);
 	task->process.brk.base = NULL;
 	for (d = 0; d < ehdr->e_phnum; d++, phdr++) {
 		if (phdr->p_type != PT_LOAD)
