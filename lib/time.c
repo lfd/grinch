@@ -12,6 +12,7 @@
 
 #include <grinch/compiler_attributes.h>
 #include <grinch/time.h>
+#include <grinch/div64.h>
 
 static inline void
 set_normalized_ts(struct timespec *ts, time_t sec, time_t nsec)
@@ -43,11 +44,13 @@ struct timespec timespec_add(struct timespec lhs, struct timespec rhs)
 
 void ns_to_ts(time_t ns, struct timespec *ts)
 {
+	u32 rem;
+
 	if (likely(ns > 0)) {
-		ts->tv_sec = ns / NSEC_PER_SEC;
-		ts->tv_nsec = ns % NSEC_PER_SEC;
+		ts->tv_sec = div_u64_rem(ns, NSEC_PER_SEC, &rem);
+		ts->tv_nsec = rem;
 	} else {
-		ts->tv_sec = -((-ns) / NSEC_PER_SEC) - 1;
-		ts->tv_nsec = NSEC_PER_SEC - ((-ns) % NSEC_PER_SEC) - 1;
+		ts->tv_sec = -div_u64_rem(-ns - 1, NSEC_PER_SEC, &rem) - 1;
+		ts->tv_nsec = NSEC_PER_SEC - rem - 1;
 	}
 }
