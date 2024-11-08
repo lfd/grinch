@@ -56,10 +56,10 @@ vmgrinch_start:
 
 	/* Clear BSS segment */
 	la 	t0, __bss_start
-	la 	t1, __bss_qwords
+	la 	t1, __bss_words
 
 1:	REG_S	zero, 0(t0)
-	addi	t0, t0, 8
+	addi	t0, t0, SZREG
 	addi 	t1, t1, -1
 	bne	t1, zero, 1b
 	/* BSS cleared */

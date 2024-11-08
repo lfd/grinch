@@ -10,6 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <arch/asm.h>
 #include <asm-generic/grinch_layout.h>
 #include <asm-generic/paging.h>
 
@@ -78,7 +79,7 @@ SECTIONS
 		*(.sbss)
 		. = ALIGN(8);
 	}
-	__bss_qwords = SIZEOF(.bss) / 8;
+	__bss_words = SIZEOF(.bss) / SZREG;
 	__rw_data_end = .;
 
 	. = ALIGN(PAGE_SIZE);

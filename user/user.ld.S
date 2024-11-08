@@ -10,6 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <arch/asm.h>
 #include <asm-generic/paging.h>
 
 ENTRY(_start)
@@ -40,7 +41,7 @@ SECTIONS
 		. = ALIGN(16);
 		__bss_end = .;
 	}
-	__bss_qwords = SIZEOF(.bss) / 8;
+	__bss_words = SIZEOF(.bss) / SZREG;
 	. = ALIGN(PAGE_SIZE);
 
 	/DISCARD/ : {
