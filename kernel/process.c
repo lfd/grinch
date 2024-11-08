@@ -36,34 +36,52 @@
 
 static void __user *
 fill_uenv_table(struct task *t, const struct uenv_array *uenv,
-		void __user *stack_top, char __user *ustring)
+		void __user *base, char __user *ustring)
 {
 	void __user *uptr;
-	int err, i;
+	unsigned int i;
+	int err;
 
-	/* Terminating sentinel */
-	stack_top -= BYTES_PER_LONG;
-	uptr = NULL;
-	err = uptr_to_user(t, stack_top, uptr);
-	if (err)
-		return ERR_PTR(err);
-
-	/* Remaining arguments in reverse order */
 	if (uenv) {
-		for (i = uenv->elements - 1; i >= 0; i--) {
-			stack_top -= BYTES_PER_LONG;
+		for (i = 0; i < uenv->elements; i++) {
 			uptr = ustring + uenv->cuts[i];
-			err = uptr_to_user(t, stack_top, uptr);
+			err = uptr_to_user(t, base, uptr);
 			if (err)
 				return ERR_PTR(err);
+			base += BYTES_PER_LONG;
 		}
 	}
-	return stack_top;
+
+	/* Terminating sentinel */
+	uptr = NULL;
+	err = uptr_to_user(t, base, uptr);
+	if (err)
+		return ERR_PTR(err);
+	base += BYTES_PER_LONG;
+
+	return base;
 }
 
-static ssize_t uenv_sz(const struct uenv_array *uenv)
+static size_t __uenv_elems(const struct uenv_array *uenv)
 {
-	ssize_t ret;
+	return uenv->elements + 1;
+}
+
+static size_t uenv_elems(const struct uenv_array *uenv)
+{
+	/*
+	 * In case of no environment, we have at least one element: The
+	 * sentinel Null pointer
+	 */
+	if (!uenv)
+		return 1;
+
+	return __uenv_elems(uenv);
+}
+
+static size_t uenv_sz(const struct uenv_array *uenv)
+{
+	size_t ret;
 
 	/* If no environment, we only have a null-terminator */
 	if (!uenv)
@@ -73,7 +91,7 @@ static ssize_t uenv_sz(const struct uenv_array *uenv)
 	ret = uenv->length;
 
 	/* Length of the array + null terminator */
-	ret += (uenv->elements + 1) * sizeof(char *);
+	ret += __uenv_elems(uenv) * sizeof(char *);
 
 	return ret;
 }
@@ -83,7 +101,7 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr,
 			    const struct uenv_array *envp)
 {
 	char __user *uargv_string, *uenvp_string;
-	void __user *stack_top;
+	void __user *stack_top, __user *tmp;
 	unsigned int vma_flags;
 	unsigned long copied;
 	unsigned long argc;
@@ -135,22 +153,32 @@ static int process_load_elf(struct task *task, Elf64_Ehdr *ehdr,
 	} else
 		uargv_string = NULL;
 
-	stack_top = PTR_ALIGN_DOWN(stack_top, BYTES_PER_LONG);
+	/*
+	 * All strings have just been copied onto the stack. Now he have to
+	 * reserve enough memory to place the envp as well as argv table on the
+	 * stack. And we need one long for argc.
+	 *
+	 * The resulting address needs to be aligned down to have the stack
+	 * pointer initially on a 64-bit boundary.
+	 */
+	stack_top -= (uenv_elems(envp) + uenv_elems(argv) + 1) * BYTES_PER_LONG;
+	stack_top = PTR_ALIGN_DOWN(stack_top, 8);
 
-	stack_top = fill_uenv_table(task, envp, stack_top, uenvp_string);
-	if (IS_ERR(stack_top))
-		return PTR_ERR(stack_top);
-
-	stack_top = fill_uenv_table(task, argv, stack_top, uargv_string);
-	if (IS_ERR(stack_top))
-		return PTR_ERR(stack_top);
-
+	tmp = stack_top;
 	/* store argc */
 	argc = argv ? argv->elements : 0;
-	stack_top -= sizeof(argc);
-	copied = copy_to_user(task, stack_top, &argc, sizeof(argc));
+	copied = copy_to_user(task, tmp, &argc, sizeof(argc));
 	if (copied != sizeof(argc))
 		return -ENOMEM;
+	tmp += sizeof(argc);
+
+	tmp = fill_uenv_table(task, argv, tmp, uargv_string);
+	if (IS_ERR(stack_top))
+		return PTR_ERR(tmp);
+
+	tmp = fill_uenv_table(task, envp, tmp , uenvp_string);
+	if (IS_ERR(stack_top))
+		return PTR_ERR(tmp);
 
 	/* Load process */
 	phdr = (Elf64_Phdr*)((void*)ehdr + ehdr->e_phoff);
