@@ -81,14 +81,14 @@ int arch_boot_cpu(unsigned long hart_id)
 
 	/* Hook in the whole kernel. */
 	err = paging_duplicate(pcpu->root_table_page, this_root_table_page(),
-			       (void *)VMGRINCH_BASE, GIGA_PAGE_SIZE);
+			       (void *)VMGRINCH_BASE, 1 * GIB);
 	if (err)
 		return err;
 
 	err = paging_duplicate(pcpu->root_table_page,
 			       this_root_table_page(),
 			       (void *)DIR_PHYS_BASE,
-			       giga_page_up(memory_size()));
+			       memory_size());
 	if (err)
 		return err;
 

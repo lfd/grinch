@@ -33,11 +33,6 @@
 #define MEGA_PAGE_MASK		PMASK(MEGA_PAGE_SIZE)
 #define MEGA_PAGE_OFFS_MASK	(~MEGA_PAGE_MASK)
 
-#define GIGA_PAGE_SHIFT 	(PAGE_SHIFT + 2 * VPN_SHIFT)
-#define GIGA_PAGE_SIZE		_BITUL(GIGA_PAGE_SHIFT)
-#define GIGA_PAGE_MASK		PMASK(GIGA_PAGE_SIZE)
-#define GIGA_PAGE_OFFS_MASK	(~GIGA_PAGE_MASK)
-
 #define PAGES(X)		((X) / PAGE_SIZE)
 #define MEGA_PAGES(X)		((X) / MEGA_PAGE_SIZE)
 
@@ -50,11 +45,6 @@ static inline u64 page_up(u64 diff)
 static inline u64 mega_page_up(u64 diff)
 {
 	return (diff + MEGA_PAGE_SIZE - 1) & MEGA_PAGE_MASK;
-}
-
-static inline u64 giga_page_up(u64 diff)
-{
-	return (diff + GIGA_PAGE_SIZE - 1) & GIGA_PAGE_MASK;
 }
 
 static inline unsigned int page_offset(const paddr_t addr)
