@@ -46,7 +46,7 @@ static inline unsigned long phys2pte(unsigned long phys)
 #define DEF_GET_ENTRY(NAME, LEVEL, ROOT)			\
 static pt_entry_t						\
 sv## NAME ##_vpn## LEVEL ##_get_entry(page_table_t pt,		\
-					unsigned long virt)	\
+				      unsigned long virt)	\
 {								\
 	return pt + ((virt >> UNTRANSLATED_BITS(LEVEL)) &	\
 		    PAGE_LEVEL_MASK(ROOT));			\
