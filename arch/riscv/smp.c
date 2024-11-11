@@ -102,8 +102,10 @@ int arch_boot_cpu(unsigned long hart_id)
 
 	/* The page table must contain a boot trampoline */
 	paddr = v2p(__load_addr);
-	map_range(pcpu->root_table_page, (void*)paddr, paddr, GRINCH_SIZE,
-		  GRINCH_MEM_RX);
+	err = map_range(pcpu->root_table_page, (void*)paddr, paddr, GRINCH_SIZE,
+			GRINCH_MEM_RX);
+	if (err)
+		return err;
 
 	paddr = v2p(secondary_start);
 
