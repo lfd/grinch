@@ -8,6 +8,9 @@ VERSION=3
 PATCHLEVEL=15
 EXTRAVERSION=
 
+QEMU_CPUS ?= 2
+QEMU_CMDLINE ?= ""
+
 all: kernel.bin user/initrd.cpio tools
 
 HOSTCC=gcc
@@ -22,8 +25,6 @@ OBJDUMP=$(CROSS_COMPILE)objdump
 OBJCOPY=$(CROSS_COMPILE)objcopy
 SZ=$(CROSS_COMPILE)size
 RMRF=rm -rf
-
-CMDLINE ?= ""
 
 D_UBOOT=$(realpath res/u-boot)
 UBOOT_PFX=$(D_UBOOT)/u-boot-$(ARCH)-$(PLATFORM)
@@ -93,7 +94,7 @@ include tools/inc.mk
 	$(VERBOSE) rm -f $@
 	$(VERBOSE) $(AR) cDPrST $@ $^
 
-QEMU_CMD=$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS) -append $(CMDLINE)
+QEMU_CMD=$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS) -append $(QEMU_CMDLINE)
 
 QEMU_CMD_DIRECT=$(QEMU_CMD) -kernel kernel.bin -initrd user/initrd.cpio
 QEMU_CMD_UBOOT=$(QEMU_CMD) -kernel $(UBOOT_BIN) $(QEMU_UBOOT_ARGS)

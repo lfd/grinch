@@ -7,7 +7,7 @@ QEMU=qemu-system-riscv64
 
 QEMU_MACHINE=-machine virt
 
-QEMU_ARGS=-m 64M -smp 2
+QEMU_ARGS=-m 64M -smp $(QEMU_CPUS)
 QEMU_ARGS+=-serial stdio -monitor telnet:127.0.0.1:55555,server,nowait
 QEMU_ARGS+=$(QEMU_MACHINE) -cpu rv64,h=true
 QEMU_ARGS+=-device VGA

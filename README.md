@@ -127,7 +127,11 @@ Grinch Parameters
 To pass parameters to grinch on real board, you can use the `bootargs` variable
 in U-Boot. Grinch parses those parameters. To pass parameters in Qemu, use:
 
-    make qemu CMDLINE='"arg1=val1 arg2=val2"'
+    make qemu QEMU_CMDLINE='"arg1=val1 arg2=val2"'
+
+You can also adjust the number of Qemus CPUs:
+
+    make qemu QEMU_CPUS=4
 
 Basic features:
 
