@@ -1,6 +1,7 @@
 CROSS_COMPILE ?= riscv64-linux-gnu-
 PLATFORM ?= any
 
+UBOOT_CFG=$(ARCH)-qemu.config
 QEMU=qemu-system-$(ARCH)
 
 ifdef ARCH_RISCV64
@@ -9,8 +10,6 @@ CFLAGS_ARCH = -mcmodel=medany -march=rv64imafdc_zifencei $(CFLAGS_DEF_ARCH)
 LDFLAGS_ARCH = -melf64lriscv
 QEMU_CPU = rv64
 endif
-
-UBOOT_CFG=riscv-qemu.config
 
 QEMU_MACHINE=-machine virt
 
