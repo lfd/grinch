@@ -56,13 +56,17 @@ _loader_start:
 	lpc	sp, __stack_end
 
 	/* Clear BSS segment */
-	lpc     t0, __bss_start
-	la      t1, __bss_qwords
+	lpc	t0, __bss_start
+	la	t1, __bss_qwords
 
-1:	sd      zero, 0(t0)
-	addi    t0, t0, 8
-	addi    t1, t1, -1
-	bne     t1, zero, 1b
+	/* No BSS? Jump forward. */
+	beqz	t1, 2f
+
+1:	sd	zero, 0(t0)
+	addi	t0, t0, 8
+	addi	t1, t1, -1
+	bne	t1, zero, 1b
+2:
 	/* BSS cleared */
 
 	/*

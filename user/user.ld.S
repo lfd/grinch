@@ -32,12 +32,12 @@ SECTIONS
 	    *(.data)
 	}
 
+	. = ALIGN(16);
 	.bss :
 	{
-		. = ALIGN(8);
 		__bss_start = .;
 		*(.bss)
-		. = ALIGN(8);
+		. = ALIGN(16);
 		__bss_end = .;
 	}
 	__bss_qwords = SIZEOF(.bss) / 8;

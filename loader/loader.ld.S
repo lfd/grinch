@@ -41,9 +41,9 @@ SECTIONS
 	    *(.data)
 	}
 
+	. = ALIGN(16);
 	.bss :
 	{
-		. = ALIGN(16);
 		__bss_start = .;
 		*(.bss)
 		. = ALIGN(16);
