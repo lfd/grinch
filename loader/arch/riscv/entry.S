@@ -10,6 +10,8 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <asm-generic/paging.h>
+
 #define RISCV_IMAGE_MAGIC	"RISCV\0\0\0"
 #define RISCV_IMAGE_MAGIC2	"RSC\x05"
 
@@ -34,8 +36,11 @@
 _start:
 	j _loader_start
 	.balign 8
-	/* Image load offset. Load it to a 2M boundary. */
-	.dword 0x200000
+	/*
+	 * Image load offset. Load it to a 2M boundary on RV64, and a 4M
+	 * boundary on RV32.
+	 */
+	.dword MEGA_PAGE_SIZE
 
 	.dword __stack_end - _start
 	.dword 0
