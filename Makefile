@@ -101,11 +101,14 @@ QEMU_CMD_UBOOT=$(QEMU_CMD) -kernel $(UBOOT_BIN) $(QEMU_UBOOT_ARGS)
 qemu: all
 	$(QEMU_CMD_DIRECT)
 
+qemuu: all $(UBOOT_BIN)
+	$(QEMU_CMD_UBOOT)
+
 qemudb: all
 	$(QEMU_CMD_DIRECT) -S
 
-qemuu: all $(UBOOT_BIN)
-	$(QEMU_CMD_UBOOT)
+qemuudb: all $(UBOOT_BIN)
+	$(QEMU_CMD_UBOOT) -S
 
 qemu.dts: kernel.bin user/initrd.cpio
 	$(QEMU_CMD_DIRECT) $(QEMU_MACHINE),dumpdtb=/tmp/qemu_tmp.dtb
