@@ -21,6 +21,10 @@
 #define STDOUT_FILENO	1
 #define STDERR_FILENO	2
 
+#ifdef _GNU_SOURCE
+extern char **environ;
+#endif
+
 void __noreturn exit(int status);
 pid_t getpid(void);
 pid_t fork(void);

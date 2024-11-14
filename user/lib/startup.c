@@ -10,6 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
+#define _GNU_SOURCE
 #include <stdlib.h>
 #include <unistd.h>
 
