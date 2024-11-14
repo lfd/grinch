@@ -21,8 +21,6 @@
 
 int main(int argc, char *argv[]);
 
-APP_NAME(mkdir);
-
 int main(int argc, char *argv[])
 {
 	int err;

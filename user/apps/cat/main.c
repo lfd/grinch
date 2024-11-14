@@ -18,8 +18,6 @@
 
 int main(int argc, char **argv);
 
-APP_NAME(cat);
-
 static inline void cat_err(const char *pathname, int err)
 {
 	dprintf(STDERR_FILENO, "cat: %s: %pe\n", pathname, ERR_PTR(-errno));

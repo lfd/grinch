@@ -18,8 +18,6 @@
 
 int main(int argc, char **argv);
 
-APP_NAME(touch);
-
 int main(int argc, char **argv)
 {
 	const char *filename;

@@ -17,8 +17,6 @@
 
 int main(int argc, char *argv[]);
 
-APP_NAME(sleep);
-
 int main(int argc, char *argv[])
 {
 	unsigned long sec;

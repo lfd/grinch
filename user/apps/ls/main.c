@@ -24,8 +24,6 @@
 
 int main(int argc, char *argv[]);
 
-APP_NAME(ls);
-
 static int ls_file_st(const char *pathname, struct stat *st)
 {
 	const char *type;

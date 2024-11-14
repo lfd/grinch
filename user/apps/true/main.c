@@ -15,8 +15,6 @@
 
 int main(void);
 
-APP_NAME(true);
-
 int main(void)
 {
 	return EXIT_SUCCESS;

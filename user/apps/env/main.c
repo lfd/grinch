@@ -17,8 +17,6 @@
 
 int main(int argc, char **argv);
 
-APP_NAME(env);
-
 int main(int argc, char **argv)
 {
 	char **envp;

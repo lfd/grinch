@@ -15,13 +15,9 @@
 
 int main(void);
 
-APP_NAME(test);
-
 int main(void)
 {
 	int err;
-
-	printf_set_prefix(true);
 
 	printf("Testing Syscalls\n");
 	err = test_syscalls();

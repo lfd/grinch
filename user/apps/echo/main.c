@@ -15,8 +15,6 @@
 
 int main(int argc, char **argv);
 
-APP_NAME(echo);
-
 int main(int argc, char **argv)
 {
 	int arg;

@@ -18,8 +18,6 @@
 
 #include <grinch/vsprintf.h>
 
-static bool print_prefix;
-
 static int _puts(int fd, const char *s)
 {
 	ssize_t ret;
@@ -27,19 +25,6 @@ static int _puts(int fd, const char *s)
 	ret = write(fd, s, strlen(s));
 
 	return ret;
-}
-
-static int sprint_prefix(char **str, char *end)
-{
-	int res;
-
-	res = snprintf(*str, end - *str, __app_name_fmt, getpid());
-	if (res < 0)
-		return res;
-
-	*str += res;
-
-	return res;
 }
 
 static int vdprintf(int fd, const char *fmt, va_list ap)
@@ -50,13 +35,6 @@ static int vdprintf(int fd, const char *fmt, va_list ap)
 
 	str = buf;
 	end = str + sizeof(buf);
-
-	if (print_prefix) {
-		err = sprint_prefix(&str, end);
-		if (err < 0)
-			return err;
-	}
-
 	err = vsnprintf(str, end - str, fmt, ap);
 	if (err < 0)
 		return err;
@@ -106,9 +84,4 @@ int puts(const char *s)
 void perror(const char *s)
 {
 	dprintf(STDERR_FILENO, "%s: %pe\n", s, ERR_PTR(-errno));
-}
-
-void printf_set_prefix(bool on)
-{
-	print_prefix = on;
 }

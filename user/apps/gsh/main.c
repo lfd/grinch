@@ -39,7 +39,6 @@
 #define GSH_BUF_MAX	256
 
 int main(int argc, char *argv[], char *envp[]);
-APP_NAME(gsh);
 
 struct gsh_builtin {
 	const char *cmd;

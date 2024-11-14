@@ -24,8 +24,6 @@
 
 int main(int argc, char *argv[]);
 
-APP_NAME(jittertest);
-
 static unsigned int histogram[HISTOGRAM_US_MAX];
 static unsigned int min = -1, max;
 static unsigned long long avg;
@@ -72,7 +70,6 @@ int main(int argc, char *argv[])
 	unsigned long max_shots;
 	int err;
 
-	printf_set_prefix(true);
 	printf("Jittertest\n");
 
 	if (argc > 2) {
