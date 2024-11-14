@@ -17,7 +17,6 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <grinch/vsprintf.h>
 
 int main(int argc, char *argv[]);
 
