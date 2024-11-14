@@ -305,8 +305,25 @@ static void task_activate(struct task *task)
 	struct task *old;
 
 	old = current_task();
-	if (old == task)
-		return;
+	if (old == task) {
+		if (!task)
+			return;
+
+		/* sanity check - don't remove */
+		if (task->state == TASK_RUNNING)
+			return;
+
+		/*
+		 * A task that was not scheduled might have changed from
+		 * RUNNNING to RUNNABLE during, e.g. during a sleep
+		 */
+		if (task->state == TASK_RUNNABLE) {
+			task->state = TASK_RUNNING;
+			return;
+		}
+
+		BUG();
+	}
 
 	tpcpu = this_per_cpu();
 	/*
@@ -681,6 +698,7 @@ void tasks_dump(void)
 void prepare_user_return(void)
 {
 	struct per_cpu *tpcpu;
+	struct task *t;
 
 	tpcpu = this_per_cpu();
 retry:
@@ -723,6 +741,10 @@ retry:
 	}
 
 	task_restore();
+
+	t = current_task();
+	if (t && t->state != TASK_RUNNING)
+		BUG();
 }
 
 void sched_all(void)
