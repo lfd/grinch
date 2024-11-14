@@ -18,6 +18,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <grinch/div64.h>
+
 #define PATH_MAX	4096
 
 static void *curbrk;
@@ -38,18 +40,32 @@ pid_t getpid(void)
 	return syscall(SYS_getpid);
 }
 
+int nanosleep(const struct timespec *req, struct timespec *rem)
+{
+	return syscall(SYS_nanosleep, req, rem);
+}
+
 int usleep(useconds_t usec)
 {
-	return syscall(SYS_grinch_usleep, usec);
+	struct timespec tv;
+	u32 rem;
+
+	tv.tv_sec = div_u64_rem(usec, 1000000, &rem);
+	tv.tv_nsec = rem * 1000;
+
+	return nanosleep(&tv, &tv);
 }
 
 unsigned int sleep(unsigned int seconds)
 {
-	int err;
+	struct timespec tv = {
+		.tv_sec = seconds,
+		.tv_nsec = 0,
+	};
 
-	err = usleep(seconds * 1000 * 1000);
-	if (!err)
-		return seconds;
+	if (nanosleep(&tv, &tv))
+		return tv.tv_sec;
+
 	return 0;
 }
 

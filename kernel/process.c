@@ -444,13 +444,24 @@ unlock_out:
 	return brk;
 }
 
-SYSCALL_DEF1(grinch_usleep, useconds_t, us)
+SYSCALL_DEF2(nanosleep, const struct timespec __user *, _req,
+	     struct timespec __user *, rem)
 {
-	struct timespec ts;
+	struct timespec req;
+	unsigned long ret;
+	struct task *t;
 
-	us_to_ts(us, &ts);
-	task_sleep_for(current_task(), &ts);
+	t = current_task();
+	ret = copy_from_user(t, &req, _req, sizeof(req));
+	if (ret != sizeof(req))
+		return -EFAULT;
+
+	task_sleep_for(t, &req);
 	this_per_cpu()->schedule = true;
+
+	if (rem)
+		if (umemset(t, rem, 0, sizeof(rem)) != sizeof(rem))
+			return -EFAULT;
 
 	return 0;
 }

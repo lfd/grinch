@@ -14,11 +14,11 @@ exit		60
 getcwd		79
 chdir		80
 mkdir		83
+nanosleep	101
 clock_gettime	113
 getdents	141
 wait		260
 
 # custom grinch syscalls
-grinch_usleep		1000
-grinch_call		1001
-grinch_create_grinch_vm	1002
+grinch_call		1000
+grinch_create_grinch_vm	1001

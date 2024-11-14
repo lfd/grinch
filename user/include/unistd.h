@@ -31,6 +31,7 @@ pid_t fork(void);
 
 int execve(const char *pathname, char *const argv[], char *const envp[]);
 
+int nanosleep(const struct timespec *req, struct timespec *rem);
 unsigned int sleep(unsigned int seconds);
 int usleep(useconds_t usec);
 
