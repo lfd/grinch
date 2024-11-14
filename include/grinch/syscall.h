@@ -36,6 +36,7 @@ typedef long (*syscall_stub_t)(struct syscall_args *args);
 #define __MAP1(m, t, a,...)	m(t, a)
 #define __MAP2(m, t, a,...)	m(t, a), __MAP1(m, __VA_ARGS__)
 #define __MAP3(m, t, a,...)	m(t, a), __MAP2(m, __VA_ARGS__)
+#define __MAP4(m, t, a,...)	m(t, a), __MAP3(m, __VA_ARGS__)
 #define __MAP(n, ...)		__MAP##n(__VA_ARGS__)
 
 #define __MAPARGS0(...)
@@ -45,6 +46,8 @@ typedef long (*syscall_stub_t)(struct syscall_args *args);
 	__MAPARGS1(t1, a1), __SC_CA(t2, 2)
 #define __MAPARGS3(t1, a1, t2, a2, t3, a3)	\
 	__MAPARGS2(t1, a1, t2, a2), __SC_CA(t3, 3)
+#define __MAPARGS4(t1, a1, t2, a2, t3, a3, t4, a4)	\
+	__MAPARGS3(t1, a1, t2, a2, t3, a3), __SC_CA(t4, 4)
 #define __MAPARGS(n, ...)			__MAPARGS##n(__VA_ARGS__)
 
 #define SC_STUB_PROTO(name)	long ___sys_##name(struct syscall_args *___a)
@@ -66,6 +69,7 @@ typedef long (*syscall_stub_t)(struct syscall_args *args);
 #define SYSCALL_DEF1(name, ...)	SYSCALL_DEFx(name, 1, __VA_ARGS__)
 #define SYSCALL_DEF2(name, ...)	SYSCALL_DEFx(name, 2, __VA_ARGS__)
 #define SYSCALL_DEF3(name, ...)	SYSCALL_DEFx(name, 3, __VA_ARGS__)
+#define SYSCALL_DEF4(name, ...)	SYSCALL_DEFx(name, 4, __VA_ARGS__)
 
 void syscall(unsigned long no, struct syscall_args *args);
 

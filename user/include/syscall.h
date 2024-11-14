@@ -30,9 +30,10 @@ static inline long __syscall_ret(unsigned long err)
 
 #define __scast(X)	((long)(X))
 
-#define __syscall1(n, arg0)		__syscall1(n, __scast(arg0))
-#define __syscall2(n, arg0, arg1)	__syscall2(n, __scast(arg0), __scast(arg1))
-#define __syscall3(n, arg0, arg1, arg2)	__syscall3(n, __scast(arg0), __scast(arg1), __scast(arg2))
+#define __syscall1(n, arg0)			__syscall1(n, __scast(arg0))
+#define __syscall2(n, arg0, arg1)		__syscall2(n, __scast(arg0), __scast(arg1))
+#define __syscall3(n, arg0, arg1, arg2)		__syscall3(n, __scast(arg0), __scast(arg1), __scast(arg2))
+#define __syscall4(n, arg0, arg1, arg2, arg3)	__syscall4(n, __scast(arg0), __scast(arg1), __scast(arg2), __scast(arg3))
 
 #define __SYSCALL_NARGS_X(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, n,...) n
 #define __SYSCALL_NARGS(...)	__SYSCALL_NARGS_X(__VA_ARGS__, 7, 6, 5, 4, 3, 2, 1, 0,)
