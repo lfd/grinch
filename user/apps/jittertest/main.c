@@ -70,8 +70,6 @@ int main(int argc, char *argv[])
 	unsigned long max_shots;
 	int err;
 
-	printf("Jittertest\n");
-
 	if (argc > 2) {
 		dprintf(STDERR_FILENO, "Invalid arguments!\n");
 		return -EINVAL;
@@ -80,6 +78,7 @@ int main(int argc, char *argv[])
 	else
 		max_shots = -1;
 
+	printf("Starting Jittertest with %ld runs\n", max_shots);
 	err = 0;
 	for (shots = 0; shots < max_shots;) {
 		err = single_measurement(&jitter);
@@ -103,8 +102,8 @@ int main(int argc, char *argv[])
 
 		histogram[jitter]++;
 
-		printf("%5uus (min: %5uus avg: %5lluus max: %5uus)\n",
-		       jitter, min, div_u64(avg, shots), max);
+		printf("Shot %5u: %5uus (min: %5uus avg: %5lluus max: %5uus)\n",
+		       shots, jitter, min, div_u64(avg, shots), max);
 	}
 
 	printf("Measured %u shots:\n", shots);
