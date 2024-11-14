@@ -15,6 +15,8 @@
 
 #include <grinch/string_common.h>
 
+const char *strerror(int err);
+
 char *strdup(const char *s);
 char *strndup(const char *s, size_t n);
 

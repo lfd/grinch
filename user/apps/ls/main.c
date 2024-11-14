@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
 
 	err = ls(pathname);
 	if (err) {
-		dprintf(STDERR_FILENO, "ls: %pe\n", ERR_PTR(err));
+		dprintf(STDERR_FILENO, "ls: %s\n", strerror(err));
 	}
 
 	free(cwd);

@@ -414,13 +414,13 @@ static int gsh(void)
 
 		err = print_prompt();
 		if (err) {
-			printf("\nError: %pe\n", ERR_PTR(err));
+			printf("\nError: %s\n", strerror(err));
 			break;
 		}
 
 		err = read_line(&input_buffer);
 		if (err) {
-			printf("\nError: %pe\n", ERR_PTR(err));
+			printf("\nError: %s\n", strerror(err));
 			continue;
 		}
 
@@ -443,7 +443,7 @@ static int gsh(void)
 			break;
 
 		if (err) {
-			printf("Error: %pe\n", ERR_PTR(err));
+			printf("Error: %s\n", strerror(err));
 		}
 	}
 

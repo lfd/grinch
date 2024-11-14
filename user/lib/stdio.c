@@ -83,5 +83,5 @@ int puts(const char *s)
 
 void perror(const char *s)
 {
-	dprintf(STDERR_FILENO, "%s: %pe\n", s, ERR_PTR(-errno));
+	dprintf(STDERR_FILENO, "%s: %s\n", s, strerror(-errno));
 }

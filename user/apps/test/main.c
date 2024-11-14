@@ -30,6 +30,8 @@ int main(void)
 		goto out;
 
 out:
-	printf("%pe\n", ERR_PTR(err));
+	if (err)
+		dprintf(STDERR_FILENO, "%s\n", strerror(err));
+
 	return err;
 }

@@ -10,6 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <errno.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -18,3 +19,8 @@
 #define ALLOCATOR	malloc
 
 #include "../../common/src/string.c"
+
+const char *strerror(int err)
+{
+	return errname(err);
+}

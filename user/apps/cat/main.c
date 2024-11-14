@@ -13,6 +13,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -20,7 +21,7 @@ int main(int argc, char **argv);
 
 static inline void cat_err(const char *pathname, int err)
 {
-	dprintf(STDERR_FILENO, "cat: %s: %pe\n", pathname, ERR_PTR(-errno));
+	dprintf(STDERR_FILENO, "cat: %s: %s\n", pathname, strerror(-errno));
 }
 
 static int cat(const char *pathname)
