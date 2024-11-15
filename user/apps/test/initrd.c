@@ -28,7 +28,8 @@ int test_initrd(void)
 		return -errno;
 	}
 
-	r = read(fd, buf, sizeof(buf));
+	memset(buf, 0, sizeof(buf));
+	r = read(fd, buf, sizeof(buf) - 1);
 	if (r == -1) {
 		perror("read");
 		return -errno;
