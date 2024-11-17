@@ -70,7 +70,7 @@ typedef unsigned long *pt_entry_t;
 typedef pt_entry_t page_table_t;
 
 /* Generic types */
-typedef enum { true = 1, false = 0 } bool;
+#include <grinch/stdbool.h>
 
 typedef int pid_t;
 typedef long long loff_t;
