@@ -11,9 +11,10 @@ APPS += test
 APPS += touch
 APPS += true
 
-INCLUDES_USER = -Iuser/include \
-		-Icommon/include \
-		-Iuser/lib/$(ARCH_SUPER)/include \
+INCLUDES_USER = -Icommon/include \
+		-Iuser/libc/include \
+		-Iuser/libc/include/$(ARCH_SUPER)/ \
+		-Iuser/libgrinch/include \
 		-Icommon/include/arch/$(ARCH_SUPER)/
 
 CFLAGS_USER = $(CFLAGS_COMMON) $(CFLAGS_ARCH) $(CFLAGS_STANDALONE) $(INCLUDES_USER)
@@ -40,17 +41,21 @@ LIBC_OBJS += unistd.o
 LIBC_OBJS += vsprintf.o
 LIBC_OBJS += wait.o
 
-# grinch-specific stuff
-LIBC_OBJS += grinch/gfb/gfb.o
-LIBC_OBJS += grinch/gfb/gimg.o
-LIBC_OBJS += grinch/grinch.o
-LIBC_OBJS += grinch/hexdump.o
-
-LIBC_OBJS := $(addprefix user/lib/, $(LIBC_OBJS))
-
-LIBC_BUILTIN = user/lib/built-in.a
+LIBC_OBJS := $(addprefix user/libc/src/, $(LIBC_OBJS))
+LIBC_BUILTIN = user/libc/built-in.a
 
 $(LIBC_BUILTIN): $(LIBC_OBJS)
+
+# libgrinch
+LIBGRINCH_OBJS += gfb/gfb.o
+LIBGRINCH_OBJS += gfb/gimg.o
+LIBGRINCH_OBJS += grinch.o
+LIBGRINCH_OBJS += hexdump.o
+
+LIBGRINCH_OBJS := $(addprefix user/libgrinch/src/, $(LIBGRINCH_OBJS))
+LIBGRINCH_BUILTIN = user/libgrinch/built-in.a
+
+$(LIBGRINCH_BUILTIN): $(LIBGRINCH_OBJS)
 
 %.gimg: ./scripts/img2gimg %.png
 	$(QUIET) "[GIMG]  $@"
@@ -86,7 +91,7 @@ clean_$(1):
 		user/apps/$(1)/built-in.a\
 		user/apps/$(1)/$(1)_linked.o)
 
-user/apps/$(1)/built-in.a: $(LIBC_BUILTIN) $($(call UC,$(1))_OBJS)
+user/apps/$(1)/built-in.a: $(LIBC_BUILTIN) $(LIBGRINCH_BUILTIN) $($(call UC,$(1))_OBJS)
 
 user/apps/$(1)/$(1)_linked.o: user/apps/$(1)/built-in.a
 	$(call ld_user,$$@,$$^)
@@ -111,6 +116,7 @@ user/initrd.cpio: $(USER_APPS) $(IMAGES) res/test.txt kernel.bin
 	$(VERBOSE) ./scripts/create_cpio $@ $^
 
 clean_user: $(patsubst %,clean_%,$(APPS))
-	$(call clean_objects,user/lib,$(LIBC_OBJS))
+	$(call clean_objects,user/libc,$(LIBC_OBJS))
+	$(call clean_objects,user/libgrinch,$(LIBGRINCH_OBJS))
 	$(call clean_files,user,user/user.ld user/initrd.cpio user/apps/build)
 	$(call clean_files,res,$(IMAGES))
