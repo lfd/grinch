@@ -21,7 +21,7 @@ int main(int argc, char **argv);
 
 static inline void cat_err(const char *pathname, int err)
 {
-	dprintf(STDERR_FILENO, "cat: %s: %s\n", pathname, strerror(-errno));
+	dprintf(STDERR_FILENO, "cat: %s: %s\n", pathname, strerror(err));
 }
 
 static int cat(const char *pathname)
@@ -32,25 +32,25 @@ static int cat(const char *pathname)
 
 	fd = open(pathname, O_RDONLY);
 	if (fd == -1) {
-		cat_err(pathname, -errno);
+		cat_err(pathname, errno);
 		return -errno;
 	}
 
 	do {
 		bytes_read = read(fd, buf, sizeof(buf));
 		if (bytes_read == -1) {
-			cat_err(pathname, -errno);
+			cat_err(pathname, errno);
 			return -errno;
 		}
 
 		bytes_written = write(STDOUT_FILENO, buf, bytes_read);
 		if (bytes_written == -1) {
-			cat_err(pathname, -errno);
+			cat_err(pathname, errno);
 			return -errno;
 		}
 
 		if (bytes_read != bytes_written) {
-			cat_err(pathname, -EINVAL);
+			cat_err(pathname, EINVAL);
 			return -EINVAL;
 		}
 	} while (bytes_read);
