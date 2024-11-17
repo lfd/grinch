@@ -18,8 +18,6 @@
 
 #include <sys/wait.h>
 
-#include <grinch/vm.h>
-
 #include "fb.h"
 
 int main(void);
