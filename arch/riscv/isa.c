@@ -39,7 +39,7 @@ int __init riscv_isa_update(unsigned long hart_id, const char *_isa)
 {
 	char *token, *isa_str;
 	riscv_isa_t this_isa;
-	char tmp[128];
+	char tmp[256];
 
 	isa_str = tmp;
 	strncpy(tmp, _isa, sizeof(tmp) - 1);
