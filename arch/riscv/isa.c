@@ -24,7 +24,11 @@ riscv_isa_t riscv_isa;
 static riscv_isa_t
 riscv_parse_isa_token(unsigned long hart_id, const char *token)
 {
+#if ARCH_RISCV == 64
 	if (!strncmp(token, "rv64", 4)) {
+#elif ARCH_RISCV == 32
+	if (!strncmp(token, "rv32", 4)) {
+#endif
 		if (strchr(token, 'h')) {
 			return RISCV_ISA_HYPERVISOR;
 			pr("CPU %lu: Hypervisor extension detected\n",
