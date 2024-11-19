@@ -19,7 +19,7 @@
 #include <grinch/div64.h>
 
 #define NSEC_PER_SEC		(1000L * 1000L * 1000L)
-#define USLEEP			(1000 * 100)
+#define INTERVAL_NS		(100 * 1000 * 1000) /* 100 ms interval */
 #define HISTOGRAM_US_MAX	10000
 
 int main(int argc, char *argv[]);
@@ -27,6 +27,11 @@ int main(int argc, char *argv[]);
 static unsigned int histogram[HISTOGRAM_US_MAX];
 static unsigned int min = -1, max;
 static unsigned long long avg;
+
+const struct timespec interval = {
+	.tv_sec = 0,
+	.tv_nsec = INTERVAL_NS,
+};
 
 static inline time_t
 calcdiff_ns(const struct timespec *t1, const struct timespec *t2)
@@ -39,7 +44,7 @@ calcdiff_ns(const struct timespec *t1, const struct timespec *t2)
 	return diff;
 }
 
-/* return a measurement value in us */
+/* return a measurement value in ns */
 static int single_measurement(unsigned int *meas)
 {
 	struct timespec now, then;
@@ -49,7 +54,7 @@ static int single_measurement(unsigned int *meas)
 	if (err == -1)
 		goto err;
 
-	err = usleep(USLEEP);
+	err = nanosleep(&interval, NULL);
 	if (err == -1)
 		goto err;
 
@@ -57,7 +62,7 @@ static int single_measurement(unsigned int *meas)
 	if (err == -1)
 		goto err;
 
-	*meas = (unsigned int)(calcdiff_ns(&then, &now) - USLEEP * 1000) / 1000;
+	*meas = (unsigned int)(calcdiff_ns(&then, &now) - INTERVAL_NS);
 	return 0;
 
 err:
@@ -84,6 +89,9 @@ int main(int argc, char *argv[])
 		err = single_measurement(&jitter);
 		if (err)
 			break;
+
+		/* Convert us to ns. Leave this out to have ns granularity. */
+		jitter /= 1000;
 
 		shots++;
 		avg += jitter;
