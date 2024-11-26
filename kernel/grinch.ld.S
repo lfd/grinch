@@ -21,7 +21,8 @@ SECTIONS
 
 	__load_addr = .;
 	.text		: {
-		KEEP(*(.header));
+		KEEP(*(.header0));
+		KEEP(*(.header1));
 		. = ALIGN(16);
 		*(.text);
 		*(.text.*);

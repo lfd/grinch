@@ -27,10 +27,22 @@ QEMU_UBOOT_ARGS=\
 		-device loader,file=kernel.bin,addr=0x82000000,force-raw=on \
 		-device loader,file=user/initrd.cpio,addr=0x82800000,force-raw=on \
 
-ARCH_OBJS = arch.o cpu.o entry.o head.o isa.o paging.o platform.o
-ARCH_OBJS += sbi.o smp.o stackdump.o task.o timer.o traps.o
-
-ARCH_OBJS += vmm/vmm.o vmm/vmm_ecall.o
+ARCH_OBJS =arch.o
+ARCH_OBJS+=cpu.o
+ARCH_OBJS+=entry.o
+ARCH_OBJS+=head.o
+ARCH_OBJS+=isa.o
+ARCH_OBJS+=loader.o
+ARCH_OBJS+=paging.o
+ARCH_OBJS+=platform.o
+ARCH_OBJS+=sbi.o
+ARCH_OBJS+=smp.o
+ARCH_OBJS+=stackdump.o
+ARCH_OBJS+=task.o
+ARCH_OBJS+=timer.o
+ARCH_OBJS+=traps.o
+ARCH_OBJS+=vmm/vmm.o
+ARCH_OBJS+=vmm/vmm_ecall.o
 
 ARCH_OBJS := $(addprefix $(ARCH_DIR)/, $(ARCH_OBJS))
 

@@ -18,7 +18,6 @@
 int main(void)
 {
 	printf("  Grinch Size: %luKiB\n", GRINCH_SIZE / 1024);
-	printf("  Loader Base: 0x%16lx\n", LOADER_BASE);
 	printf("VMGrinch Base: 0x%16lx\n", VMGRINCH_BASE);
 	printf("    I/O Remap: 0x%16lx -- 0x%16lx\n", IOREMAP_BASE, IOREMAP_END);
 	printf("   kheap Base: 0x%16lx\n", KHEAP_BASE);

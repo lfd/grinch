@@ -10,8 +10,6 @@
  * the COPYING file in the top-level directory.
  */
 
-#define LOADER_BASE	_UL(0x40000000)
-
 /* Check if this applies for ARM64 */
 #define USER_START		_UL(0x1000)
 

@@ -185,7 +185,7 @@ int main(int argc, char **argv)
 	}
 	assert(count == vmgrinch_size);
 
-	header = vmgrinch;
+	header = vmgrinch + 0x40;
 	if (memcmp(header->signature, VMGRINCH_SIGNATURE,
 		   sizeof(header->signature))) {
 		errno = EINVAL;

@@ -27,9 +27,9 @@ extern unsigned long __init_array_start[], __init_array_end[];
 extern unsigned char __rodata_start[], __rodata_end[];
 extern unsigned char __rw_data_start[], __rw_data_end[];
 extern unsigned char __internal_page_pool_start[];
+extern unsigned char __internal_page_pool_end[];
 extern unsigned char __internal_page_pool_pages[];
 extern unsigned char __num_os_pages[];
-extern unsigned char vmgrinch_start[];
 
 #define _load_addr	((void *)&__load_addr)
 

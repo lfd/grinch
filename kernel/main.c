@@ -236,9 +236,8 @@ out:
 	}
 }
 
-const struct vmgrinch_header __attribute__((section(".header")))
+const struct vmgrinch_header __attribute__((section(".header1")))
 vmgrinch_header = {
 	.signature = VMGRINCH_SIGNATURE,
-	.entry = vmgrinch_start,
 	.gcov_info_head = GCOV_HEAD,
 };

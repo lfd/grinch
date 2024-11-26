@@ -15,13 +15,59 @@
 
 #include <grinch/percpu.h>
 
-.section .text, "ax"
+#define RISCV_IMAGE_MAGIC	"RISCV\0\0\0"
+#define RISCV_IMAGE_MAGIC2	"RSC\x05"
+
+#define RISCV_HEADER_VERSION_MAJOR 0
+#define RISCV_HEADER_VERSION_MINOR 2
+
+#define RISCV_HEADER_VERSION	(RISCV_HEADER_VERSION_MAJOR << 16 | \
+				 RISCV_HEADER_VERSION_MINOR)
 
 .macro lpc reg, symbol
 1:	auipc	\reg, %pcrel_hi (\symbol)
 	addi	\reg, \reg, %pcrel_lo (1b)
 .endm
 
+/*
+ * This adds the Linux boot header. We're compatible with both: we're bootable
+ * as simple SBI payload, and we're bootable via U-Boot.
+ */
+
+.section .header0, "ax"
+	j _loader_start
+	.balign 8
+	/*
+	 * Image load offset. Load it to a 2M boundary on RV64, and a 4M
+	 * boundary on RV32.
+	 */
+	.dword MEGA_PAGE_SIZE
+
+	.dword __rodata_end - __load_addr
+	.dword 0
+	.word RISCV_HEADER_VERSION
+	.word 0
+	.dword 0
+	.ascii RISCV_IMAGE_MAGIC
+	.balign 4
+	.ascii RISCV_IMAGE_MAGIC2
+
+.section .text, "ax"
+_loader_start:
+	/*
+	 * a0: hartid <- already present
+	 * a1: device-tree address <- already present
+	 * a2: pc-rel load addr
+	 */
+	lpc	sp, __internal_page_pool_end
+	lpc	a2, __load_addr
+	jal	loader
+
+1:
+	wfi
+	j 1b
+
+/* vmgrinch startup code */
 .globl vmgrinch_start
 vmgrinch_start:
 	/*
