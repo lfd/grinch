@@ -11,7 +11,7 @@ mkdir $tmp/bin
 
 cp -a user/apps/build/* $tmp/bin/
 cp -a res/logo.gimg res/test.txt $tmp/
-cp -a kernel.bin $tmp/
+cp -a vmgrinch.bin $tmp/
 
 cd $tmp
 find . -print | cpio -ov -H newc > $output 2>/dev/null

@@ -20,7 +20,6 @@ include kernel/inc.mk
 include lib/inc.mk
 include mm/inc.mk
 include drivers/inc.mk
-include loader/loader.mk
 
 QEMU_ARGS_COMMON=-monitor telnet:127.0.0.1:11111,server,nowait -s
 
@@ -92,9 +91,6 @@ endif
 %.dtb: %.dts
 	$(QUIET) "[DTC]   $@"
 	$(VERBOSE) $(DTC) -I dts -O dtb -o $@ $^
-
-objdk: kernel.elf
-	$(OBJDUMP) -d $^ | less
 
 objd: vmgrinch.elf
 	$(OBJDUMP) -d $^ | less

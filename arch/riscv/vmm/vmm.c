@@ -415,7 +415,7 @@ static struct task *vmm_alloc_new(void)
 	vm->memregion.size = VM_PAGES * PAGE_SIZE;
 
 	pr_dbg("Copying kernel...\n");
-	err = vm_load_file(vm, "/initrd/kernel.bin", 0);
+	err = vm_load_file(vm, "/initrd/vmgrinch.bin", 0);
 	if (err)
 		goto vmfree_out;
 
