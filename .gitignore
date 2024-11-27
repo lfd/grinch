@@ -9,8 +9,8 @@
 # GCOV stuff
 *.gcda
 *.gcno
-vmgrinch.dump
-vmgrinch.info
+grinch.dump
+grinch.info
 gcov/
 
 include/generated/

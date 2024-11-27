@@ -26,7 +26,7 @@
 typedef uint64_t u64;
 
 #include "../common/include/grinch/const.h"
-#include "../common/include/grinch/vmgrinch_header.h"
+#include "../common/include/grinch/header.h"
 #include "../include/asm-generic/grinch_layout.h"
 
 #if (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 7)
@@ -84,22 +84,22 @@ struct gcov_info {
  * end of linux/kernel/gcov/gcc_4.7.c
  */
 
-static void *vmgrinch;
-static ssize_t vmgrinch_size;
+static void *grinch;
+static ssize_t grinch_size;
 extern void __gcov_merge_add(gcov_type *counters, unsigned int n_counters);
 extern void __gcov_init(struct gcov_info *);
 extern void __gcov_dump(void);
 
-static void *vmgrinch2current(void *virt)
+static void *grinch2current(void *virt)
 {
 	unsigned long virtaddr = (unsigned long)virt;
 	void *ret;
 
 	if (virt == NULL)
 		return NULL;
-	assert(virtaddr >= VMGRINCH_BASE &&
-	       virtaddr < VMGRINCH_BASE + (unsigned long)vmgrinch_size);
-	ret = (void *)(virtaddr - VMGRINCH_BASE + (unsigned long)vmgrinch);
+	assert(virtaddr >= GRINCH_BASE &&
+	       virtaddr < GRINCH_BASE + (unsigned long)grinch_size);
+	ret = (void *)(virtaddr - GRINCH_BASE + (unsigned long)grinch);
 
 	return ret;
 }
@@ -114,8 +114,8 @@ static void translate_all_pointers(struct gcov_info *info)
 	struct gcov_ctr_info *ctr_info;
 	unsigned int i, j, active;
 
-	info->next = vmgrinch2current(info->next);
-	info->filename = vmgrinch2current(info->filename);
+	info->next = grinch2current(info->next);
+	info->filename = grinch2current(info->filename);
 	active = 0;
 	for (i = 0; i < GCOV_COUNTERS; i++) {
 		if (info->merge[i]) {
@@ -124,17 +124,17 @@ static void translate_all_pointers(struct gcov_info *info)
 		} else
 			break;
 	}
-	info->functions = vmgrinch2current(info->functions);
+	info->functions = grinch2current(info->functions);
 	for (i = 0; i < info->n_functions; i++) {
-		info->functions[i] = vmgrinch2current(info->functions[i]);
+		info->functions[i] = grinch2current(info->functions[i]);
 		fn_info = info->functions[i];
 		if (fn_info) {
-			fn_info->key = vmgrinch2current(fn_info->key);
+			fn_info->key = grinch2current(fn_info->key);
 			assert(fn_info->key == info);
 			for (j = 0; j < active; j++) {
 				ctr_info = fn_info->ctrs + j;
 				ctr_info->values =
-					vmgrinch2current(ctr_info->values);
+					grinch2current(ctr_info->values);
 			}
 		}
 	}
@@ -143,7 +143,7 @@ static void translate_all_pointers(struct gcov_info *info)
 int main(int argc, char **argv)
 {
 	struct gcov_info *gcov_info_head, *info, *next;
-	struct vmgrinch_header *header;
+	struct grinch_header *header;
 	char *errstr = NULL;
 	ssize_t count, ret;
 	struct stat sbuf;
@@ -167,34 +167,34 @@ int main(int argc, char **argv)
 		errstr = filename;
 		goto out;
 	}
-	vmgrinch_size = sbuf.st_size;
-	vmgrinch = malloc(vmgrinch_size);
-	if (vmgrinch == NULL) {
+	grinch_size = sbuf.st_size;
+	grinch = malloc(grinch_size);
+	if (grinch == NULL) {
 		errstr = "malloc";
 		goto out_f;
 	}
 
 	count = 0;
-	while (count < vmgrinch_size) {
-		ret = read(fd, vmgrinch + count, vmgrinch_size - count);
+	while (count < grinch_size) {
+		ret = read(fd, grinch + count, grinch_size - count);
 		if (ret < 0 && errno != EINTR) {
 			errstr = "read";
 			goto out_m;
 		}
 		count += ret;
 	}
-	assert(count == vmgrinch_size);
+	assert(count == grinch_size);
 
-	header = vmgrinch + 0x40;
-	if (memcmp(header->signature, VMGRINCH_SIGNATURE,
+	header = grinch + 0x40;
+	if (memcmp(header->signature, GRINCH_SIGNATURE,
 		   sizeof(header->signature))) {
 		errno = EINVAL;
-		error(0, 0, "%s does not seem to be a vmgrinch dump",
+		error(0, 0, "%s does not seem to be a grinch dump",
 		      filename);
 		goto out_m;
 	}
 
-	gcov_info_head = vmgrinch2current((void *)header->gcov_info_head);
+	gcov_info_head = grinch2current((void *)header->gcov_info_head);
 	if (!gcov_info_head) {
 		errno = -EINVAL;
 		error(0, 0, "%s does not seem to contain gcov information",
@@ -204,7 +204,7 @@ int main(int argc, char **argv)
 	}
 
 	gcov_info_head = (void *)*(u64*)gcov_info_head;
-	gcov_info_head = vmgrinch2current(gcov_info_head);
+	gcov_info_head = grinch2current(gcov_info_head);
 	if (!gcov_info_head) {
 		errno = EINVAL;
 		error(0, 0, "%s does not contain gcov information.", filename);
@@ -224,7 +224,7 @@ int main(int argc, char **argv)
 	__gcov_dump();
 
 out_m:
-	free(vmgrinch);
+	free(grinch);
 out_f:
 	close(fd);
 out:

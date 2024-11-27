@@ -67,14 +67,14 @@ _loader_start:
 	wfi
 	j 1b
 
-/* vmgrinch startup code */
-.globl vmgrinch_start
-vmgrinch_start:
+/* grinch startup code */
+.globl grinch_start
+grinch_start:
 	/*
 	 * We arrive here with:
 	 * a0: hartid
 	 * a1: phys fdt
-	 * a2: phys base of vmgrinch
+	 * a2: phys base of grinch
 	 */
 
 	/*

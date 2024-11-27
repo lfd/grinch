@@ -354,7 +354,7 @@ int __init paging_init(unsigned long this_cpu)
 	arch_paging_init();
 
 	pri("=== Grinch memory layout ===\n");
-	pri(" Grinch area: 0x%lx -- 0x%lx\n", VMGRINCH_BASE, VMGRINCH_END);
+	pri(" Grinch area: 0x%lx -- 0x%lx\n", GRINCH_BASE, GRINCH_END);
 	pri("ioremap area: 0x%lx -- 0x%lx\n", IOREMAP_BASE, IOREMAP_END);
 	pri("  kheap area: 0x%lx\n", KHEAP_BASE);
 	pri(" direct phys: 0x%lx\n", DIR_PHYS_BASE);

@@ -1,6 +1,6 @@
-#define VMGRINCH_SIGNATURE	"VMGRINCH"
+#define GRINCH_SIGNATURE	":GRINCH:"
 
-struct vmgrinch_header {
+struct grinch_header {
 	char signature[8];
 	union {
 		u64 __gcov_info_head;

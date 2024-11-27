@@ -82,7 +82,7 @@ static __always_inline unsigned long this_cpu_id(void)
 
 static __always_inline struct per_cpu *per_cpu(unsigned long cpuid)
 {
-	return (struct per_cpu*)VMGRINCH_END - (cpuid + 1);
+	return (struct per_cpu*)GRINCH_END - (cpuid + 1);
 }
 
 static __always_inline page_table_t this_root_table_page(void)

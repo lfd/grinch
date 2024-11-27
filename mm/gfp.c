@@ -62,8 +62,8 @@ static struct memory_area memory_areas[2] =
 		},
 		.p = {}, // filled during initialisation
 		.v = {
-			.base = (void *)VMGRINCH_BASE,
-			.end = (void *)VMGRINCH_BASE + KMM_PAGES * PAGE_SIZE,
+			.base = (void *)GRINCH_BASE,
+			.end = (void *)GRINCH_BASE + KMM_PAGES * PAGE_SIZE,
 		},
 	},
 	[1] = {
@@ -349,7 +349,7 @@ int __init kernel_mem_init(void)
 	/* mark OS pages as used */
 	memory_areas[0].valid = true;
 	err = _alloc_pages_aligned(NULL, num_os_pages(), PAGE_SIZE,
-				   (void *)VMGRINCH_BASE);
+				   (void *)GRINCH_BASE);
 	if (err) {
 		memory_areas[0].valid = false;
 		return err;

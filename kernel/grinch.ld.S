@@ -14,10 +14,10 @@
 #include <asm-generic/grinch_layout.h>
 #include <asm-generic/paging.h>
 
-ENTRY(vmgrinch_start)
+ENTRY(__start)
 SECTIONS
 {
-	. = VMGRINCH_BASE;
+	. = GRINCH_BASE;
 
 	__start = .;
 	.text		: {

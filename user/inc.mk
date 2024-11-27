@@ -111,7 +111,7 @@ USER_APPS=$(foreach app,$(APPS),$(call app_of,$(app)))
 
 IMAGES=res/logo.gimg
 
-user/initrd.cpio: $(USER_APPS) $(IMAGES) res/test.txt vmgrinch.bin
+user/initrd.cpio: $(USER_APPS) $(IMAGES) res/test.txt grinch.bin
 	$(QUIET) "[CPIO]  $@"
 	$(VERBOSE) ./scripts/create_cpio $@ $^
 

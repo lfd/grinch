@@ -14,7 +14,7 @@ EXTRAVERSION=
 QEMU_CPUS ?= 2
 QEMU_CMDLINE ?= ""
 
-all: vmgrinch.bin user/initrd.cpio tools
+all: grinch.bin user/initrd.cpio tools
 
 HOSTCC=gcc
 
@@ -99,7 +99,7 @@ include tools/inc.mk
 
 QEMU_CMD=$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS) -append $(QEMU_CMDLINE)
 
-QEMU_CMD_DIRECT=$(QEMU_CMD) -kernel vmgrinch.bin -initrd user/initrd.cpio
+QEMU_CMD_DIRECT=$(QEMU_CMD) -kernel grinch.bin -initrd user/initrd.cpio
 QEMU_CMD_UBOOT=$(QEMU_CMD) -kernel $(UBOOT_BIN) $(QEMU_UBOOT_ARGS)
 
 qemu: all
@@ -114,20 +114,20 @@ qemudb: all
 qemuudb: all $(UBOOT_BIN)
 	$(QEMU_CMD_UBOOT) -S
 
-qemu.dts: vmgrinch.bin user/initrd.cpio
+qemu.dts: grinch.bin user/initrd.cpio
 	$(QEMU_CMD_DIRECT) $(QEMU_MACHINE),dumpdtb=/tmp/qemu_tmp.dtb
 	dtc -I dtb -O dts /tmp/qemu_tmp.dtb -o $@
 	rm -f /tmp/qemu_tmp.dtb
 
-.PHONY: vmgrinch.dump
-vmgrinch.dump: scripts/vmgrinch_dump.gdb vmgrinch.elf
+.PHONY: grinch.dump
+grinch.dump: scripts/grinch_dump.gdb grinch.elf
 	$(GDB) -x $<
 
-vmgrinch.info: vmgrinch.dump tools/gcov_extract
+grinch.info: grinch.dump tools/gcov_extract
 	./tools/gcov_extract $<
 	lcov -c -d . -o $@
 
-gcov: vmgrinch.info
+gcov: grinch.info
 	mkdir -p gcov
 	genhtml $< -o gcov/
 
@@ -137,11 +137,11 @@ $(UBOOT_BIN):
 	$(MAKE) -C $(D_UBOOT)/u-boot $(MAKEARGS_UBOOT) O=$(UBOOT_PFX) oldconfig
 	$(MAKE) -C $(UBOOT_PFX) $(MAKEARGS_UBOOT) u-boot-nodtb.bin
 
-debug: vmgrinch.bin
+debug: grinch.bin
 	$(GDB) -x scripts/debug.gdb $^
 
 clean: clean_core clean_lib clean_mm clean_fs clean_user clean_arch clean_drivers clean_kernel clean_tools
-	$(call clean_files,all,kernel.bin vmgrinch.bin vmgrinch.elf vmgrinch.dump vmgrinch.info gcov)
+	$(call clean_files,all,kernel.bin grinch.bin grinch.elf grinch.dump grinch.info gcov)
 
 mrproper: clean
 	$(MAKE) -C $(D_UBOOT) mrproper

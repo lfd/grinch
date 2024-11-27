@@ -71,11 +71,11 @@ $(ARCH_DIR)/asm_defines.S: $(ARCH_DIR)/asm_defines.c
 	$(QUIET) "[GEN]   $@"
 	$(VERBOSE) $(CC) $(CFLAGS_KERNEL_COMMON) -S -o $@ $^
 
-vmgrinch.o: $(ARCH_DIR)/built-in.a drivers/built-in.a fs/built-in.a kernel/built-in.a lib/built-in.a mm/built-in.a
+grinch.o: $(ARCH_DIR)/built-in.a drivers/built-in.a fs/built-in.a kernel/built-in.a lib/built-in.a mm/built-in.a
 	$(QUIET) "[LD]    $@"
 	$(VERBOSE) $(LD) $(LDFLAGS_KERNEL) --whole-archive -relocatable -o $@ $^
 
-vmgrinch.elf: kernel/grinch.ld vmgrinch.o
+grinch.elf: kernel/grinch.ld grinch.o
 	$(QUIET) "[LD]    $@"
 	$(VERBOSE) $(LD) $(LDFLAGS_KERNEL) --gc-sections -T $^ -o $@
 ifdef V
@@ -92,14 +92,14 @@ endif
 	$(QUIET) "[DTC]   $@"
 	$(VERBOSE) $(DTC) -I dts -O dtb -o $@ $^
 
-objd: vmgrinch.elf
+objd: grinch.elf
 	$(OBJDUMP) -d $^ | less
 
-objdS: vmgrinch.elf
+objdS: grinch.elf
 	$(OBJDUMP) -dS $^ | less
 
 clean_core:
-	$(call clean_file,vmgrinch.o)
+	$(call clean_file,grinch.o)
 	$(call clean_files,generated,$(GENERATED))
 	$(call clean_file,$(ARCH_DIR)/asm_defines.S)
 	$(call clean_file,kernel/syscall_table.c)

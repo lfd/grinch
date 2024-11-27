@@ -82,14 +82,14 @@ int arch_boot_cpu(unsigned long hart_id)
 	/* Hook in the whole kernel. */
 #if ARCH_RISCV == 64
 	err = paging_duplicate(pcpu->root_table_page, this_root_table_page(),
-			       (void *)VMGRINCH_BASE, 1 * GIB);
+			       (void *)GRINCH_BASE, 1 * GIB);
 	if (err)
 		return err;
 #elif ARCH_RISCV == 32
 	return -ENOSYS;
 #if 0
 	err = paging_duplicate(pcpu->root_table_page, this_root_table_page(),
-			       (void *)VMGRINCH_BASE, GRINCH_SIZE);
+			       (void *)GRINCH_BASE, GRINCH_SIZE);
 	if (err)
 		return err;
 

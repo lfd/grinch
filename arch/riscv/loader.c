@@ -12,11 +12,11 @@
 
 #include <grinch/compiler_attributes.h>
 #include <grinch/errno.h>
+#include <grinch/header.h>
 #include <grinch/paging.h>
 #include <grinch/percpu.h>
 #include <grinch/symbols.h>
 #include <grinch/string.h>
-#include <grinch/vmgrinch_header.h>
 
 /* Set PTE access bits to RWX + AD to prevent page faults */
 #define PAGE_FLAGS_DEFAULT				\
@@ -28,7 +28,7 @@ void __noreturn
 loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr);
 
 void __noreturn
-vmgrinch_start(unsigned long hart_id, paddr_t fdt, paddr_t dst);
+grinch_start(unsigned long hart_id, paddr_t fdt, paddr_t dst);
 
 static void __init *loader_page_zalloc(void **next)
 {
@@ -112,5 +112,5 @@ loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr)
 		"virt_start:"
 		: : [offset] "r"(offset) : "a0");
 
-	vmgrinch_start(hart_id, fdt, load_addr);
+	grinch_start(hart_id, fdt, load_addr);
 }

@@ -24,13 +24,13 @@
 #include <grinch/fs/vfs.h>
 #include <grinch/gcov.h>
 #include <grinch/gfp.h>
+#include <grinch/header.h>
 #include <grinch/memtest.h>
 #include <grinch/paging.h>
 #include <grinch/percpu.h>
 #include <grinch/platform.h>
 #include <grinch/ttp.h>
 #include <grinch/version.h>
-#include <grinch/vmgrinch_header.h>
 
 static const char __initconst logo[] =
 "\n\n"
@@ -236,8 +236,8 @@ out:
 	}
 }
 
-const struct vmgrinch_header __attribute__((section(".header1")))
-vmgrinch_header = {
-	.signature = VMGRINCH_SIGNATURE,
+const struct grinch_header __attribute__((section(".header1")))
+grinch_header = {
+	.signature = GRINCH_SIGNATURE,
 	.gcov_info_head = GCOV_HEAD,
 };
