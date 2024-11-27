@@ -43,7 +43,7 @@ int secondary_cmain(struct registers *regs)
 
 	/* Unmap bootstrap page tables */
 	err = unmap_range(this_root_table_page(),
-			  (void *)v2p(__load_addr), GRINCH_SIZE);
+			  (void *)v2p(__start), GRINCH_SIZE);
 	if (err)
 		goto out;
 
@@ -122,7 +122,7 @@ int arch_boot_cpu(unsigned long hart_id)
 		return err;
 
 	/* The page table must contain a boot trampoline */
-	paddr = v2p(__load_addr);
+	paddr = v2p(__start);
 	err = map_range(pcpu->root_table_page, (void*)paddr, paddr, GRINCH_SIZE,
 			GRINCH_MEM_RX);
 	if (err)

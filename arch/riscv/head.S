@@ -43,7 +43,7 @@
 	 */
 	.dword MEGA_PAGE_SIZE
 
-	.dword __rodata_end - __load_addr
+	.dword __rodata_end - __start
 	.dword 0
 	.word RISCV_HEADER_VERSION
 	.word 0
@@ -60,7 +60,7 @@ _loader_start:
 	 * a2: pc-rel load addr
 	 */
 	lpc	sp, __internal_page_pool_end
-	lpc	a2, __load_addr
+	lpc	a2, __start
 	jal	loader
 
 1:

@@ -88,18 +88,23 @@ loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr)
 	unsigned int d;
 	paddr_t offset;
 
-	next = __internal_page_pool_end - __load_addr + (void*)load_addr;
+	/*
+	 * Place temporary page tables at the end of the internal page pool.
+	 * For the kernel's initial page tables grinch will use the internal
+	 * page pool, so this is fine.
+	 */
+	next = (void*)load_addr + GRINCH_SIZE;
 	l0 = loader_page_zalloc(&next);
-	for (d = 0; d < mega_page_up(__rodata_end - __load_addr);
+	for (d = 0; d < mega_page_up(num_os_pages() * PAGE_SIZE);
 	     d+= MEGA_PAGE_SIZE) {
 		/* ID map loaded location */
 		map_mega(&next, l0, (void*)load_addr + d, load_addr + d);
 		/* linked location of bootloader */
-		map_mega(&next, l0, __load_addr + d, load_addr + d);
+		map_mega(&next, l0, __start + d, load_addr + d);
 	}
 
 	enable_mmu((paddr_t)l0);
-	offset = (paddr_t)__load_addr - load_addr;
+	offset = (paddr_t)__start - load_addr;
 	asm volatile(
 		"add sp, sp, %[offset]\n"
 		"la a0, virt_start\n"

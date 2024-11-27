@@ -19,7 +19,7 @@ SECTIONS
 {
 	. = VMGRINCH_BASE;
 
-	__load_addr = .;
+	__start = .;
 	.text		: {
 		KEEP(*(.header0));
 		KEEP(*(.header1));
@@ -100,8 +100,8 @@ SECTIONS
 	. = ALIGN(PAGE_SIZE);
 
 	__internal_page_pool_start = .;
-	__num_os_pages = (__internal_page_pool_start - __load_addr) / PAGE_SIZE;
-	. = __load_addr + GRINCH_SIZE;
+	__num_os_pages = (__internal_page_pool_start - __start) / PAGE_SIZE;
+	. = __start + GRINCH_SIZE;
 	__internal_page_pool_end = .;
 	__internal_page_pool_pages =
 		(__internal_page_pool_end - __internal_page_pool_start) / PAGE_SIZE;
