@@ -115,7 +115,7 @@ int kvma_create(struct vma *vma)
 	// FIXME: We must somewhen take care, that this applies to all page
 	// tables of all CPUs
 	// FIXME: Get alignment via argument
-	err = vma_alloc(this_per_cpu()->root_table_page, vma, MEGA_PAGE_SIZE);
+	err = vma_alloc(this_per_cpu()->root_table_page, vma, PAGE_SIZE);
 	if (err)
 		return err;
 
