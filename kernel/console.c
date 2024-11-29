@@ -41,7 +41,7 @@ static void console_parse(const char *str)
 {
 	char *delim;
 
-	strncpy(console_device, str, sizeof(console_device - 1));
+	strncpy(console_device, str, sizeof(console_device) - 1);
 
 	delim = strchrnul(console_device, ',');
 	if (delim)
