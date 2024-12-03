@@ -21,6 +21,7 @@
 #include <grinch/driver.h>
 #include <grinch/fdt.h>
 #include <grinch/fs/devfs.h>
+#include <grinch/fs/initrd.h>
 #include <grinch/fs/vfs.h>
 #include <grinch/gcov.h>
 #include <grinch/gfp.h>
@@ -175,6 +176,12 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 
 	err = phys_mem_init_fdt();
 	if (err)
+		goto out;
+
+	err = initrd_init();
+	if (err == -ENOENT)
+		pri("No ramdisk found\n");
+	else if (err)
 		goto out;
 
 	err = kheap_init();

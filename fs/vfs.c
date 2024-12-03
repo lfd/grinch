@@ -505,12 +505,6 @@ int __init vfs_init(void)
 	struct file_system *tmpfs;
 	int err;
 
-	err = initrd_init();
-	if (err == -ENOENT)
-		pri("No ramdisk found\n");
-	else if (err)
-		return err;
-
 	err = devfs_init();
 	if (err)
 		return err;
