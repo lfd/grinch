@@ -12,6 +12,7 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -386,14 +387,12 @@ static void trim(char *str)
 
 static int print_prompt(void)
 {
-	char *cwd;
+	char cwd[PATH_MAX];
 
-	cwd = grinch_getcwd();
-	if (!cwd)
-		return -ENOMEM;
+	if (!getcwd(cwd, sizeof(cwd)))
+		return -errno;
 
 	printf("gsh %s> ", cwd);
-	free(cwd);
 
 	return 0;
 }

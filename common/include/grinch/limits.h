@@ -10,11 +10,9 @@
  * the COPYING file in the top-level directory.
  */
 
-#ifndef _GRINCH_GRINCH_H
-#define _GRINCH_GRINCH_H
+#ifndef _LIMITS_H
+#define _LIMITS_H
 
-#include <grinch/gcall.h>
+#define PATH_MAX	4096
 
-int gcall(unsigned long no, unsigned long arg1);
-
-#endif /* _GRINCH_GRINCH_H */
+#endif /* _LIMITS_H */

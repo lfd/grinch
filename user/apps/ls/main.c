@@ -13,13 +13,13 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <grinch/grinch.h>
 #include <grinch/vsprintf.h>
 
 int main(int argc, char *argv[]);
@@ -137,12 +137,11 @@ static int ls(const char *pathname)
 int main(int argc, char *argv[])
 {
 	const char *pathname;
-	char *cwd;
+	char cwd[PATH_MAX];
 	int err;
 
-	cwd = grinch_getcwd();
-	if (!cwd)
-		return -ENOMEM;
+	if (!getcwd(cwd, sizeof(cwd)))
+			return -errno;
 
 	if (argc == 1) {
 		pathname = cwd;
@@ -157,8 +156,6 @@ int main(int argc, char *argv[])
 	if (err) {
 		dprintf(STDERR_FILENO, "ls: %s\n", strerror(err));
 	}
-
-	free(cwd);
 
 	return err;
 }

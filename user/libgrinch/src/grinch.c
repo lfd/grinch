@@ -29,33 +29,3 @@ int gcall(unsigned long no, unsigned long arg1)
 {
 	return syscall(SYS_grinch_call, no, arg1);
 }
-
-char *grinch_getcwd(void)
-{
-	unsigned int sz;
-	char *cwd, *tmp;
-
-	sz = CWD_BUF_GROWTH;
-	cwd = NULL;
-
-again:
-	tmp = realloc(cwd, sz);
-	if (!tmp) {
-		if (cwd)
-			free(cwd);
-		return NULL;
-	}
-	cwd = tmp;
-
-	if (getcwd(cwd, sz) == NULL) {
-		if (errno == ERANGE) {
-			sz += CWD_BUF_GROWTH;
-			goto again;
-		}
-
-		free(cwd);
-		return NULL;
-	}
-
-	return cwd;
-}

@@ -13,14 +13,13 @@
 #include <asm-generic/paging.h>
 
 #include <errno.h>
+#include <limits.h>
 #include <syscall.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
 #include <grinch/div64.h>
-
-#define PATH_MAX	4096
 
 static void *curbrk;
 
