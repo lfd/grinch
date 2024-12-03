@@ -299,7 +299,7 @@ SYSCALL_DEF2(getcwd, char __user *,buf, size_t, len)
 	unsigned long cwd_len, copied;
 	struct process *p;
 	struct task *t;
-	int err;
+	long err;
 
 	t = current_task();
 	spin_lock(&t->lock);
@@ -324,7 +324,7 @@ SYSCALL_DEF2(getcwd, char __user *,buf, size_t, len)
 		goto unlock_out;
 	}
 
-	err = 0;
+	err = cwd_len;
 
 unlock_out:
 	spin_unlock(&t->lock);
