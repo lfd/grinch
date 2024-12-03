@@ -49,7 +49,7 @@ struct file_operations {
 	int (*stat)(struct file *filep, struct stat *st);
 
 	/* Directory operations */
-	int (*getdents)(struct file_handle *h, struct grinch_dirent *udents,
+	int (*getdents)(struct file_handle *h, struct dirent *udents,
 			unsigned int size);
 	int (*mkdir)(struct file *dir, struct file *filep, const char *name, mode_t mode);
 	int (*create)(struct file *dir, struct file *filep, const char *name, mode_t mode);

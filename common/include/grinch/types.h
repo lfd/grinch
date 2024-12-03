@@ -69,6 +69,8 @@ typedef pt_entry_t page_table_t;
 typedef int pid_t;
 typedef long long loff_t;
 typedef unsigned short mode_t;
+typedef int64_t off_t;
+typedef int64_t ino_t;
 
 #define __mayuser
 #define __user

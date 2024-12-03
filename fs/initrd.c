@@ -250,14 +250,14 @@ static unsigned int get_subdir_level(struct cpio_header *hdr)
 }
 
 static int
-initrd_getdents(struct file_handle *handle, struct grinch_dirent *udents,
+initrd_getdents(struct file_handle *handle, struct dirent *udents,
 		unsigned int size)
 {
 	const char *entry_name, *prefix;
 	struct cpio_header *hdr, tmp;
-	struct grinch_dirent dent;
 	struct cpio_context *ctx;
 	unsigned int prefix_len;
+	struct dirent dent;
 	const void *this;
 	struct file *fp;
 	loff_t off, i;
@@ -311,15 +311,15 @@ initrd_getdents(struct file_handle *handle, struct grinch_dirent *udents,
 
 	switch (tmp.mode & S_IFMT) {
 		case S_IFREG:
-			dent.type = DT_REG;
+			dent.d_type = DT_REG;
 			break;
 
 		case S_IFDIR:
-			dent.type = DT_DIR;
+			dent.d_type = DT_DIR;
 			break;
 
 		default:
-			dent.type = DT_UNKNOWN;
+			dent.d_type = DT_UNKNOWN;
 			break;
 	}
 

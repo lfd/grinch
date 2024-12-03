@@ -136,12 +136,12 @@ unlock_out:
 	return ret;
 }
 
-static int tmpfs_getdents(struct file_handle *h, struct grinch_dirent *udents,
+static int tmpfs_getdents(struct file_handle *h, struct dirent *udents,
 			  unsigned int size)
 {
 	struct tmpfs_entry *dir, *file;
-	struct grinch_dirent dent;
 	unsigned int index;
+	struct dirent dent;
 	int err;
 
 	dir = h->fp->drvdata;
@@ -161,7 +161,7 @@ static int tmpfs_getdents(struct file_handle *h, struct grinch_dirent *udents,
 	goto unlock_out;
 
 found:
-	dent.type = S_ISDIR(file->mode) ? DT_DIR : DT_REG;
+	dent.d_type = S_ISDIR(file->mode) ? DT_DIR : DT_REG;
 	err = copy_dirent(udents, h->flags.is_kernel, &dent, file->name, size);
 	if (err)
 		return err;

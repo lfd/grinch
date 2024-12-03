@@ -259,7 +259,7 @@ path_out:
 	return err;
 }
 
-SYSCALL_DEF3(getdents, unsigned int, fd, struct grinch_dirent __user *, dents,
+SYSCALL_DEF3(getdents, unsigned int, fd, struct dirent __user *, dents,
 	     unsigned int, size)
 {
 	struct file_handle *handle;

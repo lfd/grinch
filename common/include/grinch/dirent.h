@@ -20,9 +20,12 @@
 #define DT_DIR		2
 #define DT_LNK		3
 
-struct grinch_dirent {
-	unsigned int type;
-	char name[];
+struct dirent {
+	ino_t d_ino; // unused (for compat)
+	off_t d_off; // unused (for compat)
+	unsigned short d_reclen; // unused (for compat)
+	unsigned char d_type;
+	char d_name[];
 };
 
 #endif /* _GRINCH_DIRENT_H */

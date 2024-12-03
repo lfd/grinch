@@ -64,11 +64,11 @@ static const struct devfs_ops dev_null_fops = {
 };
 
 static int
-devfs_getdents(struct file_handle *handle, struct grinch_dirent *udents,
+devfs_getdents(struct file_handle *handle, struct dirent *udents,
 	       unsigned int size)
 {
-	struct grinch_dirent dent;
 	struct devfs_node *node;
+	struct dirent dent;
 	loff_t i;
 	int err;
 
@@ -89,15 +89,15 @@ found:
 	switch (node->type) {
 		case DEVFS_REGULAR:
 		case DEVFS_CHARDEV:
-			dent.type = DT_REG;
+			dent.d_type = DT_REG;
 			break;
 
 		case DEVFS_SYMLINK:
-			dent.type = DT_LNK;
+			dent.d_type = DT_LNK;
 			break;
 
 		default:
-			dent.type = DT_UNKNOWN;
+			dent.d_type = DT_UNKNOWN;
 			break;
 	}
 

@@ -13,9 +13,13 @@
 #include <dirent.h>
 
 #include <errno.h>
+#include <limits.h>
 #include <syscall.h>
 
-int getdents(int fd, struct grinch_dirent *dents, unsigned int size)
+int getdents(int fd, struct dirent *dents, size_t len)
 {
-	return syscall(SYS_getdents, fd, dents, size);
+	if (len > INT_MAX)
+		len = INT_MAX;
+
+	return syscall(SYS_getdents, fd, dents, len);
 }

@@ -15,6 +15,6 @@
 
 #include <grinch/dirent.h>
 
-int getdents(int fd, struct grinch_dirent *dents, unsigned int size);
+int getdents(int fd, struct dirent *dents, size_t size);
 
 #endif /* _DIRENT_H */

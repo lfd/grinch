@@ -65,13 +65,13 @@ static int ls_file_st(const char *pathname, struct stat *st)
 	return 0;
 }
 
-static int ls_file_dirent(const char *path, struct grinch_dirent *dent)
+static int ls_file_dirent(const char *path, struct dirent *dent)
 {
 	struct stat st;
 	char buf[64];
 	int err;
 
-	snprintf(buf, sizeof(buf), "%s/%s", path, dent->name);
+	snprintf(buf, sizeof(buf), "%s/%s", path, dent->d_name);
 
 	err = stat(buf, &st);
 	if (err) {
@@ -79,12 +79,12 @@ static int ls_file_dirent(const char *path, struct grinch_dirent *dent)
 		return err;
 	}
 
-	return ls_file_st(dent->name, &st);
+	return ls_file_st(dent->d_name, &st);
 }
 
 static int ls_dir(const char *path)
 {
-	struct grinch_dirent *dent;
+	struct dirent *dent;
 	int i, fd, err;
 	char buf[256];
 
@@ -109,7 +109,7 @@ static int ls_dir(const char *path)
 			err = ls_file_dirent(path, dent);
 			if (err)
 				break;
-			dent = (void *)(dent + 1) + strlen(dent->name);
+			dent = (void *)(dent + 1) + strlen(dent->d_name);
 		}
 	}
 

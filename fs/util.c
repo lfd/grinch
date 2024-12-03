@@ -77,8 +77,8 @@ char *pathname_from_user(const char __user *_pathname, bool *must_dir)
 	return kstrdup(pathname);
 }
 
-int copy_dirent(struct grinch_dirent __mayuser *udent, bool is_kernel,
-		struct grinch_dirent *src, const char *name,
+int copy_dirent(struct dirent __mayuser *udent, bool is_kernel,
+		struct dirent *src, const char *name,
 		unsigned int size)
 {
 	unsigned long copied;
@@ -91,13 +91,13 @@ int copy_dirent(struct grinch_dirent __mayuser *udent, bool is_kernel,
 
 	if (is_kernel) {
 		memcpy(udent, src, sizeof(*src));
-		memcpy(udent->name, name, nlen);
+		memcpy(udent->d_name, name, nlen);
 	} else {
 		task = current_task();
 		copied = copy_to_user(task, udent, src, sizeof(*src));
 		if (copied != sizeof(*src))
 			return -EFAULT;
-		copied = copy_to_user(task, udent->name, name, nlen);
+		copied = copy_to_user(task, udent->d_name, name, nlen);
 		if (copied != nlen)
 			return -EFAULT;
 	}
