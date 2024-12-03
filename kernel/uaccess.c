@@ -15,6 +15,7 @@
 #include <grinch/align.h>
 #include <grinch/alloc.h>
 #include <grinch/gfp.h>
+#include <grinch/limits.h>
 #include <grinch/minmax.h>
 #include <grinch/panic.h>
 #include <grinch/paging.h>

@@ -15,6 +15,7 @@
 #include <ctype.h>
 
 #include <grinch/compiler_attributes.h>
+#include <grinch/limits.h>
 #include <grinch/div64.h>
 #include <grinch/strtox.h>
 

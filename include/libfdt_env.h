@@ -13,6 +13,7 @@
 #ifndef _LIBFDT_ENV_H
 #define _LIBFDT_ENV_H
 
+#include <grinch/limits.h>
 #include <grinch/string.h>
 #include <grinch/swab.h>
 #include <grinch/types.h>
