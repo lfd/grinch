@@ -163,7 +163,7 @@ int __init ttp_init(void)
 		return 0;
 
 	pr("allocating memory for %llu trace events per cpu\n", ttp_maxevents);
-	for_each_available_cpu(cpu) {
+	for_each_online_cpu(cpu) {
 		stor = &per_cpu(cpu)->ttp_stor;
 
 		stor->print_max = false;
