@@ -14,6 +14,7 @@
 #define _GRINCH_STAT_H
 
 #include <grinch/types.h>
+#include <grinch/time_abi.h>
 
 #define S_IFMT 	00170000
 #define S_IFREG	00100000
@@ -42,8 +43,22 @@
 #define S_IXOTH	00001
 
 struct stat {
-	unsigned short st_mode;
-	loff_t st_size;
+	dev_t st_dev; // unused, for compat
+	ino_t st_ino; // unused, for compat
+	mode_t st_mode;
+	nlink_t st_nlink; // unused, for compat
+	uid_t st_uid; // unused, for compat
+	gid_t st_gid; // unused, for compat
+	dev_t st_rdev; // unused, for compat
+	unsigned long long __pad;
+	off_t st_size;
+	blksize_t st_blksize; // unused, for compat
+	int __pad2;
+	blkcnt_t st_blocks; // unused, for compat
+	struct timespec st_atim; // unused, for compat
+	struct timespec st_mtim; // unused, for compat
+	struct timespec st_ctim; // unused, for compat
+	unsigned __unused[2];
 };
 
 #endif /* _GRINCH_STAT_H */

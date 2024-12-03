@@ -71,6 +71,12 @@ typedef long long loff_t;
 typedef unsigned short mode_t;
 typedef int64_t off_t;
 typedef int64_t ino_t;
+typedef int64_t dev_t;
+typedef unsigned int nlink_t;
+typedef unsigned uid_t;
+typedef unsigned gid_t;
+typedef int blksize_t;
+typedef int64_t blkcnt_t;
 
 #define __mayuser
 #define __user
