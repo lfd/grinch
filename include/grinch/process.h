@@ -15,6 +15,7 @@
 #define _PROCESS_H
 
 #include <grinch/fs/vfs.h>
+#include <grinch/kinfo_abi.h>
 #include <grinch/vma.h>
 #include <grinch/uaccess.h>
 
@@ -52,6 +53,7 @@ int process_setcwd(struct task *t, const char *pathname);
 
 /* Arch specific routines */
 void arch_process_activate(struct process *task);
+void arch_kinfo_init(struct kinfo *kinfo);
 
 /* Utilities */
 void process_show_vmas(pid_t pid);

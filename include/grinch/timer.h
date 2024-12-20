@@ -16,6 +16,8 @@
 #include <grinch/time.h>
 #include <grinch/arch/timer.h>
 
+extern timeu_t wall_base;
+
 int timer_init(void);
 
 void handle_timer(void);

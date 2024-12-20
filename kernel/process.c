@@ -108,6 +108,12 @@ static size_t uenv_sz(const struct uenv_array *uenv)
 	return ret;
 }
 
+static void kinfo_init(struct kinfo *kinfo)
+{
+	kinfo->wall_base = wall_base;
+	arch_kinfo_init(kinfo);
+}
+
 static int process_load_elf(struct task *task, Elf_Ehdr *ehdr,
 			    const struct uenv_array *argv,
 			    const struct uenv_array *envp)
@@ -116,7 +122,8 @@ static int process_load_elf(struct task *task, Elf_Ehdr *ehdr,
 	char __user *uargv_string, *uenvp_string;
 	unsigned long argc, copied;
 	unsigned int d, vma_flags;
-	struct auxv aux[1];
+	struct kinfo kinfo;
+	struct auxv aux[2];
 	struct vma *vma;
 	size_t vma_size;
 	Elf_Phdr *phdr;
@@ -137,14 +144,22 @@ static int process_load_elf(struct task *task, Elf_Ehdr *ehdr,
 	/* Prepare user stack */
 	stack_top = (void *)USER_STACK_TOP;
 
-	aux[0].tag = AT_NULL;
-	aux[0].value = 0;
-
 	vma_flags = VMA_FLAG_USER | VMA_FLAG_RW | VMA_FLAG_LAZY;
 	vma = uvma_create(task, (void *)USER_STACK_BOTTOM, USER_STACK_SIZE,
 			  vma_flags, "[stack]");
 	if (IS_ERR(vma))
 		return PTR_ERR(vma);
+
+	kinfo_init(&kinfo);
+	stack_top = PTR_ALIGN_DOWN(stack_top - sizeof(kinfo), 8);
+	copied = copy_to_user(task, stack_top, &kinfo, sizeof(kinfo));
+	if (copied != sizeof(kinfo))
+		return -ENOMEM;
+
+	aux[0].tag = AT_KINFO;
+	aux[0].value = (uintptr_t)stack_top;
+	aux[1].tag = AT_NULL;
+	aux[1].value = 0;
 
 	if (envp) {
 		stack_top -= envp->length;

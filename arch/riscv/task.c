@@ -22,6 +22,11 @@ void task_set_context(struct task *task, unsigned long pc, unsigned long sp)
 	task->regs.sp = sp;
 }
 
+void arch_kinfo_init(struct kinfo *kinfo)
+{
+	kinfo->riscv.timebase_frequency = riscv_timebase_frequency;
+}
+
 void arch_process_activate(struct process *process)
 {
 	struct per_cpu *tpcpu;
