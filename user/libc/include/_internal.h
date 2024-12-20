@@ -15,10 +15,13 @@
 #ifndef _INTERNAL_H
 #define _INTERNAL_H
 
+#include <grinch/kinfo_abi.h>
+
 extern struct __libc __libc;
 
 struct __libc {
 	size_t *auxv;
+	struct kinfo *kinfo;
 };
 
 #endif

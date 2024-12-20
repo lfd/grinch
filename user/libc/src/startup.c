@@ -11,8 +11,13 @@
  */
 
 #define _GNU_SOURCE
+#include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/auxv.h>
+#include <_internal.h>
+
+#include <grinch/elf.h>
 #include <_internal.h>
 
 int cmain(long *p);
@@ -37,6 +42,12 @@ int __noreturn cmain(long *p)
 
 	for (i = 0; environ[i]; i++);
 	__libc.auxv = (void *)(environ + i + 1);
+
+	__libc.kinfo = (struct kinfo *)(uintptr_t)getauxval(AT_KINFO);
+	if (!__libc.kinfo) {
+		err = -ENOENT;
+		goto out;
+	}
 
 	err = main(argc, argv, environ);
 
