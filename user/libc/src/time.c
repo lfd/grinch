@@ -12,8 +12,9 @@
 
 #include <syscall.h>
 #include <time.h>
+#include <arch/time.h>
 
 int clock_gettime(clockid_t clockid, struct timespec *ts)
 {
-	return syscall(SYS_clock_gettime, clockid, ts);
+	return arch_clock_gettime(clockid, ts);
 }
