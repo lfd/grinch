@@ -12,6 +12,11 @@
 
 /* Partly copied from the Linux kernel */
 
+#ifndef _ELF_H
+#define _ELF_H
+
+#include <grinch/types.h>
+
 /* 32-bit ELF base types. */
 typedef __u32   Elf32_Addr;
 typedef __u16   Elf32_Half;
@@ -98,3 +103,7 @@ typedef struct elf64_phdr {
 	Elf64_Xword p_memsz;          /* Segment size in memory */
 	Elf64_Xword p_align;          /* Segment alignment, file & memory */
 } Elf64_Phdr;
+
+#define AT_NULL		0 /* End of vector */
+
+#endif /* _ELF_H */
