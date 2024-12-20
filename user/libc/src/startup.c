@@ -13,14 +13,18 @@
 #define _GNU_SOURCE
 #include <stdlib.h>
 #include <unistd.h>
+#include <_internal.h>
 
 int cmain(long *p);
 int main(int argc, char *argv[], char *envp[]);
+
+struct __libc __libc;
 
 int __noreturn cmain(long *p)
 {
 	int argc, err;
 	char **argv;
+	size_t i;
 
 	argc = p[0];
 	argv = (void *)(p + 1);
@@ -30,6 +34,10 @@ int __noreturn cmain(long *p)
 		goto out;
 
 	environ = argv + argc + 1;
+
+	for (i = 0; environ[i]; i++);
+	__libc.auxv = (void *)(environ + i + 1);
+
 	err = main(argc, argv, environ);
 
 out:

@@ -27,6 +27,7 @@ LIBC_OBJS += dirent.o
 LIBC_OBJS += div64.o
 LIBC_OBJS += errno.o
 LIBC_OBJS += fcntl.o
+LIBC_OBJS += getauxval.o
 LIBC_OBJS += ioctl.o
 LIBC_OBJS += salloc.o
 LIBC_OBJS += stdio.o
