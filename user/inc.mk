@@ -48,10 +48,12 @@ LIBC_BUILTIN = user/libc/built-in.a
 $(LIBC_BUILTIN): $(LIBC_OBJS)
 
 # libgrinch
-LIBGRINCH_OBJS += gfb/gfb.o
-LIBGRINCH_OBJS += gfb/gimg.o
 LIBGRINCH_OBJS += grinch.o
 LIBGRINCH_OBJS += hexdump.o
+# libgrinch framebuffer library
+LIBGRINCH_OBJS += gfb/gfb.o
+LIBGRINCH_OBJS += gfb/gimg.o
+LIBGRINCH_OBJS += gfb/gpaint.o
 
 LIBGRINCH_OBJS := $(addprefix user/libgrinch/src/, $(LIBGRINCH_OBJS))
 LIBGRINCH_BUILTIN = user/libgrinch/built-in.a

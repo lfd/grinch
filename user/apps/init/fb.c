@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include <grinch/gfb/gimg.h>
+#include <grinch/gfb/gpaint.h>
 
 #include "fb.h"
 
@@ -31,6 +32,7 @@ void show_logo(void)
 		.yres = YRES,
 	};
 	struct gfb_handle h;
+	struct gcolor color;
 	struct gimg *logo;
 	struct gcoord off;
 	struct gfb gfb;
@@ -61,6 +63,9 @@ void show_logo(void)
 	h.fb = malloc(gfb.info.fb_size);
 	if (!h.fb)
 		goto unload_out;
+
+	color.r = color.g = color.b = 0xff;
+	gfb_fill(&h, color);
 
 	off.x = (mode.xres - logo->width) / 2;
 	off.y = (mode.yres - logo->height) / 2;
