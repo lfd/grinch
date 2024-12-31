@@ -6,17 +6,17 @@ close		3
 stat		4
 brk		12
 ioctl		16
-sched_yield	24
 getpid		39
 fork		57
-execve		59
 getcwd		79
 chdir		80
 mkdir		83
 exit		93
 nanosleep	101
 clock_gettime	113
+sched_yield	124
 getdents	141
+execve		221
 wait		260
 
 # custom grinch syscalls
