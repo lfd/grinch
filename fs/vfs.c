@@ -24,6 +24,7 @@
 #include <grinch/list.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
+#include <grinch/refcount.h>
 
 /*
  * When looking up dflc entries, having D_DIR set as flag means:
@@ -57,7 +58,7 @@ struct dflc {
 	struct file fp;
 
 	spinlock_t lock;
-	unsigned int refs;
+	refcount_t refs;
 };
 
 static struct dflc root = {
@@ -68,6 +69,7 @@ static struct dflc root = {
 		.mode = S_IFDIR,
 	},
 	.lock = SPIN_LOCK_UNLOCKED,
+	.refs = REFCOUNT_INIT(1),
 };
 
 static inline void dflc_lock(struct dflc *entry)
@@ -82,10 +84,7 @@ static inline void dflc_unlock(struct dflc *entry)
 
 static struct dflc *_dflc_get(struct dflc *entry)
 {
-	dflc_lock(entry);
-	entry->refs++;
-	dflc_unlock(entry);
-
+	refcount_inc(&entry->refs);
 	return entry;
 }
 
@@ -106,8 +105,7 @@ static void _dflc_put(struct dflc *entry)
 	dflc_lock(entry);
 
 	fp = &entry->fp;
-	entry->refs--;
-	if (entry->refs == 0) {
+	if (refcount_dec_and_test(&entry->refs)) {
 		if (fp->fops && fp->fops->close)
 			fp->fops->close(fp);
 
@@ -128,9 +126,7 @@ static void dflc_put(struct dflc *entry)
 {
 	struct dflc *parent;
 
-	if (entry->refs == 0)
-		BUG();
-
+	BUG_ON(refcount_read(&entry->refs) == 0);
 	/*
 	 * If we release the dflc entry, we will modify the list in the parent.
 	 * Hence, we need to take the lock from the parent. As we might might
@@ -174,7 +170,7 @@ static void dflc_init(struct dflc *dflc, struct dflc *parent)
 	dflc->fs = parent->fs;
 	list_add(&dflc->siblings, &parent->children);
 	INIT_LIST_HEAD(&dflc->children);
-	_dflc_get(dflc);
+	refcount_set(&dflc->refs, 1);
 }
 
 /*
@@ -277,6 +273,7 @@ dflc_lookup_at(struct file *at, const char *pathname, unsigned int _flags)
 		if (!at)
 			return ERR_PTR(-EINVAL);
 
+		// FIXME: geht bestimmt schicker...
 		file_dup(at);
 		parent = dflc_of(at);
 	}
@@ -476,8 +473,15 @@ vfs_mount(const char *mountpoint, const struct file_system *fs)
 	if (IS_ERR(parent))
 		return PTR_ERR(parent);
 
+	/*
+	 * mountpoints get an extra reference count to avoid closing. In case
+	 * we have the root node, then we already have a reference.
+	 */
+	if (parent != &root)
+		dflc_get(parent);
+
 	dflc_lock(parent);
-	if (parent->refs != 1) {
+	if (refcount_read(&parent->refs) != 2) {
 		err = -EBUSY;
 		goto out;
 	}
@@ -499,6 +503,9 @@ vfs_mount(const char *mountpoint, const struct file_system *fs)
 out:
 	dflc_unlock(parent);
 
+	/* put the current handle */
+	dflc_put(parent);
+	/* put the second reference in case of errors */
 	if (err)
 		dflc_put(parent);
 
@@ -555,8 +562,8 @@ static void lsof(unsigned int lvl, struct dflc *this)
 
 	dflc_lock(this);
 	pr("%*s%s%s   (%u%s)\n", lvl * 2, "",
-	   this->name, S_ISDIR(this->fp.mode) ? "/" : "", this->refs,
-	   this->mountpoint ? ", mp": "");
+	   this->name, S_ISDIR(this->fp.mode) ? "/" : "",
+	   refcount_read(&this->refs), this->mountpoint ? ", mp": "");
 	if (S_ISDIR(this->fp.mode))
 		list_for_each_entry(siblings, &this->children, siblings)
 			lsof(lvl + 1, siblings);
