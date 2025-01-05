@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023-2024
+ * Copyright (c) OTH Regensburg, 2023-2025
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -13,6 +13,7 @@
 #ifndef _PANIC_H
 #define _PANIC_H
 
+#include <grinch/compiler_attributes.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 
@@ -27,5 +28,9 @@ do {							\
 	panic("BUG found at %s:%d on CPU %lu :-(\n",	\
 	       __FILE__, __LINE__, this_cpu_id());	\
 } while (0)
+
+#define BUG_ON(condition) do { if (unlikely(condition)) BUG(); } while (0)
+
+#define BUILD_BUG()		do { } while (0);
 
 #endif /* _PANIC_H */
