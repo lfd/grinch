@@ -14,6 +14,7 @@
 
 #include <grinch/bitmap.h>
 #include <grinch/bitops.h>
+#include <grinch/minmax.h>
 #include <grinch/swab.h>
 
 #define __ALIGN_MASK(x, mask)	(((x) + (mask)) & ~(mask))
@@ -68,7 +69,7 @@ static unsigned long _find_next_bit(const unsigned long *addr1,
 	if (le)
 		tmp = swab(tmp);
 
-	return MIN(start + __ffsl(tmp), nbits);
+	return min(start + __ffsl(tmp), nbits);
 }
 
 static inline

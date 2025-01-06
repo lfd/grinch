@@ -19,7 +19,6 @@
 #define BITS_PER_LONG		(BYTES_PER_LONG * 8)
 #define ARRAY_SIZE(array)	(sizeof(array) / sizeof((array)[0]))
 
-#define MIN(a, b)		((a) <= (b) ? (a) : (b))
 #define __round_mask(x, y)	((__typeof__(x))((y)-1))
 #define round_down(x, y)	((x) & ~__round_mask(x, y))
 

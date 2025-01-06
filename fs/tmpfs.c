@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2024
+ * Copyright (c) OTH Regensburg, 2024-2025
  *
  * Authors:
  *  Ern Lim <ern.lim@st.oth-regensburg.de>
@@ -15,6 +15,7 @@
 #include <grinch/errno.h>
 #include <grinch/fs/tmpfs.h>
 #include <grinch/fs/util.h>
+#include <grinch/minmax.h>
 #include <grinch/printk.h>
 #include <grinch/task.h>
 #include <grinch/uaccess.h>
@@ -71,7 +72,7 @@ static ssize_t tmpfs_read(struct file_handle *h, char *ubuf, size_t count)
 	left = file->size - h->position;
 
 	ret = copy_to_user(current_task(), ubuf, raw + h->position,
-			   MIN(count, left));
+			   min(count, left));
 	h->position += ret;
 
 unlock_out:
