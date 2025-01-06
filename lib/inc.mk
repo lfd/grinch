@@ -6,6 +6,7 @@ LIB_OBJS += fdt.o
 LIB_OBJS += hexdump.o
 LIB_OBJS += panic.o
 LIB_OBJS += printk.o
+LIB_OBJS += refcount.o
 LIB_OBJS += ringbuf.o
 LIB_OBJS += string.o
 LIB_OBJS += strtox.o
