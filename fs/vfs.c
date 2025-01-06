@@ -80,11 +80,20 @@ static inline void dflc_unlock(struct dflc *entry)
 	spin_unlock(&entry->lock);
 }
 
-static struct dflc *dflc_get(struct dflc *entry)
+static struct dflc *_dflc_get(struct dflc *entry)
 {
 	dflc_lock(entry);
 	entry->refs++;
 	dflc_unlock(entry);
+
+	return entry;
+}
+
+static struct dflc *dflc_get(struct dflc *entry)
+{
+	_dflc_get(entry);
+	if (entry->parent)
+		dflc_get(entry->parent);
 
 	return entry;
 }
@@ -102,7 +111,7 @@ static void _dflc_put(struct dflc *entry)
 		if (fp->fops && fp->fops->close)
 			fp->fops->close(fp);
 
-		if (entry != &root) {
+		if (entry->parent) {
 			kfree(entry->name);
 			list_del(&entry->siblings);
 			kfree(entry);
@@ -147,13 +156,7 @@ static inline struct dflc *dflc_of(struct file *file)
 
 void file_dup(struct file *file)
 {
-	struct dflc *entry;
-
-	entry = dflc_of(file);
-	do {
-		dflc_get(entry);
-		entry = entry->parent;
-	} while (entry);
+	dflc_get(dflc_of(file));
 }
 
 void file_close(struct file *file)
@@ -162,6 +165,16 @@ void file_close(struct file *file)
 
 	entry = dflc_of(file);
 	dflc_put(entry);
+}
+
+static void dflc_init(struct dflc *dflc, struct dflc *parent)
+{
+	spin_init(&dflc->lock);
+	dflc->parent = parent;
+	dflc->fs = parent->fs;
+	list_add(&dflc->siblings, &parent->children);
+	INIT_LIST_HEAD(&dflc->children);
+	_dflc_get(dflc);
 }
 
 /*
@@ -187,7 +200,7 @@ dflc_lookup_next(struct dflc *parent, const char *_name, size_t n,
 	list_for_each_entry(next, &parent->children, siblings)
 		if (!strcmp(next->name, name)) {
 			kfree(name);
-			goto found;
+			return _dflc_get(next);
 		}
 
 	next = kzalloc(sizeof *next);
@@ -238,14 +251,7 @@ fun_out:
 		goto err_free_out;
 
 opened:
-	spin_init(&next->lock);
-	next->parent = parent;
-	next->fs = parent->fs;
-	list_add(&next->siblings, &parent->children);
-	INIT_LIST_HEAD(&next->children);
-
-found:
-	dflc_get(next);
+	dflc_init(next, parent);
 	return next;
 
 err_free_out:
@@ -265,8 +271,7 @@ dflc_lookup_at(struct file *at, const char *pathname, unsigned int _flags)
 	int err;
 
 	if (pathname[0] == '/') {
-		parent = &root;
-		dflc_get(parent);
+		parent = _dflc_get(&root);
 		pathname++;
 	} else {
 		if (!at)
