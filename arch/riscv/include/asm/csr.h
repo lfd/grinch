@@ -12,6 +12,7 @@
 
 /* party copied from the Linux kernel sources */
 
+#include <grinch/bits.h>
 #include <grinch/const.h>
 #include <grinch/stringify.h>
 
@@ -128,7 +129,7 @@
 #define SATP_MODE_BITS	1
 #endif
 
-#define SATP_MODE_MASK	BIT_MASK(SATP_MODE_BITS - 1, 0)
+#define SATP_MODE_MASK	GENMASK(SATP_MODE_BITS - 1, 0)
 
 /* HSTATUS flags */
 #define HSTATUS_VSXL            _UL(0x300000000)

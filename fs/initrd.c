@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023-2024
+ * Copyright (c) OTH Regensburg, 2023-2025
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -13,6 +13,7 @@
 #define dbg_fmt(x)	"initrd: " x
 
 #include <grinch/alloc.h>
+#include <grinch/bits.h>
 #include <grinch/fdt.h>
 #include <grinch/fs/initrd.h>
 #include <grinch/fs/util.h>
@@ -22,7 +23,6 @@
 #include <grinch/printk.h>
 #include <grinch/task.h>
 #include <grinch/uaccess.h>
-#include <grinch/utils.h>
 #include <grinch/vsprintf.h>
 
 #define CPIO_MAGIC	"070701"
@@ -130,7 +130,7 @@ static int __init cpio_size(const void *base, size_t *size)
 		return -ENOENT;
 
 	*size = (((uintptr_t)hdr.body - (uintptr_t)base) + 255)
-		& BIT_MASK(64, 8);
+		& GENMASK_ULL(63, 8);
 
 	return 0;
 }

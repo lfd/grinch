@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023-2024
+ * Copyright (c) OTH Regensburg, 2023-2025
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -16,6 +16,7 @@
 #include <asm/isa.h>
 
 #include <grinch/alloc.h>
+#include <grinch/bits.h>
 #include <grinch/fdt.h>
 #include <grinch/fs/initrd.h>
 #include <grinch/fs/vfs.h>
@@ -233,7 +234,7 @@ out:
 	pr("SSTATUS: %016lx SCAUSE: %016lx\n", ctx->sstatus, ctx->scause);
 	pr("HSTATUS: %016lx  HTVAL: %016lx\n",
 		ctx->hstatus, csr_read(CSR_HTVAL));
-	pr("VSATP: %016lx (phys: %016llx)\n", vsatp, ((vsatp & BIT_MASK(43, 0)) << PAGE_SHIFT));
+	pr("VSATP: %016lx\n", vsatp);
 
 	return VMM_ERROR;
 }

@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2024
+ * Copyright (c) OTH Regensburg, 2024-2025
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -17,7 +17,6 @@
 
 #include <grinch/const.h>
 #include <grinch/types.h>
-#include <grinch/utils.h>
 
 #define GRINCH_MEM_R		(1 << 0)
 #define GRINCH_MEM_W		(1 << 1)

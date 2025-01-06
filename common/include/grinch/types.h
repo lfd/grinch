@@ -16,7 +16,17 @@
 #ifndef __ASSEMBLY__
 
 #define BYTES_PER_LONG		(__SIZEOF_POINTER__)
+#define __BYTES_PER_LONG	(__SIZEOF_POINTER__)
+
+#define BYTES_PER_LONG_LONG	(8)
+#define __BYTES_PER_LONG_LONG	(8)
+
 #define BITS_PER_LONG		(BYTES_PER_LONG * 8)
+#define __BITS_PER_LONG		(__BYTES_PER_LONG * 8)
+
+#define BITS_PER_LONG_LONG	(BYTES_PER_LONG_LONG * 8)
+#define __BITS_PER_LONG_LONG	(__BYTES_PER_LONG_LONG * 8)
+
 #define ARRAY_SIZE(array)	(sizeof(array) / sizeof((array)[0]))
 
 /* Applies to all, arm64, riscv32 and riscv64 */
