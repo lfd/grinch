@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2025
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -53,6 +53,12 @@ typedef s64 int64_t;
 typedef s32 int32_t;
 typedef s16 int16_t;
 typedef s8 int8_t;
+
+/* sysv */
+typedef unsigned char unchar;
+typedef unsigned short ushort;
+typedef unsigned int uint;
+typedef unsigned long ulong;
 
 typedef unsigned long uintptr_t;
 typedef signed long intptr_t;
