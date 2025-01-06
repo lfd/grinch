@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2025
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -19,6 +19,16 @@
 
 #include <grinch/compiler_attributes.h>
 #include <grinch/types.h>
+
+#if ARCH_RISCV == 32 /* rv32 */
+#define REG_FMT_PFX	"016"
+#elif ARCH_RISCV == 64 /* rv64 */
+#define REG_FMT_PFX	"08"
+#else
+#error "Unknown RISC-V Architecture"
+#endif
+
+#define REG_FMT		"%" REG_FMT_PFX "lx"
 
 struct registers {
 	unsigned long ra;

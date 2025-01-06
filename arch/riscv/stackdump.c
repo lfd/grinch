@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2024
+ * Copyright (c) OTH Regensburg, 2024-2025
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -10,6 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <asm/cpu.h>
 #include <grinch/printk.h>
 #include <grinch/stackdump.h>
 
@@ -32,7 +33,8 @@ void stackdump(void)
 
 	pr("=== Stackdump ===\n");
 	for (frame_no = 0; ; frame_no++) {
-		pr("%3u: PC: %016lx SP: %016lx FP: 0x%016lx\n", frame_no, pc, sp, fp);
+		pr("%3u: PC: " REG_FMT " SP: " REG_FMT " FP: " REG_FMT "\n",
+		   frame_no, pc, sp, fp);
 
 		if (fp == sp)
 			break;

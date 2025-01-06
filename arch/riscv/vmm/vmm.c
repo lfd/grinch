@@ -231,10 +231,10 @@ out:
 	vsatp = csr_read(vsatp);
 
 	pr("Hypervisor Context:\n");
-	pr("SSTATUS: %016lx SCAUSE: %016lx\n", ctx->sstatus, ctx->scause);
-	pr("HSTATUS: %016lx  HTVAL: %016lx\n",
+	pr("SSTATUS: " REG_FMT " SCAUSE: " REG_FMT "\n", ctx->sstatus, ctx->scause);
+	pr("HSTATUS: " REG_FMT "  HTVAL: " REG_FMT "\n",
 		ctx->hstatus, csr_read(CSR_HTVAL));
-	pr("VSATP: %016lx\n", vsatp);
+	pr("VSATP: " REG_FMT "\n", vsatp);
 
 	return VMM_ERROR;
 }

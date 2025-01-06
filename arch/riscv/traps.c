@@ -145,7 +145,8 @@ void arch_handle_exception(struct registers *regs, u64 scause)
 			break;
 
 		case EXC_BREAKPOINT:
-			pr("BP occured @ PC: %016lx - Ignoring\n", regs->pc);
+			pr("BP occured @ PC: " REG_FMT " - Ignoring\n",
+			   regs->pc);
 			err = -1;
 			break;
 
