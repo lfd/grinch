@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2024
+ * Copyright (c) OTH Regensburg, 2024-2025
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -13,7 +13,8 @@
 #ifndef _LIMITS_H
 #define _LIMITS_H
 
-#define INT_MAX		((int)(~0U>>1))
+#define INT_MAX		((int)(~0U >> 1))
+#define INT_MIN		(-INT_MAX - 1)
 #define UINT32_MAX	((u32)~0U)
 #define INT32_MAX	((s32)(UINT32_MAX >> 1))
 #define ULLONG_MAX	(~0ULL)
