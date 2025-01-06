@@ -19,9 +19,6 @@
 #define BITS_PER_LONG		(BYTES_PER_LONG * 8)
 #define ARRAY_SIZE(array)	(sizeof(array) / sizeof((array)[0]))
 
-#define __round_mask(x, y)	((__typeof__(x))((y)-1))
-#define round_down(x, y)	((x) & ~__round_mask(x, y))
-
 /* Applies to all, arm64, riscv32 and riscv64 */
 typedef unsigned long long u64;
 typedef unsigned int u32;
