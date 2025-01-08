@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023-2024
+ * Copyright (c) OTH Regensburg, 2023-2025
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -14,6 +14,7 @@
 
 #include <grinch/alloc.h>
 #include <grinch/arch.h>
+#include <grinch/atomic.h>
 #include <grinch/boot.h>
 #include <grinch/cpu.h>
 #include <grinch/errno.h>
@@ -29,8 +30,8 @@ static LIST_HEAD(task_list);
 static LIST_HEAD(timer_list);
 
 static DEFINE_SPINLOCK(task_lock);
-static DEFINE_SPINLOCK(pid_lock);
-static pid_t next_pid = 1;
+
+static atomic_t next_pid = ATOMIC_INIT(1);
 
 static inline void _sched_dequeue(struct task *task)
 {
@@ -263,13 +264,7 @@ void task_destroy(struct task *task)
 
 static inline pid_t get_new_pid(void)
 {
-	pid_t ret;
-
-	spin_lock(&pid_lock);
-	ret = next_pid++;
-	spin_unlock(&pid_lock);
-
-	return ret;
+	return atomic_fetch_add_relaxed(1, &next_pid);
 }
 
 void task_set_name(struct task *task, const char *name)
@@ -759,7 +754,8 @@ void sched_all(void)
 int __init task_init(void)
 {
 	if (grinch_is_guest)
-		next_pid += GRINCH_VM_PID_OFFSET * grinch_id;
+		atomic_fetch_add_relaxed(GRINCH_VM_PID_OFFSET * grinch_id,
+					 &next_pid);
 
 	return 0;
 }
