@@ -33,15 +33,10 @@ static DEFINE_SPINLOCK(task_lock);
 
 static atomic_t next_pid = ATOMIC_INIT(1);
 
-static inline void _sched_dequeue(struct task *task)
-{
-	list_del(&task->tasks);
-}
-
 void sched_dequeue(struct task *task)
 {
 	spin_lock(&task_lock);
-	_sched_dequeue(task);
+	list_del(&task->tasks);
 	spin_unlock(&task_lock);
 }
 
