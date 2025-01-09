@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2025
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -131,7 +131,7 @@ static int __init init(void)
 
 exit_out:
 	task_exit(task, err);
-	task_destroy(task);
+	task_put(task);
 	return err;
 }
 

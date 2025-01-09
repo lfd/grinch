@@ -127,7 +127,7 @@ extern struct task *init_task;
 struct task *task_alloc_new(const char *name);
 
 void task_set_context(struct task *task, unsigned long pc, unsigned long sp);
-void task_destroy(struct task *task);
+void task_put(struct task *task);
 void task_exit(struct task *task, int code);
 void task_handle_events(void);
 void task_save(struct registers *regs);

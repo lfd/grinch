@@ -455,7 +455,7 @@ static struct task *vmm_alloc_new(void)
 vmfree_out:
 	spin_unlock(&parent->lock);
 	task_exit(task, err);
-	task_destroy(task);
+	task_put(task);
 
 	return ERR_PTR(err);
 }

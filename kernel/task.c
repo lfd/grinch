@@ -97,7 +97,7 @@ static int task_notify_wait(struct task *parent, struct task *child)
 	if (parent->state == TASK_WFE)
 		parent->state = TASK_RUNNABLE;
 
-	task_destroy(child);
+	task_put(child);
 	parent->wfe.type = WFE_NONE;
 
 	return 0;
@@ -247,7 +247,7 @@ void task_exit(struct task *task, int code)
 }
 
 /* must hold the parent's lock */
-void task_destroy(struct task *task)
+void task_put(struct task *task)
 {
 	if (task->state != TASK_EXIT_DEAD && task->state != TASK_INIT)
 		BUG();
@@ -479,7 +479,7 @@ destroy_out:
 	spin_unlock(&new->lock);
 	spin_unlock(&this->lock);
 	task_exit(new, err);
-	task_destroy(new);
+	task_put(new);
 
 	return err;
 }
