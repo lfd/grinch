@@ -500,7 +500,7 @@ SYSCALL_DEF0(grinch_create_grinch_vm)
 
 	task->regs.pc = VM_GPHYS_BASE;
 	task->state = TASK_RUNNABLE;
-	sched_enqueue(task);
+	task_enqueue(task);
 
 	return task->pid;
 }

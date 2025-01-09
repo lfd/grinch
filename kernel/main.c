@@ -125,7 +125,7 @@ static int __init init(void)
 
 	init_task = task;
 
-	sched_enqueue(task);
+	task_enqueue(task);
 
 	return 0;
 

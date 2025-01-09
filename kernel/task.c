@@ -33,14 +33,14 @@ static DEFINE_SPINLOCK(task_lock);
 
 static atomic_t next_pid = ATOMIC_INIT(1);
 
-void sched_dequeue(struct task *task)
+static void task_dequeue(struct task *task)
 {
 	spin_lock(&task_lock);
 	list_del(&task->tasks);
 	spin_unlock(&task_lock);
 }
 
-void sched_enqueue(struct task *task)
+void task_enqueue(struct task *task)
 {
 	spin_lock(&task_lock);
 	list_add(&task->tasks, &task_list);
@@ -190,7 +190,7 @@ void task_exit(struct task *task, int code)
 	 * scheduler list
 	 */
 	if (!list_empty(&task->tasks))
-		sched_dequeue(task);
+		task_dequeue(task);
 
 	/* Take the parent's lock first to prevent deadlock situations */
 	spin_lock(&parent->lock);
@@ -465,7 +465,7 @@ SYSCALL_DEF0(fork)
 	spin_unlock(&this->lock);
 	spin_unlock(&new->lock);
 
-	sched_enqueue(new);
+	task_enqueue(new);
 	sched_all();
 
 	return new->pid;

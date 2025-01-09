@@ -147,8 +147,8 @@ void arch_vmachine_restore(struct vmachine *vm);
 int task_init(void);
 
 void prepare_user_return(void);
-void sched_enqueue(struct task *task);
-void sched_dequeue(struct task *task);
+
+void task_enqueue(struct task *task);
 
 /* invoke scheduler on all CPUs */
 void sched_all(void);
