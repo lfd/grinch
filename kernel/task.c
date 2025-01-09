@@ -628,12 +628,16 @@ static const char *task_type_to_string(enum task_type type)
 static const char *task_state_to_string(enum task_state state)
 {
 	switch (state) {
+		case TASK_INIT:
+			return "init    ";
 		case TASK_RUNNABLE:
 			return "runnable";
 		case TASK_RUNNING:
 			return "running ";
 		case TASK_WFE:
 			return "wfe     ";
+		case TASK_EXIT_DEAD:
+			return "ext dead";
 		default:
 			return "unkn    ";
 	}
