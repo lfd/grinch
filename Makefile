@@ -141,7 +141,7 @@ debug: grinch.bin
 	$(GDB) -x scripts/debug.gdb $^
 
 clean: clean_core clean_lib clean_mm clean_fs clean_user clean_arch clean_drivers clean_kernel clean_tools
-	$(call clean_files,all,kernel.bin grinch.bin grinch.elf grinch.dump grinch.info gcov)
+	$(call clean_files,all,grinch.bin grinch.elf grinch.dump grinch.info gcov)
 
 mrproper: clean
 	$(MAKE) -C $(D_UBOOT) mrproper

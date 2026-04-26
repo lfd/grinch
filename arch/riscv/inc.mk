@@ -24,7 +24,7 @@ QEMU_ARGS+=$(QEMU_MACHINE) -cpu $(QEMU_CPU),h=true
 QEMU_ARGS+=-device VGA
 
 QEMU_UBOOT_ARGS=\
-		-device loader,file=kernel.bin,addr=0x82000000,force-raw=on \
+		-device loader,file=grinch.bin,addr=0x82000000,force-raw=on \
 		-device loader,file=user/initrd.cpio,addr=0x82800000,force-raw=on \
 
 ARCH_OBJS =arch.o

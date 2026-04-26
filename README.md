@@ -97,7 +97,7 @@ For verbose compiler output, run:
 
     make V=1
 
-This will create `kernel.bin` and `user/initrd.cpio`. `kernel.bin` is the
+This will create `grinch.bin` and `user/initrd.cpio`. `grinch.bin` is the
 loadable kernel image, which is directly loadable via Qemu on virtual targets,
 or via U-Boot on real platforms. `user/initrd.cpio` contains userland
 applications, as well as grinch itself (grinch is able to recursively boot
