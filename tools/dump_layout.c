@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2024
+ * Copyright (c) OTH Regensburg, 2024-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -10,10 +10,11 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <stdio.h>
+#include <stdint.h>
+
 #include "../common/include/grinch/const.h"
 #include "../include/asm-generic/grinch_layout.h"
-
-#include <stdio.h>
 
 int main(void)
 {

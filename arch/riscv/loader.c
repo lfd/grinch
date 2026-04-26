@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023-2024
+ * Copyright (c) OTH Regensburg, 2023-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -15,7 +15,6 @@
 #include <grinch/header.h>
 #include <grinch/paging.h>
 #include <grinch/percpu.h>
-#include <grinch/symbols.h>
 #include <grinch/string.h>
 
 /* Set PTE access bits to RWX + AD to prevent page faults */
@@ -100,14 +99,17 @@ loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr)
 		/* ID map loaded location */
 		map_mega(&next, l0, (void*)load_addr + d, load_addr + d);
 		/* linked location of bootloader */
-		map_mega(&next, l0, __start + d, load_addr + d);
+		map_mega(&next, l0, grinch_base() + d, load_addr + d);
 	}
 
 	enable_mmu((paddr_t)l0);
-	offset = (paddr_t)__start - load_addr;
+	offset = GRINCH_BASE - load_addr;
 	asm volatile(
 		"add sp, sp, %[offset]\n"
-		"la a0, virt_start\n"
+		"1: auipc a0, %%pcrel_hi (virt_start)\n"
+		"addi a0, a0, %%pcrel_lo (1b)\n"
+		"add a0, a0, %[offset]\n"
+
 		"jr a0\n"
 		"virt_start:"
 		: : [offset] "r"(offset) : "a0");

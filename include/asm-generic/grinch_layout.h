@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -51,3 +51,12 @@
 /* The uppermost 512 MiB belong to the direct mapping */
 #define DIR_PHYS_BASE	_UL(0xe0000000)
 #endif
+
+#ifndef __ASSEMBLY__
+
+static inline unsigned char *grinch_base(void)
+{
+	return (unsigned char *)(uintptr_t)GRINCH_BASE;
+}
+
+#endif /* __ASSEMBLY__ */

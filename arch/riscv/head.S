@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -14,6 +14,7 @@
 #include <asm/asm_defines.h>
 
 #include <grinch/percpu.h>
+#include <asm-generic/grinch_layout.h>
 
 #define RISCV_IMAGE_MAGIC	"RISCV\0\0\0"
 #define RISCV_IMAGE_MAGIC2	"RSC\x05"
@@ -149,7 +150,11 @@ secondary_start:
 	csrw	satp, a1
 	sfence.vma
 
-	la	t0, secondary_virt_entry
+	lpc	t0, secondary_virt_entry
+	lpc	t1, __start
+	sub	t0, t0, t1
+	li	t1, GRINCH_BASE
+	add	t0, t0, t1
 	jalr	t0
 
 secondary_virt_entry:

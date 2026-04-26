@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -367,8 +367,8 @@ int __init paging_init(unsigned long this_cpu)
 	/* root tables are not in bss section, so zero them */
 	memset(root, 0, sizeof(this_per_cpu()->root_table_page));
 
-	err = map_osmem(root, __start,
-			page_up(__text_end - __start),
+	err = map_osmem(root, grinch_base(),
+			page_up(__text_end - grinch_base()),
 			GRINCH_MEM_RX);
 	if (err)
 		goto out;
