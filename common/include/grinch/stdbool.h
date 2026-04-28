@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2024
+ * Copyright (c) OTH Regensburg, 2024-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -13,6 +13,8 @@
 #ifndef _GRINCH_STDBOOL_H
 #define _GRINCH_STDBOOL_H
 
+#if __STDC_VERSION__ < 202311L
 typedef enum { true = 1, false = 0 } bool;
+#endif
 
 #endif /* _GRINCH_STDBOOL_H */
