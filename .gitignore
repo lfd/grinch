@@ -25,6 +25,7 @@ user/initrd.cpio
 
 .gdbinit
 .gdb_history
+.direnv/
 
 user/apps/build/
 user/dts/*.dts
