@@ -7,6 +7,7 @@ APPS += jittertest
 APPS += ls
 APPS += mkdir
 APPS += reboot
+APPS += schedtest
 APPS += sleep
 APPS += test
 APPS += touch

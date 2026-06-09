@@ -363,6 +363,18 @@ def _test_app(q):
     expect_exit_ok(q)
 
 
+@test('schedtest')
+def _schedtest(q):
+    """``schedtest`` stress-tests the scheduler with concurrent
+    fork/yield/nanosleep children. It stays silent on success and only
+    prints on failure, so a clean ``Exit code 0`` is the pass signal.
+    The harness reruns it under smp1/2/4, exercising the SMP task
+    migration race it was written to catch."""
+    q.expect(PROMPT)
+    q.send('schedtest')
+    expect_exit_ok(q)
+
+
 # TODO: Enable once jittertest can be made to return (see project TODO —
 # pass argv to init= so a finite run count can be configured).
 # @test('vm', arch='riscv64', feature='vmm')
