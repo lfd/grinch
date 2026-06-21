@@ -13,8 +13,8 @@
 #ifndef _SYMBOLS_H
 #define _SYMBOLS_H
 
+#include <asm-generic/paging.h>
 #include <grinch/compiler_attributes.h>
-#include <grinch/types.h>
 
 extern unsigned char __init_text_start[];
 extern unsigned char __init_start[], __init_ro_end[];
@@ -32,15 +32,17 @@ extern unsigned char __rodata_start[], __rodata_end[];
 extern unsigned char __rw_data_start[], __rw_data_end[];
 extern unsigned char __internal_page_pool_start[];
 extern unsigned char __internal_page_pool_end[];
-extern unsigned char __internal_page_pool_pages[];
-extern unsigned char __num_os_pages[];
 
-#define SYMBOL_SZ(__sym)				\
-	static __always_inline size_t __sym(void) {	\
-		return (size_t)(uintptr_t)&__##__sym;	\
-	}
+static __always_inline size_t num_os_pages(void)
+{
+    return ((uintptr_t)__internal_page_pool_start -
+	   (uintptr_t)__start) >> PAGE_SHIFT;
+}
 
-SYMBOL_SZ(num_os_pages)
-SYMBOL_SZ(internal_page_pool_pages)
+static __always_inline size_t internal_page_pool_pages(void)
+{
+	return ((uintptr_t)__internal_page_pool_end -
+	        (uintptr_t)__internal_page_pool_start) >> PAGE_SHIFT;
+}
 
 #endif /* _SYMBOLS_H */

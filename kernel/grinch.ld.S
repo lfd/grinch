@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -100,9 +100,6 @@ SECTIONS
 	. = ALIGN(PAGE_SIZE);
 
 	__internal_page_pool_start = .;
-	__num_os_pages = (__internal_page_pool_start - __start) / PAGE_SIZE;
 	. = __start + GRINCH_SIZE;
 	__internal_page_pool_end = .;
-	__internal_page_pool_pages =
-		(__internal_page_pool_end - __internal_page_pool_start) / PAGE_SIZE;
 }
