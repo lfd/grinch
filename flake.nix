@@ -2,7 +2,7 @@
   description = "Grinch -- a minimalist OS";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -22,10 +22,12 @@
             pkgsCross.riscv64.buildPackages.gdb
 
             # Works with both. Choose your weapon.
-            pkgsCross.riscv32.buildPackages.gcc14
-            pkgsCross.riscv64.buildPackages.gcc14
+            #pkgsCross.riscv32.buildPackages.gcc14
+            #pkgsCross.riscv64.buildPackages.gcc14
             #pkgsCross.riscv32.buildPackages.gcc15
             #pkgsCross.riscv64.buildPackages.gcc15
+            pkgsCross.riscv32.buildPackages.gcc16
+            pkgsCross.riscv64.buildPackages.gcc16
 
             # Tools required for grinch
             hostname
