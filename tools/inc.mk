@@ -7,7 +7,7 @@ tools: $(TOOLS)
 
 tools/%.o: tools/%.c
 	$(QUIET) "[HOSTCC]$@"
-	$(VERBOSE) $(HOSTCC) $(CFLAGS_TOOLS) -ggdb -c -o $@ $^
+	$(VERBOSE) $(HOSTCC) $(CFLAGS_TOOLS) -ggdb -c -o $@ $<
 
 tools/dump_layout: tools/dump_layout.o
 	$(QUIET) "[HOSTCC]$@"
