@@ -27,6 +27,7 @@ $(SYSCALL_HEADER): tools/mksyscalltbl syscall.tbl
 
 kernel/syscall_table.c: tools/mksyscalltbl syscall.tbl
 	$(QUIET) "[SYSCL]" $@
+	$(VERBOSE) mkdir -p $(dir $@)
 	$(VERBOSE) $^ source $@
 
 clean_kernel:
