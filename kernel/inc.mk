@@ -21,8 +21,8 @@ kernel/built-in.a: $(KERNEL_OBJS)
 kernel/syscall.o: kernel/syscall_table.c $(SYSCALL_HEADER)
 
 $(SYSCALL_HEADER): tools/mksyscalltbl syscall.tbl
-	$(VERBOSE) mkdir -p common/include/generated
 	$(QUIET) "[SYSCL]" $@
+	$(VERBOSE) mkdir -p $(dir $@)
 	$(VERBOSE) $^ header $@
 
 kernel/syscall_table.c: tools/mksyscalltbl syscall.tbl
