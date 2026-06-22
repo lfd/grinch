@@ -61,10 +61,12 @@ $(ASM_DEFINES): $(ARCH_DIR)/asm_defines.S
 
 include/generated/compile.h: scripts/mkcompile_h Makefile
 	$(QUIET) "[GEN]   $@"
+	$(VERBOSE) mkdir -p $(dir $@)
 	$(VERBOSE) $< $@ $(CC) "$(CFLAGS_KERNEL)"
 
 include/generated/version.h: scripts/mkversion_h Makefile
 	$(QUIET) "[GEN]   $@"
+	$(VERBOSE) mkdir -p $(dir $@)
 	$(VERBOSE) $< $@ $(VERSION) $(PATCHLEVEL) $(EXTRAVERSION)
 
 $(ARCH_DIR)/asm_defines.S: $(ARCH_DIR)/asm_defines.c
