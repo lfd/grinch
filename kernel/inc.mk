@@ -18,8 +18,6 @@ KERNEL_OBJS := $(addprefix kernel/, $(KERNEL_OBJS))
 
 kernel/built-in.a: $(KERNEL_OBJS)
 
-kernel/user.o: user/initrd.cpio
-
 kernel/syscall.o: kernel/syscall_table.c $(SYSCALL_HEADER)
 
 $(SYSCALL_HEADER): tools/mksyscalltbl syscall.tbl
