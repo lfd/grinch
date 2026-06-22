@@ -3,15 +3,23 @@
 set -e
 
 output=$(realpath $1)
-shift
+bindir=$2
+shift 2
 
 tmp=$(mktemp -d)
 
 mkdir $tmp/bin
 
-cp -a user/apps/build/* $tmp/bin/
-cp -a res/logo.gimg res/test.txt $tmp/
-cp -a grinch.bin $tmp/
+cp -a "$bindir"/* "$tmp/bin/"
+
+dest="$tmp/bin"
+for f in "$@"; do
+	if [ "$f" = "--" ]; then
+		dest="$tmp"
+		continue
+	fi
+	cp -a "$f" "$dest/"
+done
 
 cd $tmp
 find . -print | cpio -ov -H newc > $output 2>/dev/null

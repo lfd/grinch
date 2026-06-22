@@ -21,6 +21,8 @@ CFLAGS_USER = $(CFLAGS_COMMON) $(CFLAGS_ARCH) $(CFLAGS_STANDALONE) $(INCLUDES_US
 AFLAGS_USER = $(AFLAGS_COMMON)
 LDFLAGS_USER = $(LDFLAGS_COMMON) $(LDFLAGS_ARCH)
 
+DIR_USER_BINARIES = user/apps/build
+
 # libc stuff
 LIBC_OBJS = $(ARCH_SUPER)/entry.o
 LIBC_OBJS += ctype.o
@@ -114,15 +116,15 @@ user/apps/$(1)/built-in.a: $(LIBC_BUILTIN) $(LIBGRINCH_BUILTIN) $($(call UC,$(1)
 user/apps/$(1)/$(1)_linked.o: user/apps/$(1)/built-in.a
 	$(call ld_user,$$@,$$^)
 
-user/apps/build/$(1): user/user.ld user/apps/$(1)/$(1)_linked.o
-	$(VERBOSE) mkdir -p user/apps/build
+$(DIR_USER_BINARIES)/$(1): user/user.ld user/apps/$(1)/$(1)_linked.o
+	$(VERBOSE) mkdir -p $(DIR_USER_BINARIES)
 	$(call ld_app_user,$$@,$$^)
 endef
 
 $(foreach app,$(APPS),$(eval $(call define_app,$(app))))
 
 define app_of
-	user/apps/build/$(1)
+	$(DIR_USER_BINARIES)/$(1)
 endef
 
 USER_APPS=$(foreach app,$(APPS),$(call app_of,$(app)))
@@ -131,10 +133,10 @@ IMAGES=res/logo.gimg
 
 user/initrd.cpio: $(USER_APPS) $(IMAGES) res/test.txt grinch.bin
 	$(QUIET) "[CPIO]  $@"
-	$(VERBOSE) ./scripts/create_cpio $@ $^
+	$(VERBOSE) ./scripts/create_cpio $@ $(DIR_USER_BINARIES) -- $(IMAGES) res/test.txt grinch.bin
 
 clean_user: $(patsubst %,clean_%,$(APPS))
 	$(call clean_objects,user/libc,$(LIBC_OBJS))
 	$(call clean_objects,user/libgrinch,$(LIBGRINCH_OBJS))
-	$(call clean_files,user,user/user.ld user/initrd.cpio user/apps/build)
+	$(call clean_files,user,user/user.ld user/initrd.cpio $(DIR_USER_BINARIES))
 	$(call clean_files,res,$(IMAGES))
