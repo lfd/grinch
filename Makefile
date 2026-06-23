@@ -28,6 +28,8 @@ AS=$(CROSS_COMPILE)as
 OBJDUMP=$(CROSS_COMPILE)objdump
 OBJCOPY=$(CROSS_COMPILE)objcopy
 SZ=$(CROSS_COMPILE)size
+MKDIR=mkdir
+MKDIR_P=$(MKDIR) -p
 RMRF=rm -rf
 
 D_UBOOT=$(realpath res/u-boot)
@@ -132,11 +134,11 @@ grinch.info: grinch.dump tools/gcov_extract
 	lcov -c -d . -o $@
 
 gcov: grinch.info
-	mkdir -p gcov
+	$(MKDIR_P) gcov
 	genhtml $< -o gcov/
 
 $(UBOOT_BIN):
-	mkdir -p $(UBOOT_PFX)
+	$(MKDIR_P) $(UBOOT_PFX)
 	cp -av res/u-boot/$(UBOOT_CFG) $(UBOOT_PFX)/.config
 	$(MAKE) -C $(D_UBOOT)/u-boot $(MAKEARGS_UBOOT) O=$(UBOOT_PFX) oldconfig
 	$(MAKE) -C $(UBOOT_PFX) $(MAKEARGS_UBOOT) u-boot-nodtb.bin

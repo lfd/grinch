@@ -57,22 +57,22 @@ GENERATED = $(ASM_DEFINES) include/generated/version.h include/generated/compile
 
 $(ASM_DEFINES): $(ARCH_DIR)/asm_defines.S
 	$(QUIET) "[GEN]   $@"
-	$(VERBOSE) mkdir -p $(dir $@)
+	$(VERBOSE) $(MKDIR_P) $(dir $@)
 	$(VERBOSE) ./scripts/asm-defines.sh $^ > $@
 
 include/generated/compile.h: scripts/mkcompile_h Makefile
 	$(QUIET) "[GEN]   $@"
-	$(VERBOSE) mkdir -p $(dir $@)
+	$(VERBOSE) $(MKDIR_P) $(dir $@)
 	$(VERBOSE) $< $@ $(CC) "$(CFLAGS_KERNEL)"
 
 include/generated/version.h: scripts/mkversion_h Makefile
 	$(QUIET) "[GEN]   $@"
-	$(VERBOSE) mkdir -p $(dir $@)
+	$(VERBOSE) $(MKDIR_P) $(dir $@)
 	$(VERBOSE) $< $@ $(VERSION) $(PATCHLEVEL) $(EXTRAVERSION)
 
 $(ARCH_DIR)/asm_defines.S: $(ARCH_DIR)/asm_defines.c
 	$(QUIET) "[GEN]   $@"
-	$(VERBOSE) mkdir -p $(dir $@)
+	$(VERBOSE) $(MKDIR_P) $(dir $@)
 	$(VERBOSE) $(CC) $(CFLAGS_KERNEL_COMMON) -S -o $@ $^
 
 grinch.o: $(ARCH_DIR)/built-in.a drivers/built-in.a fs/built-in.a kernel/built-in.a lib/built-in.a mm/built-in.a

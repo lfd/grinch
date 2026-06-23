@@ -22,12 +22,12 @@ kernel/syscall.o: kernel/syscall_table.c $(SYSCALL_HEADER)
 
 $(SYSCALL_HEADER): tools/mksyscalltbl syscall.tbl
 	$(QUIET) "[SYSCL]" $@
-	$(VERBOSE) mkdir -p $(dir $@)
+	$(VERBOSE) $(MKDIR_P) $(dir $@)
 	$(VERBOSE) $^ header $@
 
 kernel/syscall_table.c: tools/mksyscalltbl syscall.tbl
 	$(QUIET) "[SYSCL]" $@
-	$(VERBOSE) mkdir -p $(dir $@)
+	$(VERBOSE) $(MKDIR_P) $(dir $@)
 	$(VERBOSE) $^ source $@
 
 clean_kernel:

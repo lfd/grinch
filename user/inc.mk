@@ -117,7 +117,7 @@ user/apps/$(1)/$(1)_linked.o: user/apps/$(1)/built-in.a
 	$(call ld_user,$$@,$$^)
 
 $(DIR_USER_BINARIES)/$(1): user/user.ld user/apps/$(1)/$(1)_linked.o
-	$(VERBOSE) mkdir -p $(DIR_USER_BINARIES)
+	$(VERBOSE) $(MKDIR_P) $(DIR_USER_BINARIES)
 	$(call ld_app_user,$$@,$$^)
 endef
 
