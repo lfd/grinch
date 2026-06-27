@@ -23,11 +23,17 @@ include drivers/inc.mk
 
 QEMU_ARGS_COMMON=-monitor telnet:127.0.0.1:11111,server,nowait -s
 
-INCLUDES_KERNEL=-Iinclude/ \
-		-Icommon/include \
-                -Ilib/libfdt/ \
-                -I$(ARCH_DIR)/include/ \
-                -Icommon/include/arch/$(ARCH_SUPER)/
+INCLUDES_KERNEL_SRC = -I$(srctree)/include/ \
+                      -I$(srctree)/common/include \
+                      -I$(srctree)/lib/libfdt/ \
+                      -I$(srctree)/$(ARCH_DIR)/include/ \
+                      -I$(srctree)/common/include/arch/$(ARCH_SUPER)/
+
+INCLUDES_KERNEL_GEN = -I$(objtree)/include/ \
+                      -I$(objtree)/common/include \
+                      -I$(objtree)/$(ARCH_DIR)/include/
+
+INCLUDES_KERNEL = $(INCLUDES_KERNEL_SRC) $(INCLUDES_KERNEL_GEN)
 
 CFLAGS_KERNEL_COMMON=$(CFLAGS_COMMON) $(CFLAGS_ARCH) $(CFLAGS_STANDALONE) $(INCLUDES_KERNEL)
 

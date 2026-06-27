@@ -12,11 +12,15 @@ APPS += test
 APPS += touch
 APPS += true
 
-INCLUDES_USER = -Icommon/include \
-		-Iuser/libc/include \
-		-Iuser/libc/include/$(ARCH_SUPER)/ \
-		-Iuser/libgrinch/include \
-		-Icommon/include/arch/$(ARCH_SUPER)/
+INCLUDES_USER_SRC = -I$(srctree)/common/include \
+		    -I$(srctree)/user/libc/include \
+		    -I$(srctree)/user/libc/include/$(ARCH_SUPER)/ \
+		    -I$(srctree)/user/libgrinch/include \
+		    -I$(srctree)/common/include/arch/$(ARCH_SUPER)/
+
+INCLUDES_USER_GEN = -I$(objtree)/common/include
+
+INCLUDES_USER = $(INCLUDES_USER_SRC) $(INCLUDES_USER_GEN)
 
 CFLAGS_USER = $(CFLAGS_COMMON) $(CFLAGS_ARCH) $(CFLAGS_STANDALONE) $(INCLUDES_USER)
 AFLAGS_USER = $(AFLAGS_COMMON)

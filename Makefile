@@ -17,6 +17,9 @@ QEMU_CPUS ?= 2
 QEMU_APPEND ?= ""
 QEMU_DISPLAY ?= none
 
+srctree := .
+objtree := .
+
 all: grinch.bin user/initrd.cpio tools
 
 HOSTCC=gcc
