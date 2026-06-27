@@ -64,19 +64,19 @@ GENERATED = $(ASM_DEFINES) include/generated/version.h include/generated/compile
 $(ASM_DEFINES): $(ARCH_DIR)/asm_defines.S
 	$(QUIET) "[GEN]   $@"
 	$(VERBOSE) $(MKDIR_P) $(dir $@)
-	$(VERBOSE) ./scripts/asm-defines.sh $^ > $@
+	$(VERBOSE) $(srctree)/scripts/asm-defines.sh $^ > $@
 
-include/generated/compile.h: scripts/mkcompile_h Makefile
+include/generated/compile.h: $(srctree)/scripts/mkcompile_h $(srctree)/Makefile
 	$(QUIET) "[GEN]   $@"
 	$(VERBOSE) $(MKDIR_P) $(dir $@)
 	$(VERBOSE) $< $@ $(CC) "$(CFLAGS_KERNEL)"
 
-include/generated/version.h: scripts/mkversion_h Makefile
+include/generated/version.h: $(srctree)/scripts/mkversion_h $(srctree)/Makefile
 	$(QUIET) "[GEN]   $@"
 	$(VERBOSE) $(MKDIR_P) $(dir $@)
 	$(VERBOSE) $< $@ $(VERSION) $(PATCHLEVEL) $(EXTRAVERSION)
 
-$(ARCH_DIR)/asm_defines.S: $(ARCH_DIR)/asm_defines.c
+$(ARCH_DIR)/asm_defines.S: $(srctree)/$(ARCH_DIR)/asm_defines.c
 	$(QUIET) "[GEN]   $@"
 	$(VERBOSE) $(MKDIR_P) $(dir $@)
 	$(VERBOSE) $(CC) $(CFLAGS_KERNEL_COMMON) -S -o $@ $^

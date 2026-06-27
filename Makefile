@@ -91,9 +91,9 @@ define clean_files
 	$(VERBOSE) $(RMRF) $(2)
 endef
 
-include scripts/kernel.mk
-include user/inc.mk
-include tools/inc.mk
+include $(srctree)/scripts/kernel.mk
+include $(srctree)/user/inc.mk
+include $(srctree)/tools/inc.mk
 
 %.bin: %.elf
 	$(QUIET) "[OBJC]  $@"
@@ -130,8 +130,8 @@ qemu.dts: grinch.bin user/initrd.cpio
 	rm -f /tmp/qemu_tmp.dtb
 
 .PHONY: grinch.dump
-grinch.dump: scripts/grinch_dump.gdb grinch.elf
-	$(GDB) -nx -x .gdbinit -x $<
+grinch.dump: $(srctree)/scripts/grinch_dump.gdb grinch.elf
+	$(GDB) -nx -x $(srctree)/.gdbinit -x $<
 
 grinch.info: grinch.dump tools/gcov_extract
 	./tools/gcov_extract $<
@@ -148,7 +148,7 @@ $(UBOOT_BIN):
 	$(MAKE) -C $(UBOOT_PFX) $(MAKEARGS_UBOOT) u-boot-nodtb.bin
 
 debug: grinch.bin
-	$(GDB) -x scripts/debug.gdb $^
+	$(GDB) -x $(srctree)/scripts/debug.gdb $^
 
 clean: clean_core clean_lib clean_mm clean_fs clean_user clean_arch clean_drivers clean_kernel clean_tools
 	$(call clean_files,all,grinch.bin grinch.elf grinch.dump grinch.info gcov)

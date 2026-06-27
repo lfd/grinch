@@ -21,12 +21,12 @@ kernel/built-in.a: $(KERNEL_OBJS)
 
 kernel/syscall.o: kernel/syscall_table.c $(SYSCALL_HEADER)
 
-$(SYSCALL_HEADER): tools/mksyscalltbl syscall.tbl
+$(SYSCALL_HEADER): $(srctree)/tools/mksyscalltbl $(srctree)/syscall.tbl
 	$(QUIET) "[SYSCL]" $@
 	$(VERBOSE) $(MKDIR_P) $(dir $@)
 	$(VERBOSE) $^ header $@
 
-kernel/syscall_table.c: tools/mksyscalltbl syscall.tbl
+kernel/syscall_table.c: $(srctree)/tools/mksyscalltbl $(srctree)/syscall.tbl
 	$(QUIET) "[SYSCL]" $@
 	$(VERBOSE) $(MKDIR_P) $(dir $@)
 	$(VERBOSE) $^ source $@

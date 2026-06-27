@@ -106,7 +106,7 @@ define ld_user
 	$(VERBOSE) $(LD) $(LDFLAGS_USER) --whole-archive -relocatable -o $(1) $(2)
 endef
 
-include $(patsubst %,user/apps/%/inc.mk,$(APPS))
+include $(patsubst %,$(srctree)/user/apps/%/inc.mk,$(APPS))
 
 UC = $(shell echo '$1' | tr '[:lower:]' '[:upper:]')
 
@@ -137,9 +137,9 @@ USER_APPS=$(foreach app,$(APPS),$(call app_of,$(app)))
 
 IMAGES=res/logo.gimg
 
-user/initrd.cpio: $(USER_APPS) $(IMAGES) res/test.txt grinch.bin
+user/initrd.cpio: $(USER_APPS) $(IMAGES) $(srctree)/res/test.txt grinch.bin
 	$(QUIET) "[CPIO]  $@"
-	$(VERBOSE) ./scripts/create_cpio $@ $(DIR_USER_BINARIES) -- $(IMAGES) res/test.txt grinch.bin
+	$(VERBOSE) $(srctree)/scripts/create_cpio $@ $(DIR_USER_BINARIES) -- $(IMAGES) $(srctree)/res/test.txt grinch.bin
 
 clean_user: $(patsubst %,clean_%,$(APPS))
 	$(call clean_objects,user/libc,$(LIBC_OBJS))
