@@ -20,6 +20,7 @@ ifneq ($(KBUILD_OUTPUT),)
   $(shell mkdir -p $(KBUILD_OUTPUT))
   abs_output := $(realpath $(KBUILD_OUTPUT))
   $(if $(abs_output),,$(error failed to create output directory "$(KBUILD_OUTPUT)"))
+  $(shell test -f $(abs_output)/Makefile || $(abs_srctree)/scripts/mkmakefile $(abs_srctree) $(abs_output))
 endif
 
 export sub_make_done := 1
