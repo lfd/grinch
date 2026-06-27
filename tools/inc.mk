@@ -1,5 +1,7 @@
 TOOLS=tools/dump_layout tools/gcov_extract
 
+OBJ_DIRS += $(dir $(TOOLS))
+
 CFLAGS_TOOLS = $(CFLAGS_COMMON) $(CFLAGS_DEF_ARCH)
 
 .PHONY: tools

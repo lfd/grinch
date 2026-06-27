@@ -7,6 +7,8 @@ FS_OBJS += vfs.o
 
 FS_OBJS := $(addprefix fs/, $(FS_OBJS))
 
+OBJ_DIRS += $(dir $(FS_OBJS))
+
 fs/built-in.a: $(FS_OBJS)
 
 clean_fs:

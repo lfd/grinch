@@ -52,6 +52,8 @@ LIBC_OBJS += vsprintf.o
 LIBC_OBJS += wait.o
 
 LIBC_OBJS := $(addprefix user/libc/src/, $(LIBC_OBJS))
+
+OBJ_DIRS += $(dir $(LIBC_OBJS))
 LIBC_BUILTIN = user/libc/built-in.a
 
 $(LIBC_BUILTIN): $(LIBC_OBJS)
@@ -79,6 +81,8 @@ LIBGRINCH_OBJS += gfb/fonts/font_vga_8x8.o
 LIBGRINCH_OBJS += gfb/fonts/font_vga_8x16.o
 
 LIBGRINCH_OBJS := $(addprefix user/libgrinch/src/, $(LIBGRINCH_OBJS))
+
+OBJ_DIRS += $(dir $(LIBGRINCH_OBJS))
 LIBGRINCH_BUILTIN = user/libgrinch/built-in.a
 
 $(LIBGRINCH_BUILTIN): $(LIBGRINCH_OBJS)
@@ -123,11 +127,13 @@ user/apps/$(1)/$(1)_linked.o: user/apps/$(1)/built-in.a
 	$(call ld_user,$$@,$$^)
 
 $(DIR_USER_BINARIES)/$(1): user/user.ld user/apps/$(1)/$(1)_linked.o
-	$(VERBOSE) $(MKDIR_P) $(DIR_USER_BINARIES)
 	$(call ld_app_user,$$@,$$^)
 endef
 
 $(foreach app,$(APPS),$(eval $(call define_app,$(app))))
+
+OBJ_DIRS += $(foreach app,$(APPS),$(dir $($(call UC,$(app))_OBJS)))
+OBJ_DIRS += $(DIR_USER_BINARIES)/
 
 define app_of
 	$(DIR_USER_BINARIES)/$(1)
@@ -136,6 +142,8 @@ endef
 USER_APPS=$(foreach app,$(APPS),$(call app_of,$(app)))
 
 IMAGES=res/logo.gimg
+
+OBJ_DIRS += $(dir $(IMAGES))
 
 user/initrd.cpio: $(USER_APPS) $(IMAGES) $(srctree)/res/test.txt grinch.bin
 	$(QUIET) "[CPIO]  $@"

@@ -23,6 +23,7 @@ LIBFDT_OBJS += libfdt/fdt_addresses.o
 LIB_OBJS := $(addprefix lib/, $(LIB_OBJS))
 LIBFDT_OBJS := $(addprefix lib/, $(LIBFDT_OBJS))
 
+OBJ_DIRS += $(dir $(LIB_OBJS) $(LIBFDT_OBJS))
 
 lib/libfdt/built-in.a: $(LIBFDT_OBJS)
 

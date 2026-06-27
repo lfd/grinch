@@ -17,6 +17,8 @@ endif
 
 KERNEL_OBJS := $(addprefix kernel/, $(KERNEL_OBJS))
 
+OBJ_DIRS += $(dir $(KERNEL_OBJS))
+
 kernel/built-in.a: $(KERNEL_OBJS)
 
 kernel/syscall.o: kernel/syscall_table.c $(SYSCALL_HEADER)

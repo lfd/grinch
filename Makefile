@@ -155,3 +155,6 @@ clean: clean_core clean_lib clean_mm clean_fs clean_user clean_arch clean_driver
 
 mrproper: clean
 	$(MAKE) -C $(D_UBOOT) mrproper
+
+OBJ_DIRS := $(sort $(OBJ_DIRS))
+$(shell $(MKDIR_P) $(OBJ_DIRS))

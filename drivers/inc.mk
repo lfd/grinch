@@ -25,6 +25,8 @@ DRIVERS_OBJS := $(addprefix drivers/, $(DRIVERS_OBJS))
 DRIVERS_IRQ_OBJS := $(addprefix drivers/, $(DRIVERS_IRQ_OBJS))
 DRIVERS_SERIAL_OBJS := $(addprefix drivers/, $(DRIVERS_SERIAL_OBJS))
 
+OBJ_DIRS += $(dir $(DRIVERS_OBJS) $(DRIVERS_IRQ_OBJS) $(DRIVERS_SERIAL_OBJS))
+
 drivers/irq/built-in.a: $(DRIVERS_IRQ_OBJS)
 drivers/serial/built-in.a: $(DRIVERS_SERIAL_OBJS)
 
