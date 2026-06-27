@@ -14,12 +14,12 @@ endif
 
 ARCH_DIR = arch/$(ARCH_SUPER)
 
-include $(ARCH_DIR)/inc.mk
-include fs/inc.mk
-include kernel/inc.mk
-include lib/inc.mk
-include mm/inc.mk
-include drivers/inc.mk
+include $(srctree)/$(ARCH_DIR)/inc.mk
+include $(srctree)/fs/inc.mk
+include $(srctree)/kernel/inc.mk
+include $(srctree)/lib/inc.mk
+include $(srctree)/mm/inc.mk
+include $(srctree)/drivers/inc.mk
 
 QEMU_ARGS_COMMON=-monitor telnet:127.0.0.1:11111,server,nowait -s
 
@@ -31,7 +31,8 @@ INCLUDES_KERNEL_SRC = -I$(srctree)/include/ \
 
 INCLUDES_KERNEL_GEN = -I$(objtree)/include/ \
                       -I$(objtree)/common/include \
-                      -I$(objtree)/$(ARCH_DIR)/include/
+                      -I$(objtree)/$(ARCH_DIR)/include/ \
+                      -I$(objtree)/kernel/
 
 INCLUDES_KERNEL = $(INCLUDES_KERNEL_SRC) $(INCLUDES_KERNEL_GEN)
 

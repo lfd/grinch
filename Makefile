@@ -5,6 +5,37 @@ EXTRAVERSION=
 # Supported architectures:
 #  - riscv64
 #  - riscv32 (no SMP)
+
+this-makefile := $(lastword $(MAKEFILE_LIST))
+abs_srctree   := $(realpath $(dir $(this-makefile)))
+abs_output    := $(CURDIR)
+
+ifneq ($(sub_make_done),1)
+
+ifeq ("$(origin O)", "command line")
+  KBUILD_OUTPUT := $(O)
+endif
+
+ifneq ($(KBUILD_OUTPUT),)
+  $(shell mkdir -p $(KBUILD_OUTPUT))
+  abs_output := $(realpath $(KBUILD_OUTPUT))
+  $(if $(abs_output),,$(error failed to create output directory "$(KBUILD_OUTPUT)"))
+endif
+
+export sub_make_done := 1
+
+endif # sub_make_done
+
+ifneq ($(abs_output),$(CURDIR))
+
+.PHONY: __sub-make
+$(filter-out $(this-makefile), $(MAKECMDGOALS)) __all: __sub-make
+	@:
+__sub-make:
+	@$(MAKE) -C $(abs_output) -f $(abs_srctree)/Makefile $(MAKECMDGOALS)
+
+else # in objtree
+
 ARCH ?= riscv64
 
 #V=1
@@ -17,8 +48,14 @@ QEMU_CPUS ?= 2
 QEMU_APPEND ?= ""
 QEMU_DISPLAY ?= none
 
+ifeq ($(abs_srctree),$(CURDIR))
 srctree := .
-objtree := .
+else
+srctree := $(abs_srctree)
+endif
+objtree := $(CURDIR)
+
+VPATH := $(srctree)
 
 all: grinch.bin user/initrd.cpio tools
 
@@ -158,3 +195,5 @@ mrproper: clean
 
 OBJ_DIRS := $(sort $(OBJ_DIRS))
 $(shell $(MKDIR_P) $(OBJ_DIRS))
+
+endif # in-objtree else branch
