@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023-2025
+ * Copyright (c) OTH Regensburg, 2023-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -179,7 +179,7 @@ void task_exit(struct task *task, int code)
 
 	parent = task->parent;
 	if (!parent) {
-		pr_warn("Exit from init task!\n");
+		pr_warn("init exited with code %d\n", code);
 		BUG();
 	}
 
