@@ -13,6 +13,7 @@ EXTRAVERSION=
 
 QEMU_CPUS ?= 2
 QEMU_CMDLINE ?= ""
+QEMU_DISPLAY ?= none
 
 all: grinch.bin user/initrd.cpio tools
 
@@ -104,6 +105,9 @@ QEMU_CMD_UBOOT=$(QEMU_CMD) -kernel $(UBOOT_BIN) $(QEMU_UBOOT_ARGS)
 
 qemu: all
 	$(QEMU_CMD_DIRECT)
+
+qemux: QEMU_DISPLAY=sdl
+qemux: qemu
 
 qemuu: all $(UBOOT_BIN)
 	$(QEMU_CMD_UBOOT)

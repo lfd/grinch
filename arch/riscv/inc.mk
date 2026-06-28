@@ -21,7 +21,7 @@ QEMU_MACHINE=-machine virt
 QEMU_ARGS=-m 64M -smp $(QEMU_CPUS)
 QEMU_ARGS+=-serial stdio -monitor telnet:127.0.0.1:55555,server,nowait
 QEMU_ARGS+=$(QEMU_MACHINE) -cpu $(QEMU_CPU),h=true
-QEMU_ARGS+=-device VGA
+QEMU_ARGS+=-device VGA -display $(QEMU_DISPLAY)
 
 QEMU_UBOOT_ARGS=\
 		-device loader,file=grinch.bin,addr=0x82000000,force-raw=on \
