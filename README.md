@@ -89,9 +89,13 @@ For compiling grinch, simply run:
 
     make
 
-For addition debug output, run:
+For additional debug output, run:
 
-    make DEBUG=1
+    make DEBUG_OUTPUT=1
+
+To override the optimisation level (default is `-O0`), run:
+
+    make OPT=-O2
 
 For verbose compiler output, run:
 
@@ -131,7 +135,7 @@ Grinch Parameters
 To pass parameters to grinch on real board, you can use the `bootargs` variable
 in U-Boot. Grinch parses those parameters. To pass parameters in Qemu, use:
 
-    make qemu QEMU_CMDLINE='"arg1=val1 arg2=val2"'
+    make qemu QEMU_APPEND='"arg1=val1 arg2=val2"'
 
 You can also adjust the number of Qemus CPUs:
 

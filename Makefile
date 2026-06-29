@@ -1,18 +1,20 @@
+VERSION=3
+PATCHLEVEL=15
+EXTRAVERSION=
+
 # Supported architectures:
 #  - riscv64
 #  - riscv32 (no SMP)
 ARCH ?= riscv64
 
+#V=1
 #DEBUG_OUTPUT=1
 #INITCONST_STR=1
 #GCOV=1
-
-VERSION=3
-PATCHLEVEL=15
-EXTRAVERSION=
+OPT ?= -O0
 
 QEMU_CPUS ?= 2
-QEMU_CMDLINE ?= ""
+QEMU_APPEND ?= ""
 QEMU_DISPLAY ?= none
 
 all: grinch.bin user/initrd.cpio tools
@@ -45,7 +47,6 @@ QUIET := @echo
 VERBOSE := @
 endif
 
-OPT?=-O0
 
 AFLAGS_COMMON=-D__ASSEMBLY__
 
@@ -100,7 +101,7 @@ include tools/inc.mk
 	$(VERBOSE) rm -f $@
 	$(VERBOSE) $(AR) cDPrST $@ $^
 
-QEMU_CMD=$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS) -append $(QEMU_CMDLINE)
+QEMU_CMD=$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS) -append $(QEMU_APPEND)
 
 QEMU_CMD_DIRECT=$(QEMU_CMD) -kernel grinch.bin -initrd user/initrd.cpio
 QEMU_CMD_UBOOT=$(QEMU_CMD) -kernel $(UBOOT_BIN) $(QEMU_UBOOT_ARGS)
