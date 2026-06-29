@@ -139,23 +139,14 @@ void *sbrk(intptr_t increment)
 
 char *getcwd(char *buf, size_t size)
 {
-	char tmp[buf ? 1 : PATH_MAX];
 	int ret;
 
-	/*
-	 * looks a bit ugly, but otherwise the compiler will create an error
-	 * with high optimisation level
-	 */
-	if (buf == NULL) {
-		buf = tmp;
-		size = sizeof(tmp);
-		ret = syscall(SYS_getcwd, buf, size);
-	} else if (!size) {
+	if (!buf || !size) {
 		errno = EINVAL;
 		return NULL;
-	} else
-		ret = syscall(SYS_getcwd, buf, size);
+	}
 
+	ret = syscall(SYS_getcwd, buf, size);
 	if (ret == -1)
 		return NULL;
 
@@ -163,9 +154,6 @@ char *getcwd(char *buf, size_t size)
 		errno = ENOENT;
 		return NULL;
 	}
-
-	if (buf == tmp)
-		return strdup(buf);
 
 	return buf;
 }
