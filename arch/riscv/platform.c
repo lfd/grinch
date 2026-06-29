@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2024
+ * Copyright (c) OTH Regensburg, 2024-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -72,6 +72,9 @@ int __init arch_platform_init(void)
 		err = phys_mark_used(v2p(pcpu), PAGES(sizeof(*pcpu)));
 		if (err)
 			return trace_error(err);
+
+		if (hart_id != this_cpu_id())
+			memset(pcpu, 0, sizeof(*pcpu));
 
 		ic = fdt_subnode_offset(_fdt, child,
 					ISTR("interrupt-controller"));

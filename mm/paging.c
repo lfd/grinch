@@ -364,9 +364,6 @@ int __init paging_init(unsigned long this_cpu)
 
 	root = per_cpu(this_cpu)->root_table_page;
 
-	/* root tables are not in bss section, so zero them */
-	memset(root, 0, sizeof(this_per_cpu()->root_table_page));
-
 	err = map_osmem(root, grinch_base(),
 			page_up(__text_end - grinch_base()),
 			GRINCH_MEM_RX);

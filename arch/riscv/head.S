@@ -87,9 +87,21 @@ grinch_start:
 	 */
 	la	t0, __internal_page_pool_end
 	li	t1, STRUCT_PER_CPU_SIZE
+
 	addi	t2, a0, 1
 	mul	t2, t2, t1
 	sub	sp, t0, t2
+	/* sp is now at the bottom of the boot CPU's percpu struct */
+
+	/* Zero the per_cpu pages, as they may be dirty */
+	mv	t0, t1
+1:	REG_S	zero, 0(sp)
+	addi	sp, sp, SZREG
+	addi	t0, t0, -SZREG
+	bnez	t0, 1b
+
+	/* sp is at the top of the per_cpu struct, point to the beginning. */
+	sub	sp, sp, t1
 	li	t1, STACK_SIZE
 	add	sp, sp, t1
 	li	t1, STRUCT_REGISTERS_SIZE
