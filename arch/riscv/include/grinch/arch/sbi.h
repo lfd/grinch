@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -40,6 +40,13 @@
 
 #define SBI_EXT_HSM			0x48534D
 #define SBI_EXT_HSM_HART_START		0
+
+/* System Reset Extension */
+#define SBI_EXT_SRST				0x53525354
+#define SBI_EXT_SRST_RESET			0
+#define SBI_SRST_RESET_TYPE_SHUTDOWN		0x00000000
+#define SBI_SRST_RESET_TYPE_COLD_REBOOT		0x00000001
+#define SBI_SRST_RESET_REASON_NONE		0x00000000
 
 /* "Grinch" SBI Extension */
 #define SBI_EXT_GRNC			0x47524E48
@@ -125,6 +132,13 @@ static inline struct sbiret sbi_rfence_sfence_vma(unsigned long hmask,
 			  hmask, hbase, start, size);
 }
 
+static inline struct sbiret sbi_system_reset(unsigned long reset_type,
+					     unsigned long reset_reason)
+{
+	return sbi_ecall(SBI_EXT_SRST, SBI_EXT_SRST_RESET,
+			 reset_type, reset_reason, 0, 0, 0, 0);
+}
+
 static inline struct sbiret sbi_hart_start(unsigned long hartid,
 					   unsigned long start_addr,
 					   unsigned long opaque)
@@ -141,3 +155,4 @@ static inline unsigned long sbi_version(unsigned long major, unsigned long minor
 }
 
 int sbi_init(void);
+extern bool sbi_srst_available;

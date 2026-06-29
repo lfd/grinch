@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -61,5 +61,26 @@ void __noreturn arch_shutdown(int err)
 		BUG();
 	}
 
-	panic("Shutdown. Reason: %pe\n", ERR_PTR(err));
+	pri("Shutdown. Reason: %pe\n", ERR_PTR(err));
+
+	if (sbi_srst_available)
+		sbi_system_reset(SBI_SRST_RESET_TYPE_SHUTDOWN,
+				 SBI_SRST_RESET_REASON_NONE);
+
+	panic("Shutdown failed\n");
+}
+
+void __noreturn arch_reboot(void)
+{
+	if (grinch_is_guest) {
+		/* No reboot hypercall yet — fall back to halt */
+		hypercall_vmquit(0);
+		BUG();
+	}
+
+	if (sbi_srst_available)
+		sbi_system_reset(SBI_SRST_RESET_TYPE_COLD_REBOOT,
+				 SBI_SRST_RESET_REASON_NONE);
+
+	panic("Reboot failed\n");
 }

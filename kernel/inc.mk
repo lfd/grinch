@@ -4,6 +4,7 @@ KERNEL_OBJS += main.o
 KERNEL_OBJS += memtest.o
 KERNEL_OBJS += platform.o
 KERNEL_OBJS += process.o
+KERNEL_OBJS += reboot.o
 KERNEL_OBJS += smp.o
 KERNEL_OBJS += syscall.o
 KERNEL_OBJS += task.o

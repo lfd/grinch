@@ -16,6 +16,7 @@ nanosleep	101
 clock_gettime	113
 sched_yield	124
 getdents	141
+reboot		169
 execve		221
 wait		260
 

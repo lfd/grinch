@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -18,6 +18,7 @@
 #include <grinch/arch/sbi.h>
 
 static unsigned long sbi_spec_version;
+bool sbi_srst_available;
 
 static inline unsigned long __init sbi_major_version(void)
 {
@@ -83,5 +84,9 @@ int __init sbi_init(void)
 	if (!ext)
 		return -ENOSYS;
 
+	/* Optional: system reset */
+	sbi_srst_available = sbi_probe_extension(SBI_EXT_SRST, ISTR("SRST"));
+
 	return 0;
 }
+
