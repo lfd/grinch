@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -82,7 +82,8 @@ static __always_inline unsigned long this_cpu_id(void)
 
 static __always_inline struct per_cpu *per_cpu(unsigned long cpuid)
 {
-	return (struct per_cpu*)GRINCH_END - (cpuid + 1);
+	return (struct per_cpu *)((uintptr_t)GRINCH_END -
+				  (cpuid + 1) * sizeof(struct per_cpu));
 }
 
 static __always_inline page_table_t this_root_table_page(void)
