@@ -198,7 +198,7 @@ clean: clean_core clean_lib clean_mm clean_fs clean_user clean_arch clean_driver
 	$(call clean_files,all,grinch.bin grinch.elf grinch.dump grinch.info gcov)
 
 mrproper: clean
-	$(MAKE) -C $(D_UBOOT) mrproper
+	$(call clean_file,$(UBOOT_PFX))
 
 OBJ_DIRS := $(sort $(OBJ_DIRS))
 $(shell $(MKDIR_P) $(OBJ_DIRS))
