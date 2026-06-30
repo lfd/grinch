@@ -89,9 +89,17 @@ For compiling grinch, simply run:
 
     make
 
+To select the target architecture (default `riscv64`):
+
+    make ARCH=riscv32
+
 For additional debug output, run:
 
     make DEBUG_OUTPUT=1
+
+To enable GCOV coverage instrumentation, run:
+
+    make GCOV=1
 
 To override the optimisation level (default is `-O0`), run:
 
@@ -106,6 +114,27 @@ loadable kernel image, which is directly loadable via Qemu on virtual targets,
 or via U-Boot on real platforms. `user/initrd.cpio` contains userland
 applications, as well as grinch itself (grinch is able to recursively boot
 itself as virtual machine).
+
+Build settings (`ARCH`, `OPT`, `GCOV`, ...) passed on the command line are
+persisted to `config.mk` on the first invocation; subsequent invocations
+reuse them automatically. Hand-edit `config.mk` to change a setting, or
+run `make mrproper` to discard it (along with all build output).
+
+For out-of-tree builds, pass `O=`:
+
+    make O=build ARCH=riscv32 OPT=-O2
+
+A small `Makefile` shim is generated in `build/`, so afterwards you can
+work from the build directory directly:
+
+    cd build
+    make
+    make qemu
+    make mrproper
+
+The source tree is checked for in-tree build artefacts and the OOT build
+refuses to proceed if any are found, to avoid VPATH silently picking them
+up. Run `make mrproper` in the source tree to clean it.
 
 Demonstration in QEMU
 ---------------------
