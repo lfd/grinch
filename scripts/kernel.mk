@@ -43,7 +43,10 @@ LDFLAGS_KERNEL = $(LDFLAGS_COMMON) $(LDFLAGS_ARCH)
 AFLAGS_KERNEL = $(AFLAGS_COMMON)
 
 ifeq ($(GCOV), 1)
-    CFLAGS_KERNEL += -fprofile-arcs -ftest-coverage -fprofile-update=atomic -DGCOV=1
+    CFLAGS_KERNEL += -fprofile-arcs -ftest-coverage -DGCOV=1
+    ifdef ARCH_RISCV64
+        CFLAGS_KERNEL += -fprofile-update=atomic
+    endif
 endif
 
 ASM_DEFINES = $(ARCH_DIR)/include/asm/asm_defines.h
