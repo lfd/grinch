@@ -12,23 +12,25 @@
         pkgs = import nixpkgs {
           inherit system;
         };
+        # Single source of truth for the GCC series used by both the
+        # host stdenv and the riscv cross compilers. Keeping them in
+        # lockstep matters for gcov: gcov_extract is linked against
+        # libgcov from the host gcc and reads .gcda files produced by
+        # the cross gcc, so a version mismatch trips libgcov's stamp
+        # check.
+        gccVersion = "gcc16";
+        hostStdenv = pkgs."${gccVersion}Stdenv";
+        crossTools = arch:
+          let p = pkgs.pkgsCross.${arch}.buildPackages;
+          in [ p.gdb p.${gccVersion} ];
       in
       {
-        devShell = pkgs.mkShell {
+        devShell = (pkgs.mkShell.override { stdenv = hostStdenv; }) {
           NIX_HARDENING_ENABLE="";
-          buildInputs = with pkgs; [
-            # Main debuggers
-            pkgsCross.riscv32.buildPackages.gdb
-            pkgsCross.riscv64.buildPackages.gdb
-
-            # Works with both. Choose your weapon.
-            #pkgsCross.riscv32.buildPackages.gcc14
-            #pkgsCross.riscv64.buildPackages.gcc14
-            #pkgsCross.riscv32.buildPackages.gcc15
-            #pkgsCross.riscv64.buildPackages.gcc15
-            pkgsCross.riscv32.buildPackages.gcc16
-            pkgsCross.riscv64.buildPackages.gcc16
-
+          buildInputs =
+            (crossTools "riscv32") ++
+            (crossTools "riscv64") ++
+            (with pkgs; [
             # Tools required for grinch
             hostname
             cpio
@@ -47,11 +49,14 @@
             pkg-config
             xxd
 
+            # GCOV report generation (lcov + genhtml)
+            lcov
+
             # Packages for development
             less
             git
             which
-          ];
+          ]);
         };
       }
     );

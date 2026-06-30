@@ -128,7 +128,7 @@ qemu.dts: grinch.bin user/initrd.cpio
 
 .PHONY: grinch.dump
 grinch.dump: scripts/grinch_dump.gdb grinch.elf
-	$(GDB) -x $<
+	$(GDB) -nx -x .gdbinit -x $<
 
 grinch.info: grinch.dump tools/gcov_extract
 	./tools/gcov_extract $<
