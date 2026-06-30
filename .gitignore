@@ -13,6 +13,7 @@ grinch.dump
 grinch.info
 gcov/
 
+config.mk
 include/generated/
 common/include/generated/
 arch/*/asm_defines.S

@@ -31,8 +31,8 @@ ifneq ($(abs_output),$(CURDIR))
 
 # Refuse to do an out-of-tree build against a polluted source tree:
 # VPATH would silently satisfy targets from leftover in-tree artefacts.
-ifneq ($(wildcard $(abs_srctree)/include/generated),)
-$(error in-tree build artefacts found in $(abs_srctree); run 'make clean' there first)
+ifneq ($(wildcard $(abs_srctree)/config.mk),)
+$(error in-tree build artefacts found in $(abs_srctree); run 'make mrproper' there first)
 endif
 
 .PHONY: __sub-make
@@ -43,18 +43,6 @@ __sub-make:
 
 else # in objtree
 
-ARCH ?= riscv64
-
-#V=1
-#DEBUG_OUTPUT=1
-#INITCONST_STR=1
-#GCOV=1
-OPT ?= -O0
-
-QEMU_CPUS ?= 2
-QEMU_APPEND ?= ""
-QEMU_DISPLAY ?= none
-
 ifeq ($(abs_srctree),$(CURDIR))
 srctree := .
 else
@@ -63,6 +51,32 @@ endif
 objtree := $(CURDIR)
 
 VPATH := $(srctree)
+
+# Persisted build settings. Created on first invocation with current
+# defaults merged with any command-line overrides; never overwritten
+# after that. Hand-edit, or run 'make mrproper' to reset.
+arch_vars    := ARCH CROSS_COMPILE PLATFORM
+build_vars   := OPT GCOV DEBUG_OUTPUT INITCONST_STR
+qemu_vars    := QEMU_CPUS QEMU_APPEND QEMU_DISPLAY
+tracked_vars := $(arch_vars) $(build_vars) $(qemu_vars)
+config_mk    := $(objtree)/config.mk
+-include $(config_mk)
+
+# Architecture. CROSS_COMPILE and PLATFORM defaults live in
+# arch/$(ARCH)/inc.mk because they derive from ARCH.
+ARCH ?= riscv64
+
+# Build options
+OPT ?= -O0
+#V=1
+#DEBUG_OUTPUT=1
+#INITCONST_STR=1
+#GCOV=1
+
+# QEMU runtime
+QEMU_CPUS ?= 2
+QEMU_APPEND ?= ""
+QEMU_DISPLAY ?= none
 
 all: grinch.bin user/initrd.cpio tools
 
@@ -135,9 +149,35 @@ define clean_files
 	$(VERBOSE) $(RMRF) $(2)
 endef
 
+# Emit one group of persisted settings (header + assignments) for the
+# config.mk writer. $(1) is the group label, $(2) is the var list.
+# Single-line on purpose so it works in both $(shell) and recipes.
+emit_group = echo; echo '\# $(1)'; $(foreach v,$(2),echo '$(v) := $($(v))';)
+
+# Shell command that (re)writes config.mk in one go. Used both at parse
+# time (auto-create on first invocation) and from the defconfig recipe.
+config_mk_cmd = { \
+	echo '\# Auto-generated. Edit to change settings; run mrproper to reset.'; \
+	$(call emit_group,Architecture,$(arch_vars)) \
+	$(call emit_group,Build options,$(build_vars)) \
+	$(call emit_group,QEMU runtime,$(qemu_vars)) \
+} > $(config_mk).new && mv -f $(config_mk).new $(config_mk)
+
 include $(srctree)/scripts/kernel.mk
 include $(srctree)/user/inc.mk
 include $(srctree)/tools/inc.mk
+
+# Auto-create config.mk for any goal that implies a real build.
+# Passive goals (clean, mrproper, defconfig, help) are listed below
+# and skip parse-time generation; defconfig has its own recipe.
+no_config_goals := clean mrproper defconfig help
+goals := $(or $(MAKECMDGOALS),all)
+ifneq ($(filter-out $(no_config_goals),$(goals)),)
+ifeq ($(wildcard $(config_mk)),)
+$(if $(V),$(info $(config_mk_cmd)),$(info [GEN]   $(config_mk)))
+$(shell $(config_mk_cmd))
+endif
+endif
 
 %.bin: %.elf
 	$(QUIET) "[OBJC]  $@"
@@ -191,6 +231,11 @@ $(UBOOT_BIN):
 	$(MAKE) -C $(D_UBOOT)/u-boot $(MAKEARGS_UBOOT) O=$(UBOOT_PFX) oldconfig
 	$(MAKE) -C $(D_UBOOT)/u-boot $(MAKEARGS_UBOOT) O=$(UBOOT_PFX) u-boot-nodtb.bin
 
+.PHONY: defconfig
+defconfig:
+	$(QUIET) "[GEN]   $(config_mk)"
+	$(VERBOSE) $(config_mk_cmd)
+
 debug: grinch.bin
 	$(GDB) -x $(srctree)/scripts/debug.gdb $^
 
@@ -199,6 +244,7 @@ clean: clean_core clean_lib clean_mm clean_fs clean_user clean_arch clean_driver
 
 mrproper: clean
 	$(call clean_file,$(UBOOT_PFX))
+	$(call clean_file,$(config_mk))
 
 OBJ_DIRS := $(sort $(OBJ_DIRS))
 $(shell $(MKDIR_P) $(OBJ_DIRS))
