@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -30,6 +30,8 @@
 #define __must_check		__attribute__((warn_unused_result))
 
 #define __attribute_const__	__attribute__((__const__))
+
+#define __weak			__attribute__((__weak__))
 
 #define likely(x)	__builtin_expect(!!(x), 1)
 #define unlikely(x)	__builtin_expect(!!(x), 0)
