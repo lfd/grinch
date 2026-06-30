@@ -4,6 +4,7 @@ LIB_OBJS += ctype.o
 LIB_OBJS += errno.o
 LIB_OBJS += fdt.o
 LIB_OBJS += hexdump.o
+LIB_OBJS += libgcc.o
 LIB_OBJS += panic.o
 LIB_OBJS += printk.o
 LIB_OBJS += refcount.o

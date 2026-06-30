@@ -37,6 +37,7 @@ LIBC_OBJS += errno.o
 LIBC_OBJS += fcntl.o
 LIBC_OBJS += getauxval.o
 LIBC_OBJS += ioctl.o
+LIBC_OBJS += libgcc.o
 LIBC_OBJS += reboot.o
 LIBC_OBJS += salloc.o
 LIBC_OBJS += stdio.o
