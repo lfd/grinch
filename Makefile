@@ -10,7 +10,7 @@ this-makefile := $(lastword $(MAKEFILE_LIST))
 abs_srctree   := $(realpath $(dir $(this-makefile)))
 abs_output    := $(CURDIR)
 
-ifneq ($(sub_make_done),1)
+ifneq ($(grinch_sub_make_done),1)
 
 ifeq ("$(origin O)", "command line")
   KBUILD_OUTPUT := $(O)
@@ -23,11 +23,17 @@ ifneq ($(KBUILD_OUTPUT),)
   $(shell test -f $(abs_output)/Makefile || $(abs_srctree)/scripts/mkmakefile $(abs_srctree) $(abs_output))
 endif
 
-export sub_make_done := 1
+export grinch_sub_make_done := 1
 
-endif # sub_make_done
+endif # grinch_sub_make_done
 
 ifneq ($(abs_output),$(CURDIR))
+
+# Refuse to do an out-of-tree build against a polluted source tree:
+# VPATH would silently satisfy targets from leftover in-tree artefacts.
+ifneq ($(wildcard $(abs_srctree)/include/generated),)
+$(error in-tree build artefacts found in $(abs_srctree); run 'make clean' there first)
+endif
 
 .PHONY: __sub-make
 $(filter-out $(this-makefile), $(MAKECMDGOALS)) __all: __sub-make
@@ -75,8 +81,8 @@ MKDIR=mkdir
 MKDIR_P=$(MKDIR) -p
 RMRF=rm -rf
 
-D_UBOOT=$(realpath res/u-boot)
-UBOOT_PFX=$(D_UBOOT)/u-boot-$(ARCH)-$(PLATFORM)
+D_UBOOT=$(realpath $(srctree)/res/u-boot)
+UBOOT_PFX=$(objtree)/res/u-boot/u-boot-$(ARCH)-$(PLATFORM)
 UBOOT_BIN=$(UBOOT_PFX)/u-boot-nodtb.bin
 MAKEARGS_UBOOT=CROSS_COMPILE=$(CROSS_COMPILE) ARCH=$(ARCH_SUPER)
 
@@ -181,9 +187,9 @@ gcov: grinch.info
 
 $(UBOOT_BIN):
 	$(MKDIR_P) $(UBOOT_PFX)
-	cp -av res/u-boot/$(UBOOT_CFG) $(UBOOT_PFX)/.config
+	cp -av $(srctree)/res/u-boot/$(UBOOT_CFG) $(UBOOT_PFX)/.config
 	$(MAKE) -C $(D_UBOOT)/u-boot $(MAKEARGS_UBOOT) O=$(UBOOT_PFX) oldconfig
-	$(MAKE) -C $(UBOOT_PFX) $(MAKEARGS_UBOOT) u-boot-nodtb.bin
+	$(MAKE) -C $(D_UBOOT)/u-boot $(MAKEARGS_UBOOT) O=$(UBOOT_PFX) u-boot-nodtb.bin
 
 debug: grinch.bin
 	$(GDB) -x $(srctree)/scripts/debug.gdb $^
