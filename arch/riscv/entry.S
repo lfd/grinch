@@ -42,13 +42,13 @@ save_ctx:
 	REG_S	a0, REG_SP(sp)
 	csrw	sscratch, zero
 
-	/* Pass registers */
-	mv	a0, sp
-
 	/* Terminate stack frame */
 	mv	s0, sp
 
 	jal	check_panic
+
+	/* Pass registers; after check_panic as a0 is caller-saved */
+	mv	a0, sp
 
 	la	ra, return_to_user
 	csrr	a1, scause
