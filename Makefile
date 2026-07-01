@@ -57,7 +57,7 @@ VPATH := $(srctree)
 # after that. Hand-edit, or run 'make mrproper' to reset.
 arch_vars    := ARCH CROSS_COMPILE PLATFORM
 build_vars   := OPT GCOV DEBUG_OUTPUT INITCONST_STR VMM
-qemu_vars    := QEMU_CPUS QEMU_APPEND QEMU_DISPLAY
+qemu_vars    := QEMU_CPUS QEMU_APPEND QEMU_DISPLAY QEMU_SERIAL
 tracked_vars := $(arch_vars) $(build_vars) $(qemu_vars)
 config_mk    := $(objtree)/config.mk
 -include $(config_mk)
@@ -78,6 +78,7 @@ VMM ?= 1
 QEMU_CPUS ?= 2
 QEMU_APPEND ?= ""
 QEMU_DISPLAY ?= none
+QEMU_SERIAL ?= stdio
 
 all: grinch.bin user/initrd.cpio tools
 
