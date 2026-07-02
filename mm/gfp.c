@@ -355,6 +355,13 @@ int __init kernel_mem_init(void)
 		return err;
 	}
 
+	/* pre-reserve all per_cpu slots; unused ones freed in arch_platform_init() */
+	err = _alloc_pages_aligned(NULL,
+				   MAX_CPUS * PAGES(sizeof(struct per_cpu)),
+				   PAGE_SIZE, per_cpu(MAX_CPUS - 1));
+	if (err)
+		return err;
+
 	return 0;
 }
 

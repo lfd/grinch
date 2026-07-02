@@ -69,10 +69,6 @@ int __init arch_platform_init(void)
 		pri("%s: HART %lu available\n", name, hart_id);
 
 		pcpu = per_cpu(hart_id);
-		err = phys_mark_used(v2p(pcpu), PAGES(sizeof(*pcpu)));
-		if (err)
-			return trace_error(err);
-
 		if (hart_id != this_cpu_id())
 			memset(pcpu, 0, sizeof(*pcpu));
 
@@ -90,6 +86,12 @@ int __init arch_platform_init(void)
 
 		pcpu->plic.cpu_phandle = phandle;
 	}
+
+	/* free per_cpu pages of absent harts back to the pool */
+	for (hart_id = 0; hart_id < MAX_CPUS; hart_id++)
+		if (!test_bit(hart_id, cpus_available))
+			free_pages(per_cpu(hart_id),
+				   PAGES(sizeof(struct per_cpu)));
 
 	return 0;
 }
