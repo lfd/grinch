@@ -35,4 +35,4 @@ kernel/syscall_table.c: $(srctree)/tools/mksyscalltbl $(srctree)/syscall.tbl
 
 clean_kernel:
 	$(call clean_objects,kernel,$(KERNEL_OBJS))
-	$(call clean_file,kernel/grinch.ld)
+	$(call clean_files,kernel,kernel/grinch.ld)

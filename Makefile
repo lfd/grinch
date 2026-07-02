@@ -93,7 +93,9 @@ OBJCOPY=$(CROSS_COMPILE)objcopy
 SZ=$(CROSS_COMPILE)size
 MKDIR=mkdir
 MKDIR_P=$(MKDIR) -p
-RMRF=rm -rf
+RM=rm
+RMF=$(RM) -f
+RMRF=$(RMF) -r
 
 D_UBOOT=$(realpath $(srctree)/res/u-boot)
 UBOOT_PFX=$(objtree)/res/u-boot/u-boot-$(ARCH)-$(PLATFORM)
@@ -136,17 +138,17 @@ endif
 
 define clean_objects
 	$(QUIET) "[CLEAN]" $1
-	$(VERBOSE) $(RMRF) $(1)/built-in.a $(2) $(2:.o=.gcno) $(2:.o=.gcda)
-endef
-
-define clean_file
-	$(QUIET) "[CLEAN]" $1
-	$(VERBOSE) $(RMRF) $(1)
+	$(VERBOSE) $(RMF) $(1)/built-in.a $(2) $(2:.o=.gcno) $(2:.o=.gcda)
 endef
 
 define clean_files
 	$(QUIET) "[CLEAN]" $1
-	$(VERBOSE) $(RMRF) $(2)
+	$(VERBOSE) $(RMF) $(2)
+endef
+
+define clean_dir
+	$(QUIET) "[CLEAN]" $1
+	$(VERBOSE) $(RMRF) $(1)
 endef
 
 # Emit one group of persisted settings (header + assignments) for the
@@ -240,11 +242,12 @@ debug: grinch.bin
 	$(GDB) -x $(srctree)/scripts/debug.gdb $^
 
 clean: clean_core clean_lib clean_mm clean_fs clean_user clean_arch clean_drivers clean_kernel clean_tools
-	$(call clean_files,all,grinch.bin grinch.elf grinch.dump grinch.info gcov)
+	$(call clean_files,all,grinch.bin grinch.elf grinch.dump grinch.info)
+	$(call clean_dir,gcov)
 
 mrproper: clean
-	$(call clean_file,$(UBOOT_PFX))
-	$(call clean_file,$(config_mk))
+	$(call clean_dir,$(UBOOT_PFX))
+	$(call clean_files,config,$(config_mk))
 
 OBJ_DIRS := $(sort $(OBJ_DIRS))
 $(shell $(MKDIR_P) $(OBJ_DIRS))

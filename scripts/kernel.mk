@@ -113,9 +113,4 @@ objdS: grinch.elf
 	$(OBJDUMP) -dS $^ | less
 
 clean_core:
-	$(call clean_file,grinch.o)
-	$(call clean_file,$(ASM_DEFINES))
-	$(call clean_file,$(ARCH_DIR)/asm_defines.S)
-	$(call clean_file,kernel/syscall_table.c)
-	$(call clean_file,include/generated)
-	$(call clean_file,common/include/generated)
+	$(call clean_files,generated,grinch.o $(ARCH_DIR)/asm_defines.S kernel/syscall_table.c $(GENERATED) $(SYSCALL_HEADER))
