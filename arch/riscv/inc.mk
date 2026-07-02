@@ -1,6 +1,3 @@
-CROSS_COMPILE ?= $(ARCH)-unknown-linux-gnu-
-PLATFORM ?= any
-
 UBOOT_CFG=$(ARCH)-qemu.config
 QEMU=qemu-system-$(ARCH)
 

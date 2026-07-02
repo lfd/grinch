@@ -62,9 +62,9 @@ tracked_vars := $(arch_vars) $(build_vars) $(qemu_vars)
 config_mk    := $(objtree)/config.mk
 -include $(config_mk)
 
-# Architecture. CROSS_COMPILE and PLATFORM defaults live in
-# arch/$(ARCH)/inc.mk because they derive from ARCH.
 ARCH ?= riscv64
+CROSS_COMPILE ?= $(ARCH)-unknown-linux-gnu-
+PLATFORM ?= any
 
 # Build options
 OPT ?= -O0
