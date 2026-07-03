@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2025
+ * Copyright (c) OTH Regensburg, 2025-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -27,5 +27,9 @@
 
 #define GENMASK(h, l) __GENMASK(h, l)
 #define GENMASK_ULL(h, l) __GENMASK_ULL(h, l)
+
+/* extract the field value at [last:first] from an input of up to 64 bits */
+#define GET_FIELD(value, last, first) \
+	(((value) & GENMASK((last), (first))) >> (first))
 
 #endif /* _BITS_H */
