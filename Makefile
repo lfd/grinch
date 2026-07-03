@@ -68,6 +68,9 @@ config_mk     := $(objtree)/config.mk
 $(foreach v,$(string_vars),$(if $($(v)),$(eval $(v) := $(patsubst "%",%,$($(v))))))
 
 ARCH ?= riscv64
+# Arch-specific defaults (e.g. CROSS_COMPILE, PLATFORM); silently absent for arches that need none.
+-include $(srctree)/arch/$(ARCH)/defaults.mk
+# Generic fallbacks if the arch defaults.mk didn't set these.
 PLATFORM ?= any
 
 # Compiler
