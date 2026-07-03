@@ -124,7 +124,7 @@ RMRF=$(RMF) -r
 D_UBOOT=$(realpath $(srctree)/res/u-boot)
 UBOOT_PFX=$(objtree)/res/u-boot/u-boot-$(ARCH)-$(PLATFORM)
 UBOOT_BIN=$(UBOOT_PFX)/u-boot-nodtb.bin
-MAKEARGS_UBOOT=CROSS_COMPILE=$(CROSS_COMPILE) ARCH=$(ARCH_SUPER)
+MAKEARGS_UBOOT=CROSS_COMPILE=$(CROSS_COMPILE) ARCH=$(UBOOT_ARCH)
 
 ifdef V
 QUIET := @true

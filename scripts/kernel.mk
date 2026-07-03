@@ -2,12 +2,19 @@ SYSCALL_HEADER = common/include/generated/syscall.h
 
 ifeq ($(ARCH),riscv64)
 	ARCH_SUPER = riscv
+	UBOOT_ARCH = riscv
 	ARCH_RISCV = true
 	ARCH_RISCV64 = true
 else ifeq ($(ARCH),riscv32)
 	ARCH_SUPER = riscv
+	UBOOT_ARCH = riscv
 	ARCH_RISCV = true
 	ARCH_RISCV32 = true
+else ifeq ($(ARCH),arm64)
+	ARCH_SUPER = arm64
+	# U-Boot builds aarch64 under its "arm" architecture
+	UBOOT_ARCH = arm
+	ARCH_ARM64 = true
 else
 $(error Unsupported Architecture $(ARCH))
 endif
