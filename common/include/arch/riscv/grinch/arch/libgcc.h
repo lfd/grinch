@@ -10,17 +10,12 @@
  * the COPYING file in the top-level directory.
  */
 
-/*
- * Fallback GCC runtime helpers for 32-bit targets where libgcc is not linked
- * or has an incompatible ABI.
- */
-
-#ifndef __LIBGCC_H
-#define __LIBGCC_H
-
-#include <grinch/compiler_attributes.h>
+#ifndef __ARCH_LIBGCC_H
+#define __ARCH_LIBGCC_H
 
 #if ARCH_RISCV == 32
+
+#include <grinch/compiler_attributes.h>
 
 unsigned long long __lshrdi3(unsigned long long u, int b);
 
@@ -42,4 +37,4 @@ unsigned long long __weak __lshrdi3(unsigned long long u, int b)
 
 #endif /* ARCH_RISCV == 32 */
 
-#endif /* __LIBGCC_H */
+#endif /* __ARCH_LIBGCC_H */

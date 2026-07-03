@@ -10,4 +10,4 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <grinch/libgcc.h>
+#include <grinch/arch/libgcc.h>
