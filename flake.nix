@@ -30,6 +30,7 @@
           buildInputs =
             (crossTools "riscv32") ++
             (crossTools "riscv64") ++
+            (crossTools "aarch64-embedded") ++
             (with pkgs; [
             # Tools required for grinch
             cpio
