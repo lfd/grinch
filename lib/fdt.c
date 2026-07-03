@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -105,6 +105,14 @@ int __init fdt_init(paddr_t pfdt)
 	err = fdt_check_header(fdt);
 	if (err) {
 		pri("No valid FDT header behind 0x%lx\n", pfdt);
+		err = -EINVAL;
+		goto unmap;
+	}
+
+	/* Strip bootloader padding before sizing the allocation */
+	err = fdt_pack(fdt);
+	if (err) {
+		pri("FDT pack failed: %d\n", err);
 		err = -EINVAL;
 		goto unmap;
 	}
