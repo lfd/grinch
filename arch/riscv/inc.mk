@@ -21,6 +21,7 @@ QEMU_ARGS+=$(QEMU_MACHINE) -cpu $(QEMU_CPU),h=true
 
 QEMU_UBOOT_ARGS=\
 		-kernel $(UBOOT_BIN) \
+		-append "$(QEMU_APPEND)" \
 		-device loader,file=grinch.bin,addr=0x82000000,force-raw=on \
 		-device loader,file=user/initrd.cpio,addr=0x82800000,force-raw=on \
 

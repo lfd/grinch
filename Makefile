@@ -238,9 +238,10 @@ $(config_h):
 	$(VERBOSE) rm -f $@
 	$(VERBOSE) $(AR) cDPrST $@ $^
 
-QEMU_CMD=$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS) -append "$(QEMU_APPEND)"
+QEMU_CMD=$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS)
 
-QEMU_CMD_DIRECT=$(QEMU_CMD) -kernel grinch.bin -initrd user/initrd.cpio
+# -append needs -kernel (qemu folds it into the DTB), so it rides with each -kernel.
+QEMU_CMD_DIRECT=$(QEMU_CMD) -kernel grinch.bin -initrd user/initrd.cpio -append "$(QEMU_APPEND)"
 QEMU_CMD_UBOOT=$(QEMU_CMD) $(QEMU_UBOOT_ARGS)
 
 qemu: all
