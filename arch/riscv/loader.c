@@ -42,7 +42,7 @@ static void __init *loader_page_zalloc(void **next)
 
 /* 2 MiB page size, in case of RV64 (SV39) */
 #if ARCH_RISCV == 32 /* rv32 */
-static inline __init void enable_mmu(paddr_t l0)
+static inline void __init enable_mmu(paddr_t l0)
 {
 	enable_mmu_satp(SATP_MODE_32, l0);
 }
@@ -55,11 +55,28 @@ map_mega(void **next, unsigned long *l0, void *vaddr, paddr_t paddr)
 	l0_entry = &l0[vaddr2vpn(vaddr, 1)];
 	*l0_entry = paddr2pte(paddr) | PAGE_FLAGS_DEFAULT;
 }
-#elif ARCH_RISCV == 64 /* rv64 */
+
 static void __init
-map_mega(void **next, unsigned long *l0, void *vaddr, paddr_t paddr)
+map_page(void **next, unsigned long *l0, void *vaddr, paddr_t paddr)
 {
 	unsigned long *l0_entry, *l1_entry, *l1;
+
+	l0_entry = &l0[vaddr2vpn(vaddr, 1)];
+	if (*l0_entry & RISCV_PTE_FLAG(V)) {
+		l1 = (unsigned long *)pte2table(*l0_entry);
+	} else {
+		l1 = loader_page_zalloc(next);
+		*l0_entry = paddr2pte((paddr_t)l1) | PAGE_PRESENT_FLAGS;
+	}
+
+	l1_entry = &l1[vaddr2vpn(vaddr, 0)];
+	*l1_entry = paddr2pte(paddr) | PAGE_FLAGS_DEFAULT;
+}
+#elif ARCH_RISCV == 64 /* rv64 */
+static unsigned long * __init
+walk_to_l1(void **next, unsigned long *l0, void *vaddr)
+{
+	unsigned long *l0_entry, *l1;
 
 	l0_entry = &l0[vaddr2vpn(vaddr, 2)];
 	if (*l0_entry & RISCV_PTE_FLAG(V)) {
@@ -69,8 +86,34 @@ map_mega(void **next, unsigned long *l0, void *vaddr, paddr_t paddr)
 		*l0_entry = paddr2pte((paddr_t)l1) | PAGE_PRESENT_FLAGS;
 	}
 
+	return l1;
+}
+
+static void __init
+map_mega(void **next, unsigned long *l0, void *vaddr, paddr_t paddr)
+{
+	unsigned long *l1 = walk_to_l1(next, l0, vaddr);
+
+	l1[vaddr2vpn(vaddr, 1)] = paddr2pte(paddr) | PAGE_FLAGS_DEFAULT;
+}
+
+static void __init
+map_page(void **next, unsigned long *l0, void *vaddr, paddr_t paddr)
+{
+	unsigned long *l1_entry, *l2_entry, *l1, *l2;
+
+	l1 = walk_to_l1(next, l0, vaddr);
+
 	l1_entry = &l1[vaddr2vpn(vaddr, 1)];
-	*l1_entry = paddr2pte(paddr) | PAGE_FLAGS_DEFAULT;
+	if (*l1_entry & RISCV_PTE_FLAG(V)) {
+		l2 = (unsigned long *)pte2table(*l1_entry);
+	} else {
+		l2 = loader_page_zalloc(next);
+		*l1_entry = paddr2pte((paddr_t)l2) | PAGE_PRESENT_FLAGS;
+	}
+
+	l2_entry = &l2[vaddr2vpn(vaddr, 0)];
+	*l2_entry = paddr2pte(paddr) | PAGE_FLAGS_DEFAULT;
 }
 
 /* On RV64, we will use the SV39 paging system for handover */
@@ -92,14 +135,15 @@ loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr)
 	 * For the kernel's initial page tables grinch will use the internal
 	 * page pool, so this is fine.
 	 */
-	next = (void*)load_addr + GRINCH_SIZE;
+	next = (void *)load_addr + GRINCH_SIZE;
 	l0 = loader_page_zalloc(&next);
-	for (d = 0; d < mega_page_up(num_os_pages() * PAGE_SIZE);
-	     d+= MEGA_PAGE_SIZE) {
-		/* ID map loaded location */
-		map_mega(&next, l0, (void*)load_addr + d, load_addr + d);
-		/* linked location of bootloader */
+	for (d = 0; d + MEGA_PAGE_SIZE <= GRINCH_SIZE; d += MEGA_PAGE_SIZE) {
+		map_mega(&next, l0, (void *)load_addr + d, load_addr + d);
 		map_mega(&next, l0, grinch_base() + d, load_addr + d);
+	}
+	for (; d < GRINCH_SIZE; d += PAGE_SIZE) {
+		map_page(&next, l0, (void *)load_addr + d, load_addr + d);
+		map_page(&next, l0, grinch_base() + d, load_addr + d);
 	}
 
 	enable_mmu((paddr_t)l0);
