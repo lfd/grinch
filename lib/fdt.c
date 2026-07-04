@@ -269,13 +269,31 @@ int fdt_read_u32_array(const void *fdt, int nodeoffset, const char *name,
 
 int fdt_irq_get(struct device *dev)
 {
-	const int *res;
+	const u32 *res;
+	int len;
 
-	res = fdt_getprop(_fdt, dev->of.node, ISTR("interrupts"), NULL);
+	res = fdt_getprop(_fdt, dev->of.node, ISTR("interrupts"), &len);
 	if (IS_ERR(res))
 		return PTR_ERR(res);
 
-	return fdt32_to_cpu(*res);
+	/*
+	 * GIC interrupt specifier: <type hwirq flags>
+	 *   type 0 = SPI → GIC HW ID 32 + hwirq
+	 *   type 1 = PPI → GIC HW ID 16 + hwirq
+	 * Single-cell (e.g. PLIC): hwirq directly.
+	 */
+	if (len == 3 * (int)sizeof(u32)) {
+		u32 type  = fdt32_to_cpu(res[0]);
+		u32 hwirq = fdt32_to_cpu(res[1]);
+
+		if (type == 0)
+			return 32 + hwirq;
+		if (type == 1)
+			return 16 + hwirq;
+		return -EINVAL;
+	}
+
+	return fdt32_to_cpu(res[0]);
 }
 
 int fdt_property_reg_u64_simple(void *fdt, const char *name, u64 addr, u64 sz)
