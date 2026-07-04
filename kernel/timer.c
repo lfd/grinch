@@ -91,6 +91,7 @@ void handle_timer(void)
 	else
 		next = -1;
 	tpcpu->timer.next = next;
+	timer_update(NULL);
 }
 
 static void __init timer_cpu_init(void *)
