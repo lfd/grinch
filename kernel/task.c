@@ -373,8 +373,11 @@ static void schedule(void)
 
 	if (list_is_singular(&task_list)) {
 		task = list_first_entry(&task_list, struct task, tasks);
-		if (task->state == TASK_WFE)
+		spin_lock(&task->lock);
+		if (task->state == TASK_WFE) {
+			spin_unlock(&task->lock);
 			task = NULL;
+		}
 		goto out;
 	}
 
