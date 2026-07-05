@@ -10,12 +10,9 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <grinch/compiler_attributes.h>
-#include <grinch/errno.h>
-#include <grinch/header.h>
-#include <grinch/paging.h>
-#include <grinch/percpu.h>
-#include <grinch/string.h>
+#include <grinch/init.h>
+#include <grinch/loader.h>
+#include <asm-generic/grinch_layout.h>
 
 /* Set PTE access bits to RWX + AD to prevent page faults */
 #define PAGE_FLAGS_DEFAULT				\
@@ -28,17 +25,6 @@ loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr);
 
 void __noreturn
 grinch_start(unsigned long hart_id, paddr_t fdt, paddr_t dst);
-
-static void __init *loader_page_zalloc(void **next)
-{
-	void *tmp;
-
-	tmp = *next;
-	memset(tmp, 0, PAGE_SIZE);
-	*next += PAGE_SIZE;
-
-	return tmp;
-}
 
 /* 2 MiB page size, in case of RV64 (SV39) */
 #if ARCH_RISCV == 32 /* rv32 */
