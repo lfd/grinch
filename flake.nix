@@ -32,8 +32,8 @@
             (crossTools "riscv64") ++
             (with pkgs; [
             # Tools required for grinch
-            hostname
             cpio
+            hostname
             qemu
 
             # Image manipulation
@@ -43,9 +43,9 @@
             # Required for u-boot
             bison
             flex
-            openssl
             gnutls
             ncurses
+            openssl
             pkg-config
             xxd
 
@@ -53,8 +53,9 @@
             lcov
 
             # Packages for development
-            less
+            dtc
             git
+            less
             which
           ]);
         };
