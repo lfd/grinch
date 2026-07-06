@@ -22,6 +22,7 @@ include $(srctree)/mm/inc.mk
 include $(srctree)/drivers/inc.mk
 
 QEMU_ARGS_COMMON=-monitor telnet:127.0.0.1:11111,server,nowait -s
+QEMU_ARGS_COMMON+=-device VGA -display $(QEMU_DISPLAY)
 
 INCLUDES_KERNEL_SRC = -I$(srctree)/include/ \
                       -I$(srctree)/common/include \

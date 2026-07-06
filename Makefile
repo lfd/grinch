@@ -193,7 +193,7 @@ endif
 QEMU_CMD=$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS) -append $(QEMU_APPEND)
 
 QEMU_CMD_DIRECT=$(QEMU_CMD) -kernel grinch.bin -initrd user/initrd.cpio
-QEMU_CMD_UBOOT=$(QEMU_CMD) -kernel $(UBOOT_BIN) $(QEMU_UBOOT_ARGS)
+QEMU_CMD_UBOOT=$(QEMU_CMD) $(QEMU_UBOOT_ARGS)
 
 qemu: all
 	$(QEMU_CMD_DIRECT)
