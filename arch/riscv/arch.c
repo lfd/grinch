@@ -24,6 +24,7 @@
 #include <grinch/timer.h>
 
 #include <grinch/arch/sbi.h>
+#include <grinch/arch/vmm.h>
 
 int __init arch_init(void)
 {
@@ -45,10 +46,8 @@ int __init arch_init(void)
 		goto out;
 
 	err = vmm_init();
-	if (err == -ENOSYS) {
-		pri("H-Extensions not available\n");
-		err = 0;
-	}
+	if (err)
+		goto out;
 
 out:
 	return err;
