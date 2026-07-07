@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -12,6 +12,8 @@
 
 #ifndef _VMM_H
 #define _VMM_H
+
+#ifdef CONFIG_VMM
 
 /*
  * To make things easy, let's say that a VM only gets one contiguous memory
@@ -59,5 +61,34 @@ void vmachine_destroy(struct task *task);
 void vmachine_set_timer_pending(struct vmachine *vm);
 
 void arch_vmachine_activate(struct vmachine *vm);
+
+void arch_vmachine_save(struct vmachine *vm);
+void arch_vmachine_restore(struct vmachine *vm);
+
+#else
+
+struct vmachine {};
+
+static inline void vmachine_destroy(struct task *task) {}
+static inline void vmachine_set_timer_pending(struct vmachine *vm) {}
+static inline void arch_vmachine_activate(struct vmachine *vm) {}
+static inline void arch_vmachine_save(struct vmachine *vm) {}
+static inline void arch_vmachine_restore(struct vmachine *vm) {}
+
+enum vmm_trap_result {
+	VMM_HANDLED,
+	VMM_ERROR,
+	VMM_FORWARD,
+};
+
+static inline int vmm_init(void) { return 0; }
+
+static inline enum vmm_trap_result
+vmm_handle_trap(struct trap_context *ctx, struct registers *regs)
+{
+	return VMM_FORWARD;
+}
+
+#endif /* CONFIG_VMM */
 
 #endif /* _VMM_H */

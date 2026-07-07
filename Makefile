@@ -56,7 +56,7 @@ VPATH := $(srctree)
 # defaults merged with any command-line overrides; never overwritten
 # after that. Hand-edit, or run 'make mrproper' to reset.
 arch_vars    := ARCH CROSS_COMPILE PLATFORM
-build_vars   := OPT GCOV DEBUG_OUTPUT INITCONST_STR
+build_vars   := OPT GCOV DEBUG_OUTPUT INITCONST_STR VMM
 qemu_vars    := QEMU_CPUS QEMU_APPEND QEMU_DISPLAY
 tracked_vars := $(arch_vars) $(build_vars) $(qemu_vars)
 config_mk    := $(objtree)/config.mk
@@ -68,6 +68,7 @@ PLATFORM ?= any
 
 # Build options
 OPT ?= -O0
+VMM ?= 1
 #V=1
 #DEBUG_OUTPUT=1
 #INITCONST_STR=1
@@ -134,6 +135,10 @@ LDFLAGS_COMMON=
 
 ifeq ($(DEBUG_OUTPUT), 1)
 CFLAGS_COMMON += -DDEBUG
+endif
+
+ifeq ($(VMM), 1)
+CFLAGS_COMMON += -DCONFIG_VMM
 endif
 
 define clean_objects

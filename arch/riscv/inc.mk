@@ -38,8 +38,10 @@ ARCH_OBJS+=stackdump.o
 ARCH_OBJS+=task.o
 ARCH_OBJS+=timer.o
 ARCH_OBJS+=traps.o
+ifeq ($(VMM), 1)
 ARCH_OBJS+=vmm/vmm.o
 ARCH_OBJS+=vmm/vmm_ecall.o
+endif
 
 ARCH_OBJS := $(addprefix $(ARCH_DIR)/, $(ARCH_OBJS))
 

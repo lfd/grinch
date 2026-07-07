@@ -146,9 +146,15 @@ IMAGES=res/logo.gimg
 
 OBJ_DIRS += $(dir $(IMAGES))
 
-user/initrd.cpio: $(USER_APPS) $(IMAGES) $(srctree)/res/test.txt grinch.bin
+INITRD_EXTRAS =
+
+ifeq ($(VMM), 1)
+INITRD_EXTRAS += grinch.bin
+endif
+
+user/initrd.cpio: $(USER_APPS) $(IMAGES) $(srctree)/res/test.txt $(INITRD_EXTRAS)
 	$(QUIET) "[CPIO]  $@"
-	$(VERBOSE) $(srctree)/scripts/create_cpio $@ $(DIR_USER_BINARIES) -- $(IMAGES) $(srctree)/res/test.txt grinch.bin
+	$(VERBOSE) $(srctree)/scripts/create_cpio $@ $(DIR_USER_BINARIES) -- $(IMAGES) $(srctree)/res/test.txt $(INITRD_EXTRAS)
 
 clean_user: $(patsubst %,clean_%,$(APPS))
 	$(call clean_objects,user/libc,$(LIBC_OBJS))

@@ -141,9 +141,6 @@ void task_sleep_until(struct task *task, struct timespec *ts);
 void task_sleep_for(struct task *task, struct timespec *ts);
 void task_cancel_timer(struct task *task);
 
-void arch_vmachine_save(struct vmachine *vm);
-void arch_vmachine_restore(struct vmachine *vm);
-
 int task_init(void);
 
 void prepare_user_return(void);

@@ -772,7 +772,7 @@ void task_handle_fault(void __user *addr, bool is_write)
 	/* not implemented yet */
 	if (task->type == GRINCH_VMACHINE)
 		BUG();
-	else if (task->type == GRINCH_PROCESS)
+	if (task->type == GRINCH_PROCESS)
 		err = process_handle_fault(task, addr, is_write);
 	else
 		BUG();
