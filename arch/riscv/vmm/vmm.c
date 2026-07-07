@@ -189,6 +189,9 @@ vmm_handle_trap(struct trap_context *ctx, struct registers *regs)
 	unsigned long vsatp;
 	int err;
 
+	if (!has_hypervisor())
+		return VMM_FORWARD;
+
 	ctx->hstatus = csr_read(CSR_HSTATUS);
 	/* check if we arrive from a guest */
 	if (!(ctx->hstatus & HSTATUS_SPV))

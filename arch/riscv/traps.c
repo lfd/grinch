@@ -90,17 +90,14 @@ void arch_handle_exception(struct registers *regs, u64 scause)
 	ctx.scause = scause;
 	ctx.sstatus = csr_read(sstatus);
 
-	vmtr = VMM_FORWARD;
-	if (has_hypervisor()) {
-		vmtr = vmm_handle_trap(&ctx, regs);
-		if (vmtr == VMM_HANDLED) {
-			err = 0;
-			goto out;
-		}
-		if (vmtr == VMM_ERROR) {
-			err = -EINVAL;
-			goto out;
-		}
+	vmtr = vmm_handle_trap(&ctx, regs);
+	if (vmtr == VMM_HANDLED) {
+		err = 0;
+		goto out;
+	}
+	if (vmtr == VMM_ERROR) {
+		err = -EINVAL;
+		goto out;
 	}
 
 	err = -EINVAL;
