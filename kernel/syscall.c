@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023-2024
+ * Copyright (c) OTH Regensburg, 2023-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -12,11 +12,25 @@
 
 #define dbg_fmt(x)	"syscall: " x
 
+#include <grinch/compiler_attributes.h>
 #include <grinch/errno.h>
+#include <grinch/printk.h>
 #include <grinch/syscall.h>
 #include <grinch/task.h>
 
 #include <generated/syscall.h>
+
+static __used long syscall_unavailable(struct syscall_args *args)
+{
+	pr_dbg("unavailable syscall invoked\n");
+	return -ENOSYS;
+}
+
+#define cond_syscall(name)					\
+	asm(".weak ___sys_" #name "\n\t"			\
+	    ".set  ___sys_" #name ", syscall_unavailable")
+
+cond_syscall(grinch_create_grinch_vm);
 
 #include "syscall_table.c"
 
