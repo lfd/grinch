@@ -11,6 +11,7 @@
  */
 
 #include <arch/asm.h>
+#include <asm-generic/elf.h>
 #include <asm-generic/paging.h>
 
 ENTRY(_start)
@@ -22,17 +23,17 @@ SECTIONS
 		KEEP(*(.text.boot))
 		*(.text)
 		*(.text.*)
-	}
+	} :text
 
 	. = ALIGN(PAGE_SIZE);
 	.rodata : {
 	    *(.rodata)
-	}
+	} :rodata
 
 	. = ALIGN(PAGE_SIZE);
 	.data : {
 	    *(.data)
-	}
+	} :data
 
 	. = ALIGN(16);
 	.bss :
@@ -41,7 +42,7 @@ SECTIONS
 		*(.bss)
 		. = ALIGN(16);
 		__bss_end = .;
-	}
+	} :data
 	__bss_words = SIZEOF(.bss) / SZREG;
 	. = ALIGN(PAGE_SIZE);
 

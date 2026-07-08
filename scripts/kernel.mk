@@ -63,7 +63,7 @@ GENERATED = $(ASM_DEFINES) include/generated/version.h include/generated/compile
 
 %.ld: %.ld.S
 	$(QUIET) "[CC/AS] $@"
-	$(VERBOSE) $(CC) $(CFLAGS_KERNEL) $(AFLAGS_KERNEL) -E -o $@ $^
+	$(VERBOSE) $(CC) $(CFLAGS_KERNEL) $(AFLAGS_KERNEL) -DLINKER_SCRIPT -E -o $@ $^
 	$(VERBOSE) sed -e '/^#/d' -i $@
 
 $(ASM_DEFINES): $(ARCH_DIR)/asm_defines.S

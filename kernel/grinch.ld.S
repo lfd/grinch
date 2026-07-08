@@ -11,6 +11,7 @@
  */
 
 #include <arch/asm.h>
+#include <asm-generic/elf.h>
 #include <asm-generic/grinch_layout.h>
 #include <asm-generic/paging.h>
 
@@ -26,13 +27,13 @@ SECTIONS
 		. = ALIGN(16);
 		*(.text);
 		*(.text.*);
-	}
+	} :text
 
 	. = ALIGN(PAGE_SIZE);
 	__init_text_start = .;
 	.init.text	: {
 		*(.init.text);
-	}
+	} :text
 	__text_end = .;
 
 	. = ALIGN(PAGE_SIZE);
@@ -61,14 +62,14 @@ SECTIONS
 		*(.init.data);
 		__init_rw_end = .;
 
-	}
+	} :data
 
 	. = ALIGN(PAGE_SIZE);
 	__rw_data_start = .;
 	.data           : {
 		*(.sdata)
 		*(.data)
-	}
+	} :data
 
 	. = ALIGN(PAGE_SIZE);
 	.bss            : {
@@ -79,7 +80,7 @@ SECTIONS
 		. = ALIGN(8);
 		*(.sbss)
 		. = ALIGN(8);
-	}
+	} :data
 	__bss_words = SIZEOF(.bss) / SZREG;
 	__rw_data_end = .;
 
@@ -94,7 +95,7 @@ SECTIONS
 		__init_array_start = .;
 		KEEP(*(.init_array.*)) *(.init_array)
 		__init_array_end = .;
-	}
+	} :rodata
 	__rodata_end = .;
 
 	. = ALIGN(PAGE_SIZE);
