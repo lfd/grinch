@@ -24,6 +24,7 @@ SECTIONS
 		*(.text.*)
 	}
 
+	. = ALIGN(PAGE_SIZE);
 	.rodata : {
 	    *(.rodata)
 	}
