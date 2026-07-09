@@ -35,9 +35,10 @@ OPTS   = ('-O0', '-O1', '-O2', '-Os', '-O3')
 CPUS   = (1, 2, 4)
 
 # Feature -> extra make flags that switch it on. 'plain' is the
-# baseline with no extras.
+# baseline without optional features.
 FEATURE_FLAGS = {
-    'plain':     (),
+    'plain':     ('CONFIG_VMM=0',),
+    'vmm':       ('CONFIG_VMM=1',),
     'gcov':      ('CONFIG_GCOV=1',),
     'debug':     ('CONFIG_DEBUG_OUTPUT=1',),
     'initconst': ('CONFIG_INITCONST_STR=1',),
