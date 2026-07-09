@@ -443,9 +443,11 @@ def dump_log(log_path):
         sys.stdout.buffer.flush()
 
 
-def run_tests(v, build_dir, log_dir, *, cpus, stop, verbose):
+def run_tests(v, build_dir, log_dir, *, cpus, stop, verbose, tests=None):
     r = Result()
     applicable = [t for t in TESTS if test_applies_to(t, v)]
+    if tests:
+        applicable = [t for t in applicable if t.name in tests]
     r.skipped = len(TESTS) - len(applicable)
     for t in applicable:
         log_path = log_dir / f'{t.name}-smp{cpus}.log'
@@ -496,6 +498,10 @@ def parse_args():
     ap.add_argument('-o', '--outdir', default='build/test',
                     metavar='DIR',
                     help='output directory (default: build/test)')
+    ap.add_argument('--smp', type=int, action='append', metavar='N',
+                    help='only run with this CPU count (repeatable)')
+    ap.add_argument('--test', action='append', metavar='NAME',
+                    help='only run this test name (repeatable)')
     ap.add_argument('filters', nargs='*', metavar='FILTER',
                     help='variant name globs (default: all)')
     return ap.parse_args()
@@ -576,10 +582,12 @@ def main():
         if want_run:
             print(v.name, flush=True)
             stopped = False
-            for c in CPUS:
+            cpus_to_run = args.smp if args.smp else CPUS
+            for c in cpus_to_run:
                 print(f'  smp{c}', flush=True)
                 r = run_tests(v, build_dir, log_dir,
-                              cpus=c, stop=args.stop, verbose=args.verbose)
+                              cpus=c, stop=args.stop, verbose=args.verbose,
+                              tests=args.test)
                 vr.smp[c] = r
                 if r.failed or r.timed_out:
                     overall_ok = False
