@@ -540,6 +540,8 @@ void task_cancel_timer(struct task *task)
 
 	list_del(&task->timer_list);
 	INIT_LIST_HEAD(&task->timer_list);
+	if (task->wfe.type == WFE_TIMER)
+		task->wfe.type = WFE_NONE;
 
 	spin_unlock(&task_lock);
 }
