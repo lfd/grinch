@@ -363,6 +363,18 @@ def _test_app(q):
     expect_exit_ok(q)
 
 
+# TODO: Enable once jittertest can be made to return (see project TODO —
+# pass argv to init= so a finite run count can be configured).
+# @test('vm', arch='riscv64', feature='vmm')
+# def _vm(q):
+#     q.expect(PROMPT)
+#     q.send('vm')
+#     q.expect(rb'Grinch VM:')
+#     q.expect(rb'Welcome to Grinch')
+#     q.expect(rb'Starting Jittertest')
+#     expect_exit_ok(q)
+
+
 # ---------------------------------------------------------------------------
 # Runner
 # ---------------------------------------------------------------------------
