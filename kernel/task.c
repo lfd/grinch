@@ -501,8 +501,11 @@ void task_sleep_until(struct task *task, struct timespec *ts)
 
 	spin_lock(&task_lock);
 
-	if (task->wfe.type != WFE_NONE)
-		BUG();
+	if (task->wfe.type != WFE_NONE) {
+		/* A VM may re-arm its timer while a previous one is still pending */
+		if (task->type != GRINCH_VMACHINE || task->wfe.type != WFE_TIMER)
+			BUG();
+	}
 
 	wall_ns = ts_to_ns(ts);
 	task->wfe.timer.expiration = wall_ns;
