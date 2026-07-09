@@ -28,7 +28,7 @@ user/initrd.cpio
 .gdb_history
 .direnv/
 
-user/apps/build/
+build/
 user/dts/*.dts
 qemu.dts
 

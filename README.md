@@ -187,6 +187,33 @@ Development features:
 | malloc_fsck   | /      | Run sanity checker for kalloc |
 | ttp_maxevents | int    | No of maxevents for timed TPs |
 
+Testing
+-------
+
+Automated tests drive QEMU from Python over a TCP serial socket, with
+the HMP monitor used for guaranteed shutdown. `tests/run.py` builds
+each variant, runs the applicable tests, and prints a summary table.
+
+To run everything:
+
+    ./tests/run.py
+
+To build and run a single variant:
+
+    ./tests/run.py riscv64-O0-plain
+
+To build all variants without running tests:
+
+    ./tests/run.py --build
+
+To run tests against already-built variants:
+
+    ./tests/run.py --run
+
+By default, output goes to `build/test/`. Use `-o DIR` to change it:
+
+    ./tests/run.py -o /tmp/grinch-tests
+
 Authors & License
 -----------------
 

@@ -213,7 +213,7 @@ include $(srctree)/tools/inc.mk
 # Auto-create config.mk for any goal that implies a real build.
 # Passive goals (clean, mrproper, defconfig, help) are listed below
 # and skip parse-time generation; defconfig has its own recipe.
-no_config_goals := clean mrproper defconfig help
+no_config_goals := clean mrproper defconfig help test
 goals := $(or $(MAKECMDGOALS),all)
 ifneq ($(filter-out $(no_config_goals),$(goals)),)
 ifeq ($(wildcard $(config_mk)),)
@@ -280,6 +280,10 @@ $(UBOOT_BIN):
 	cp -av $(srctree)/res/u-boot/$(UBOOT_CFG) $(UBOOT_PFX)/.config
 	$(MAKE) -C $(D_UBOOT)/u-boot $(MAKEARGS_UBOOT) O=$(UBOOT_PFX) oldconfig
 	$(MAKE) -C $(D_UBOOT)/u-boot $(MAKEARGS_UBOOT) O=$(UBOOT_PFX) u-boot-nodtb.bin
+
+.PHONY: test
+test:
+	$(srctree)/tests/run.py
 
 .PHONY: defconfig
 defconfig:
