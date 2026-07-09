@@ -275,6 +275,93 @@ def test_applies_to(t, v):
             return False
     return True
 
+
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
+# gsh's prompt looks like ``gsh />`` or ``gsh /tmp>`` depending on cwd;
+# the trailing space is common to all forms.
+PROMPT = rb'gsh '
+
+
+def expect_exit_ok(q):
+    """gsh prints ``Exit code N`` after every foreground command.
+    Insist that N == 0 and match the next prompt."""
+    m = q.expect(rb'Exit code (\d+)')
+    code = int(m.group(1))
+    if code != 0:
+        raise TestFail(f'command exited with code {code}')
+    q.expect(PROMPT)
+
+
+@test('boot')
+def _boot(q):
+    """Kernel reaches the shell prompt."""
+    q.expect(PROMPT)
+
+
+@test('halt')
+def _halt(q):
+    """``reboot -h`` halts cleanly and QEMU exits."""
+    q.expect(PROMPT)
+    q.send('reboot -h')
+    q.expect(rb'Halting')
+    q.wait_exit()
+
+
+@test('reboot')
+def _reboot(q):
+    """``reboot -r`` cold-resets the machine; the kernel comes back."""
+    q.expect(PROMPT)
+    q.send('reboot -r')
+    q.expect(rb'Rebooting')
+    q.expect(PROMPT)
+
+
+@test('echo')
+def _echo(q):
+    """Basic shell + user stdout: echo round-trips its argument."""
+    q.expect(PROMPT)
+    q.send('echo grinch-echo-marker')
+    q.expect(rb'grinch-echo-marker')
+    expect_exit_ok(q)
+
+
+@test('cat')
+def _cat(q):
+    """Read ``/initrd/test.txt`` (ships as res/test.txt in the cpio)."""
+    q.expect(PROMPT)
+    q.send('cat /initrd/test.txt')
+    q.expect(rb'HELLO, WORLD!')
+    expect_exit_ok(q)
+
+
+@test('ls')
+def _ls(q):
+    """Directory listing of the initrd mount."""
+    q.expect(PROMPT)
+    q.send('ls /initrd')
+    q.expect(rb'bin')
+    q.expect(rb'test\.txt')
+    expect_exit_ok(q)
+
+
+@test('test-app')
+def _test_app(q):
+    """``/bin/test`` runs the in-tree self-test suite. Walk each phase
+    explicitly so a regression that skips or reorders one is caught,
+    and require the process to exit cleanly."""
+    q.expect(PROMPT)
+    q.send('test')
+    q.expect(rb'Testing Syscalls')
+    q.expect(rb'Testing fork\+wait')
+    q.expect(rb'Testing VFS API')
+    q.expect(rb' -> devfs')
+    q.expect(rb' -> initrd')
+    q.expect(rb'Testing tmpfs')
+    expect_exit_ok(q)
+
+
 # ---------------------------------------------------------------------------
 # Runner
 # ---------------------------------------------------------------------------
