@@ -484,7 +484,7 @@ static void __init vmm_cpu_init(void *)
 int __init vmm_init(void)
 {
 	if (!has_hypervisor()) {
-		pri(ISTR("H-Extensions not available\n"));
+		pri("H-Extensions not available\n");
 		return 0;
 	}
 
