@@ -18,7 +18,9 @@
 #include <grinch/console.h>
 #include <grinch/device.h>
 #include <grinch/errno.h>
+#include <grinch/fdt.h>
 #include <grinch/serial.h>
+#include <grinch/string.h>
 
 static char __console_buffer[4096] __aligned((PAGE_SIZE));
 static struct ringbuf console_ringbuf = {
@@ -84,10 +86,11 @@ void console_puts(const char *str)
 
 int __init console_init(void)
 {
-	const char *stdoutpath, *src;
+	const char *stdoutpath, *src, *path;
 	struct uart_chip *chip;
 	struct device *dev;
 	struct file *fp;
+	char buf[64], *opts;
 	int err, node;
 	bool flush;
 
@@ -109,8 +112,14 @@ int __init console_init(void)
 	}
 	pri("stdout-path: %s\n", stdoutpath);
 
-	// FIXME: _this_ is hacky.
-	dev = dev_find_of_path(stdoutpath);
+	/* stdout-path is an /aliases name with optional ":baud" options we ignore. */
+	strncpy(buf, stdoutpath, sizeof(buf) - 1);
+	buf[sizeof(buf) - 1] = '\0';
+	opts = strchrnul(buf, ':');
+	*opts = '\0';
+	path = fdt_get_alias(_fdt, buf) ?: buf;
+
+	dev = dev_find_of_path(path);
 	if (!dev)
 		goto remain;
 
