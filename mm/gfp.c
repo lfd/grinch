@@ -493,8 +493,9 @@ int __init phys_mem_init_fdt(void)
 
 		err = fdt_read_reg(_fdt, child, 0, &mem);
 		if (err) {
-			pri("Error reserving area %s\n", uname);
-			return trace_error(err);
+			pri("Error reserving area %s: %pe\n",
+			    uname, ERR_PTR(err));
+			continue;
 		}
 
 		pri("Reserving memory area %s (0x%lx len: 0x%lx)\n",
@@ -502,5 +503,5 @@ int __init phys_mem_init_fdt(void)
 		phys_mark_used(mem.paddr, PAGES(page_up(mem.size)));
 	}
 
-	return err;
+	return 0;
 }
