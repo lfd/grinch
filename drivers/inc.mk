@@ -12,6 +12,7 @@ DRIVERS_SERIAL_OBJS += serial/uart-dummy.o
 DRIVERS_SERIAL_OBJS += serial/uart-8250.o
 DRIVERS_SERIAL_OBJS += serial/uart-apbuart.o
 
+DRIVERS_TIMER_OBJS =
 ifdef ARCH_RISCV
 	DRIVERS_OBJS += sbi-tty.o
 	DRIVERS_SERIAL_OBJS += serial/uart-uartlite.o
@@ -19,6 +20,9 @@ ifdef ARCH_RISCV
 	DRIVERS_IRQ_OBJS += irq/riscv/aplic.o
 	DRIVERS_IRQ_OBJS += irq/riscv/plic.o
 	DRIVERS_IRQ_OBJS += irq/riscv/xplic.o
+endif
+ifdef ARCH_ARM64
+	DRIVERS_SERIAL_OBJS += serial/uart-pl011.o
 endif
 
 DRIVERS_OBJS := $(addprefix drivers/, $(DRIVERS_OBJS))
@@ -29,7 +33,6 @@ OBJ_DIRS += $(dir $(DRIVERS_OBJS) $(DRIVERS_IRQ_OBJS) $(DRIVERS_SERIAL_OBJS))
 
 drivers/irq/built-in.a: $(DRIVERS_IRQ_OBJS)
 drivers/serial/built-in.a: $(DRIVERS_SERIAL_OBJS)
-
 drivers/built-in.a: drivers/irq/built-in.a drivers/serial/built-in.a $(DRIVERS_OBJS)
 
 clean_drivers:
