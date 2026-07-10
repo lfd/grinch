@@ -25,6 +25,7 @@
 #define  UART_LCR_8N1		0x03
 #define  UART_LCR_DLAB		0x80
 #define UART_LSR		0x5
+#define  UART_LSR_DR		0x01
 #define  UART_LSR_THRE		0x20
 
 /* DesignWare specific register */
@@ -34,6 +35,9 @@
 static int uart_8250_rcv_handler(struct uart_chip *chip)
 {
 	unsigned char ch;
+
+	if (!(chip->reg_in(chip, UART_LSR) & UART_LSR_DR))
+		return 0;
 
 	ch = chip->reg_in(chip, UART_RX);
 	serial_in(chip, ch);
