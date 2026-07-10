@@ -20,7 +20,7 @@
 #include <grinch/errno.h>
 #include <grinch/serial.h>
 
-static char __console_buffer[2048];
+static char __console_buffer[4096] __aligned((PAGE_SIZE));
 static struct ringbuf console_ringbuf = {
 	.buf = __console_buffer,
 	.size = sizeof(__console_buffer),
