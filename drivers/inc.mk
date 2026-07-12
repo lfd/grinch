@@ -23,6 +23,7 @@ ifdef ARCH_RISCV
 endif
 ifdef ARCH_ARM64
 	DRIVERS_SERIAL_OBJS += serial/uart-pl011.o
+	DRIVERS_IRQ_OBJS += irq/gic-v2.o
 endif
 
 DRIVERS_OBJS := $(addprefix drivers/, $(DRIVERS_OBJS))

@@ -151,6 +151,12 @@ int irqchip_set_affinity(unsigned int irq, unsigned long cpu)
 	return -ENOSYS;
 }
 
+void irqchip_send_ipi(unsigned long cpuid)
+{
+	if (irqchip_fn && irqchip_fn->send_ipi)
+		irqchip_fn->send_ipi(cpuid);
+}
+
 int irqchip_cpu_init(void)
 {
 	/* Local per-hart interrupt bring-up (e.g. the riscv IPI). */

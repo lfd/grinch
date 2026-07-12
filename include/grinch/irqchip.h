@@ -27,6 +27,8 @@ struct irqchip_fn {
 	int (*disable_irq)(unsigned int irq);
 	int (*set_affinity)(unsigned int irq, unsigned long cpu);
 	int (*init)(struct device *dev);
+	/* Send an inter-processor interrupt to a remote CPU. */
+	void (*send_ipi)(unsigned long cpuid);
 	/* Per-CPU controller setup, run on every CPU that comes online. */
 	int (*cpu_init)(void);
 };
@@ -38,6 +40,7 @@ int irq_register_handler(u32 irq, irq_handler_t handler, void *userdata);
 void irqchip_handle_irq(unsigned int irq);
 int irqchip_enable_irq(unsigned int irq);
 int irqchip_set_affinity(unsigned int irq, unsigned long cpu);
+void irqchip_send_ipi(unsigned long cpuid);
 
 /*
  * Per-CPU interrupt setup, run on every CPU as it comes online: the arch's
