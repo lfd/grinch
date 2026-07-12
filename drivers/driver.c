@@ -35,8 +35,8 @@ static int __init drivers_probe(enum driver_prio prio)
 	char path[64];
 
 	off = fdt_path_offset(_fdt, ISTR("/soc"));
-	if (off <= 0)
-		return -ENOENT;
+	if (off < 0)
+		off = 0;
 
 	fdt_for_each_subnode(sub, _fdt, off) {
 		err = fdt_get_path(_fdt, sub, path, sizeof(path));
