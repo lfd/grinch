@@ -221,9 +221,6 @@ static int process_load_elf(struct task *task, Elf_Ehdr *ehdr,
 		if (phdr->p_type != PT_LOAD)
 			continue;
 
-		if (phdr->p_align != PAGE_SIZE)
-			return -EINVAL;
-
 		base = (void *)(uintptr_t)phdr->p_vaddr;
 
 		vma_flags = VMA_FLAG_USER;
