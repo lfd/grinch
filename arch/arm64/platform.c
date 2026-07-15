@@ -10,13 +10,25 @@
  * the COPYING file in the top-level directory.
  */
 
-#include <grinch/errno.h>
+#define dbg_fmt(x)	"platform: " x
+
+#include <grinch/gfp.h>
 #include <grinch/init.h>
+#include <grinch/percpu.h>
 #include <grinch/platform.h>
+#include <grinch/printk.h>
+#include <grinch/smp.h>
 
 int __init arch_platform_init(void)
 {
-	/* IMPLEMENT ME! */
-	for (;;);
-	__builtin_unreachable();
+	unsigned long cpu;
+
+	// FIXME: Determine available CPUs from FDT
+	bitmap_set(cpus_available, 0, 1);
+
+	/* Free per_cpu pages of absent CPUs back to the pool */
+	for (cpu = 1; cpu < MAX_CPUS; cpu++)
+		free_pages(per_cpu(cpu), PAGES(sizeof(struct per_cpu)));
+
+	return 0;
 }
