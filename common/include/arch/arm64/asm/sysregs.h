@@ -134,6 +134,8 @@
 #define ESR_EC_IABT_LOW		0x20
 #define ESR_EC_DABT_LOW		0x24
 
+#define ESR_ISS_WNR		(1 << 6)
+
 #define MPIDR_CPUID_MASK	0xff00ffffffUL
 
 #define MPIDR_LEVEL_BITS_SHIFT	3
