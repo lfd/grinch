@@ -68,9 +68,14 @@
 
 static inline unsigned long arch_paging_access_flags(mem_flags_t flags)
 {
-	/* IMPLEMENT ME! */
-	for (;;);
-	__builtin_unreachable();
+	unsigned long ret;
+
+	ret = ((flags & GRINCH_MEM_U) ? (S1_PTE_ACCESS_EL0 | S1_PTE_NG) : 0) |
+	      ((flags & GRINCH_MEM_W) ? S1_PTE_ACCESS_RW : S1_PTE_ACCESS_RO) |
+	      ((flags & GRINCH_MEM_X) ? 0 : (S1_PTE_PXN | S1_PTE_UXN)) |
+	      ((flags & GRINCH_MEM_DEVICE) ? S1_DEVICE_FLAGS : S1_MEM_FLAGS);
+
+	return ret;
 }
 
 #endif /* !__ASSEMBLY__ */
