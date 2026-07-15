@@ -6,6 +6,12 @@ config_defines += CONFIG_ARCH_ARM64=64
 CFLAGS_ARCH = -mgeneral-regs-only
 LDFLAGS_ARCH =
 
+# Route the early debug console through the QEMU semihosting interface
+ifeq ($(CONFIG_ARM64_SEMIHOSTING),1)
+config_defines += CONFIG_ARM64_SEMIHOSTING=1
+QEMU_ARGS_SEMIHOSTING = -semihosting
+endif
+
 ARCH_OBJS = cpu.o entry.o head.o paging.o arch.o traps.o platform.o
 ARCH_OBJS += smp.o stackdump.o task.o timer.o loader.o
 
@@ -18,7 +24,7 @@ QEMU_INITRD_ADDR = 0x48000000
 QEMU_LOAD_UBOOT = -bios $(UBOOT_BIN)
 endif
 
-QEMU_ARGS = $(QEMU_ARGS_PLATFORM) -serial stdio $(QEMU_MACHINE) -semihosting
+QEMU_ARGS = $(QEMU_ARGS_PLATFORM) -serial stdio $(QEMU_MACHINE) $(QEMU_ARGS_SEMIHOSTING)
 QEMU_UBOOT_ARGS = \
 	$(QEMU_LOAD_UBOOT) \
 	-device loader,file=grinch.bin,addr=$(QEMU_KERNEL_ADDR),force-raw=on \
