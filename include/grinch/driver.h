@@ -47,5 +47,6 @@ __driver_##ID __used __section(".drivers") = {			\
 };
 
 int driver_init(void);
+int driver_probe_node(const struct driver *drv, int node);
 
 #endif /* _DRIVER_H */
