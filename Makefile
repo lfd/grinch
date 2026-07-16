@@ -55,19 +55,26 @@ VPATH := $(srctree)
 # Persisted build settings. Created on first invocation with current
 # defaults merged with any command-line overrides; never overwritten
 # after that. Hand-edit, or run 'make mrproper' to reset.
-arch_vars    := ARCH CROSS_COMPILE PLATFORM
-build_vars   := OPT CONFIG_GCOV CONFIG_DEBUG_OUTPUT CONFIG_INITCONST_STR CONFIG_VMM
-qemu_vars    := QEMU_CPUS QEMU_APPEND QEMU_DISPLAY QEMU_SERIAL
-tracked_vars := $(arch_vars) $(build_vars) $(qemu_vars)
-config_mk    := $(objtree)/config.mk
+arch_vars     := ARCH PLATFORM
+compiler_vars := CROSS_COMPILE OPT
+build_vars    := CONFIG_GCOV CONFIG_DEBUG_OUTPUT CONFIG_INITCONST_STR CONFIG_VMM
+qemu_vars     := QEMU_CPUS QEMU_APPEND QEMU_DISPLAY QEMU_SERIAL
+tracked_vars  := $(arch_vars) $(compiler_vars) $(build_vars) $(qemu_vars)
+# Free-form string values: persisted in double quotes, unquoted again
+# right after inclusion. Flag-style options (CONFIG_*) stay bare.
+string_vars   := ARCH PLATFORM CROSS_COMPILE OPT QEMU_APPEND QEMU_DISPLAY QEMU_SERIAL
+config_mk     := $(objtree)/config.mk
 -include $(config_mk)
+$(foreach v,$(string_vars),$(if $($(v)),$(eval $(v) := $(patsubst "%",%,$($(v))))))
 
 ARCH ?= riscv64
-CROSS_COMPILE ?= $(ARCH)-unknown-linux-gnu-
 PLATFORM ?= any
 
-# Build options
+# Compiler
+CROSS_COMPILE ?= $(ARCH)-unknown-linux-gnu-
 OPT ?= -O0
+
+# Build options
 CONFIG_VMM ?= 1
 #V=1
 #CONFIG_DEBUG_OUTPUT=1
@@ -76,7 +83,7 @@ CONFIG_VMM ?= 1
 
 # QEMU runtime
 QEMU_CPUS ?= 2
-QEMU_APPEND ?= ""
+QEMU_APPEND ?=
 QEMU_DISPLAY ?= none
 QEMU_SERIAL ?= stdio
 
@@ -160,13 +167,14 @@ endef
 # Emit one group of persisted settings (header + assignments) for the
 # config.mk writer. $(1) is the group label, $(2) is the var list.
 # Single-line on purpose so it works in both $(shell) and recipes.
-emit_group = echo; echo '\# $(1)'; $(foreach v,$(2),echo '$(v) := $($(v))';)
+emit_group = echo; echo '\# $(1)'; $(foreach v,$(2),echo '$(v)=$(if $(filter $(v),$(string_vars)),"$($(v))",$($(v)))';)
 
 # Shell command that (re)writes config.mk in one go. Used both at parse
 # time (auto-create on first invocation) and from the defconfig recipe.
 config_mk_cmd = { \
 	echo '\# Auto-generated. Edit to change settings; run mrproper to reset.'; \
 	$(call emit_group,Architecture,$(arch_vars)) \
+	$(call emit_group,Compiler,$(compiler_vars)) \
 	$(call emit_group,Build options,$(build_vars)) \
 	$(call emit_group,QEMU runtime,$(qemu_vars)) \
 } > $(config_mk).new && mv -f $(config_mk).new $(config_mk)
@@ -196,7 +204,7 @@ endif
 	$(VERBOSE) rm -f $@
 	$(VERBOSE) $(AR) cDPrST $@ $^
 
-QEMU_CMD=$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS) -append $(QEMU_APPEND)
+QEMU_CMD=$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS) -append "$(QEMU_APPEND)"
 
 QEMU_CMD_DIRECT=$(QEMU_CMD) -kernel grinch.bin -initrd user/initrd.cpio
 QEMU_CMD_UBOOT=$(QEMU_CMD) $(QEMU_UBOOT_ARGS)
