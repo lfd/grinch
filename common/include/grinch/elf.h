@@ -105,4 +105,6 @@ typedef struct elf64_phdr {
 #define AT_NULL		0 /* End of vector */
 #define AT_KINFO	100 /* Address if struct kinfo */
 
+#include <asm/elf.h>
+
 #endif /* _ELF_H */

@@ -28,17 +28,6 @@
 #include <grinch/syscall.h>
 #include <grinch/ttp.h>
 
-#ifdef ARCH_RISCV
-#define ELF_ARCH	EM_RISCV
-#if ARCH_RISCV == 64 /* rv64 */
-typedef Elf64_Ehdr Elf_Ehdr;
-typedef Elf64_Phdr Elf_Phdr;
-#elif ARCH_RISCV == 32 /* rv32 */
-typedef Elf32_Ehdr Elf_Ehdr;
-typedef Elf32_Phdr Elf_Phdr;
-#endif /* rv32 */
-#endif /* riscv */
-
 #define ARG_MAX		PAGE_SIZE
 
 struct auxv {
