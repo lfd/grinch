@@ -2,13 +2,13 @@ UBOOT_CFG=$(ARCH)-qemu.config
 QEMU=qemu-system-$(ARCH)
 
 ifdef ARCH_RISCV64
-CFLAGS_DEF_ARCH = -DCONFIG_ARCH_RISCV=64 -DCONFIG_ARCH=riscv64
-CFLAGS_ARCH = -mcmodel=medany -march=rv64imafdc_zifencei $(CFLAGS_DEF_ARCH)
+config_defines += CONFIG_ARCH_RISCV=64
+CFLAGS_ARCH = -mcmodel=medany -march=rv64imafdc_zifencei
 LDFLAGS_ARCH = -melf64lriscv
 QEMU_CPU = rv64
 else ifdef ARCH_RISCV32
-CFLAGS_DEF_ARCH = -DCONFIG_ARCH_RISCV=32 -DCONFIG_ARCH=riscv32
-CFLAGS_ARCH = -march=rv32imafdc_zifencei -mabi=ilp32 $(CFLAGS_DEF_ARCH)
+config_defines += CONFIG_ARCH_RISCV=32
+CFLAGS_ARCH = -march=rv32imafdc_zifencei -mabi=ilp32
 LDFLAGS_ARCH = -melf32lriscv
 QEMU_CPU = rv32
 endif

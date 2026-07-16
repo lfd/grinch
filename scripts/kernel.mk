@@ -44,14 +44,15 @@ LDFLAGS_KERNEL = $(LDFLAGS_COMMON) $(LDFLAGS_ARCH)
 AFLAGS_KERNEL = $(AFLAGS_COMMON)
 
 ifeq ($(CONFIG_GCOV), 1)
-    CFLAGS_KERNEL += -fprofile-arcs -ftest-coverage -DCONFIG_GCOV=1
+    CFLAGS_KERNEL += -fprofile-arcs -ftest-coverage
+    config_defines += CONFIG_GCOV=1
     ifdef ARCH_RISCV64
         CFLAGS_KERNEL += -fprofile-update=atomic
     endif
 endif
 
 ASM_DEFINES = $(ARCH_DIR)/include/asm/asm_defines.h
-GENERATED = $(ASM_DEFINES) include/generated/version.h include/generated/compile.h
+GENERATED = $(ASM_DEFINES) $(config_h) $(version_h) $(compile_h)
 
 %.o: %.c $(GENERATED)
 	$(QUIET) "[CC]    $@"
@@ -71,12 +72,12 @@ $(ASM_DEFINES): $(ARCH_DIR)/asm_defines.S
 	$(VERBOSE) $(MKDIR_P) $(dir $@)
 	$(VERBOSE) $(srctree)/scripts/asm-defines.sh $^ > $@
 
-include/generated/compile.h: $(srctree)/scripts/mkcompile_h $(srctree)/Makefile
+$(compile_h): $(srctree)/scripts/mkcompile_h $(srctree)/Makefile
 	$(QUIET) "[GEN]   $@"
 	$(VERBOSE) $(MKDIR_P) $(dir $@)
 	$(VERBOSE) $< $@ $(CC) "$(CFLAGS_KERNEL)"
 
-include/generated/version.h: $(srctree)/scripts/mkversion_h $(srctree)/Makefile
+$(version_h): $(srctree)/scripts/mkversion_h $(srctree)/Makefile
 	$(QUIET) "[GEN]   $@"
 	$(VERBOSE) $(MKDIR_P) $(dir $@)
 	$(VERBOSE) $< $@ $(VERSION) $(PATCHLEVEL) $(EXTRAVERSION)

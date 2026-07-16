@@ -87,6 +87,18 @@ QEMU_APPEND ?=
 QEMU_DISPLAY ?= none
 QEMU_SERIAL ?= stdio
 
+# Generated headers
+generated_dir := include/generated
+config_h      := $(generated_dir)/config.h
+version_h     := $(generated_dir)/version.h
+compile_h     := $(generated_dir)/compile.h
+
+# Options consumed by the source world. Each NAME=VALUE entry ends up
+# as '#define NAME VALUE' in $(config_h), which is force-included into
+# every compilation unit instead of passing a pile of -D options.
+# Makefiles below (arch, kernel, ...) append their own entries.
+config_defines := CONFIG_ARCH="$(ARCH)"
+
 all: grinch.bin user/initrd.cpio tools
 
 HOSTCC=gcc
@@ -124,7 +136,8 @@ AFLAGS_COMMON=-D__ASSEMBLY__
 
 CFLAGS_STANDALONE=-nostdinc -ffreestanding -g -ggdb
 ifeq ($(CONFIG_INITCONST_STR), 1)
-CFLAGS_STANDALONE += -Wno-format-security -DCONFIG_INITCONST_STR
+CFLAGS_STANDALONE += -Wno-format-security
+config_defines += CONFIG_INITCONST_STR=1
 else
 CFLAGS_STANDALONE += -Wformat-security
 endif
@@ -137,16 +150,17 @@ CFLAGS_COMMON=$(OPT) \
               -Wstrict-prototypes -Wtype-limits \
               -Wmissing-declarations -Wmissing-prototypes \
               -Wnested-externs -Wshadow -Wredundant-decls \
-              -Wundef -Wdeprecated -Werror
+              -Wundef -Wdeprecated -Werror \
+              -include $(objtree)/$(config_h)
 
 LDFLAGS_COMMON=
 
 ifeq ($(CONFIG_DEBUG_OUTPUT), 1)
-CFLAGS_COMMON += -DCONFIG_DEBUG_OUTPUT
+config_defines += CONFIG_DEBUG_OUTPUT=1
 endif
 
 ifeq ($(CONFIG_VMM), 1)
-CFLAGS_COMMON += -DCONFIG_VMM
+config_defines += CONFIG_VMM=1
 endif
 
 define clean_objects
@@ -179,6 +193,19 @@ config_mk_cmd = { \
 	$(call emit_group,QEMU runtime,$(qemu_vars)) \
 } > $(config_mk).new && mv -f $(config_mk).new $(config_mk)
 
+# Shell command that (re)writes the generated config header from the
+# config_defines list. Runs at parse time on every real build; the file
+# is only touched when its content changes, so flipping an option
+# rebuilds the tree while a no-op run rebuilds nothing.
+# make does not unescape \# inside function calls, hence the variable.
+pound := \#
+config_h_cmd = $(MKDIR_P) $(dir $(config_h)) && { \
+	echo '/* Auto-generated from config.mk. Do not edit. */'; \
+	$(foreach d,$(config_defines),echo '$(pound)define $(subst =, ,$(d))';) \
+} > $(config_h).new && \
+	if cmp -s $(config_h).new $(config_h); then $(RMF) $(config_h).new; \
+	else mv -f $(config_h).new $(config_h); echo updated; fi
+
 include $(srctree)/scripts/kernel.mk
 include $(srctree)/user/inc.mk
 include $(srctree)/tools/inc.mk
@@ -193,7 +220,14 @@ ifeq ($(wildcard $(config_mk)),)
 $(if $(V),$(info $(config_mk_cmd)),$(info [GEN]   $(config_mk)))
 $(shell $(config_mk_cmd))
 endif
+$(if $(shell $(config_h_cmd)),$(info [GEN]   $(config_h)))
 endif
+
+# Normally kept fresh at parse time above; this rule only recreates the
+# header if it went missing mid-build (e.g. 'make clean all').
+$(config_h):
+	$(QUIET) "[GEN]   $@"
+	$(VERBOSE) $(config_h_cmd) >/dev/null
 
 %.bin: %.elf
 	$(QUIET) "[OBJC]  $@"

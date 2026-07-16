@@ -56,7 +56,7 @@ static const char __initconst logo_vm[] =
 " |___/";
 
 static const char __initconst hello[] =
-"       on " __stringify(CONFIG_ARCH) "\n"
+"       on " CONFIG_ARCH "\n"
 "\n      -> Welcome to Grinch " VERSION_STRING " <- \n\n\n";
 
 static bool __initdata do_memtest;

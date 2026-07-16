@@ -2,12 +2,12 @@ TOOLS=tools/dump_layout tools/gcov_extract
 
 OBJ_DIRS += $(dir $(TOOLS))
 
-CFLAGS_TOOLS = $(CFLAGS_COMMON) $(CFLAGS_DEF_ARCH)
+CFLAGS_TOOLS = $(CFLAGS_COMMON)
 
 .PHONY: tools
 tools: $(TOOLS)
 
-tools/%.o: tools/%.c
+tools/%.o: tools/%.c $(config_h)
 	$(QUIET) "[HOSTCC]$@"
 	$(VERBOSE) $(HOSTCC) $(CFLAGS_TOOLS) -ggdb -c -o $@ $<
 
