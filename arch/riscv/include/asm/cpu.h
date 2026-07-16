@@ -127,6 +127,8 @@ static __always_inline void __noreturn cpu_halt(void)
 	__builtin_unreachable();
 }
 
+void arch_guest_init(void);
+
 void flush_tlb_all(void);
 
 #endif /* __ASSEMBLY__ */

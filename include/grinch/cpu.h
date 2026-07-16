@@ -17,8 +17,6 @@
 
 extern bool grinch_is_guest;
 
-void arch_guest_init(void);
-
 void dump_regs(struct registers *a);
 void dump_exception(struct trap_context *ctx);
 
