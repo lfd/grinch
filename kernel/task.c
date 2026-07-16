@@ -333,7 +333,7 @@ static void task_activate(struct task *task)
 	task->state = TASK_RUNNING;
 	task->on_cpu = this_cpu_id();
 
-#ifdef DEBUG
+#ifdef CONFIG_DEBUG_OUTPUT
 	pr_dbg("CPU %lu took PID %d\n", this_cpu_id(), task->pid);
 #endif
 

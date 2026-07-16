@@ -21,7 +21,7 @@
 #define __initbootparams	__used __section(".init.bootparams")
 
 /* Constant init string */
-#ifdef INITCONST_STR
+#ifdef CONFIG_INITCONST_STR
 #define ISTR(X)		({static const char __c[] __initconst = (X); &__c[0];})
 #else
 #define ISTR(X)		X

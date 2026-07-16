@@ -12,10 +12,10 @@
 
 #define ELF_ARCH	EM_RISCV
 
-#if ARCH_RISCV == 64
+#if CONFIG_ARCH_RISCV == 64
 typedef Elf64_Ehdr Elf_Ehdr;
 typedef Elf64_Phdr Elf_Phdr;
-#elif ARCH_RISCV == 32
+#elif CONFIG_ARCH_RISCV == 32
 typedef Elf32_Ehdr Elf_Ehdr;
 typedef Elf32_Phdr Elf_Phdr;
 #endif

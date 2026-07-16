@@ -11,7 +11,7 @@ KERNEL_OBJS += task.o
 KERNEL_OBJS += timer.o
 KERNEL_OBJS += uaccess.o
 
-ifdef GCOV
+ifdef CONFIG_GCOV
 KERNEL_OBJS += gcov.o
 endif
 

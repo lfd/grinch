@@ -14,14 +14,14 @@
 #ifndef _GRINCH_GCOV_H
 #define _GRINCH_GCOV_H
 
-#ifdef GCOV
+#ifdef CONFIG_GCOV
 
 extern struct gcov_min_info *gcov_info_head;
 #define GCOV_HEAD	&gcov_info_head
 
 void gcov_init(void);
 
-#else /* !GCOV */
+#else /* !CONFIG_GCOV */
 
 #define GCOV_HEAD	NULL
 
@@ -29,6 +29,6 @@ static inline void gcov_init(void)
 {
 }
 
-#endif /* GCOV */
+#endif /* CONFIG_GCOV */
 
 #endif /* _GRINCH_GCOV_H */

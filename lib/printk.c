@@ -23,7 +23,7 @@
 #include <grinch/vsprintf.h>
 
 
-#ifdef DEBUG
+#ifdef CONFIG_DEBUG_OUTPUT
 #define LOGLEVEL_DEFAULT	9
 #else
 #define LOGLEVEL_DEFAULT	2

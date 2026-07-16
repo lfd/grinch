@@ -148,7 +148,7 @@ OBJ_DIRS += $(dir $(IMAGES))
 
 INITRD_EXTRAS =
 
-ifeq ($(VMM), 1)
+ifeq ($(CONFIG_VMM), 1)
 INITRD_EXTRAS += grinch.bin
 endif
 

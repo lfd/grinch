@@ -10,11 +10,11 @@
  * the COPYING file in the top-level directory.
  */
 
-#if ARCH_RISCV == 64 /* rv64 */
+#if CONFIG_ARCH_RISCV == 64 /* rv64 */
 #define REG_S	sd /* 64-Bit Double Load */
 #define REG_L	ld /* 32-Bit Double Load */
 #define SZREG	8 /* Register Size: 8 Byte / 64 Bit */
-#elif ARCH_RISCV == 32 /* rv32 */
+#elif CONFIG_ARCH_RISCV == 32 /* rv32 */
 #define REG_S	sw /* 32-Bit Word Store */
 #define REG_L	lw /* 32-Bit Word Load */
 #define SZREG	4 /* Register Size: 4 Byte / 32 Bit */

@@ -21,9 +21,9 @@
 
 static inline timeu_t get_time(void)
 {
-#if ARCH_RISCV == 64 /* rv64 */
+#if CONFIG_ARCH_RISCV == 64 /* rv64 */
 	return csr_read(time);
-#elif ARCH_RISCV == 32 /* rv32 */
+#elif CONFIG_ARCH_RISCV == 32 /* rv32 */
 	u32 hi, lo;
 	do {
 		hi = csr_read(timeh);

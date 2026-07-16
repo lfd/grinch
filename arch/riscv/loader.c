@@ -27,7 +27,7 @@ void __noreturn
 grinch_start(unsigned long hart_id, paddr_t fdt, paddr_t dst);
 
 /* 2 MiB page size, in case of RV64 (SV39) */
-#if ARCH_RISCV == 32 /* rv32 */
+#if CONFIG_ARCH_RISCV == 32 /* rv32 */
 static inline void __init enable_mmu(paddr_t l0)
 {
 	enable_mmu_satp(SATP_MODE_32, l0);
@@ -58,7 +58,7 @@ map_page(void **next, unsigned long *l0, void *vaddr, paddr_t paddr)
 	l1_entry = &l1[vaddr2vpn(vaddr, 0)];
 	*l1_entry = paddr2pte(paddr) | PAGE_FLAGS_DEFAULT;
 }
-#elif ARCH_RISCV == 64 /* rv64 */
+#elif CONFIG_ARCH_RISCV == 64 /* rv64 */
 static unsigned long * __init
 walk_to_l1(void **next, unsigned long *l0, void *vaddr)
 {

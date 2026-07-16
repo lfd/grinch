@@ -56,7 +56,7 @@ VPATH := $(srctree)
 # defaults merged with any command-line overrides; never overwritten
 # after that. Hand-edit, or run 'make mrproper' to reset.
 arch_vars    := ARCH CROSS_COMPILE PLATFORM
-build_vars   := OPT GCOV DEBUG_OUTPUT INITCONST_STR VMM
+build_vars   := OPT CONFIG_GCOV CONFIG_DEBUG_OUTPUT CONFIG_INITCONST_STR CONFIG_VMM
 qemu_vars    := QEMU_CPUS QEMU_APPEND QEMU_DISPLAY QEMU_SERIAL
 tracked_vars := $(arch_vars) $(build_vars) $(qemu_vars)
 config_mk    := $(objtree)/config.mk
@@ -68,11 +68,11 @@ PLATFORM ?= any
 
 # Build options
 OPT ?= -O0
-VMM ?= 1
+CONFIG_VMM ?= 1
 #V=1
-#DEBUG_OUTPUT=1
-#INITCONST_STR=1
-#GCOV=1
+#CONFIG_DEBUG_OUTPUT=1
+#CONFIG_INITCONST_STR=1
+#CONFIG_GCOV=1
 
 # QEMU runtime
 QEMU_CPUS ?= 2
@@ -116,8 +116,8 @@ endif
 AFLAGS_COMMON=-D__ASSEMBLY__
 
 CFLAGS_STANDALONE=-nostdinc -ffreestanding -g -ggdb
-ifeq ($(INITCONST_STR), 1)
-CFLAGS_STANDALONE += -Wno-format-security -DINITCONST_STR
+ifeq ($(CONFIG_INITCONST_STR), 1)
+CFLAGS_STANDALONE += -Wno-format-security -DCONFIG_INITCONST_STR
 else
 CFLAGS_STANDALONE += -Wformat-security
 endif
@@ -134,11 +134,11 @@ CFLAGS_COMMON=$(OPT) \
 
 LDFLAGS_COMMON=
 
-ifeq ($(DEBUG_OUTPUT), 1)
-CFLAGS_COMMON += -DDEBUG
+ifeq ($(CONFIG_DEBUG_OUTPUT), 1)
+CFLAGS_COMMON += -DCONFIG_DEBUG_OUTPUT
 endif
 
-ifeq ($(VMM), 1)
+ifeq ($(CONFIG_VMM), 1)
 CFLAGS_COMMON += -DCONFIG_VMM
 endif
 

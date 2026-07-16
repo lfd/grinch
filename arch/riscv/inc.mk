@@ -2,12 +2,12 @@ UBOOT_CFG=$(ARCH)-qemu.config
 QEMU=qemu-system-$(ARCH)
 
 ifdef ARCH_RISCV64
-CFLAGS_DEF_ARCH = -DARCH_RISCV=64 -DARCH=riscv64
+CFLAGS_DEF_ARCH = -DCONFIG_ARCH_RISCV=64 -DCONFIG_ARCH=riscv64
 CFLAGS_ARCH = -mcmodel=medany -march=rv64imafdc_zifencei $(CFLAGS_DEF_ARCH)
 LDFLAGS_ARCH = -melf64lriscv
 QEMU_CPU = rv64
 else ifdef ARCH_RISCV32
-CFLAGS_DEF_ARCH = -DARCH_RISCV=32 -DARCH=riscv32
+CFLAGS_DEF_ARCH = -DCONFIG_ARCH_RISCV=32 -DCONFIG_ARCH=riscv32
 CFLAGS_ARCH = -march=rv32imafdc_zifencei -mabi=ilp32 $(CFLAGS_DEF_ARCH)
 LDFLAGS_ARCH = -melf32lriscv
 QEMU_CPU = rv32
@@ -38,7 +38,7 @@ ARCH_OBJS+=stackdump.o
 ARCH_OBJS+=task.o
 ARCH_OBJS+=timer.o
 ARCH_OBJS+=traps.o
-ifeq ($(VMM), 1)
+ifeq ($(CONFIG_VMM), 1)
 ARCH_OBJS+=vmm/vmm.o
 ARCH_OBJS+=vmm/vmm_ecall.o
 endif

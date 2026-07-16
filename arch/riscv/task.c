@@ -40,10 +40,10 @@ void arch_process_activate(struct process *process)
 	csr_clear(sstatus, SR_SPP);
 
 	tpcpu = this_per_cpu();
-#if ARCH_RISCV == 64 /* rv64 */
+#if CONFIG_ARCH_RISCV == 64 /* rv64 */
 	/* On SV39, SV48, …: The lower half belongs to the user */
 	len = PAGE_SIZE / 2;
-#elif ARCH_RISCV == 32 /* rv32 */
+#elif CONFIG_ARCH_RISCV == 32 /* rv32 */
 	len = vaddr2vpn((void *)USER_END, 1) * sizeof(unsigned long);
 #endif
 	memcpy(tpcpu->root_table_page, process->mm.page_table, len);
