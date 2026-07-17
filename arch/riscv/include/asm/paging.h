@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -80,17 +80,23 @@ static inline void enable_mmu_satp(u64 mode, paddr_t pt)
 	local_flush_tlb_all();
 }
 
+/*
+ * Changing hgatp needs both fences: hfence.gvma for the G-stage
+ * translations themselves, hfence.vvma for combined VS-stage entries
+ * that were formed through the old G-stage tables. All VMs currently
+ * share VMID 0, so nothing is tagged apart.
+ */
 static inline void enable_mmu_hgatp(u64 mode, paddr_t pt)
 {
-	local_hfence_vvma_all();
 	csr_write(CSR_HGATP, ATP(mode, pt));
+	local_hfence_gvma_all();
 	local_hfence_vvma_all();
 }
 
 static inline void disable_mmu_hgatp(void)
 {
-	local_hfence_vvma_all();
 	csr_write(CSR_HGATP, 0);
+	local_hfence_gvma_all();
 	local_hfence_vvma_all();
 }
 

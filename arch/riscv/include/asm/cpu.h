@@ -106,6 +106,17 @@ static __always_inline void local_hfence_vvma_all(void)
 	asm volatile(".insn 0x22000073" : : : "memory"); /* hfence.vvma zero, zero */
 }
 
+static __always_inline void local_hfence_gvma_all(void)
+{
+	asm volatile(".insn 0x62000073" : : : "memory"); /* hfence.gvma zero, zero */
+}
+
+/* Flush guest (stage-2) translations on this CPU */
+static __always_inline void local_flush_tlb_guest_all(void)
+{
+	local_hfence_gvma_all();
+}
+
 static __always_inline void local_flush_tlb_all(void)
 {
 	asm volatile("sfence.vma" : : : "memory");
