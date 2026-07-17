@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -14,14 +14,38 @@
 
 #include <grinch/bitmap.h>
 #include <grinch/bitops.h>
+#include <grinch/bootparam.h>
 #include <grinch/cpu.h>
 #include <grinch/ioremap.h>
 #include <grinch/paging.h>
 #include <grinch/percpu.h>
+#include <grinch/printk.h>
 
 #define IOREMAP_PAGES	PAGES(IOREMAP_SIZE)
 
 static unsigned long ioremap_bitmap[BITMAP_ELEMS(IOREMAP_PAGES)];
+static size_t ioremap_pages = IOREMAP_PAGES;
+
+static void __init ioremap_size_parse(const char *arg)
+{
+	size_t sz;
+	int err;
+
+	err = bootparam_parse_size(arg, &sz);
+	if (err) {
+		pri("Warning: Unable to parse ioremap_size=%s\n", arg);
+		return;
+	}
+
+	sz = page_up(sz);
+	if (sz > IOREMAP_SIZE) {
+		pri("Warning: ioremap_size=%s exceeds the window\n", arg);
+		return;
+	}
+
+	ioremap_pages = PAGES(sz);
+}
+bootparam(ioremap_size, ioremap_size_parse);
 
 void __init *ioremap(paddr_t paddr, size_t size)
 {
@@ -42,9 +66,9 @@ void __init *ioremap(paddr_t paddr, size_t size)
 		align_mask = 0;
 
 retry:
-	start = bitmap_find_next_zero_area(ioremap_bitmap, IOREMAP_PAGES,
+	start = bitmap_find_next_zero_area(ioremap_bitmap, ioremap_pages,
 					   0, pages, align_mask);
-	if (start > IOREMAP_PAGES) {
+	if (start > ioremap_pages) {
 		if (align_mask == 0)
 			return ERR_PTR(-ENOMEM);
 
@@ -68,11 +92,13 @@ retry:
 
 static bool __init is_ioremap(const void *vaddr, size_t pages)
 {
+	uintptr_t end = IOREMAP_BASE + ioremap_pages * PAGE_SIZE;
 	uintptr_t addr = (uintptr_t)vaddr;
-	if (addr < IOREMAP_BASE || addr >= IOREMAP_END)
+
+	if (addr < IOREMAP_BASE || addr >= end)
 		return false;
 
-	if (addr + pages * PAGE_SIZE > IOREMAP_END)
+	if (addr + pages * PAGE_SIZE > end)
 		return false;
 
 	return true;

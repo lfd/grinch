@@ -177,6 +177,7 @@ Basic features:
 | timer_hz    | int    | Timer frequency               |
 | loglevel    | int    | loglevel. Highest=0, Default=1|
 | kheap_size  | int    | Kernel Heap size (e.g., 8M)   |
+| ioremap_size| int    | Usable I/O remap size (e.g., 64M) |
 | console     | str    | boot console (ttyS0)          |
 | init        | str    | init executable               |
 
