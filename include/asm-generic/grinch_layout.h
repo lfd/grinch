@@ -10,6 +10,9 @@
  * the COPYING file in the top-level directory.
  */
 
+#ifndef _GRINCH_LAYOUT_H
+#define _GRINCH_LAYOUT_H
+
 #define USER_START		_UL(0x1000)
 
 /* Must be a multiple of 256 KiB */
@@ -59,3 +62,5 @@ static inline unsigned char *grinch_base(void)
 }
 
 #endif /* __ASSEMBLY__ */
+
+#endif /* _GRINCH_LAYOUT_H */
