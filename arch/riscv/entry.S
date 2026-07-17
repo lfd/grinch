@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -25,15 +25,19 @@
 .globl excp_handler
 excp_handler:
 	csrrw	sp, sscratch, sp
-	bnez	sp, save_ctx
+	bnez	sp, save_user_ctx
 
 	/* sp is zero: we have an exception from kernel space. So restore sp. */
 	csrr	sp, sscratch
+	addi	sp, sp, -STRUCT_REGISTERS_SIZE
+	context REG_S
+	j	common_ctx
 
-save_ctx:
+save_user_ctx:
 	addi	sp, sp, -STRUCT_REGISTERS_SIZE
 	context REG_S
 
+common_ctx:
 	csrr	a0, sepc
 	REG_S	a0, REG_PC(sp)
 
