@@ -324,8 +324,11 @@ static void task_activate(struct task *task)
 		tpcpu->current_task->state = TASK_RUNNABLE;
 
 	tpcpu->current_task = task;
-	if (!task)
+	if (!task) {
+		/* Don't leave the translation root on a process' page table */
+		arch_process_deactivate();
 		return;
+	}
 
 	if (task->state != TASK_RUNNABLE)
 		panic("Activating non-runnable task: PID %u state: %x\n",
@@ -343,6 +346,8 @@ static void task_activate(struct task *task)
 		break;
 
 	case GRINCH_VMACHINE:
+		/* Don't leave the translation root on a process' page table */
+		arch_process_deactivate();
 		arch_vmachine_activate(&task->vmachine);
 		break;
 
@@ -727,19 +732,6 @@ retry:
 		}
 		do_idle();
 		goto retry;
-	}
-
-	if (tpcpu->pt_needs_update) {
-		tpcpu->pt_needs_update = false;
-		switch (current_task()->type) {
-			case GRINCH_PROCESS:
-				arch_process_activate(&current_task()->process);
-				break;
-
-			default:
-				BUG();
-				break;
-		}
 	}
 
 	task_restore();

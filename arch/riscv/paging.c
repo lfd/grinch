@@ -30,7 +30,7 @@
 	(RISCV_PTE_FLAG(R) | RISCV_PTE_FLAG(W) | RISCV_PTE_FLAG(X))
 
 unsigned long hgatp_mode;
-static unsigned long satp_mode;
+unsigned long satp_mode;
 
 static inline unsigned long pte2phys(unsigned long pte)
 {

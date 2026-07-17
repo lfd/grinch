@@ -289,8 +289,12 @@ void process_destroy(struct task *task)
 		process->cwd.pathname = NULL;
 	}
 
-	if (process->mm.page_table)
+	if (process->mm.page_table) {
+		/* The dying process' page table may be the live root */
+		if (this_per_cpu()->current_task == task)
+			arch_process_deactivate();
 		free_pages(process->mm.page_table, 1);
+	}
 }
 
 struct task *process_alloc_new(const char *name)
@@ -331,9 +335,6 @@ int process_handle_fault(struct task *task, void __user *addr, bool is_write)
 		return err;
 	}
 
-	if (task == current_task())
-		this_per_cpu()->pt_needs_update = true;
-
 	return err;
 }
 
@@ -369,7 +370,6 @@ static long _sys_execve(const char __user *_pathname,
 	uvmas_destroy(process);
 	process->brk.base = NULL;
 	process->brk.vma = NULL;
-	this_per_cpu()->pt_needs_update = true;
 
 	err = process_from_path(this, cwd(), pathname, &argv, &envp);
 

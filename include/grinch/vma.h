@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023-2024
+ * Copyright (c) OTH Regensburg, 2023-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -32,7 +32,7 @@ struct vma {
 };
 
 struct mm {
-	/* Only lower half must be used */
+	/* Holds the user mappings; kernel entries are installed on activation */
 	page_table_t page_table;
 
 	/* list of struct vma */

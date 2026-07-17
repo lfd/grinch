@@ -45,17 +45,15 @@ struct paging_structures {
 };
 
 /*
- * A process' page table is only a template: it is never installed as
- * the MMU's translation root. arch_process_activate() copies its user
- * half into the per-CPU root table, so its translations are live -
- * through the shared lower-level tables - only while the process is
- * current on this CPU.
+ * A process' page table is the translation root while its process is
+ * current on this CPU. The kernel root stays live under any root:
+ * activation installs its entries, and they share their lower-level
+ * tables across all roots.
  *
  * Translations of a process that ran earlier may linger on other CPUs
- * (stale root table copies) until they activate their next process.
- * That is tolerable: user mappings are only architecturally accessed
- * while their process runs, and arch_process_activate() performs a
- * full local flush before that.
+ * until they activate their next task. That is tolerable: user
+ * mappings are only architecturally accessed while their process runs,
+ * and activation performs a full local flush.
  */
 static enum tlb_scope tlb_scope_of(page_table_t pt)
 {

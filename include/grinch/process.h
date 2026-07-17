@@ -2,7 +2,7 @@
  *
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023-2024
+ * Copyright (c) OTH Regensburg, 2023-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -53,6 +53,7 @@ int process_setcwd(struct task *t, const char *pathname);
 
 /* Arch specific routines */
 void arch_process_activate(struct process *task);
+void arch_process_deactivate(void);
 void arch_kinfo_init(struct kinfo *kinfo);
 
 /* Utilities */
