@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2025
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -113,7 +113,9 @@ static __always_inline void local_flush_tlb_all(void)
 
 static __always_inline void local_flush_tlb_page(paddr_t page_addr)
 {
-	asm volatile("sfence.vma /* rd, */ zero, %[addr]"
+	/* sfence.vma rs1, rs2: rs1 holds the virtual address, rs2 the
+	 * ASID. rs2 = x0 flushes the page across all address spaces. */
+	asm volatile("sfence.vma %[addr], zero"
 		     : : [addr] "r" (page_addr));
 }
 
