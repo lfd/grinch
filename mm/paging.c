@@ -90,7 +90,9 @@ static int paging_destroy(const struct paging_structures *pg_structs,
 	while (size > 0) {
 		const struct paging *paging = pg_structs->root_paging;
 		page_table_t pt[MAX_PAGE_TABLE_LEVELS];
+		page_table_t empty[MAX_PAGE_TABLE_LEVELS];
 		unsigned long page_size, advance;
+		int n_empty = 0;
 		pt_entry_t pte;
 		int n = 0;
 		int err;
@@ -147,20 +149,36 @@ static int paging_destroy(const struct paging_structures *pg_structs,
 		page_size = paging_slot_size(paging);
 		advance = page_size - (virt & (page_size - 1));
 
-		/* walk up again, clearing entries, releasing empty tables */
+		/* walk up again, clearing entries, collecting empty tables */
 		while (1) {
 			paging->clear_entry(pte);
 			if (n == 0 || !paging->page_table_empty(pt[n]))
 				break;
-			err = free_pages(pt[n], 1);
-			if (err)
-				return err;
+			empty[n_empty++] = pt[n];
 
 			paging--;
 			pte = paging->get_entry(pt[--n], virt);
 		}
 
-		local_flush_tlb_page(virt);
+		/*
+		 * If page tables were emptied, a per-address flush is not
+		 * enough: walk caches may still reference the dead tables
+		 * for other addresses within their reach.
+		 */
+		if (n_empty)
+			local_flush_tlb_all();
+		else
+			local_flush_tlb_page(virt);
+
+		/*
+		 * Release emptied page tables only after the flush; until
+		 * then, hardware walkers may still traverse them.
+		 */
+		while (n_empty > 0) {
+			err = free_pages(empty[--n_empty], 1);
+			if (err)
+				return err;
+		}
 
 		if (advance >= size)
 			break;
