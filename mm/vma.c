@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023-2024
+ * Copyright (c) OTH Regensburg, 2023-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -73,11 +73,21 @@ uvma_dealloc_range(page_table_t pt, struct vma *vma, void *base, size_t size)
 		if (phys == INVALID_PHYS_ADDR)
 			continue;
 
+		/*
+		 * Unmap (and thereby flush the TLB) before releasing the
+		 * backing pages: they must not be reusable while stale
+		 * translations still point at them.
+		 */
+		err = unmap_range(pt, this, step);
+		if (err)
+			return -EINVAL;
+
 		err = phys_free_pages(phys, PAGES(step));
 		if (err)
 			return err;
 	}
 
+	/* Clears whatever remains, e.g. never-faulted parts of lazy VMAs */
 	err = unmap_range(pt, base, size);
 	if (err)
 		return -EINVAL;
