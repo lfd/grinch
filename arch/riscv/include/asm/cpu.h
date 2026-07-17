@@ -103,7 +103,7 @@ static inline void cpu_do_idle(void)
 
 static __always_inline void local_hfence_vvma_all(void)
 {
-	asm volatile(".insn 0x22000073"); /* hfence.vvma zero, zero */
+	asm volatile(".insn 0x22000073" : : : "memory"); /* hfence.vvma zero, zero */
 }
 
 static __always_inline void local_flush_tlb_all(void)
@@ -116,7 +116,7 @@ static __always_inline void local_flush_tlb_page(paddr_t page_addr)
 	/* sfence.vma rs1, rs2: rs1 holds the virtual address, rs2 the
 	 * ASID. rs2 = x0 flushes the page across all address spaces. */
 	asm volatile("sfence.vma %[addr], zero"
-		     : : [addr] "r" (page_addr));
+		     : : [addr] "r" (page_addr) : "memory");
 }
 
 static __always_inline void __noreturn cpu_halt(void)
