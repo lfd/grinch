@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023-2024
+ * Copyright (c) OTH Regensburg, 2023-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -20,6 +20,7 @@
 #include <grinch/fs/util.h>
 #include <grinch/fs/vfs.h>
 #include <grinch/gcall.h>
+#include <grinch/gfp.h>
 #include <grinch/pci.h>
 #include <grinch/printk.h>
 #include <grinch/task.h>
@@ -289,7 +290,7 @@ void process_destroy(struct task *task)
 	}
 
 	if (process->mm.page_table)
-		kfree(process->mm.page_table);
+		free_pages(process->mm.page_table, 1);
 }
 
 struct task *process_alloc_new(const char *name)
@@ -301,7 +302,7 @@ struct task *process_alloc_new(const char *name)
 		return task;
 
 	task->type = GRINCH_PROCESS;
-	task->process.mm.page_table = kzalloc(PAGE_SIZE);
+	task->process.mm.page_table = zalloc_pages(1);
 	if (!task->process.mm.page_table) {
 		kfree(task);
 		return ERR_PTR(-ENOMEM);
