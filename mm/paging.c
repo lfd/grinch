@@ -207,11 +207,18 @@ static int paging_destroy(const struct paging_structures *pg_structs,
 		 * enough: walk caches may still reference the dead tables
 		 * for other addresses within their reach.
 		 */
-		if (pg_structs->scope != TLB_SCOPE_NONE) {
+		switch (pg_structs->scope) {
+		case TLB_SCOPE_NONE:
+			break;
+		case TLB_SCOPE_LOCAL:
 			if (n_empty)
 				local_flush_tlb_all();
 			else
 				local_flush_tlb_page(virt);
+			break;
+		case TLB_SCOPE_GUEST:
+			local_flush_tlb_guest_all();
+			break;
 		}
 
 		/*
@@ -287,8 +294,16 @@ static int paging_create(const struct paging_structures *pg_structs,
 			paging++;
 		}
 
-		if (pg_structs->scope != TLB_SCOPE_NONE)
+		switch (pg_structs->scope) {
+		case TLB_SCOPE_NONE:
+			break;
+		case TLB_SCOPE_LOCAL:
 			local_flush_tlb_page(virt);
+			break;
+		case TLB_SCOPE_GUEST:
+			local_flush_tlb_guest_all();
+			break;
+		}
 
 		phys += paging->page_size;
 		virt += paging->page_size;
