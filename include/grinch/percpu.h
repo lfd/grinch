@@ -70,11 +70,6 @@ struct per_cpu {
 	struct task *current_task;
 } __aligned(PAGE_SIZE);
 
-static __always_inline struct per_cpu *this_per_cpu(void)
-{
-	return (struct per_cpu*)PERCPU_BASE;
-}
-
 static __always_inline unsigned long this_cpu_id(void)
 {
 	return this_per_cpu()->cpuid;
