@@ -18,6 +18,7 @@
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/symbols.h>
+#include <grinch/task.h>
 
 /* For later usages */
 #define PAGING_COHERENT		0x1
@@ -27,10 +28,49 @@
 
 const struct paging *root_paging, *vm_paging;
 
+/*
+ * Which translations a page table modification can affect, i.e. what
+ * has to be flushed from the TLB.
+ */
+enum tlb_scope {
+	TLB_SCOPE_NONE,		/* no hardware walker reaches the tables */
+	TLB_SCOPE_LOCAL,	/* live on this CPU */
+	TLB_SCOPE_GUEST,	/* guest (stage-2) translations */
+};
+
 struct paging_structures {
 	const struct paging *root_paging;
 	page_table_t root_table;
+	enum tlb_scope scope;
 };
+
+/*
+ * A process' page table is only a template: it is never installed as
+ * the MMU's translation root. arch_process_activate() copies its user
+ * half into the per-CPU root table, so its translations are live -
+ * through the shared lower-level tables - only while the process is
+ * current on this CPU.
+ *
+ * Translations of a process that ran earlier may linger on other CPUs
+ * (stale root table copies) until they activate their next process.
+ * That is tolerable: user mappings are only architecturally accessed
+ * while their process runs, and arch_process_activate() performs a
+ * full local flush before that.
+ */
+static enum tlb_scope tlb_scope_of(page_table_t pt)
+{
+	struct task *task;
+
+	if (pt == this_root_table_page())
+		return TLB_SCOPE_LOCAL;
+
+	task = current_task();
+	if (task && task->type == GRINCH_PROCESS &&
+	    task->process.mm.page_table == pt)
+		return TLB_SCOPE_LOCAL;
+
+	return TLB_SCOPE_NONE;
+}
 
 static int paging_create(const struct paging_structures *pg_structs,
 		  unsigned long phys, unsigned long size, unsigned long virt,
@@ -55,7 +95,7 @@ static unsigned long paging_slot_size(const struct paging *paging)
 
 static int split_hugepage(const struct paging *paging,
 			  pt_entry_t pte, unsigned long virt,
-			  unsigned long paging_flags)
+			  unsigned long paging_flags, enum tlb_scope scope)
 {
 	unsigned long phys = paging->get_phys(pte, virt);
 	struct paging_structures sub_structs;
@@ -72,6 +112,7 @@ static int split_hugepage(const struct paging *paging,
 
 	sub_structs.root_paging = paging + 1;
 	sub_structs.root_table = zalloc_pages(1);
+	sub_structs.scope = scope;
 	if (!sub_structs.root_table)
 		return -ENOMEM;
 	paging->set_next_pt(pte, v2p(sub_structs.root_table));
@@ -133,7 +174,8 @@ static int paging_destroy(const struct paging_structures *pg_structs,
 					break;
 
 				err = split_hugepage(paging, pte, virt,
-						     paging_flags);
+						     paging_flags,
+						     pg_structs->scope);
 				if (err)
 					return err;
 			}
@@ -165,10 +207,12 @@ static int paging_destroy(const struct paging_structures *pg_structs,
 		 * enough: walk caches may still reference the dead tables
 		 * for other addresses within their reach.
 		 */
-		if (n_empty)
-			local_flush_tlb_all();
-		else
-			local_flush_tlb_page(virt);
+		if (pg_structs->scope != TLB_SCOPE_NONE) {
+			if (n_empty)
+				local_flush_tlb_all();
+			else
+				local_flush_tlb_page(virt);
+		}
 
 		/*
 		 * Release emptied page tables only after the flush; until
@@ -219,6 +263,7 @@ static int paging_create(const struct paging_structures *pg_structs,
 				if (paging->page_size > PAGE_SIZE) {
 					sub_structs.root_paging = paging;
 					sub_structs.root_table = pt;
+					sub_structs.scope = pg_structs->scope;
 					paging_destroy(&sub_structs, virt,
 						       paging->page_size,
 						       paging_flags);
@@ -228,7 +273,8 @@ static int paging_create(const struct paging_structures *pg_structs,
 			}
 			if (paging->entry_valid(pte, PAGE_PRESENT_FLAGS)) {
 				err = split_hugepage(paging, pte, virt,
-						     paging_flags);
+						     paging_flags,
+						     pg_structs->scope);
 				if (err)
 					return err;
 				pt = p2v(paging->get_next_pt(pte));
@@ -241,7 +287,8 @@ static int paging_create(const struct paging_structures *pg_structs,
 			paging++;
 		}
 
-		local_flush_tlb_page(virt);
+		if (pg_structs->scope != TLB_SCOPE_NONE)
+			local_flush_tlb_page(virt);
 
 		phys += paging->page_size;
 		virt += paging->page_size;
@@ -280,6 +327,7 @@ int unmap_range(page_table_t pt, const void *vaddr, size_t size)
 	struct paging_structures pg = {
 		.root_paging = root_paging,
 		.root_table = pt,
+		.scope = tlb_scope_of(pt),
 	};
 
 	return _unmap_range(&pg, vaddr, size);
@@ -291,6 +339,7 @@ int map_range(page_table_t pt, const void *vaddr, paddr_t paddr, size_t size,
 	struct paging_structures pg = {
 		.root_paging = root_paging,
 		.root_table = pt,
+		.scope = tlb_scope_of(pt),
 	};
 
 	return _map_range(&pg, vaddr, paddr, size, grinch_flags);
@@ -302,6 +351,7 @@ int vm_unmap_range(page_table_t pt, const void *vaddr, size_t size)
 	struct paging_structures pg = {
 		.root_paging = vm_paging,
 		.root_table = pt,
+		.scope = TLB_SCOPE_GUEST,
 	};
 
 	return _unmap_range(&pg, vaddr, size);
@@ -313,6 +363,7 @@ int vm_map_range(page_table_t pt, const void *vaddr, paddr_t paddr,
 	struct paging_structures pg = {
 		.root_paging = vm_paging,
 		.root_table = pt,
+		.scope = TLB_SCOPE_GUEST,
 	};
 
 	return _map_range(&pg, vaddr, paddr, size, grinch_flags);
