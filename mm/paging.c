@@ -283,22 +283,6 @@ static int map_osmem(page_table_t root, void *vaddr, size_t size,
 	return map_range(root, vaddr, v2p(vaddr), size, flags);
 }
 
-int paging_cpu_init(unsigned long cpuid)
-{
-	int err;
-	page_table_t root;
-
-	root = per_cpu(cpuid)->root_table_page;
-
-	/* Map the per_cpu structures */
-	err = map_range(root, (void*)PERCPU_BASE,
-			v2p(per_cpu(cpuid)),
-			sizeof(struct per_cpu),
-			GRINCH_MEM_RW);
-
-	return err;
-}
-
 paddr_t paging_get_phys(page_table_t pt, const void *_virt)
 {
 	const struct paging *paging;
@@ -358,8 +342,6 @@ int __init paging_init(unsigned long this_cpu)
 	pri("ioremap area: 0x%lx -- 0x%lx\n", IOREMAP_BASE, IOREMAP_END);
 	pri("  kheap area: 0x%lx\n", KHEAP_BASE);
 	pri(" direct phys: 0x%lx\n", DIR_PHYS_BASE);
-	pri(" percpu area: 0x%lx -- 0x%lx\n", PERCPU_BASE,
-	   PERCPU_BASE + sizeof(struct per_cpu));
 	pri("=== Grinch memory layout end ===\n");
 
 	root = per_cpu(this_cpu)->root_table_page;
@@ -401,13 +383,8 @@ int __init paging_init(unsigned long this_cpu)
 	if (err)
 		goto out;
 
-	err = paging_cpu_init(this_cpu);
-	if (err)
-		goto out;
-
 	arch_paging_enable(this_cpu, root);
 
-	/* Now, we're allowed to access it */
 	this_per_cpu()->cpuid = this_cpu;
 
 	return 0;

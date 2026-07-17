@@ -13,6 +13,8 @@
 #include <arch/asm.h>
 #include <asm/asm_defines.h>
 
+#include <grinch/percpu.h>
+
 .section .text, "ax"
 
 .macro context cmd
@@ -36,6 +38,14 @@ excp_handler:
 save_user_ctx:
 	addi	sp, sp, -STRUCT_REGISTERS_SIZE
 	context REG_S
+
+	/*
+	 * Reclaim tp; the user's copy was just saved. The register frame
+	 * sits at the top of the per-CPU stack, which in turn is the
+	 * first member of struct per_cpu.
+	 */
+	li	t0, STACK_SIZE - STRUCT_REGISTERS_SIZE
+	sub	tp, sp, t0
 
 common_ctx:
 	csrr	a0, sepc

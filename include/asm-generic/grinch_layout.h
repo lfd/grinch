@@ -27,7 +27,6 @@
 #define IOREMAP_BASE	_UL(0xc0000000)
 #define IOREMAP_SIZE	((256 + 128) * MIB)
 
-#define PERCPU_BASE	GRINCH_END
 #define KHEAP_BASE      (GRINCH_END + (32 * 64) * KIB)
 
 /* The uppermost 512 MiB belong to the direct mapping */
@@ -40,7 +39,6 @@
  */
 #define GRINCH_BASE	_UL(0xffffffc000000000)
 #define DIR_PHYS_BASE	(GRINCH_BASE + 1 * GIB)
-#define PERCPU_BASE	(GRINCH_BASE + 64UL * 1 * GIB)
 
 #define IOREMAP_BASE	(GRINCH_BASE + 256 * MIB)
 #define IOREMAP_SIZE	(512 * MIB)

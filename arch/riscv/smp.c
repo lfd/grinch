@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -110,14 +110,6 @@ int arch_boot_cpu(unsigned long hart_id)
 			       this_root_table_page(),
 			       (void *)DIR_PHYS_BASE,
 			       memory_size());
-	if (err)
-		return err;
-
-	/*
-	 * Hook in the percpu stack. Take care, SV48 is not supported, Stack
-	 * addresses will overlap with the top-most page table!
-	 */
-	err = paging_cpu_init(hart_id);
 	if (err)
 		return err;
 

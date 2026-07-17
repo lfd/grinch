@@ -90,22 +90,19 @@ grinch_start:
 
 	addi	t2, a0, 1
 	mul	t2, t2, t1
-	sub	sp, t0, t2
-	/* sp is now at the bottom of the boot CPU's percpu struct */
+	sub	tp, t0, t2
+	/* tp holds this CPU's per_cpu structure from here on */
 
 	/* Zero the per_cpu pages, as they may be dirty */
-	mv	t0, t1
-1:	REG_S	zero, 0(sp)
-	addi	sp, sp, SZREG
-	addi	t0, t0, -SZREG
-	bnez	t0, 1b
+	mv	t2, tp
+1:	REG_S	zero, 0(t2)
+	addi	t2, t2, SZREG
+	addi	t1, t1, -SZREG
+	bnez	t1, 1b
 
-	/* sp is at the top of the per_cpu struct, point to the beginning. */
-	sub	sp, sp, t1
-	li	t1, STACK_SIZE
-	add	sp, sp, t1
-	li	t1, STRUCT_REGISTERS_SIZE
-	sub	sp, sp, t1
+	/* setup stack */
+	li	t0, STACK_SIZE - STRUCT_REGISTERS_SIZE
+	add	sp, tp, t0
 
 	/* push fdt location */
 	addi	sp, sp, -8
@@ -170,9 +167,16 @@ secondary_start:
 	jalr	t0
 
 secondary_virt_entry:
+	/* a0 still holds the hart_id: locate our per_cpu structure */
+	la	t0, __internal_page_pool_end
+	li	t1, STRUCT_PER_CPU_SIZE
+	addi	t2, a0, 1
+	mul	t2, t2, t1
+	sub	tp, t0, t2
+
 	/* setup stack */
-	li	sp, STACK_TOP
-	addi	sp, sp, -STRUCT_REGISTERS_SIZE
+	li	t0, STACK_SIZE - STRUCT_REGISTERS_SIZE
+	add	sp, tp, t0
 
 	/* Terminate stack frame */
 	mv	s0, sp

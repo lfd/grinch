@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -20,7 +20,4 @@ void common(void)
 
 	OFFSET(REG_SP, registers, sp);
 	OFFSET(REG_PC, registers, pc);
-
-	DEFINE(STACK_TOP,
-		PERCPU_BASE + __builtin_offsetof(struct per_cpu, stack) + STACK_SIZE);
 }

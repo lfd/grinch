@@ -13,8 +13,6 @@
 #ifndef _ASM_PERCPU_H
 #define _ASM_PERCPU_H
 
-#include <asm-generic/grinch_layout.h>
-
 #include <grinch/compiler_attributes.h>
 
 #define ARCH_PER_CPU_FIELDS				\
@@ -31,9 +29,17 @@
 
 struct per_cpu;
 
+/*
+ * tp holds the pointer to this CPU's per_cpu structure. It is set once
+ * per CPU during early boot and reclaimed on every entry from user
+ * space.
+ */
 static __always_inline struct per_cpu *this_per_cpu(void)
 {
-	return (struct per_cpu *)PERCPU_BASE;
+	void *ret;
+
+	asm("mv %0, tp" : "=r"(ret));
+	return ret;
 }
 
 #endif /* !__ASSEMBLY__ */

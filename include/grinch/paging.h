@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2024-2025
+ * Copyright (c) OTH Regensburg, 2024-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -58,7 +58,6 @@ void arch_paging_init(void);
 void arch_paging_enable(unsigned long this_cpu, page_table_t pt);
 
 int paging_init(unsigned long this_cpu);
-int paging_cpu_init(unsigned long this_cpu);
 int paging_discard_init(void);
 
 paddr_t paging_get_phys(page_table_t pt, const void *virt);
