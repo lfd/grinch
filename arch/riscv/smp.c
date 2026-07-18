@@ -100,11 +100,6 @@ int arch_boot_cpu(unsigned long hart_id)
 	pcpu->cpuid = hart_id;
 	spin_init(&pcpu->remote_call.lock);
 
-#if CONFIG_ARCH_RISCV == 32
-	/* Untested */
-	return -ENOSYS;
-#endif
-
 	paddr = v2p(secondary_start);
 
 	/* Make it easy for secondary_entry: provide the content of satp */
