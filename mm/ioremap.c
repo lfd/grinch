@@ -16,6 +16,7 @@
 #include <grinch/bitops.h>
 #include <grinch/bootparam.h>
 #include <grinch/cpu.h>
+#include <grinch/gfp.h>
 #include <grinch/ioremap.h>
 #include <grinch/paging.h>
 #include <grinch/percpu.h>
@@ -46,6 +47,18 @@ static void __init ioremap_size_parse(const char *arg)
 	ioremap_pages = PAGES(sz);
 }
 bootparam(ioremap_size, ioremap_size_parse);
+
+/*
+ * No kernel mapping may create a new root-level slot after boot:
+ * process page tables only receive a copy of the kernel's root entries
+ * on activation. The ioremap window is the only kernel region that
+ * grows at runtime - populate its root slots up front.
+ */
+int __init ioremap_init(void)
+{
+	return paging_prealloc(this_root_table_page(), (void *)IOREMAP_BASE,
+			       ioremap_pages * PAGE_SIZE);
+}
 
 void __init *ioremap(paddr_t paddr, size_t size)
 {

@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2025
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -26,6 +26,7 @@
 #include <grinch/gcov.h>
 #include <grinch/gfp.h>
 #include <grinch/header.h>
+#include <grinch/ioremap.h>
 #include <grinch/memtest.h>
 #include <grinch/paging.h>
 #include <grinch/percpu.h>
@@ -175,6 +176,10 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 		goto out;
 
 	err = phys_mem_init_fdt();
+	if (err)
+		goto out;
+
+	err = ioremap_init();
 	if (err)
 		goto out;
 

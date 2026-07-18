@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -12,6 +12,8 @@
 
 #include <grinch/errno.h>
 #include <grinch/iores.h>
+
+int ioremap_init(void);
 
 /* IO mappers */
 void *ioremap(paddr_t paddr, size_t size);
