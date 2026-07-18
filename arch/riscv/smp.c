@@ -18,6 +18,7 @@
 
 #include <grinch/fdt.h>
 #include <grinch/gfp.h>
+#include <grinch/init.h>
 #include <grinch/paging.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
@@ -61,6 +62,11 @@ out:
 	if (err)
 		pr("Unable to bring up CPU %lu\n", this_cpu_id());
 	return err;
+}
+
+int __init arch_smp_bringup_init(void)
+{
+	return 0;
 }
 
 int arch_boot_cpu(unsigned long hart_id)
@@ -134,6 +140,10 @@ int arch_boot_cpu(unsigned long hart_id)
 	}
 
 	return 0;
+}
+
+void __init arch_smp_bringup_done(void)
+{
 }
 
 void ipi_send(unsigned long cpu)

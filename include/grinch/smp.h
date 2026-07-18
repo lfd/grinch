@@ -52,6 +52,12 @@ unsigned int next_cpu(unsigned int cpu, unsigned long *bitmap,
 
 int arch_boot_cpu(unsigned long cpu);
 
+/* Arch hook: prepare boot-time resources before any CPU is booted */
+int arch_smp_bringup_init(void);
+
+/* Arch hook: all CPUs are up - release boot-time bringup resources */
+void arch_smp_bringup_done(void);
+
 int smp_init(void);
 
 void ipi_send(unsigned long cpu_id);

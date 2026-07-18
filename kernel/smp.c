@@ -34,6 +34,10 @@ int __init smp_init(void)
 	unsigned long cpu, cpus;
 	int err;
 
+	err = arch_smp_bringup_init();
+	if (err)
+		return err;
+
 	cpus = 1;
 	for_each_available_cpu_except_this(cpu) {
 		err = arch_boot_cpu(cpu);
@@ -49,6 +53,9 @@ int __init smp_init(void)
 	}
 
 	pri("Successfully brought up %lu CPUs\n", cpus);
+
+	arch_smp_bringup_done();
+
 	return 0;
 }
 
