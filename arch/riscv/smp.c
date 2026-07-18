@@ -20,9 +20,11 @@
 #include <grinch/gfp.h>
 #include <grinch/init.h>
 #include <grinch/paging.h>
+#include <grinch/panic.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/smp.h>
+#include <grinch/string.h>
 #include <grinch/task.h>
 
 #include <grinch/arch/sbi.h>
@@ -30,23 +32,26 @@
 /* Assembly entry point for secondary CPUs */
 void secondary_start(void);
 
+/*
+ * All secondary CPUs enter virtual addressing through one shared boot
+ * root: the kernel mappings plus the identity-mapped trampoline. Each
+ * CPU leaves it for its own root table as soon as it runs in virtual
+ * space, so the boot root is only ever read.
+ */
+static page_table_t secondary_boot_root;
+
 /* C entry point for secondary CPUs */
 int secondary_cmain(struct registers *regs);
 
 int secondary_cmain(struct registers *regs)
 {
-	int err;
-
 	irq_disable();
 	ext_disable();
 	ipi_disable();
 	timer_disable();
 
-	/* Unmap bootstrap page tables */
-	err = unmap_range(this_root_table_page(),
-			  (void *)v2p(grinch_base()), GRINCH_SIZE);
-	if (err)
-		goto out;
+	/* We still run on the shared boot root: switch to our own */
+	arch_paging_enable(this_cpu_id(), this_root_table_page());
 
 	ipi_enable();
 	bitmap_set(cpus_online, this_cpu_id(), 1);
@@ -58,14 +63,27 @@ int secondary_cmain(struct registers *regs)
 	 */
 	prepare_user_return();
 
-out:
-	if (err)
-		pr("Unable to bring up CPU %lu\n", this_cpu_id());
-	return err;
+	return 0;
 }
 
 int __init arch_smp_bringup_init(void)
 {
+	paddr_t paddr;
+	int err;
+
+	secondary_boot_root = zalloc_pages(1);
+	if (!secondary_boot_root)
+		return -ENOMEM;
+
+	memcpy(secondary_boot_root, this_root_table_page(), PAGE_SIZE);
+
+	/* The boot root must contain a boot trampoline */
+	paddr = v2p(grinch_base());
+	err = map_range(secondary_boot_root, (void *)paddr, paddr,
+			GRINCH_SIZE, GRINCH_MEM_RX);
+	if (err)
+		return err;
+
 	return 0;
 }
 
@@ -119,17 +137,10 @@ int arch_boot_cpu(unsigned long hart_id)
 	if (err)
 		return err;
 
-	/* The page table must contain a boot trampoline */
-	paddr = v2p(grinch_base());
-	err = map_range(pcpu->root_table_page, (void*)paddr, paddr, GRINCH_SIZE,
-			GRINCH_MEM_RX);
-	if (err)
-		return err;
-
 	paddr = v2p(secondary_start);
 
 	/* Make it easy for secondary_entry: provide the content of satp */
-	opaque = (v2p(per_cpu(hart_id)->root_table_page) >> PAGE_SHIFT)
+	opaque = (v2p(secondary_boot_root) >> PAGE_SHIFT)
 		| (csr_read(satp) & (SATP_MODE_MASK << SATP_MODE_SHIFT));
 
 	ret = sbi_hart_start(hart_id, paddr, opaque);
@@ -142,8 +153,27 @@ int arch_boot_cpu(unsigned long hart_id)
 	return 0;
 }
 
+/*
+ * Once every secondary is online it has switched to its own root table,
+ * so the shared boot root is dead and can be released - along with the
+ * private tables its identity trampoline pulled in, which nothing else
+ * references and would otherwise leak.
+ */
 void __init arch_smp_bringup_done(void)
 {
+	paddr_t paddr;
+	int err;
+
+	if (!secondary_boot_root)
+		return;
+
+	paddr = v2p(grinch_base());
+	err = unmap_range(secondary_boot_root, (void *)paddr, GRINCH_SIZE);
+	if (err)
+		BUG();
+
+	free_pages(secondary_boot_root, 1);
+	secondary_boot_root = NULL;
 }
 
 void ipi_send(unsigned long cpu)
