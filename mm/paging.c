@@ -194,6 +194,17 @@ static int paging_destroy(const struct paging_structures *pg_structs,
 			paging->clear_entry(pte);
 			if (n == 0 || !paging->page_table_empty(pt[n]))
 				break;
+
+			/*
+			 * The kernel's root-level slots are fixed after boot:
+			 * process page tables receive a copy of them on
+			 * activation, so they must never disappear. Keep the
+			 * emptied table in place.
+			 */
+			if (n == 1 && virt >= USER_END &&
+			    pg_structs->root_table == this_root_table_page())
+				break;
+
 			empty[n_empty++] = pt[n];
 
 			paging--;
