@@ -33,6 +33,9 @@
 unsigned long hgatp_mode;
 unsigned long satp_mode;
 
+/* Mask of usable ASID bits, probed at boot; zero if the hardware has none. */
+static unsigned long asid_mask;
+
 static inline unsigned long pte2phys(unsigned long pte)
 {
 	return (pte & ~FLAG_MASK) << (PAGE_BITS - MAX_FLAG);
@@ -249,6 +252,8 @@ const struct paging riscv_Sv48x4[] = {
 
 void __init arch_paging_init(void)
 {
+	unsigned long old;
+
 #if CONFIG_ARCH_RISCV == 64 /* rv64 */
 	/* SV39 should suffice for everything */
 	if (1) {
@@ -271,12 +276,22 @@ void __init arch_paging_init(void)
 	vm_paging = riscv_Sv32x4;
 	hgatp_mode = SATP_MODE_32;
 #endif
+
+	/*
+	 * Probe how many ASID bits the implementation provides: the field
+	 * is WARL, so write all-ones and read back what sticks. Stray
+	 * translations fetched under the probe ASID are flushed away.
+	 */
+	old = csr_read(satp);
+	csr_write(satp, old | SATP_ASID_MASK << SATP_ASID_SHIFT);
+	asid_mask = (csr_read(satp) >> SATP_ASID_SHIFT) & SATP_ASID_MASK;
+	csr_write(satp, old);
+	local_flush_tlb_all();
 }
 
 unsigned long arch_nr_asids(void)
 {
-	/* No ASID probing yet: run untagged under ASID 0. */
-	return 1;
+	return asid_mask + 1;
 }
 
 void arch_paging_enable(unsigned long this_cpu, page_table_t pt)
