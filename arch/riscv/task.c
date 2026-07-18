@@ -64,6 +64,15 @@ void arch_process_activate(struct process *process)
 
 	switch_mmu_satp(satp_mode, process->mm.asid,
 			v2p(process->mm.page_table));
+
+	/*
+	 * A process without its own ASID shares ASID 0 with every other
+	 * untagged process, so its predecessor's user translations must be
+	 * flushed here - there is no tag to keep them apart.
+	 */
+	if (!process->mm.asid)
+		local_flush_tlb_all();
+
 	asm volatile("fence.i");
 }
 

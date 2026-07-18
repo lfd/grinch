@@ -75,6 +75,9 @@ int paging_prealloc(page_table_t pt, const void *vaddr, size_t size);
  */
 void flush_tlb_others_asid(unsigned long asid, const void *vaddr, size_t size);
 
+/* Invalidate the entire address space tagged by asid on every CPU. */
+void flush_tlb_asid(unsigned long asid);
+
 /* Versatile mapper */
 int map_range(page_table_t pt, const void *vaddr, paddr_t paddr, size_t size,
 	      mem_flags_t grinch_flags);

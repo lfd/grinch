@@ -161,6 +161,13 @@ void flush_tlb_all(void)
 	}
 }
 
+/* Flush an entire address space on every CPU, including this one. */
+void flush_tlb_asid(unsigned long asid)
+{
+	local_flush_tlb_asid(asid);
+	flush_tlb_others_asid(asid, 0, 0);
+}
+
 /*
  * Shoot down a range of an address space on every other CPU. The local
  * CPU is left untouched; the caller has already flushed it. Only remote

@@ -19,6 +19,7 @@
 #include <grinch/bitmap.h>
 #include <grinch/errno.h>
 #include <grinch/init.h>
+#include <grinch/paging.h>
 #include <grinch/printk.h>
 
 /*
@@ -75,6 +76,13 @@ void asid_free(unsigned long asid)
 {
 	if (!asid)
 		return;
+
+	/*
+	 * Scrub every CPU before the ASID becomes available again: address
+	 * space switches no longer flush, so a reused ASID must not inherit
+	 * its predecessor's translations.
+	 */
+	flush_tlb_asid(asid);
 
 	spin_lock(&asid_lock);
 	bitmap_clear(asid_bitmap, asid, 1);

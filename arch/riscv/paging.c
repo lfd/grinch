@@ -297,4 +297,12 @@ unsigned long arch_nr_asids(void)
 void arch_paging_enable(unsigned long this_cpu, page_table_t pt)
 {
 	switch_mmu_satp(satp_mode, 0, v2p(pt));
+
+	/*
+	 * This is not an address space switch but a one-off global remap:
+	 * it retires the early boot root for the kernel root. Their kernel
+	 * entries are global, so ASID tagging keeps nothing apart here -
+	 * translations cached from the old root must be flushed by hand.
+	 */
+	local_flush_tlb_all();
 }

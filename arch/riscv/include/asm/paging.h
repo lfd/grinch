@@ -80,12 +80,16 @@ static inline paddr_t pte2table(u64 pte)
 #define ATP_ASID(MODE, ASID, PT) \
 	(ATP(MODE, PT) | (u64)(ASID) << SATP_ASID_SHIFT)
 
-/* Switch to an ASID-tagged address space. */
+/*
+ * Switch to an ASID-tagged address space without flushing: the ASID
+ * keeps its translations apart from every other address space's, and
+ * stale entries are shot down when they are unmapped or when the ASID
+ * is recycled. ASID 0 offers no such separation; its user flushes for
+ * itself.
+ */
 static inline void switch_mmu_satp(u64 mode, unsigned long asid, paddr_t pt)
 {
-	local_flush_tlb_all();
 	csr_write(satp, ATP_ASID(mode, asid, pt));
-	local_flush_tlb_all();
 }
 
 /*

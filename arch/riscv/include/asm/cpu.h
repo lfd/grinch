@@ -130,6 +130,13 @@ static __always_inline void local_flush_tlb_page(paddr_t page_addr)
 		     : : [addr] "r" (page_addr) : "memory");
 }
 
+/* Flush all of one address space on this CPU (rs1 = x0: every address). */
+static __always_inline void local_flush_tlb_asid(unsigned long asid)
+{
+	asm volatile("sfence.vma zero, %[asid]"
+		     : : [asid] "r" (asid) : "memory");
+}
+
 static __always_inline void __noreturn cpu_halt(void)
 {
 	irq_disable();
