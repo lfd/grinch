@@ -36,6 +36,23 @@ static int paging_create(const struct paging_structures *pg_structs,
 		  unsigned long phys, unsigned long size, unsigned long virt,
 		  unsigned long access_flags, unsigned long paging_flags);
 
+/*
+ * VA range covered by one entry of the given level. Levels without
+ * terminal entries (page_size == 0) derive their reach from the levels
+ * below.
+ */
+static unsigned long paging_slot_size(const struct paging *paging)
+{
+	unsigned long size = 1;
+
+	while (!paging->page_size) {
+		size *= PTES_PER_PT;
+		paging++;
+	}
+
+	return size * paging->page_size;
+}
+
 static int split_hugepage(const struct paging *paging,
 			  pt_entry_t pte, unsigned long virt,
 			  unsigned long paging_flags)
@@ -392,6 +409,42 @@ int __init paging_init(unsigned long this_cpu)
 out:
 	pri("Mapping error: %pe\n", ERR_PTR(err));
 	return err;
+}
+
+/*
+ * Populate all invalid root-level slots covering [vaddr, vaddr + size)
+ * with empty page tables, so that later mappings in that range never
+ * have to touch the root level.
+ */
+int paging_prealloc(page_table_t pt, const void *vaddr, size_t size)
+{
+	const struct paging *root = root_paging;
+	unsigned long virt, slots, slot_size;
+	page_table_t sub;
+	pt_entry_t pte;
+
+	if (!size)
+		return 0;
+
+	/*
+	 * virt + slot_size may wrap for ranges in the uppermost slot, so
+	 * count slots instead of comparing addresses.
+	 */
+	slot_size = paging_slot_size(root);
+	virt = (unsigned long)vaddr & ~(slot_size - 1);
+	slots = ((unsigned long)vaddr + size - 1 - virt) / slot_size + 1;
+	for (; slots > 0; slots--, virt += slot_size) {
+		pte = root->get_entry(pt, virt);
+		if (root->entry_valid(pte, PAGE_PRESENT_FLAGS))
+			continue;
+
+		sub = zalloc_pages(1);
+		if (!sub)
+			return -ENOMEM;
+		root->set_next_pt(pte, v2p(sub));
+	}
+
+	return 0;
 }
 
 /*
