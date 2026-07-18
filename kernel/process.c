@@ -14,6 +14,7 @@
 
 #include <grinch/align.h>
 #include <grinch/alloc.h>
+#include <grinch/asid.h>
 #include <grinch/device.h>
 #include <grinch/elf.h>
 #include <grinch/errno.h>
@@ -295,6 +296,8 @@ void process_destroy(struct task *task)
 			arch_process_deactivate();
 		free_pages(process->mm.page_table, 1);
 	}
+
+	asid_free(process->mm.asid);
 }
 
 struct task *process_alloc_new(const char *name)
@@ -311,6 +314,8 @@ struct task *process_alloc_new(const char *name)
 		kfree(task);
 		return ERR_PTR(-ENOMEM);
 	}
+
+	task->process.mm.asid = asid_alloc();
 
 	INIT_LIST_HEAD(&task->process.mm.vmas);
 

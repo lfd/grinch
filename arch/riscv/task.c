@@ -57,7 +57,7 @@ void arch_process_activate(struct process *process)
 	memcpy(&pt[kernel_index], &kernel_root[kernel_index],
 	       (PTES_PER_PT - kernel_index) * sizeof(*pt));
 
-	switch_mmu_satp(satp_mode, 0, v2p(pt));
+	switch_mmu_satp(satp_mode, process->mm.asid, v2p(pt));
 	asm volatile("fence.i");
 }
 
