@@ -34,17 +34,25 @@ static __initconst const struct of_device_id aplic_compats[] = {
 
 static int __init xplic_probe(struct device *dev)
 {
+	const struct irqchip_fn *fn;
 	int err;
 
-	irqchip_fn = (const struct irqchip_fn *)(dev->of.match->data);
+	fn = (const struct irqchip_fn *)(dev->of.match->data);
 
 	err = dev_map_iomem(dev);
 	if (err)
 		return err;
 
-	err = irqchip_fn->init(dev);
+	err = fn->init(dev);
 	if (err)
 		return err;
+
+	/*
+	 * Publish the irqchip only once it is fully mapped and initialised.
+	 * A failed probe must leave irqchip_fn NULL, or later IRQ requests
+	 * would dispatch into a half-configured chip.
+	 */
+	irqchip_fn = fn;
 
 	ext_enable();
 
