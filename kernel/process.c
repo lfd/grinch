@@ -317,6 +317,8 @@ struct task *process_alloc_new(const char *name)
 
 	task->process.mm.asid = asid_alloc();
 
+	arch_mm_init(&task->process.mm);
+
 	INIT_LIST_HEAD(&task->process.mm.vmas);
 
 	return task;

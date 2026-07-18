@@ -52,6 +52,7 @@ int process_from_path(struct task *task, struct file *at, const char *pathname,
 int process_setcwd(struct task *t, const char *pathname);
 
 /* Arch specific routines */
+void arch_mm_init(struct mm *mm);
 void arch_process_activate(struct process *task);
 void arch_process_deactivate(void);
 void arch_kinfo_init(struct kinfo *kinfo);

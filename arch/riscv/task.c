@@ -29,25 +29,18 @@ void arch_kinfo_init(struct kinfo *kinfo)
 	kinfo->riscv.timebase_frequency = riscv_timebase_frequency;
 }
 
-void arch_process_activate(struct process *process)
+/*
+ * Install the kernel's root-level entries into a freshly created
+ * address space. The kernel's root level is fixed once boot completes,
+ * and all kernel mappings below it live in tables shared through these
+ * entries, so this copy is done once and never needs refreshing. The
+ * fence publishes the new entries to the page-table walker.
+ */
+void arch_mm_init(struct mm *mm)
 {
-	page_table_t pt;
+	page_table_t pt = mm->page_table;
 	unsigned int kernel_index;
 
-	/* Deactivate VMM */
-	if (has_hypervisor())
-		csr_write(CSR_HSTATUS, 0);
-
-	/* Ensure that sret returns to U-Mode */
-	csr_clear(sstatus, SR_SPP);
-
-	/*
-	 * Install the kernel entries, then make the process' page table
-	 * the translation root. Kernel mappings share their lower-level
-	 * tables across all roots, only the root level has to be kept
-	 * up to date.
-	 */
-	pt = process->mm.page_table;
 #if CONFIG_ARCH_RISCV == 64 /* rv64 */
 	/* On SV39, SV48, …: The upper half belongs to the kernel */
 	kernel_index = PTES_PER_PT / 2;
@@ -57,7 +50,20 @@ void arch_process_activate(struct process *process)
 	memcpy(&pt[kernel_index], &kernel_root[kernel_index],
 	       (PTES_PER_PT - kernel_index) * sizeof(*pt));
 
-	switch_mmu_satp(satp_mode, process->mm.asid, v2p(pt));
+	local_flush_tlb_all();
+}
+
+void arch_process_activate(struct process *process)
+{
+	/* Deactivate VMM */
+	if (has_hypervisor())
+		csr_write(CSR_HSTATUS, 0);
+
+	/* Ensure that sret returns to U-Mode */
+	csr_clear(sstatus, SR_SPP);
+
+	switch_mmu_satp(satp_mode, process->mm.asid,
+			v2p(process->mm.page_table));
 	asm volatile("fence.i");
 }
 
