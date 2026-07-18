@@ -17,6 +17,7 @@
 #include <grinch/boot.h>
 #include <grinch/hypercall.h>
 #include <grinch/irqchip.h>
+#include <grinch/paging.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/smp.h>
@@ -158,4 +159,31 @@ void flush_tlb_all(void)
 		if (ret.error != SBI_SUCCESS)
 			BUG();
 	}
+}
+
+/*
+ * Shoot down a range of an address space on every other CPU. The local
+ * CPU is left untouched; the caller has already flushed it. Only remote
+ * CPUs need an explicit fence, as they cannot see our local sfence.vma.
+ */
+void flush_tlb_others_asid(unsigned long asid, const void *addr, size_t size)
+{
+	unsigned long hmask;
+	struct sbiret ret;
+	unsigned int cpu;
+
+	hmask = 0;
+	for_each_online_cpu_except_this(cpu) {
+		if (cpu > 63)
+			BUG();
+		hmask |= (1UL << cpu);
+	}
+
+	if (!hmask)
+		return;
+
+	ret = sbi_rfence_sfence_vma_asid(hmask, 0, (unsigned long)addr, size,
+					 asid);
+	if (ret.error != SBI_SUCCESS)
+		BUG();
 }

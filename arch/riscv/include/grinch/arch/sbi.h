@@ -37,6 +37,7 @@
 
 #define SBI_EXT_RFENCE				0x52464E43
 #define SBI_EXT_RFENCE_REMOTE_SFENCE_VMA	0x1
+#define SBI_EXT_RFENCE_REMOTE_SFENCE_VMA_ASID	0x2
 
 #define SBI_EXT_HSM			0x48534D
 #define SBI_EXT_HSM_HART_START		0
@@ -130,6 +131,17 @@ static inline struct sbiret sbi_rfence_sfence_vma(unsigned long hmask,
 {
 	return sbi_rfence(SBI_EXT_RFENCE_REMOTE_SFENCE_VMA,
 			  hmask, hbase, start, size);
+}
+
+static inline struct sbiret sbi_rfence_sfence_vma_asid(unsigned long hmask,
+						       unsigned long hbase,
+						       unsigned long start,
+						       unsigned long size,
+						       unsigned long asid)
+{
+	return sbi_ecall(SBI_EXT_RFENCE,
+			 SBI_EXT_RFENCE_REMOTE_SFENCE_VMA_ASID,
+			 hmask, hbase, start, size, asid, 0);
 }
 
 static inline struct sbiret sbi_system_reset(unsigned long reset_type,

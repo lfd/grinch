@@ -67,6 +67,14 @@ paddr_t paging_get_phys(page_table_t pt, const void *virt);
 
 int paging_prealloc(page_table_t pt, const void *vaddr, size_t size);
 
+/*
+ * Invalidate [vaddr, vaddr + size) of the address space tagged by asid
+ * on every CPU other than this one. The local CPU must be flushed by
+ * the caller. On architectures whose TLB maintenance already broadcasts
+ * this is a no-op.
+ */
+void flush_tlb_others_asid(unsigned long asid, const void *vaddr, size_t size);
+
 /* Versatile mapper */
 int map_range(page_table_t pt, const void *vaddr, paddr_t paddr, size_t size,
 	      mem_flags_t grinch_flags);

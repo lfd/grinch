@@ -60,8 +60,9 @@ free_out:
 }
 
 static int
-uvma_dealloc_range(page_table_t pt, struct vma *vma, void *base, size_t size)
+uvma_dealloc_range(const struct mm *mm, struct vma *vma, void *base, size_t size)
 {
+	page_table_t pt = mm->page_table;
 	paddr_t phys;
 	size_t step;
 	void *this;
@@ -92,22 +93,31 @@ uvma_dealloc_range(page_table_t pt, struct vma *vma, void *base, size_t size)
 	if (err)
 		return -EINVAL;
 
+	/*
+	 * unmap_range() flushed this CPU. The address space may have run on
+	 * others, where its translations linger dormant until it is
+	 * scheduled there again; shoot them down now, before that can
+	 * happen. A process runs on at most one CPU at a time, so batching
+	 * one fence per range is enough.
+	 */
+	flush_tlb_others_asid(mm->asid, base, size);
+
 	return 0;
 }
 
-static int uvma_dealloc(page_table_t pt, struct vma *vma)
+static int uvma_dealloc(const struct mm *mm, struct vma *vma)
 {
-	return uvma_dealloc_range(pt, vma, vma->base, vma->size);
+	return uvma_dealloc_range(mm, vma, vma->base, vma->size);
 }
 
-static void uvma_destroy(page_table_t pt, struct vma *vma)
+static void uvma_destroy(const struct mm *mm, struct vma *vma)
 {
 	int err;
 
 	kfree(vma->name);
 	vma->name = NULL;
 
-	err = uvma_dealloc(pt, vma);
+	err = uvma_dealloc(mm, vma);
 	if (err)
 		BUG();
 }
@@ -165,7 +175,7 @@ void uvmas_destroy(struct process *p)
 
 	list_for_each_safe(pos, q, &p->mm.vmas) {
 		tmp = list_entry(pos, struct vma, vmas);
-		uvma_destroy(p->mm.page_table, tmp);
+		uvma_destroy(&p->mm, tmp);
 		list_del(pos);
 		kfree(tmp);
 	}
@@ -287,7 +297,7 @@ int uvma_resize(const struct process *p, struct vma *vma, size_t size)
 		return 0;
 
 	if (size < vma->size) {
-		err = uvma_dealloc_range(p->mm.page_table, vma,
+		err = uvma_dealloc_range(&p->mm, vma,
 					 vma->base + size, vma->size - size);
 		if (err)
 			return err;
