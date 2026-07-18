@@ -41,8 +41,6 @@ struct per_cpu {
 		};
 	} stack;
 
-	unsigned long root_table_page[PTES_PER_PT] __aligned(PAGE_SIZE);
-
 	ARCH_PER_CPU_FIELDS
 
 	int cpuid;
@@ -78,11 +76,6 @@ static __always_inline struct per_cpu *per_cpu(unsigned long cpuid)
 {
 	return (struct per_cpu *)((uintptr_t)GRINCH_END -
 				  (cpuid + 1) * sizeof(struct per_cpu));
-}
-
-static __always_inline page_table_t this_root_table_page(void)
-{
-	return this_per_cpu()->root_table_page;
 }
 
 #endif /* __ASSEMBLY__ */

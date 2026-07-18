@@ -56,7 +56,7 @@ bootparam(ioremap_size, ioremap_size_parse);
  */
 int __init ioremap_init(void)
 {
-	return paging_prealloc(this_root_table_page(), (void *)IOREMAP_BASE,
+	return paging_prealloc(kernel_root, (void *)IOREMAP_BASE,
 			       ioremap_pages * PAGE_SIZE);
 }
 
@@ -90,7 +90,7 @@ retry:
 	}
 
 	ret = (void *)IOREMAP_BASE + (start * PAGE_SIZE) + page_offset(paddr);
-	err = map_range(this_root_table_page(), ret, paddr, size,
+	err = map_range(kernel_root, ret, paddr, size,
 			GRINCH_MEM_DEVICE | GRINCH_MEM_RW);
 	if (err)
 		return ERR_PTR(err);
@@ -129,7 +129,7 @@ int __init iounmap(const void *vaddr, size_t size)
 	if (!is_ioremap(vaddr, pages))
 		return -ERANGE;
 
-	err = unmap_range(this_root_table_page(), vaddr, size);
+	err = unmap_range(kernel_root, vaddr, size);
 	if (err)
 		return err;
 

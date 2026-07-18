@@ -50,8 +50,8 @@ int secondary_cmain(struct registers *regs)
 	ipi_disable();
 	timer_disable();
 
-	/* We still run on the shared boot root: switch to our own */
-	arch_paging_enable(this_cpu_id(), this_root_table_page());
+	/* We still run on the shared boot root: switch to the kernel root */
+	arch_paging_enable(this_cpu_id(), kernel_root);
 
 	ipi_enable();
 	bitmap_set(cpus_online, this_cpu_id(), 1);
@@ -75,7 +75,7 @@ int __init arch_smp_bringup_init(void)
 	if (!secondary_boot_root)
 		return -ENOMEM;
 
-	memcpy(secondary_boot_root, this_root_table_page(), PAGE_SIZE);
+	memcpy(secondary_boot_root, kernel_root, PAGE_SIZE);
 
 	/* The boot root must contain a boot trampoline */
 	paddr = v2p(grinch_base());
@@ -93,7 +93,6 @@ int arch_boot_cpu(unsigned long hart_id)
 	struct sbiret ret;
 	unsigned long opaque;
 	struct per_cpu *pcpu;
-	int err;
 
 	pr("Bringing up HART %lu\n", hart_id);
 	pcpu = per_cpu(hart_id);
@@ -101,41 +100,10 @@ int arch_boot_cpu(unsigned long hart_id)
 	pcpu->cpuid = hart_id;
 	spin_init(&pcpu->remote_call.lock);
 
-	/* Duplicate kernel page tables */
-
-	/* Hook in the whole kernel. */
-#if CONFIG_ARCH_RISCV == 64
-	err = paging_duplicate(pcpu->root_table_page, this_root_table_page(),
-			       (void *)GRINCH_BASE, 1 * GIB);
-	if (err)
-		return err;
-#elif CONFIG_ARCH_RISCV == 32
+#if CONFIG_ARCH_RISCV == 32
+	/* Untested */
 	return -ENOSYS;
-#if 0
-	err = paging_duplicate(pcpu->root_table_page, this_root_table_page(),
-			       (void *)GRINCH_BASE, GRINCH_SIZE);
-	if (err)
-		return err;
-
-	err = paging_duplicate(pcpu->root_table_page, this_root_table_page(),
-			       (void *)KHEAP_BASE, 0x100000);
-	if (err)
-		return err;
-
-	/* FIXME: We can not distribute what is not yet mapped */
-	err = paging_duplicate(pcpu->root_table_page, this_root_table_page(),
-			       (void *)IOREMAP_BASE, IOREMAP_SIZE);
-	if (err)
-		return err;
 #endif
-#endif
-
-	err = paging_duplicate(pcpu->root_table_page,
-			       this_root_table_page(),
-			       (void *)DIR_PHYS_BASE,
-			       memory_size());
-	if (err)
-		return err;
 
 	paddr = v2p(secondary_start);
 
@@ -154,10 +122,10 @@ int arch_boot_cpu(unsigned long hart_id)
 }
 
 /*
- * Once every secondary is online it has switched to its own root table,
- * so the shared boot root is dead and can be released - along with the
- * private tables its identity trampoline pulled in, which nothing else
- * references and would otherwise leak.
+ * Once every secondary is online it has switched to the kernel root, so
+ * the shared boot root is dead and can be released - along with the
+ * private tables its identity trampoline pulled in, which do not belong
+ * to the kernel root and would otherwise leak.
  */
 void __init arch_smp_bringup_done(void)
 {

@@ -54,7 +54,7 @@ void arch_process_activate(struct process *process)
 #elif CONFIG_ARCH_RISCV == 32 /* rv32 */
 	kernel_index = vaddr2vpn((void *)USER_END, 1);
 #endif
-	memcpy(&pt[kernel_index], &this_root_table_page()[kernel_index],
+	memcpy(&pt[kernel_index], &kernel_root[kernel_index],
 	       (PTES_PER_PT - kernel_index) * sizeof(*pt));
 
 	enable_mmu_satp(satp_mode, v2p(pt));
@@ -63,5 +63,5 @@ void arch_process_activate(struct process *process)
 
 void arch_process_deactivate(void)
 {
-	enable_mmu_satp(satp_mode, v2p(this_root_table_page()));
+	enable_mmu_satp(satp_mode, v2p(kernel_root));
 }

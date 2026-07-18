@@ -29,6 +29,14 @@
 const struct paging *root_paging, *vm_paging;
 
 /*
+ * The kernel's address space, shared by all CPUs: the translation
+ * root while no process is active, and the source of the kernel
+ * entries in every process' page table. Its root-level slots are
+ * fixed once boot completes.
+ */
+unsigned long kernel_root[PTES_PER_PT] __aligned(PAGE_SIZE);
+
+/*
  * Which translations a page table modification can affect, i.e. what
  * has to be flushed from the TLB.
  */
@@ -59,7 +67,7 @@ static enum tlb_scope tlb_scope_of(page_table_t pt)
 {
 	struct task *task;
 
-	if (pt == this_root_table_page())
+	if (pt == kernel_root)
 		return TLB_SCOPE_LOCAL;
 
 	task = current_task();
@@ -202,7 +210,7 @@ static int paging_destroy(const struct paging_structures *pg_structs,
 			 * emptied table in place.
 			 */
 			if (n == 1 && virt >= USER_END &&
-			    pg_structs->root_table == this_root_table_page())
+			    pg_structs->root_table == kernel_root)
 				break;
 
 			empty[n_empty++] = pt[n];
@@ -431,7 +439,7 @@ int paging_discard_init(void)
 	size_t size;
 	int err;
 
-	root = this_per_cpu()->root_table_page;
+	root = kernel_root;
 	size = page_up(__init_rw_end - __init_text_start);
 	pri("Freeing %lu bytes of init code\n", size);
 	err = map_osmem(root, __init_text_start, size, GRINCH_MEM_RW);
@@ -460,7 +468,7 @@ int __init paging_init(unsigned long this_cpu)
 	pri(" direct phys: 0x%lx\n", DIR_PHYS_BASE);
 	pri("=== Grinch memory layout end ===\n");
 
-	root = per_cpu(this_cpu)->root_table_page;
+	root = kernel_root;
 
 	err = map_osmem(root, grinch_base(),
 			page_up(__text_end - grinch_base()),
@@ -541,74 +549,6 @@ int paging_prealloc(page_table_t pt, const void *vaddr, size_t size)
 		if (!sub)
 			return -ENOMEM;
 		root->set_next_pt(pte, v2p(sub));
-	}
-
-	return 0;
-}
-
-/*
- * Warning: In case of errors, this routine does no housekeeping at the moment,
- * and may leak memory!
- */
-int paging_duplicate(page_table_t dst, page_table_t src,
-		     void *_vaddr, size_t size)
-{
-	struct paging_structures pg = {
-		.root_paging = root_paging,
-		.root_table = src,
-	};
-	page_table_t pt_dst[MAX_PAGE_TABLE_LEVELS];
-	page_table_t pt_src[MAX_PAGE_TABLE_LEVELS];
-	pt_entry_t pte_src, pte_dst;
-	const struct paging *paging;
-	unsigned long vaddr;
-	unsigned int n;
-
-	if (page_voffset(_vaddr))
-		return -EINVAL;
-
-	if (size % PAGE_SIZE)
-		return -EINVAL;
-
-	vaddr = (unsigned long)_vaddr;
-	while (size > 0) {
-		paging = pg.root_paging;
-		n = 0;
-		pt_src[n] = src;
-		pt_dst[n] = dst;
-		while (1) {
-			pte_src = paging->get_entry(pt_src[n], vaddr);
-			if (!paging->entry_valid(pte_src, PAGE_PRESENT_FLAGS))
-				return -EINVAL;
-
-			if ((vaddr & ~PMASK(paging->page_size)) == 0) {
-				if (size >= paging->page_size) {
-					pte_dst = paging->get_entry(pt_dst[n],
-								    vaddr);
-					*pte_dst = *pte_src;
-
-					vaddr += paging->page_size;
-					size -= paging->page_size;
-					break;
-				}
-			}
-
-			/* Walk deeper */
-			pte_dst = paging->get_entry(pt_dst[n], vaddr);
-			page_table_t next;
-			if (paging->entry_valid(pte_dst, PAGE_PRESENT_FLAGS)) {
-				next = p2v(paging->get_next_pt(pte_dst));
-			} else {
-				next = zalloc_pages(1);
-				if (!next)
-					return -ENOMEM;
-				paging->set_next_pt(pte_dst, v2p(next));
-			}
-			pt_dst[n + 1] = next;
-			pt_src[n + 1] = p2v(paging->get_next_pt(pte_src));
-			n++;
-			paging++;
-		}
 	}
 
 	return 0;

@@ -320,7 +320,7 @@ paddr_t v2p(const void *virt)
 	 * Perform a PTW walk. This could indeed be implemented more efficient.
 	 * But we're usually not in a hot path here, so keep it simple.
 	 */
-	phys = paging_get_phys(this_per_cpu()->root_table_page, virt);
+	phys = paging_get_phys(kernel_root, virt);
 	if (phys != INVALID_PHYS_ADDR)
 		return phys;
 
@@ -426,7 +426,7 @@ static int __init phys_mem_init(struct mmio_area *area)
 	 * Create a direct physical R/W mapping, so that the kernel may easily
 	 * access every single byte of physical memory.
 	 */
-	err = map_range(this_per_cpu()->root_table_page, (void *)DIR_PHYS_BASE,
+	err = map_range(kernel_root, (void *)DIR_PHYS_BASE,
 			area->paddr, area->size, GRINCH_MEM_RW);
 	if (err)
 		return err;

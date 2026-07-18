@@ -54,6 +54,9 @@ struct paging {
 extern const struct paging *root_paging;
 extern const struct paging *vm_paging;
 
+/* The kernel's address space, shared by all CPUs */
+extern unsigned long kernel_root[PTES_PER_PT];
+
 void arch_paging_init(void);
 void arch_paging_enable(unsigned long this_cpu, page_table_t pt);
 
@@ -61,9 +64,6 @@ int paging_init(unsigned long this_cpu);
 int paging_discard_init(void);
 
 paddr_t paging_get_phys(page_table_t pt, const void *virt);
-
-int paging_duplicate(page_table_t dst, page_table_t src,
-		     void *vaddr, size_t size);
 
 int paging_prealloc(page_table_t pt, const void *vaddr, size_t size);
 
