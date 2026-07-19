@@ -46,6 +46,19 @@ __driver_##ID __used __section(".drivers") = {			\
 	.of.matches = MATCHES,					\
 };
 
+/*
+ * Interrupt controllers are infrastructure that regular drivers depend
+ * on. They live in a separate table and are probed early via
+ * irqchip_init(), before arch_init() and regular driver probing.
+ */
+#define DECLARE_IRQCHIP(ID, NAME, PROBE, MATCHES)		\
+static const struct driver 					\
+__irqchip_##ID __used __section(".drivers.irqchip") = {		\
+	.name = NAME,						\
+	.of.probe = PROBE,					\
+	.of.matches = MATCHES,					\
+};
+
 int driver_init(void);
 int driver_probe_node(const struct driver *drv, int node);
 

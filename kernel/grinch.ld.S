@@ -49,6 +49,11 @@ SECTIONS
 		__drivers_end = .;
 
 		. = ALIGN(16);
+		__irqchip_drivers_start = .;
+		KEEP(*(.drivers.irqchip));
+		__irqchip_drivers_end = .;
+
+		. = ALIGN(16);
 		__pci_drivers_start = .;
 		KEEP(*(.pci_drivers));
 		__pci_drivers_end = .;

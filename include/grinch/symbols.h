@@ -21,6 +21,7 @@ extern unsigned char __init_start[], __init_ro_end[];
 extern unsigned char __init_rw_start[], __init_rw_end[];
 extern unsigned char __bootparams_start[], __bootparams_end[];
 extern unsigned char __drivers_start[], __drivers_end[];
+extern unsigned char __irqchip_drivers_start[], __irqchip_drivers_end[];
 extern unsigned char __pci_drivers_start[], __pci_drivers_end[];
 /*
  * Try to avoid using __start in early boot context. For the absolute location,
