@@ -152,7 +152,6 @@ int __init uart_probe_generic(struct device *dev)
 	}
 
 	c->base = dev->mmio.base;
-	c->size = dev->mmio.phys.size;
 	c->irq = irq;
 	if (irq != IRQ_INVALID) {
 		dev_pri(dev, "UART: using IRQ %d\n", irq);

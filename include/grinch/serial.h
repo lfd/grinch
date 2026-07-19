@@ -31,7 +31,6 @@ struct uart_driver {
 struct uart_chip {
 	const struct uart_driver *driver;
 	void *base;
-	size_t size;
 	u32 irq;
 
 	struct devfs_node node;
