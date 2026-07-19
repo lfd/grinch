@@ -82,18 +82,11 @@ static void __init uart_deinit(struct device *dev)
 {
 	struct devfs_node *node;
 	struct uart_chip *c;
-	int err;
 
 	c = dev->data;
 	dev->data = NULL;
 	if (!c)
 		return;
-
-	if (c->base) {
-		err = iounmap(c->base, c->size);
-		if (err)
-			dev_pr_crit(dev, "Error during unmap\n");
-	}
 
 	node = &c->node;
 	devfs_node_unregister(node);
