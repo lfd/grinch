@@ -14,6 +14,8 @@
 #include <grinch/irqchip.h>
 #include <grinch/printk.h>
 
+const struct irqchip_fn *irqchip_fn;
+
 static irq_handler_t irq_handlers[IRQ_MAX];
 static void *irq_handlers_userdata[IRQ_MAX];
 

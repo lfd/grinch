@@ -19,8 +19,6 @@
 #include <grinch/driver.h>
 #include <grinch/irqchip.h>
 
-const struct irqchip_fn *irqchip_fn;
-
 static __initconst const struct of_device_id plic_compats[] = {
 	{ .compatible = "riscv,plic0", .data = &irqchip_fn_plic, },
 	{ .compatible = "sifive,plic-1.0.0", .data = &irqchip_fn_plic, },
