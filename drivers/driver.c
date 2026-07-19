@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2024
+ * Copyright (c) OTH Regensburg, 2024-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -75,6 +75,12 @@ static int __init drivers_probe(enum driver_prio prio)
 			if (err) {
 				pri("Driver %s failed probing %s: %pe\n",
 				    drv->name, path, ERR_PTR(err));
+				/*
+				 * dev->mmio is a core-owned resource: release
+				 * whatever dev_map_iomem() mapped. A no-op if
+				 * the driver never mapped anything.
+				 */
+				iounmap_res(&dev->mmio);
 				kfree(dev->of.path);
 				kfree(dev);
 				continue;
