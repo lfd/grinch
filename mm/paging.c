@@ -90,7 +90,7 @@ static int paging_destroy(const struct paging_structures *pg_structs,
 	while (size > 0) {
 		const struct paging *paging = pg_structs->root_paging;
 		page_table_t pt[MAX_PAGE_TABLE_LEVELS];
-		unsigned long page_size;
+		unsigned long page_size, advance;
 		pt_entry_t pte;
 		int n = 0;
 		int err;
@@ -138,8 +138,14 @@ static int paging_destroy(const struct paging_structures *pg_structs,
 			pt[++n] = p2v(paging->get_next_pt(pte));
 			paging++;
 		}
-		/* advance by page size of current level paging */
-		page_size = paging->page_size ? paging->page_size : PAGE_SIZE;
+		/*
+		 * Advance to the end of the slot the walk stopped in. If
+		 * the walk stopped early - an invalid entry, or a terminal
+		 * entry above the leaf level - everything up to the next
+		 * slot boundary of that level is covered in one step.
+		 */
+		page_size = paging_slot_size(paging);
+		advance = page_size - (virt & (page_size - 1));
 
 		/* walk up again, clearing entries, releasing empty tables */
 		while (1) {
@@ -156,10 +162,10 @@ static int paging_destroy(const struct paging_structures *pg_structs,
 
 		local_flush_tlb_page(virt);
 
-		if (page_size > size)
+		if (advance >= size)
 			break;
-		virt += page_size;
-		size -= page_size;
+		virt += advance;
+		size -= advance;
 	}
 	return 0;
 }
