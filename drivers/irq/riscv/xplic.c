@@ -57,5 +57,5 @@ static int __init xplic_probe(struct device *dev)
 	return 0;
 }
 
-DECLARE_DRIVER(PLIC, "PLIC", PRIO_0, NULL, xplic_probe, plic_compats);
-DECLARE_DRIVER(APLIC, "APLIC", PRIO_0, NULL, xplic_probe, aplic_compats);
+DECLARE_IRQCHIP(PLIC, "PLIC", xplic_probe, plic_compats);
+DECLARE_IRQCHIP(APLIC, "APLIC", xplic_probe, aplic_compats);
