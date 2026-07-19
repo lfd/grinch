@@ -30,6 +30,7 @@ struct irqchip_fn {
 
 extern const struct irqchip_fn *irqchip_fn;
 
+int irqchip_init(void);
 int irq_register_handler(u32 irq, irq_handler_t handler, void *userdata);
 void irqchip_handle_irq(unsigned int irq);
 

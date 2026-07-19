@@ -27,6 +27,7 @@
 #include <grinch/gfp.h>
 #include <grinch/header.h>
 #include <grinch/ioremap.h>
+#include <grinch/irqchip.h>
 #include <grinch/memtest.h>
 #include <grinch/paging.h>
 #include <grinch/percpu.h>
@@ -195,6 +196,10 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 
 	err = platform_init();
 	if (err)
+		goto out;
+
+	err = irqchip_init();
+	if (err && err != -ENOENT)
 		goto out;
 
 	err = arch_init();
