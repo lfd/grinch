@@ -265,7 +265,7 @@ qemu.dts: grinch.bin user/initrd.cpio
 
 .PHONY: grinch.dump
 grinch.dump: $(srctree)/scripts/grinch_dump.gdb grinch.elf
-	$(GDB) -nx -x $(srctree)/.gdbinit -x $<
+	$(GDB) -nx -x $(srctree)/scripts/connect.gdb -x $<
 
 grinch.info: grinch.dump tools/gcov_extract
 	./tools/gcov_extract $<
@@ -290,8 +290,8 @@ defconfig:
 	$(QUIET) "[GEN]   $(config_mk)"
 	$(VERBOSE) $(config_mk_cmd)
 
-debug: grinch.bin
-	$(GDB) -x $(srctree)/scripts/debug.gdb $^
+debug: grinch.elf
+	$(GDB) -nx -x $(srctree)/scripts/connect.gdb -x $(srctree)/scripts/debug.gdb
 
 clean: clean_core clean_lib clean_mm clean_fs clean_user clean_arch clean_drivers clean_kernel clean_tools
 	$(call clean_files,all,grinch.bin grinch.elf grinch.dump grinch.info)
