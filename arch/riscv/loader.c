@@ -30,7 +30,9 @@ grinch_start(unsigned long hart_id, paddr_t fdt, paddr_t dst);
 #if CONFIG_ARCH_RISCV == 32 /* rv32 */
 static inline void __init enable_mmu(paddr_t l0)
 {
-	enable_mmu_satp(SATP_MODE_32, l0);
+	local_flush_tlb_all();
+	csr_write(satp, ATP(SATP_MODE_32, l0));
+	local_flush_tlb_all();
 }
 
 static void __init
@@ -105,7 +107,9 @@ map_page(void **next, unsigned long *l0, void *vaddr, paddr_t paddr)
 /* On RV64, we will use the SV39 paging system for handover */
 static inline void __init enable_mmu(paddr_t l0)
 {
-	enable_mmu_satp(SATP_MODE_39, l0);
+	local_flush_tlb_all();
+	csr_write(satp, ATP(SATP_MODE_39, l0));
+	local_flush_tlb_all();
 }
 #endif /* rv64 */
 

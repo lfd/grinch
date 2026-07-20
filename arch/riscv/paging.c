@@ -296,5 +296,5 @@ unsigned long arch_nr_asids(void)
 
 void arch_paging_enable(unsigned long this_cpu, page_table_t pt)
 {
-	enable_mmu_satp(satp_mode, v2p(pt));
+	switch_mmu_satp(satp_mode, 0, v2p(pt));
 }

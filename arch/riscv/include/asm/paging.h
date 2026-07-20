@@ -77,11 +77,14 @@ static inline paddr_t pte2table(u64 pte)
 }
 
 #define ATP(MODE, PT)	((MODE) | (u64)(PT) >> PAGE_SHIFT)
+#define ATP_ASID(MODE, ASID, PT) \
+	(ATP(MODE, PT) | (u64)(ASID) << SATP_ASID_SHIFT)
 
-static inline void enable_mmu_satp(u64 mode, paddr_t pt)
+/* Switch to an ASID-tagged address space. */
+static inline void switch_mmu_satp(u64 mode, unsigned long asid, paddr_t pt)
 {
 	local_flush_tlb_all();
-	csr_write(satp, ATP(mode, pt));
+	csr_write(satp, ATP_ASID(mode, asid, pt));
 	local_flush_tlb_all();
 }
 

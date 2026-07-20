@@ -57,11 +57,12 @@ void arch_process_activate(struct process *process)
 	memcpy(&pt[kernel_index], &kernel_root[kernel_index],
 	       (PTES_PER_PT - kernel_index) * sizeof(*pt));
 
-	enable_mmu_satp(satp_mode, v2p(pt));
+	switch_mmu_satp(satp_mode, 0, v2p(pt));
 	asm volatile("fence.i");
 }
 
 void arch_process_deactivate(void)
 {
-	enable_mmu_satp(satp_mode, v2p(kernel_root));
+	/* The kernel root holds only global entries: it lives under ASID 0. */
+	switch_mmu_satp(satp_mode, 0, v2p(kernel_root));
 }
