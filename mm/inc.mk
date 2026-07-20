@@ -1,4 +1,5 @@
 MM_OBJS = alloc.o
+MM_OBJS += asid.o
 MM_OBJS += gfp.o
 MM_OBJS += paging.o
 MM_OBJS += salloc.o

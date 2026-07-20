@@ -14,6 +14,7 @@
 
 #include <grinch/alloc.h>
 #include <grinch/arch.h>
+#include <grinch/asid.h>
 #include <grinch/boot.h>
 #include <grinch/bootparam.h>
 #include <grinch/console.h>
@@ -191,6 +192,11 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 		goto out;
 
 	err = kheap_init();
+	if (err)
+		goto out;
+
+	/* The ASID bitmap needs the kernel heap and the probed ASID width. */
+	err = asid_init();
 	if (err)
 		goto out;
 

@@ -12,6 +12,7 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <grinch/asid.h>
 #include <grinch/gfp.h>
 #include <grinch/paging.h>
 #include <grinch/percpu.h>
@@ -270,6 +271,12 @@ void __init arch_paging_init(void)
 	vm_paging = riscv_Sv32x4;
 	hgatp_mode = SATP_MODE_32;
 #endif
+}
+
+unsigned long arch_nr_asids(void)
+{
+	/* No ASID probing yet: run untagged under ASID 0. */
+	return 1;
 }
 
 void arch_paging_enable(unsigned long this_cpu, page_table_t pt)
