@@ -37,6 +37,10 @@
 
 #ifndef __ASSEMBLY__
 
+#define ATP(MODE, PT)	((MODE) | (u64)(PT) >> PAGE_SHIFT)
+
+extern unsigned long satp_mode;
+
 static inline unsigned long arch_paging_access_flags(mem_flags_t flags)
 {
 	unsigned long ret;
@@ -76,10 +80,6 @@ static inline paddr_t pte2table(u64 pte)
 	return (pte & RISCV_PTE_MASK) << RISCV_PTE_SHIFT;
 }
 
-#define ATP(MODE, PT)	((MODE) | (u64)(PT) >> PAGE_SHIFT)
-#define ATP_ASID(MODE, ASID, PT) \
-	(ATP(MODE, PT) | (u64)(ASID) << SATP_ASID_SHIFT)
-
 /*
  * Switch to an ASID-tagged address space without flushing: the ASID
  * keeps its translations apart from every other address space's, and
@@ -87,9 +87,9 @@ static inline paddr_t pte2table(u64 pte)
  * is recycled. ASID 0 offers no such separation; its user flushes for
  * itself.
  */
-static inline void switch_mmu_satp(u64 mode, unsigned long asid, paddr_t pt)
+static inline void switch_mmu_satp(unsigned long asid, paddr_t pt)
 {
-	csr_write(satp, ATP_ASID(mode, asid, pt));
+	csr_write(satp, ATP(satp_mode, pt) | (u64)asid << SATP_ASID_SHIFT);
 }
 
 /*
@@ -112,7 +112,6 @@ static inline void disable_mmu_hgatp(void)
 	local_hfence_vvma_all();
 }
 
-extern unsigned long satp_mode;
 extern unsigned long hgatp_mode;
 
 #endif /* __ASSEMBLY__ */

@@ -62,8 +62,7 @@ void arch_process_activate(struct process *process)
 	/* Ensure that sret returns to U-Mode */
 	csr_clear(sstatus, SR_SPP);
 
-	switch_mmu_satp(satp_mode, process->mm.asid,
-			v2p(process->mm.page_table));
+	switch_mmu_satp(process->mm.asid, v2p(process->mm.page_table));
 
 	/*
 	 * A process without its own ASID shares ASID 0 with every other
@@ -79,5 +78,5 @@ void arch_process_activate(struct process *process)
 void arch_process_deactivate(void)
 {
 	/* The kernel root holds only global entries: it lives under ASID 0. */
-	switch_mmu_satp(satp_mode, 0, v2p(kernel_root));
+	switch_mmu_satp(0, v2p(kernel_root));
 }
