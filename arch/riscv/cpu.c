@@ -57,8 +57,9 @@ void dump_regs(struct registers *a)
 
 	satp = csr_read(CSR_SATP);
 
-	pr("SATP -- Mode: %lu, PFN: " REG_FMT "     STVAL: " REG_FMT "\n",
+	pr("SATP -- Mode: %lu, ASID: %lu, PFN: " REG_FMT "     STVAL: " REG_FMT "\n",
 			satp >> SATP_MODE_SHIFT,
+			(satp >> SATP_ASID_SHIFT) & SATP_ASID_MASK,
 			(satp & SATP_PPN) << PAGE_SHIFT,
 			csr_read(stval));
 	pr(" PC: " REG_FMT " RA: " REG_FMT "  SP: " REG_FMT "\n",
