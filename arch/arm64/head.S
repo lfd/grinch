@@ -180,3 +180,85 @@ setup_percpu_stack:
 	add	sp, sp, #STACK_SIZE
 	sub	sp, sp, #STRUCT_REGISTERS_SIZE
 	ret
+
+/*
+ * Secondary CPU entry.
+ *
+ * Reached from arch_boot_cpu() once the boot CPU releases this core. On
+ * entry we run at the *physical* address of this code, with the MMU off,
+ * at whatever EL firmware left the core in (EL1 on QEMU virt, but EL2/EL3
+ * elsewhere). The job here is to converge to EL1, enable the MMU with the
+ * configuration the boot CPU captured, and then continue in the kernel's
+ * high virtual mapping just like the boot CPU does after loader().
+ */
+.globl secondary_start
+secondary_start:
+	/*
+	 * Converge to EL1 with the MMU off, just like the boot CPU: we
+	 * cannot assume PSCI dropped us straight into EL1.
+	 */
+	bl	converge_to_el1
+
+	/*
+	 * Unmask SError and debug, but keep IRQ/FIQ masked: the GIC CPU
+	 * interface is not up yet, and secondary_cmain() is entered with
+	 * interrupts masked (like riscv). do_idle() unmasks them later.
+	 */
+	msr	daif, xzr
+	msr	daifset, #(DAIF_IRQ | DAIF_FIQ)
+
+	/*
+	 * Load the MMU configuration the boot CPU stashed for us in
+	 * arch_smp_bringup_init() (struct secondary_mmu_config in smp.c). It
+	 * lives in the kernel image; with the MMU off we address it via
+	 * adrp/add, which is PC-relative and therefore resolves to its
+	 * *physical* location. Load order matches the struct field order:
+	 * ttbr0, ttbr1, mair, tcr, sctlr.
+	 */
+	adrp	x0, secondary_mmu
+	add	x0, x0, #:lo12:secondary_mmu
+	ldr	x1, [x0], #8		/* ttbr0: identity trampoline */
+	msr	TTBR0, x1
+	ldr	x1, [x0], #8		/* ttbr1: shared kernel_root */
+	msr	TTBR1, x1
+	ldr	x1, [x0], #8		/* mair */
+	msr	MAIR, x1
+	ldr	x1, [x0], #8		/* tcr */
+	msr	TCR, x1
+	ldr	x2, [x0]		/* sctlr (applied after the isb) */
+	isb
+
+	/*
+	 * Turn the MMU on (the SCTLR snapshot already has M/C/I set). The PC
+	 * is still physical, but TTBR0 identity-maps it, so execution
+	 * continues uninterrupted across the enable.
+	 */
+	msr	SCTLR, x2
+	isb
+
+	/*
+	 * Jump to the high virtual mapping. "ldr =4f" pulls 4f's link-time
+	 * (virtual) address from the literal pool, and the branch lands us in
+	 * the TTBR1 mapping; from here on we no longer need TTBR0.
+	 */
+	ldr	x0, =4f
+	br	x0
+
+4:	/* Running virtually now. Disable TTBR0 so the trampoline can't be hit. */
+	mrs	x3, TCR
+	orr	x3, x3, #TCR_EL1_EPD0
+	msr	TCR, x3
+	isb
+
+	bl	setup_percpu_stack
+
+	/* Exception vectors (shared table). */
+	ldr	x2, =vectors
+	msr	vbar_el1, x2
+
+	/*
+	 * Into C, then eret to EL0 like the boot CPU (see 'b return_to_user'
+	 * after 'bl cmain' above). secondary_cmain() enters the scheduler.
+	 */
+	bl	secondary_cmain
+	b	return_to_user

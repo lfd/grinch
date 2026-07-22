@@ -12,8 +12,8 @@ config_defines += CONFIG_ARM64_SEMIHOSTING=1
 QEMU_ARGS_SEMIHOSTING = -semihosting
 endif
 
-ARCH_OBJS = cpu.o entry.o head.o paging.o arch.o traps.o platform.o
-ARCH_OBJS += smp.o stackdump.o task.o timer.o loader.o
+ARCH_OBJS = arch.o cpu.o entry.o head.o loader.o paging.o platform.o
+ARCH_OBJS += psci.o smp.o stackdump.o task.o timer.o traps.o
 
 QEMU = qemu-system-aarch64
 ifeq ($(PLATFORM),virt)

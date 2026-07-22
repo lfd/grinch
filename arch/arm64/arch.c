@@ -12,6 +12,8 @@
 
 #define dbg_fmt(x)	"arch: " x
 
+#include <asm/psci.h>
+
 #include <grinch/arch.h>
 #include <grinch/gfp.h>
 #include <grinch/irqchip.h>
@@ -19,6 +21,7 @@
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/serial.h>
+#include <grinch/smp.h>
 
 void __noreturn arch_reboot(void)
 {
@@ -33,6 +36,17 @@ void __noreturn arch_shutdown(int err)
 int __init arch_init(void)
 {
 	int err;
+
+	psci_init();
+
+	/*
+	 * Bring up the secondaries before timer_init(): the latter fans out
+	 * timer_cpu_init() via on_each_cpu(), which only reaches CPUs that
+	 * are already online and servicing IPIs.
+	 */
+	err = smp_init();
+	if (err)
+		return err;
 
 	err = timer_init();
 	if (err)
