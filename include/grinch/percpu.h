@@ -45,6 +45,9 @@ struct per_cpu {
 
 	int cpuid;
 
+	/* Offset of this CPU's node in the device-tree. */
+	int of_node;
+
 	bool primary;
 	bool schedule;
 	bool idling;

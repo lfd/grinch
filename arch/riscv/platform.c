@@ -71,6 +71,7 @@ int __init arch_platform_init(void)
 		pcpu = per_cpu(hart_id);
 		if (hart_id != this_cpu_id())
 			memset(pcpu, 0, sizeof(*pcpu));
+		pcpu->of_node = child;
 
 		ic = fdt_subnode_offset(_fdt, child,
 					ISTR("interrupt-controller"));
