@@ -278,7 +278,8 @@ gcov: grinch.info
 
 $(UBOOT_BIN):
 	$(MKDIR_P) $(UBOOT_PFX)
-	cp -av $(srctree)/res/u-boot/$(UBOOT_CFG) $(UBOOT_PFX)/.config
+	cp -av $(srctree)/$(UBOOT_CFG) $(UBOOT_PFX)/.config
+	cp -av $(srctree)/$(UBOOT_ENV) $(UBOOT_PFX)/grinch.env
 	$(MAKE) -C $(D_UBOOT)/u-boot $(MAKEARGS_UBOOT) O=$(UBOOT_PFX) oldconfig
 	$(MAKE) -C $(D_UBOOT)/u-boot $(MAKEARGS_UBOOT) O=$(UBOOT_PFX) u-boot-nodtb.bin
 

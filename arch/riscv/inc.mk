@@ -1,4 +1,5 @@
-UBOOT_CFG=$(ARCH)-qemu.config
+UBOOT_CFG=$(ARCH_DIR)/u-boot/$(ARCH)-qemu.config
+UBOOT_ENV=$(ARCH_DIR)/u-boot/qemu.env
 QEMU=qemu-system-$(ARCH)
 
 ifdef ARCH_RISCV64
