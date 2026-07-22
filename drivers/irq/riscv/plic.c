@@ -102,16 +102,21 @@ static void plic_handle_irq(void)
 
 static int __init plic_get_context(const void *fdt, int off, unsigned int cpu)
 {
-	int cpu_phandle, phandle;
+	u32 cpu_phandle, phandle;
 	const u32* iext;
-	int entry, size;
+	int entry, size, ic, err;
 
-	cpu_phandle = per_cpu(cpu)->plic.cpu_phandle;
-	if (cpu_phandle < 0) {
+	ic = fdt_subnode_offset(fdt, per_cpu(cpu)->of_node,
+				ISTR("interrupt-controller"));
+	if (ic < 0) {
 		pr_warn_i("No interrupt controller reference for CPU %u\n",
 			  cpu);
-		return cpu_phandle;
+		return ic;
 	}
+
+	err = fdt_read_u32(fdt, ic, ISTR("phandle"), &cpu_phandle);
+	if (err)
+		return err;
 
 	iext = (const u32 *)
 		fdt_getprop(fdt, off, ISTR("interrupts-extended"), &size);

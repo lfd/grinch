@@ -24,8 +24,7 @@ int __init arch_platform_init(void)
 	const char *name, *isa;
 	unsigned long hart_id;
 	struct per_cpu *pcpu;
-	int err, off, child, ic;
-	unsigned int phandle;
+	int err, off, child;
 	const fdt32_t *reg;
 
 	off = fdt_path_offset(_fdt, "/cpus");
@@ -72,20 +71,6 @@ int __init arch_platform_init(void)
 		if (hart_id != this_cpu_id())
 			memset(pcpu, 0, sizeof(*pcpu));
 		pcpu->of_node = child;
-
-		ic = fdt_subnode_offset(_fdt, child,
-					ISTR("interrupt-controller"));
-		if (ic < 0) {
-			pr_warn_i("No interrupt controller reference "
-				  "for HART %lu\n", hart_id);
-			continue;
-		}
-
-		err = fdt_read_u32(_fdt, ic, "phandle", &phandle);
-		if (err)
-			return err;
-
-		pcpu->plic.cpu_phandle = phandle;
 	}
 
 	/* free per_cpu pages of absent harts back to the pool */

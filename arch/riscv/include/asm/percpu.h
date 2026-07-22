@@ -17,11 +17,6 @@
 
 #define ARCH_PER_CPU_FIELDS				\
 	struct {					\
-		/*					\
-		 * Offset of interrupt-controller	\
-		 * phandle node in device-tree.		\
-		 */					\
-		int cpu_phandle;			\
 		u16 ctx;				\
 	} plic;
 
