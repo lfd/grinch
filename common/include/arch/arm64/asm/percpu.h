@@ -10,7 +10,8 @@
  * the COPYING file in the top-level directory.
  */
 
-#define ARCH_PER_CPU_FIELDS
+#define ARCH_PER_CPU_FIELDS				\
+	unsigned long mpidr;
 
 #ifndef __ASSEMBLY__
 
