@@ -110,22 +110,16 @@ int hypercall(unsigned long no, unsigned long arg1)
 
 void arch_do_idle(void)
 {
+	/*
+	 * Enable interrupts across the wfi so a pending IRQ is taken as a
+	 * trap and serviced by arch_handle_irq() (which tolerates the idle
+	 * context), instead of being polled and dispatched here.
+	 */
+	irq_enable();
 	cpu_do_idle();
+	irq_disable();
 
 	check_panic();
-
-	if (ipi_pending()) {
-		ipi_clear();
-		check_events();
-	}
-
-	if (timer_pending()) {
-		handle_timer();
-		this_per_cpu()->handle_events = true;
-	}
-
-	if (ext_pending())
-		irqchip_fn->handle_irq();
 }
 
 void __init arch_guest_init(void)

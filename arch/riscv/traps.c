@@ -15,6 +15,7 @@
 #include <grinch/cpu.h>
 #include <grinch/irqchip.h>
 #include <grinch/panic.h>
+#include <grinch/smp.h>
 #include <grinch/syscall.h>
 #include <grinch/task.h>
 
@@ -43,6 +44,14 @@ static void handle_syscall(void)
 	syscall(regs->a7, &args);
 }
 
+/*
+ * We reschedule only when the trap came from U-mode. An interrupt taken
+ * while idling (arch_do_idle runs wfi with interrupts enabled) traps from
+ * supervisor mode onto a nested kernel frame, which is not the task's
+ * context: don't save it and don't reschedule here (prepare_user_return()
+ * below is guarded by !idling). The idle retry loop reschedules once we
+ * unwind.
+ */
 void arch_handle_irq(struct registers *regs, u64 scause)
 {
 	bool prepare_user = false;
@@ -50,13 +59,13 @@ void arch_handle_irq(struct registers *regs, u64 scause)
 
 	if (!this_per_cpu()->idling)
 		task_save(regs);
-	else
-		BUG();
 
 	irq = to_irq(scause);
 	switch (irq) {
 		case IRQ_S_SOFT:
 			ipi_clear();
+			/* Dispatch pending remote calls (on_each_cpu). */
+			check_events();
 			this_per_cpu()->handle_events = true;
 			prepare_user = true;
 			break;
