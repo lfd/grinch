@@ -25,6 +25,7 @@ struct irqchip_fn {
 	void (*handle_irq)(void);
 	int (*enable_irq)(unsigned int irq);
 	int (*disable_irq)(unsigned int irq);
+	int (*set_affinity)(unsigned int irq, unsigned long cpu);
 	int (*init)(struct device *dev);
 };
 
@@ -34,6 +35,7 @@ int irqchip_init(void);
 int irq_register_handler(u32 irq, irq_handler_t handler, void *userdata);
 void irqchip_handle_irq(unsigned int irq);
 int irqchip_enable_irq(unsigned int irq);
+int irqchip_set_affinity(unsigned int irq, unsigned long cpu);
 
 #include <asm/irqchip.h>
 

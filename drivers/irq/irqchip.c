@@ -15,6 +15,7 @@
 #include <grinch/init.h>
 #include <grinch/irqchip.h>
 #include <grinch/printk.h>
+#include <grinch/smp.h>
 #include <grinch/symbols.h>
 
 /* Maximum number of cascaded interrupt controllers in the system */
@@ -135,6 +136,19 @@ int irqchip_enable_irq(unsigned int irq)
 		return irqchip_fn->enable_irq(irq);
 
 	return -ENOENT;
+}
+
+int irqchip_set_affinity(unsigned int irq, unsigned long cpu)
+{
+	/* Routing to an offline CPU would mask the source everywhere but an
+	 * interface that never services it. */
+	if (!cpu_is_online(cpu))
+		return -EINVAL;
+
+	if (irqchip_fn && irqchip_fn->set_affinity)
+		return irqchip_fn->set_affinity(irq, cpu);
+
+	return -ENOSYS;
 }
 
 int irq_register_handler(u32 irq, irq_handler_t handler, void *userdata)

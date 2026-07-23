@@ -88,6 +88,18 @@ static int plic_enable_irq(u32 irq)
 	return 0;
 }
 
+static int plic_set_affinity(u32 irq, unsigned long cpu)
+{
+	unsigned long c;
+
+	/* Route the source to a single context: enable it there, mask it
+	 * in every other CPU's context. */
+	for_each_available_cpu(c)
+		plic_irq_set_enable(per_cpu(c)->plic.ctx, irq, c == cpu);
+
+	return 0;
+}
+
 static void plic_handle_irq(void)
 {
 	u32 source;
@@ -175,5 +187,6 @@ const struct irqchip_fn irqchip_fn_plic = {
 	.handle_irq = plic_handle_irq,
 	.enable_irq = plic_enable_irq,
 	.disable_irq = plic_disable_irq,
+	.set_affinity = plic_set_affinity,
 	.init = plic_init,
 };
