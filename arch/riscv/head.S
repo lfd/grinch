@@ -140,7 +140,7 @@ grinch_start:
 
 	/* Hand over to C */
 	jal	cmain
-	j	return_to_user
+	j	return_from_trap
 
 .globl _cpu_halt
 _cpu_halt:
@@ -188,4 +188,4 @@ secondary_virt_entry:
 	jal	secondary_cmain
 	bne	a0, zero, _cpu_halt
 
-	j	return_to_user
+	j	return_from_trap

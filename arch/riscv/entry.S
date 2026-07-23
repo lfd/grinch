@@ -12,6 +12,7 @@
 
 #include <arch/asm.h>
 #include <asm/asm_defines.h>
+#include <asm/csr.h>
 
 #include <grinch/percpu.h>
 
@@ -64,7 +65,7 @@ common_ctx:
 	/* Pass registers; after check_panic as a0 is caller-saved */
 	mv	a0, sp
 
-	la	ra, return_to_user
+	la	ra, return_from_trap
 	csrr	a1, scause
 	bge	a1, zero, 1f
 	j	arch_handle_irq
@@ -72,13 +73,25 @@ common_ctx:
 1:
 	j	arch_handle_exception
 
-.globl return_to_user
-return_to_user:
-	/* restore user's PC */
+.globl return_from_trap
+return_from_trap:
+	/* restore the interrupted PC */
 	REG_L	a0, REG_PC(sp)
 	csrw	sepc, a0
 
-	/* restore user's SP, keep it in sscratch */
+	/*
+	 * Where do we return to? A trap taken from supervisor mode -- which
+	 * happens when we take an interrupt while idling (arch_do_idle runs
+	 * wfi with interrupts enabled) -- returns to the kernel: sp is already
+	 * the kernel stack and sscratch stays 0, so skip the user-mode
+	 * sp/sscratch swap.
+	 */
+	csrr	a0, sstatus
+	andi	a0, a0, SR_SPP
+	bnez	a0, return_to_kernel
+
+return_to_user:
+	/* restore user's SP, keep the kernel SP in sscratch */
 	REG_L	a0, REG_SP(sp)
 	/* No preemption must happen from now on */
 	csrw	sscratch, a0
@@ -87,5 +100,14 @@ return_to_user:
 	addi	sp, sp, STRUCT_REGISTERS_SIZE
 
 	csrrw	sp, sscratch, sp
+
+	sret
+
+return_to_kernel:
+	/* Supervisor return: sp is already the kernel stack; sscratch stays 0. */
+	csrw	sscratch, zero
+
+	context REG_L
+	addi	sp, sp, STRUCT_REGISTERS_SIZE
 
 	sret
