@@ -27,7 +27,16 @@ typedef void (*smp_call_func_t)(void *info);
 
 #include <grinch/percpu.h>
 
+#define DEFINE_CPU_PREDICATE(name)				\
+static inline bool cpu_is_##name(unsigned long cpu)		\
+{								\
+	return cpu < MAX_CPUS && test_bit(cpu, cpus_##name);	\
+}
+
 extern unsigned long cpus_available[BITMAP_ELEMS(MAX_CPUS)];
+/* bool cpu_is_available(unsigned long cpu) */
+DEFINE_CPU_PREDICATE(available)
+
 #define for_each_available_cpu_except(cpu, exception)	\
 	for_each_cpu_except(cpu, cpus_available, exception)
 
@@ -38,6 +47,9 @@ extern unsigned long cpus_available[BITMAP_ELEMS(MAX_CPUS)];
 	for_each_available_cpu_except(cpu, this_cpu_id())
 
 extern unsigned long cpus_online[BITMAP_ELEMS(MAX_CPUS)];
+/* bool cpu_is_online(unsigned long cpu) */
+DEFINE_CPU_PREDICATE(online)
+
 #define for_each_online_cpu_except(cpu, exception)	\
 	for_each_cpu_except(cpu, cpus_online, exception)
 
