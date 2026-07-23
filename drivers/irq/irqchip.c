@@ -129,6 +129,14 @@ int __init irqchip_init(void)
 	return 0;
 }
 
+int irqchip_enable_irq(unsigned int irq)
+{
+	if (irqchip_fn)
+		return irqchip_fn->enable_irq(irq);
+
+	return -ENOENT;
+}
+
 int irq_register_handler(u32 irq, irq_handler_t handler, void *userdata)
 {
 	if (!handler)
