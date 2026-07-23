@@ -161,7 +161,7 @@ int __init uart_probe_generic(struct device *dev)
 				irq, ERR_PTR(err));
 			goto error_out;
 		}
-		err = irqchip_enable_irq(this_cpu_id(), irq, 5, 4);
+		err = irqchip_enable_irq(irq);
 		if (err) {
 			dev_pri(dev, "Unable to enable IRQ %d (%pe)\n",
 				irq, ERR_PTR(err));

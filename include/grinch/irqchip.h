@@ -23,8 +23,8 @@ typedef int (*irq_handler_t)(void *userdata);
 
 struct irqchip_fn {
 	void (*handle_irq)(void);
-	int (*enable_irq)(unsigned long cpuid, u32 irq, u32 prio, u32 thres);
-	int (*disable_irq)(unsigned long cpuid, u32 irq);
+	int (*enable_irq)(unsigned int irq);
+	int (*disable_irq)(unsigned int irq);
 	int (*init)(struct device *dev);
 };
 
@@ -34,11 +34,10 @@ int irqchip_init(void);
 int irq_register_handler(u32 irq, irq_handler_t handler, void *userdata);
 void irqchip_handle_irq(unsigned int irq);
 
-static inline int
-irqchip_enable_irq(unsigned long cpuid, u32 irq, u32 prio, u32 thres)
+static inline int irqchip_enable_irq(unsigned int irq)
 {
 	if (irqchip_fn)
-		return irqchip_fn->enable_irq(cpuid, irq, prio, thres);
+		return irqchip_fn->enable_irq(irq);
 
 	return -ENOENT;
 }

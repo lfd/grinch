@@ -18,12 +18,12 @@
 #include <grinch/init.h>
 #include <grinch/irqchip.h>
 
-static int aplic_enable_irq(unsigned long hart, u32 irq, u32 prio, u32 thres)
+static int aplic_enable_irq(u32 irq)
 {
 	return -ENOSYS;
 }
 
-static int aplic_disable_irq(unsigned long hart, u32 irq)
+static int aplic_disable_irq(u32 irq)
 {
 	return -ENOSYS;
 }

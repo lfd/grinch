@@ -23,6 +23,15 @@
 
 #define CTX_MAX		32
 
+/*
+ * PLIC priority 0 means "never interrupt", so enabled sources need a
+ * non-zero priority. A per-context threshold of 0 lets every non-zero
+ * priority through. We don't do priority ordering, so a uniform default
+ * is enough.
+ */
+#define PLIC_PRIO_DEFAULT	1
+#define PLIC_THRES_DEFAULT	0
+
 static void *plic;
 
 static inline u16 this_ctx(void)
@@ -45,7 +54,7 @@ static inline void plic_irq_set_prio(u32 irq, u32 prio)
 	plic_write_reg(4 * irq, prio);
 }
 
-static inline void plic_irq_set_prio_thres(u16 ctx, u32 irq, u32 thres)
+static inline void plic_set_threshold(u16 ctx, u32 thres)
 {
 	plic_write_reg(0x200000 + ctx * 0x1000, thres);
 }
@@ -65,20 +74,17 @@ static inline void plic_irq_set_enable(u16 ctx, u32 irq, bool enable)
 	plic_write_reg(reg, value);
 }
 
-static int plic_disable_irq(unsigned long hart, u32 irq)
+static int plic_disable_irq(u32 irq)
 {
-	plic_irq_set_enable(per_cpu(hart)->plic.ctx, irq, false);
+	plic_irq_set_enable(this_ctx(), irq, false);
 
 	return 0;
 }
 
-static int plic_enable_irq(unsigned long hart, u32 irq, u32 prio, u32 thres)
+static int plic_enable_irq(u32 irq)
 {
-	unsigned int ctx = per_cpu(hart)->plic.ctx;
-
-	plic_irq_set_prio(irq, prio);
-	plic_irq_set_prio_thres(ctx, irq, thres);
-	plic_irq_set_enable(ctx, irq, true);
+	plic_irq_set_prio(irq, PLIC_PRIO_DEFAULT);
+	plic_irq_set_enable(this_ctx(), irq, true);
 	return 0;
 }
 
@@ -156,8 +162,10 @@ static int __init plic_init(struct device *dev)
 		}
 		pcpu->plic.ctx = ctx;
 
+		plic_set_threshold(ctx, PLIC_THRES_DEFAULT);
+
 		for (irq = 0; irq < IRQ_MAX; irq++)
-			plic_disable_irq(pcpu->cpuid, irq);
+			plic_irq_set_enable(ctx, irq, false);
 	}
 
 	return 0;
