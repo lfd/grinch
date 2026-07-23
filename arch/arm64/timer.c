@@ -20,6 +20,7 @@
 #include <grinch/arch.h>
 #include <grinch/irqchip.h>
 #include <grinch/printk.h>
+#include <grinch/smp.h>
 #include <grinch/timer.h>
 
 /* Virtual timer PPI in GIC-v2 */
@@ -63,6 +64,15 @@ static int timer_arm64_handler(void *unused)
 	return 0;
 }
 
+static void __init arch_timer_cpu_init(void *)
+{
+	/*
+	 * Enable this CPU's banked copy of the timer PPI. GICD_ISENABLER is
+	 * CPU-banked for PPIs (16-31), so every CPU must enable its own.
+	 */
+	irqchip_enable_irq(TIMER_IRQ);
+}
+
 int __init arch_timer_init(void)
 {
 	int err;
@@ -75,12 +85,11 @@ int __init arch_timer_init(void)
 		return err;
 
 	/*
-	 * The GIC probes via irqchip_init() before arch_init(), so the
-	 * PPI can be enabled right here.
-	 *
-	 * For SMP: each CPU must enable its own banked copy of the PPI
-	 * from its own context (GICD_ISENABLER is CPU-banked for PPIs
-	 * 16-31).
+	 * Fan the per-CPU PPI enable out to every CPU. Secondaries are already
+	 * online (smp_init runs before timer_init) and service the request
+	 * from their idle loop.
 	 */
-	return irqchip_enable_irq(TIMER_IRQ);
+	on_each_cpu(arch_timer_cpu_init, NULL);
+
+	return 0;
 }
