@@ -27,6 +27,8 @@ struct irqchip_fn {
 	int (*disable_irq)(unsigned int irq);
 	int (*set_affinity)(unsigned int irq, unsigned long cpu);
 	int (*init)(struct device *dev);
+	/* Per-CPU controller setup, run on every CPU that comes online. */
+	int (*cpu_init)(void);
 };
 
 extern const struct irqchip_fn *irqchip_fn;
@@ -36,6 +38,13 @@ int irq_register_handler(u32 irq, irq_handler_t handler, void *userdata);
 void irqchip_handle_irq(unsigned int irq);
 int irqchip_enable_irq(unsigned int irq);
 int irqchip_set_affinity(unsigned int irq, unsigned long cpu);
+
+/*
+ * Per-CPU interrupt setup, run on every CPU as it comes online: the arch's
+ * local interrupt bring-up (arch_irqchip_cpu_init) plus, if present, the
+ * external controller's per-CPU init.
+ */
+int irqchip_cpu_init(void);
 
 #include <asm/irqchip.h>
 

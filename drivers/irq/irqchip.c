@@ -151,6 +151,18 @@ int irqchip_set_affinity(unsigned int irq, unsigned long cpu)
 	return -ENOSYS;
 }
 
+int irqchip_cpu_init(void)
+{
+	/* Local per-hart interrupt bring-up (e.g. the riscv IPI). */
+	arch_irqchip_cpu_init();
+
+	/* External interrupt controller per-CPU setup, if one is present. */
+	if (irqchip_fn && irqchip_fn->cpu_init)
+		return irqchip_fn->cpu_init();
+
+	return 0;
+}
+
 int irq_register_handler(u32 irq, irq_handler_t handler, void *userdata)
 {
 	if (!handler)

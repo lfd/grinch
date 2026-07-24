@@ -19,6 +19,7 @@
 #include <grinch/fdt.h>
 #include <grinch/gfp.h>
 #include <grinch/init.h>
+#include <grinch/irqchip.h>
 #include <grinch/paging.h>
 #include <grinch/panic.h>
 #include <grinch/percpu.h>
@@ -48,7 +49,7 @@ void secondary_cmain(void)
 	/* We still run on the shared boot root: switch to the kernel root */
 	arch_paging_enable(this_cpu_id(), kernel_root);
 
-	ipi_enable();
+	irqchip_cpu_init();
 	bitmap_set(cpus_online, this_cpu_id(), 1);
 	mb();
 
