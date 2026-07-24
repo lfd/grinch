@@ -63,7 +63,7 @@ int __init arch_platform_init(void)
 			continue;
 		}
 
-		bitmap_set(cpus_available, hart_id, 1);
+		cpu_set_available(hart_id);
 
 		pri("%s: HART %lu available\n", name, hart_id);
 

@@ -24,7 +24,7 @@ int __init platform_init(void)
 	const char *name;
 	int err, off;
 
-	bitmap_set(cpus_online, this_cpu_id(), 1);
+	cpu_set_online(this_cpu_id());
 
 	off = fdt_path_offset(_fdt, "/");
 	if (off < 0)

@@ -69,7 +69,7 @@ void secondary_cmain(void)
 	arch_secondary_init();
 	irqchip_cpu_init();
 
-	bitmap_set(cpus_online, this_cpu_id(), 1);
+	cpu_set_online(this_cpu_id());
 	mb();
 
 	/*
