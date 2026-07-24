@@ -81,10 +81,10 @@ return_from_trap:
 
 	/*
 	 * Where do we return to? A trap taken from supervisor mode -- which
-	 * happens when we take an interrupt while idling (arch_do_idle runs
-	 * wfi with interrupts enabled) -- returns to the kernel: sp is already
-	 * the kernel stack and sscratch stays 0, so skip the user-mode
-	 * sp/sscratch swap.
+	 * happens when we take an interrupt while idling (do_idle runs the
+	 * idle instruction with interrupts enabled) -- returns to the kernel:
+	 * sp is already the kernel stack and sscratch stays 0, so skip the
+	 * user-mode sp/sscratch swap.
 	 */
 	csrr	a0, sstatus
 	andi	a0, a0, SR_SPP

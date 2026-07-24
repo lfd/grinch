@@ -76,7 +76,6 @@ void ipi_send(unsigned long cpu_id);
 void ipi_broadcast(void);
 
 void check_events(void);
-void arch_do_idle(void);
 
 void on_each_cpu(smp_call_func_t func, void *info);
 

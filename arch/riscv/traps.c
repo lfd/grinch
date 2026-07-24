@@ -46,9 +46,9 @@ static void handle_syscall(void)
 
 /*
  * We reschedule only when the trap came from U-mode. An interrupt taken
- * while idling (arch_do_idle runs wfi with interrupts enabled) traps from
- * supervisor mode onto a nested kernel frame, which is not the task's
- * context: don't save it and don't reschedule here (prepare_user_return()
+ * while idling (do_idle runs the idle instruction with interrupts enabled)
+ * traps from supervisor mode onto a nested kernel frame, which is not the
+ * task's context: don't save it and don't reschedule here (prepare_user_return()
  * below is guarded by !idling). The idle retry loop reschedules once we
  * unwind.
  */

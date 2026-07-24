@@ -85,7 +85,7 @@ static __always_inline void cpu_relax(void)
 	asm volatile ("" : : : "memory");
 }
 
-static __always_inline void wait_for_interrupt(void)
+static __always_inline void wfi(void)
 {
 	asm volatile("wfi\n" : : : "memory");
 }
@@ -95,10 +95,10 @@ static __always_inline void mb(void)
 	asm volatile("fence iorw, iorw\n" : : : "memory");
 }
 
-static inline void cpu_do_idle(void)
+static inline void wait_for_interrupt(void)
 {
 	mb();
-	wait_for_interrupt();
+	wfi();
 }
 
 static __always_inline void local_hfence_vvma_all(void)

@@ -18,6 +18,7 @@
 #include <grinch/boot.h>
 #include <grinch/cpu.h>
 #include <grinch/errno.h>
+#include <grinch/panic.h>
 #include <grinch/string.h>
 #include <grinch/syscall.h>
 #include <grinch/task.h>
@@ -599,7 +600,19 @@ void task_handle_events(void)
 static void do_idle(void)
 {
 	this_per_cpu()->idling = true;
-	arch_do_idle();
+
+	/*
+	 * Enable interrupts across the idle instruction so a pending IRQ is
+	 * taken as a trap and serviced by the arch IRQ handler (which
+	 * tolerates the idle context), instead of being polled here. The
+	 * handler records a reschedule; we act on it once we unwind.
+	 */
+	irq_enable();
+	wait_for_interrupt();
+	irq_disable();
+
+	check_panic();
+
 	this_per_cpu()->idling = false;
 	mb();
 }
