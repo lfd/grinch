@@ -186,6 +186,5 @@ secondary_virt_entry:
 	csrw	stvec, t0
 
 	jal	secondary_cmain
-	bne	a0, zero, _cpu_halt
 
 	j	return_from_trap

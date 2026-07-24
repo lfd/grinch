@@ -41,9 +41,9 @@ void secondary_start(void);
 static page_table_t secondary_boot_root;
 
 /* C entry point for secondary CPUs */
-int secondary_cmain(struct registers *regs);
+void secondary_cmain(void);
 
-int secondary_cmain(struct registers *regs)
+void secondary_cmain(void)
 {
 	irq_disable();
 	ext_disable();
@@ -62,8 +62,6 @@ int secondary_cmain(struct registers *regs)
 	 * another CPU
 	 */
 	prepare_user_return();
-
-	return 0;
 }
 
 int __init arch_smp_bringup_init(void)
