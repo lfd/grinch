@@ -64,6 +64,9 @@ unsigned int next_cpu(unsigned int cpu, unsigned long *bitmap,
 
 int arch_boot_cpu(unsigned long cpu);
 
+/* Arch hook: per-CPU C-side bring-up before the common secondary path */
+void arch_secondary_init(void);
+
 /* Arch hook: prepare boot-time resources before any CPU is booted */
 int arch_smp_bringup_init(void);
 

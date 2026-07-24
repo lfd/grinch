@@ -19,14 +19,12 @@
 #include <grinch/fdt.h>
 #include <grinch/gfp.h>
 #include <grinch/init.h>
-#include <grinch/irqchip.h>
 #include <grinch/paging.h>
 #include <grinch/panic.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/smp.h>
 #include <grinch/string.h>
-#include <grinch/task.h>
 
 #include <grinch/arch/sbi.h>
 
@@ -41,23 +39,10 @@ void secondary_start(void);
  */
 static page_table_t secondary_boot_root;
 
-/* C entry point for secondary CPUs */
-void secondary_cmain(void);
-
-void secondary_cmain(void)
+void arch_secondary_init(void)
 {
 	/* We still run on the shared boot root: switch to the kernel root */
 	arch_paging_enable(this_cpu_id(), kernel_root);
-
-	irqchip_cpu_init();
-	bitmap_set(cpus_online, this_cpu_id(), 1);
-	mb();
-
-	/*
-	 * We will enter idle here, and wait idle until we are kicked by
-	 * another CPU
-	 */
-	prepare_user_return();
 }
 
 int __init arch_smp_bringup_init(void)

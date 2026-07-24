@@ -12,9 +12,11 @@
 
 #define dbg_fmt(x)	"smp: " x
 
+#include <grinch/irqchip.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/smp.h>
+#include <grinch/task.h>
 
 unsigned long cpus_available[BITMAP_ELEMS(MAX_CPUS)];
 unsigned long cpus_online[BITMAP_ELEMS(MAX_CPUS)];
@@ -57,6 +59,24 @@ int __init smp_init(void)
 	arch_smp_bringup_done();
 
 	return 0;
+}
+
+/* Called from the arch boot asm; no C caller, so declared here only. */
+void secondary_cmain(void);
+
+void secondary_cmain(void)
+{
+	arch_secondary_init();
+	irqchip_cpu_init();
+
+	bitmap_set(cpus_online, this_cpu_id(), 1);
+	mb();
+
+	/*
+	 * Enter the scheduler: run a runnable task, or idle until this CPU is
+	 * assigned one.
+	 */
+	prepare_user_return();
 }
 
 void ipi_broadcast(void)
