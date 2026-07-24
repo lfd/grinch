@@ -31,6 +31,16 @@
 .endm
 
 /*
+ * Mask all interrupts. Firmware only guarantees sstatus.SIE=0 on entry
+ * (SBI HSM defines this for a started hart), not the sie/sip contents, so
+ * make the masked state explicit instead of relying on it.
+ */
+.macro mask_all_irqs
+	csrw	sie, zero
+	csrw	sip, zero
+.endm
+
+/*
  * This adds the Linux boot header. We're compatible with both: we're bootable
  * as simple SBI payload, and we're bootable via U-Boot.
  */
@@ -77,6 +87,8 @@ grinch_start:
 	 * a1: phys fdt
 	 * a2: phys base of grinch
 	 */
+
+	mask_all_irqs
 
 	/*
 	 * Setup stack: The stack for a HART is located at
@@ -153,6 +165,8 @@ secondary_start:
 	 * a0: hart_id
 	 * a1: satp
 	 */
+
+	mask_all_irqs
 
 	/* Activate the MMU */
 	sfence.vma

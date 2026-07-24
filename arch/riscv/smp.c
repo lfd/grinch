@@ -45,11 +45,6 @@ void secondary_cmain(void);
 
 void secondary_cmain(void)
 {
-	irq_disable();
-	ext_disable();
-	ipi_disable();
-	timer_disable();
-
 	/* We still run on the shared boot root: switch to the kernel root */
 	arch_paging_enable(this_cpu_id(), kernel_root);
 
