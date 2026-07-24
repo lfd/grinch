@@ -12,12 +12,11 @@
 
 #define dbg_fmt(x)	"arch: " x
 
-#include <asm/irq.h>
-
 #include <grinch/arch.h>
 #include <grinch/cpu.h>
 #include <grinch/errno.h>
 #include <grinch/hypercall.h>
+#include <grinch/irqchip.h>
 #include <grinch/percpu.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
@@ -36,7 +35,8 @@ int __init arch_init(void)
 
 	/* Boot secondary CPUs */
 	pri("Booting secondary CPUs\n");
-	ipi_enable();
+	/* Enable our IPI before starting secondaries so we can receive theirs. */
+	arch_irqchip_cpu_init();
 	err = smp_init();
 	if (err)
 		goto out;
