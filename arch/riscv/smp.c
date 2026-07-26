@@ -66,7 +66,7 @@ int __init arch_smp_bringup_init(void)
 	return 0;
 }
 
-int arch_boot_cpu(unsigned long hart_id)
+int __init arch_boot_cpu(unsigned long hart_id)
 {
 	paddr_t paddr;
 	struct sbiret ret;
