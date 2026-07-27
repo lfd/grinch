@@ -420,23 +420,42 @@ void __init pci_scan(void)
 			     ERR_PTR(err));
 }
 
+/* Compose an n-cell device-tree value (most significant cell first). */
+static u64 __init pci_read_cells(const u32 *cells, int n)
+{
+	u64 val = 0;
+
+	while (n-- > 0)
+		val = (val << 32) | *cells++;
+
+	return val;
+}
+
 static int __init pci_configure_ranges(struct device *dev, struct pci *pci)
 {
-	int err, ac, sc, len, stride;
+	int err, child_ac, parent_ac, sc, len, stride;
 	struct pci_range *range;
 	const int *ranges;
 	unsigned int i;
 
-	err = fdt_addr_sz(_fdt, dev->of.node, &ac, &sc);
+	/*
+	 * A ranges entry is child-address + parent-address + size. The child
+	 * (PCI) address is 3 cells; the parent (CPU) address uses the parent
+	 * bus's #address-cells, which need not equal our #size-cells.
+	 */
+	err = fdt_addr_sz(_fdt, dev->of.node, &child_ac, &sc);
 	if (err)
 		return err;
+
+	parent_ac = fdt_address_cells(_fdt, fdt_parent_offset(_fdt, dev->of.node));
+	if (parent_ac < 0)
+		return parent_ac;
 
 	ranges = fdt_getprop(_fdt, dev->of.node, "ranges", &len);
 	if (!ranges)
 		return -ENOENT;
 
-	// I hope we do this correctly..
-	stride = ac + 2 * sc;
+	stride = child_ac + parent_ac + sc;
 	u32 vals[stride];
 	u8 space_code;
 	for (i = 0;; i++) {
@@ -445,6 +464,7 @@ static int __init pci_configure_ranges(struct device *dev, struct pci *pci)
 		if (err != stride)
 			break;
 
+		/* phys.hi bits [25:24]: 0 config, 1 I/O, 2 mem32, 3 mem64 */
 		space_code = (vals[0] >> 24) & 0x3;
 		if (space_code == 0 || space_code == 1)
 			continue;
@@ -462,8 +482,9 @@ static int __init pci_configure_ranges(struct device *dev, struct pci *pci)
 		if (vals[0] & 0x40000000)
 			range->flags |= IORES_PREFETCH;
 
-		range->area.paddr = ((u64)vals[1] << 32) | vals[2];
-		range->area.size = ((u64)vals[3] << 32) | vals[4];
+		/* CPU (parent) address, then size; the child PCI address is skipped. */
+		range->area.paddr = pci_read_cells(&vals[child_ac], parent_ac);
+		range->area.size = pci_read_cells(&vals[child_ac + parent_ac], sc);
 
 		range->used.bit_max = PAGES(range->area.size);
 		range->used.bitmap = kzalloc(BITMAP_SIZE(range->used.bit_max));
