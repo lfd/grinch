@@ -15,6 +15,7 @@
 
 #include <grinch/bitmap.h>
 #include <grinch/init.h>
+#include <grinch/paging.h>
 
 #define for_each_cpu_except(cpu, set, exception)                \
 	for ((cpu) = -1;                                        \
@@ -71,11 +72,11 @@ int arch_boot_cpu(unsigned long cpu);
 /* Arch hook: per-CPU C-side bring-up before the common secondary path */
 void arch_secondary_init(void);
 
-/* Arch hook: prepare boot-time resources before any CPU is booted */
-int arch_smp_bringup_init(void);
+/* Arch hook: populate the arch view of secondary_boot_root before mapping */
+void arch_smp_bringup_init(void);
 
-/* Arch hook: all CPUs are up - release boot-time bringup resources */
-void arch_smp_bringup_done(void);
+/* Trampoline root the secondaries boot on (owned by kernel/smp.c). */
+extern page_table_t secondary_boot_root;
 
 int smp_init(void);
 

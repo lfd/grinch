@@ -31,39 +31,20 @@
 /* Assembly entry point for secondary CPUs */
 void secondary_start(void);
 
-/*
- * All secondary CPUs enter virtual addressing through one shared boot
- * root: the kernel mappings plus the identity-mapped trampoline. Each
- * CPU leaves it for its own root table as soon as it runs in virtual
- * space, so the boot root is only ever read.
- */
-static page_table_t secondary_boot_root;
-
 void arch_secondary_init(void)
 {
 	/* We still run on the shared boot root: switch to the kernel root */
 	arch_paging_enable(this_cpu_id(), kernel_root);
 }
 
-int __init arch_smp_bringup_init(void)
+void __init arch_smp_bringup_init(void)
 {
-	paddr_t paddr;
-	int err;
-
-	secondary_boot_root = zalloc_pages(1);
-	if (!secondary_boot_root)
-		return -ENOMEM;
-
+	/*
+	 * riscv has a single root: seed the boot root with the kernel
+	 * mappings so secondaries can run virtually. smp_init() adds the
+	 * identity trampoline on top.
+	 */
 	memcpy(secondary_boot_root, kernel_root, PAGE_SIZE);
-
-	/* The boot root must contain a boot trampoline */
-	paddr = v2p(grinch_base());
-	err = map_range(secondary_boot_root, (void *)paddr, paddr,
-			GRINCH_SIZE, GRINCH_MEM_RX);
-	if (err)
-		return err;
-
-	return 0;
 }
 
 int __init arch_boot_cpu(unsigned long hart_id)
@@ -95,28 +76,6 @@ int __init arch_boot_cpu(unsigned long hart_id)
 	return 0;
 }
 
-/*
- * Once every secondary is online it has switched to the kernel root, so
- * the shared boot root is dead and can be released - along with the
- * private tables its identity trampoline pulled in, which do not belong
- * to the kernel root and would otherwise leak.
- */
-void __init arch_smp_bringup_done(void)
-{
-	paddr_t paddr;
-	int err;
-
-	if (!secondary_boot_root)
-		return;
-
-	paddr = v2p(grinch_base());
-	err = unmap_range(secondary_boot_root, (void *)paddr, GRINCH_SIZE);
-	if (err)
-		BUG();
-
-	free_pages(secondary_boot_root, 1);
-	secondary_boot_root = NULL;
-}
 
 void ipi_send(unsigned long cpu)
 {

@@ -12,14 +12,20 @@
 
 #define dbg_fmt(x)	"smp: " x
 
+#include <grinch/gfp.h>
 #include <grinch/irqchip.h>
+#include <grinch/paging.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/smp.h>
+#include <grinch/symbols.h>
 #include <grinch/task.h>
 
 unsigned long cpus_available[BITMAP_ELEMS(MAX_CPUS)];
 unsigned long cpus_online[BITMAP_ELEMS(MAX_CPUS)];
+
+/* Identity-mapped trampoline root the secondaries boot on. */
+page_table_t secondary_boot_root;
 
 unsigned int next_cpu(unsigned int cpu, unsigned long *bitmap,
 		      unsigned int exception)
@@ -34,11 +40,22 @@ unsigned int next_cpu(unsigned int cpu, unsigned long *bitmap,
 int __init smp_init(void)
 {
 	unsigned long cpu, cpus;
+	paddr_t paddr;
 	int err;
 
-	err = arch_smp_bringup_init();
+	secondary_boot_root = zalloc_pages(1);
+	if (!secondary_boot_root)
+		return -ENOMEM;
+
+	/* Let the arch populate its view of the root before we map it. */
+	arch_smp_bringup_init();
+
+	/* Identity-map grinch so secondaries run at their physical PC. */
+	paddr = v2p(grinch_base());
+	err = map_range(secondary_boot_root, (void *)paddr, paddr,
+			GRINCH_SIZE, GRINCH_MEM_RX);
 	if (err)
-		return err;
+		goto out_free;
 
 	cpus = 1;
 	for_each_available_cpu_except_this(cpu) {
@@ -56,9 +73,15 @@ int __init smp_init(void)
 
 	pri("Successfully brought up %lu CPUs\n", cpus);
 
-	arch_smp_bringup_done();
+	/* The trampoline is only needed during bring-up. */
+	unmap_range(secondary_boot_root, (void *)paddr, GRINCH_SIZE);
+	err = 0;
 
-	return 0;
+out_free:
+	free_pages(secondary_boot_root, 1);
+	secondary_boot_root = NULL;
+
+	return err;
 }
 
 /* Called from the arch boot asm; no C caller, so declared here only. */
