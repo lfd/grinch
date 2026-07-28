@@ -26,6 +26,14 @@
 #define PCI_MAX_DEVICE		32
 #define PCI_MAX_FUNCTION	8
 
+/*
+ * BAR allocation is tracked with a per-page bitmap. A 64-bit MMIO aperture
+ * can be enormous (512 GiB on QEMU virt), for which a full bitmap would be
+ * tens of MiB; cap the span we track and hand out - grinch's BARs need only
+ * a tiny fraction of it.
+ */
+#define PCI_WINDOW_MAX		(1 * GIB)
+
 #define PCI_BASE_ADDRESS_MEM_MASK	(~0x0fUL)
 
 #define for_each_pci_driver(X)						\
@@ -487,6 +495,8 @@ static int __init pci_configure_ranges(struct device *dev, struct pci *pci)
 		range->area.size = pci_read_cells(&vals[child_ac + parent_ac], sc);
 
 		range->used.bit_max = PAGES(range->area.size);
+		if (range->used.bit_max > PAGES(PCI_WINDOW_MAX))
+			range->used.bit_max = PAGES(PCI_WINDOW_MAX);
 		range->used.bitmap = kzalloc(BITMAP_SIZE(range->used.bit_max));
 		if (!range->used.bitmap)
 			return -ENOMEM;
