@@ -17,7 +17,7 @@ endif
 QEMU_MACHINE=-machine virt
 
 QEMU_ARGS=-m 64M
-QEMU_ARGS+=-serial $(QEMU_SERIAL) -monitor telnet:127.0.0.1:55555,server,nowait
+QEMU_ARGS+=-monitor telnet:127.0.0.1:55555,server,nowait
 QEMU_ARGS+=$(QEMU_MACHINE) -cpu $(QEMU_CPU),h=true
 
 QEMU_UBOOT_ARGS=\
