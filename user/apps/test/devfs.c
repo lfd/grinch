@@ -156,10 +156,12 @@ int test_devfs(void)
 	if (err)
 		return err;
 
+#ifdef CONFIG_ARCH_RISCV
 	printf("  -> /dev/ttySBI\n");
 	err = test_tty("/dev/ttySBI");
 	if (err)
 		return err;
+#endif
 
 	return err;
 }
