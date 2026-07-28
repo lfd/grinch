@@ -19,6 +19,7 @@
 #include <grinch/cpu.h>
 #include <grinch/errno.h>
 #include <grinch/panic.h>
+#include <grinch/reboot.h>
 #include <grinch/string.h>
 #include <grinch/syscall.h>
 #include <grinch/task.h>
@@ -736,7 +737,7 @@ retry:
 			spin_unlock(&task_lock);
 			if (tpcpu->primary) {
 				pr("Nothing to schedule!\n");
-				arch_shutdown(-ENOENT);
+				shutdown(-ENOENT);
 			}
 		} else {
 			spin_unlock(&task_lock);

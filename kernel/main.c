@@ -33,6 +33,7 @@
 #include <grinch/paging.h>
 #include <grinch/percpu.h>
 #include <grinch/platform.h>
+#include <grinch/reboot.h>
 #include <grinch/ttp.h>
 #include <grinch/version.h>
 
@@ -255,7 +256,7 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 out:
 	if (err) {
 		pr("End reached: %pe\n", ERR_PTR(err));
-		arch_shutdown(err);
+		shutdown(err);
 	}
 }
 

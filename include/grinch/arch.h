@@ -14,5 +14,3 @@
 #include <grinch/types.h>
 
 int arch_init(void);
-void __noreturn arch_shutdown(int err);
-void __noreturn arch_reboot(void);

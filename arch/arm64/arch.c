@@ -23,16 +23,6 @@
 #include <grinch/serial.h>
 #include <grinch/smp.h>
 
-void __noreturn arch_reboot(void)
-{
-	panic("Reboot not implemented\n");
-}
-
-void __noreturn arch_shutdown(int err)
-{
-	panic("Shutdown. Reason: %pe\n", ERR_PTR(err));
-}
-
 int __init arch_init(void)
 {
 	int err;

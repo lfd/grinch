@@ -20,10 +20,36 @@
 #include <grinch/percpu.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
+#include <grinch/reboot.h>
 #include <grinch/timer.h>
 
 #include <grinch/arch/sbi.h>
 #include <grinch/arch/vmm.h>
+
+static int sbi_shutdown(int err)
+{
+	sbi_system_reset(SBI_SRST_RESET_TYPE_SHUTDOWN,
+			 SBI_SRST_RESET_REASON_NONE);
+	return -EIO;
+}
+
+static int sbi_reboot(void)
+{
+	sbi_system_reset(SBI_SRST_RESET_TYPE_COLD_REBOOT,
+			 SBI_SRST_RESET_REASON_NONE);
+	return -EIO;
+}
+
+static int guest_shutdown(int err)
+{
+	return hypercall_vmquit(err);
+}
+
+static int guest_reboot(void)
+{
+	/* No reboot hypercall yet -- fall back to halt */
+	return hypercall_vmquit(0);
+}
 
 int __init arch_init(void)
 {
@@ -32,6 +58,14 @@ int __init arch_init(void)
 	err = sbi_init();
 	if (err)
 		goto out;
+
+	if (grinch_is_guest) {
+		arch_shutdown = guest_shutdown;
+		arch_reboot = guest_reboot;
+	} else if (sbi_srst_available) {
+		arch_shutdown = sbi_shutdown;
+		arch_reboot = sbi_reboot;
+	}
 
 	/* Boot secondary CPUs */
 	pri("Booting secondary CPUs\n");
@@ -51,35 +85,4 @@ int __init arch_init(void)
 
 out:
 	return err;
-}
-
-void __noreturn arch_shutdown(int err)
-{
-	if (grinch_is_guest) {
-		hypercall_vmquit(err);
-		BUG();
-	}
-
-	pri("Shutdown. Reason: %pe\n", ERR_PTR(err));
-
-	if (sbi_srst_available)
-		sbi_system_reset(SBI_SRST_RESET_TYPE_SHUTDOWN,
-				 SBI_SRST_RESET_REASON_NONE);
-
-	panic("Shutdown failed\n");
-}
-
-void __noreturn arch_reboot(void)
-{
-	if (grinch_is_guest) {
-		/* No reboot hypercall yet — fall back to halt */
-		hypercall_vmquit(0);
-		BUG();
-	}
-
-	if (sbi_srst_available)
-		sbi_system_reset(SBI_SRST_RESET_TYPE_COLD_REBOOT,
-				 SBI_SRST_RESET_REASON_NONE);
-
-	panic("Reboot failed\n");
 }
