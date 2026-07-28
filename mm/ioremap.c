@@ -71,10 +71,20 @@ void __init *ioremap(paddr_t paddr, size_t size)
 	size = page_up(size);
 	pages = PAGES(size);
 
+	/*
+	 * Align the virtual placement to the region's own alignment so that
+	 * map_range() can block-map it, but cap that at a MEGA page. Without
+	 * the cap a large window (e.g. a 256 MiB PCI ECAM) would demand a
+	 * scarce fully-size-aligned slot; missing it, we'd fall back to an
+	 * unaligned placement that degrades to 4 KiB leaves whose page tables
+	 * exhaust the pool.
+	 */
 	paddr_al = __ffsl(paddr);
 	size_al = __ffsl(size);
+	if (size_al > MEGA_PAGE_SHIFT)
+		size_al = MEGA_PAGE_SHIFT;
 	if (size_al <= paddr_al)
-		align_mask = PAGES(1 << size_al) - 1;
+		align_mask = PAGES(1UL << size_al) - 1;
 	else
 		align_mask = 0;
 
