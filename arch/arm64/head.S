@@ -62,6 +62,14 @@ grinch_start:
 	orr	x3, x3, #TCR_EL1_EPD0
 	msr	TCR, x3
 
+	/* Zero the boot CPU's per_cpu block, as it may be dirty */
+	ldr	x2, =__internal_page_pool_end
+	mov	x3, #STRUCT_PER_CPU_SIZE
+	sub	x2, x2, x3
+1:	str	xzr, [x2], #8
+	subs	x3, x3, #8
+	b.ne	1b
+
 	bl	setup_percpu_stack
 
 	/* Push Device Tree location on the stack */
