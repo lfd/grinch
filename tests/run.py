@@ -30,7 +30,7 @@ SRCTREE = Path(__file__).resolve().parent.parent
 # Matrix
 # ---------------------------------------------------------------------------
 
-ARCHES = ('riscv64', 'riscv32')
+ARCHES = ('riscv64', 'riscv32', 'arm64')
 OPTS   = ('-O0', '-O1', '-O2', '-Os', '-O3')
 CPUS   = (1, 2, 4)
 
