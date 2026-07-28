@@ -18,10 +18,13 @@
 #include <grinch/fdt.h>
 #include <grinch/init.h>
 #include <grinch/printk.h>
+#include <grinch/reboot.h>
 #include <grinch/string.h>
 
 /* Standard PSCI 0.2+ function ids (CPU_ON uses the SMC64 convention). */
 #define PSCI_0_2_FN_PSCI_VERSION	0x84000000
+#define PSCI_0_2_FN_SYSTEM_OFF		0x84000008
+#define PSCI_0_2_FN_SYSTEM_RESET	0x84000009
 #define PSCI_0_2_FN64_CPU_ON		0xc4000003
 
 /* The discovered conduit, or NULL if no PSCI interface is present. */
@@ -64,6 +67,19 @@ int psci_cpu_on(unsigned long mpidr, paddr_t entry, unsigned long context)
 	return 0;
 }
 
+/* Hooks for shutdown()/reboot(); only reached if the call failed to act. */
+static int psci_system_off(int err)
+{
+	psci_fn(PSCI_0_2_FN_SYSTEM_OFF, 0, 0, 0);
+	return -EIO;
+}
+
+static int psci_system_reset(void)
+{
+	psci_fn(PSCI_0_2_FN_SYSTEM_RESET, 0, 0, 0);
+	return -EIO;
+}
+
 void __init psci_init(void)
 {
 	const char *method;
@@ -94,4 +110,8 @@ void __init psci_init(void)
 
 	pri("Detected PSCI %u.%u (%s conduit)\n", psci_version >> 16,
 	    psci_version & 0xffff, method);
+
+	/* PSCI 0.2+ standardises SYSTEM_OFF/SYSTEM_RESET. */
+	arch_shutdown = psci_system_off;
+	arch_reboot = psci_system_reset;
 }
