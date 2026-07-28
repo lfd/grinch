@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -38,7 +38,7 @@ static inline void cpu_set_##name(unsigned long cpu)		\
 	bitmap_set(cpus_##name, cpu, 1);			\
 }
 
-extern unsigned long cpus_available[BITMAP_ELEMS(MAX_CPUS)];
+extern DECLARE_BITMAP(cpus_available, MAX_CPUS);
 /* bool cpu_is_available(cpu); void cpu_set_available(cpu) */
 DEFINE_CPU_PREDICATE(available)
 
@@ -51,7 +51,7 @@ DEFINE_CPU_PREDICATE(available)
 #define for_each_available_cpu_except_this(cpu)		\
 	for_each_available_cpu_except(cpu, this_cpu_id())
 
-extern unsigned long cpus_online[BITMAP_ELEMS(MAX_CPUS)];
+extern DECLARE_BITMAP(cpus_online, MAX_CPUS);
 /* bool cpu_is_online(cpu); void cpu_set_online(cpu) */
 DEFINE_CPU_PREDICATE(online)
 

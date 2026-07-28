@@ -24,7 +24,7 @@
 
 #define IOREMAP_PAGES	PAGES(IOREMAP_SIZE)
 
-static unsigned long ioremap_bitmap[BITMAP_ELEMS(IOREMAP_PAGES)];
+static DECLARE_BITMAP(ioremap_bitmap, IOREMAP_PAGES);
 static size_t ioremap_pages = IOREMAP_PAGES;
 
 static void __init ioremap_size_parse(const char *arg)

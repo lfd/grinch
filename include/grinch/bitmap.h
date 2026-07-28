@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -13,11 +13,15 @@
 #ifndef _BITMAP_H
 #define _BITMAP_H
 
+#include <grinch/align.h>
+#include <grinch/alloc.h>
+#include <grinch/bitops.h>
+#include <grinch/bits.h>
 #include <grinch/compiler_attributes.h>
 #include <grinch/types.h>
 
-#define BITMAP_ELEMS(BITS)	(((BITS) + BITS_PER_LONG - 1) / BITS_PER_LONG)
-#define BITMAP_SIZE(BITS)	(BITMAP_ELEMS(BITS) * sizeof(unsigned long))
+#define bitmap_size(nbits)	(ALIGN(nbits, BITS_PER_LONG) / BITS_PER_BYTE)
+#define DECLARE_BITMAP(name, bits)	unsigned long name[BITS_TO_LONGS(bits)]
 
 struct bitmap {
 	unsigned long *bitmap;
@@ -40,6 +44,12 @@ unsigned long bitmap_find_next_zero_area_off(unsigned long *map,
 
 void bitmap_set(unsigned long *map, unsigned int start, unsigned int nbits);
 void bitmap_clear(unsigned long *map, unsigned int start, unsigned int nbits);
+
+/* Allocate a zeroed bitmap holding @bits bits, or NULL on failure. */
+static inline unsigned long *bitmap_zalloc(unsigned long bits)
+{
+	return kzalloc(bitmap_size(bits));
+}
 
 static inline unsigned long
 bitmap_find_next_zero_area(unsigned long *map,

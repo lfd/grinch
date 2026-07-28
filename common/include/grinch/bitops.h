@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2024
+ * Copyright (c) OTH Regensburg, 2024-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -10,10 +10,15 @@
  * the COPYING file in the top-level directory.
  */
 
+#ifndef _BITOPS_H
+#define _BITOPS_H
+
 /* Copied and adapted from the Linux Kernel Sources */
 
 #include <grinch/types.h>
 #include <grinch/compiler_attributes.h>
+
+#define BITS_TO_LONGS(bits)	(((bits) + BITS_PER_LONG - 1) / BITS_PER_LONG)
 
 /* generic_fls from the Linux kernel */
 static __always_inline int fls(unsigned int x)
@@ -92,3 +97,5 @@ static __always_inline int __ffsl(unsigned long word)
 		num += 1;
 	return num;
 }
+
+#endif /* _BITOPS_H */

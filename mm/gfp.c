@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -57,7 +57,7 @@ static struct memory_area memory_areas[2] =
 {
 	[0] = {
 		.bitmap = {
-			.bitmap = (unsigned long[BITMAP_ELEMS(KMM_PAGES)]){},
+			.bitmap = (unsigned long[BITS_TO_LONGS(KMM_PAGES)]){},
 			.bit_max = KMM_PAGES,
 		},
 		.p = {}, // filled during initialisation
@@ -389,7 +389,7 @@ found_free_area:
 	area->p.end= addrp + area->bitmap.bit_max * PAGE_SIZE;
 
 	area->bitmap.bitmap = zalloc_pages(
-		PAGES(page_up(BITMAP_SIZE(area->bitmap.bit_max))));
+		PAGES(page_up(bitmap_size(area->bitmap.bit_max))));
 	if (!area->bitmap.bitmap) {
 		err = -ENOMEM;
 		goto err_out;

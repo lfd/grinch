@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2024
+ * Copyright (c) OTH Regensburg, 2024-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -21,8 +21,8 @@
 #include <grinch/symbols.h>
 #include <grinch/task.h>
 
-unsigned long cpus_available[BITMAP_ELEMS(MAX_CPUS)];
-unsigned long cpus_online[BITMAP_ELEMS(MAX_CPUS)];
+DECLARE_BITMAP(cpus_available, MAX_CPUS);
+DECLARE_BITMAP(cpus_online, MAX_CPUS);
 
 /* Identity-mapped trampoline root the secondaries boot on. */
 page_table_t secondary_boot_root;

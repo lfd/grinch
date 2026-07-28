@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2024
+ * Copyright (c) OTH Regensburg, 2024-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -497,7 +497,7 @@ static int __init pci_configure_ranges(struct device *dev, struct pci *pci)
 		range->used.bit_max = PAGES(range->area.size);
 		if (range->used.bit_max > PAGES(PCI_WINDOW_MAX))
 			range->used.bit_max = PAGES(PCI_WINDOW_MAX);
-		range->used.bitmap = kzalloc(BITMAP_SIZE(range->used.bit_max));
+		range->used.bitmap = bitmap_zalloc(range->used.bit_max);
 		if (!range->used.bitmap)
 			return -ENOMEM;
 	}

@@ -40,7 +40,7 @@ int __init asid_init(void)
 	if (nr_asids <= 1)
 		return 0;
 
-	asid_bitmap = kzalloc(BITMAP_SIZE(nr_asids));
+	asid_bitmap = bitmap_zalloc(nr_asids);
 	if (!asid_bitmap)
 		return -ENOMEM;
 
