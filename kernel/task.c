@@ -378,6 +378,18 @@ static void task_activate(struct task *task)
 	}
 }
 
+/*
+ * A task may be activated on this CPU only if no other CPU still owns it.
+ * A task we already own (or that is free) stays eligible; one still held by
+ * another CPU is skipped until that CPU releases it via task_release_cpu().
+ */
+static bool task_claimable(struct task *task)
+{
+	unsigned long owner = READ_ONCE(task->on_cpu);
+
+	return owner == TASK_NO_CPU || owner == this_cpu_id();
+}
+
 static void schedule(void)
 {
 	struct task *task;
@@ -400,7 +412,7 @@ static void schedule(void)
 	if (list_is_singular(&task_list)) {
 		task = list_first_entry(&task_list, struct task, tasks);
 		spin_lock(&task->lock);
-		if (task->state == TASK_WFE) {
+		if (task->state == TASK_WFE || !task_claimable(task)) {
 			spin_unlock(&task->lock);
 			task = NULL;
 		}
@@ -410,7 +422,7 @@ static void schedule(void)
 	task = tpcpu->current_task;
 	list_for_each_entry_from(task, &task_list, tasks) {
 		spin_lock(&task->lock);
-		if (task->state == TASK_RUNNABLE)
+		if (task->state == TASK_RUNNABLE && task_claimable(task))
 			goto out;
 		spin_unlock(&task->lock);
 	}
@@ -424,7 +436,7 @@ begin:
 			break;
 
 		spin_lock(&task->lock);
-		if (task->state == TASK_RUNNABLE)
+		if (task->state == TASK_RUNNABLE && task_claimable(task))
 			goto out;
 		spin_unlock(&task->lock);
 	}
