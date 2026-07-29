@@ -322,7 +322,7 @@ static void task_activate(struct task *task)
 	 * Only set the task to runnable, if it was running before.
 	 * Through a syscall, it might be set to wait for events.
 	 */
-	if (old && old->state == TASK_RUNNING)
+	if (old && old->state == TASK_RUNNING && old->on_cpu == this_cpu_id())
 		tpcpu->current_task->state = TASK_RUNNABLE;
 
 	tpcpu->current_task = task;
