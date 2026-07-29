@@ -156,6 +156,10 @@ CFLAGS_COMMON=$(OPT) \
               -Wundef -Wdeprecated -Werror \
               -include $(objtree)/$(config_h)
 
+# -MMD emits the header deps of each object to a .d file; -MP adds phony
+# targets so a later-removed header doesn't break the build.
+DEPFLAGS = -MMD -MP
+
 LDFLAGS_COMMON=
 
 ifeq ($(CONFIG_DEBUG_OUTPUT), 1)

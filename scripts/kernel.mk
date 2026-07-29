@@ -65,11 +65,11 @@ GENERATED = $(ASM_DEFINES) $(config_h) $(version_h) $(compile_h)
 
 %.o: %.c $(GENERATED)
 	$(QUIET) "[CC]    $@"
-	$(VERBOSE) $(CC) -c $(CFLAGS_KERNEL) -o $@ $<
+	$(VERBOSE) $(CC) -c $(CFLAGS_KERNEL) $(DEPFLAGS) -o $@ $<
 
 %.o: %.S $(GENERATED)
 	$(QUIET) "[CC/AS] $@"
-	$(VERBOSE) $(CC) -c $(AFLAGS_KERNEL) $(CFLAGS_KERNEL) -o $@ $<
+	$(VERBOSE) $(CC) -c $(AFLAGS_KERNEL) $(CFLAGS_KERNEL) $(DEPFLAGS) -o $@ $<
 
 %.ld: %.ld.S
 	$(QUIET) "[CC/AS] $@"

@@ -9,7 +9,7 @@ tools: $(TOOLS)
 
 tools/%.o: tools/%.c $(config_h)
 	$(QUIET) "[HOSTCC]$@"
-	$(VERBOSE) $(HOSTCC) $(CFLAGS_TOOLS) -ggdb -c -o $@ $<
+	$(VERBOSE) $(HOSTCC) $(CFLAGS_TOOLS) $(DEPFLAGS) -ggdb -c -o $@ $<
 
 tools/dump_layout: tools/dump_layout.o
 	$(QUIET) "[HOSTCC]$@"
