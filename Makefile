@@ -313,4 +313,8 @@ mrproper: clean
 OBJ_DIRS := $(sort $(OBJ_DIRS))
 $(shell $(MKDIR_P) $(OBJ_DIRS))
 
+# Pull in the header dependencies emitted by -MMD so that touching a
+# header rebuilds every object that includes it.
+-include $(wildcard $(addsuffix *.d,$(OBJ_DIRS)))
+
 endif # in-objtree else branch
