@@ -68,6 +68,17 @@ void task_set_wfe(struct task *task)
 	spin_unlock(&task_lock);
 }
 
+/*
+ * Drop this CPU's ownership claim on a task. The release fence publishes our
+ * prior writes to the task, so a CPU that later observes TASK_NO_CPU and
+ * activates the task sees a consistent state.
+ */
+static void task_release_cpu(struct task *task)
+{
+	__atomic_release_fence();
+	WRITE_ONCE(task->on_cpu, TASK_NO_CPU);
+}
+
 /* must hold the parent's lock */
 static int task_notify_wait(struct task *parent, struct task *child)
 {
@@ -168,6 +179,7 @@ found:
 	_task_set_wfe(task);
 	this_per_cpu()->schedule = true;
 	this_per_cpu()->current_task = NULL;
+	task_release_cpu(task);
 	err = 0;
 
 unlock_out:
@@ -241,6 +253,7 @@ void task_exit(struct task *task, int code)
 	if (this_per_cpu()->current_task == task) {
 		this_per_cpu()->schedule = true;
 		this_per_cpu()->current_task = NULL;
+		task_release_cpu(task);
 	}
 
 	task_notify_wait(parent, task);
@@ -282,6 +295,7 @@ struct task *task_alloc_new(const char *name)
 	spin_init(&task->lock);
 	task->pid = get_new_pid();
 	task->state = TASK_INIT;
+	task->on_cpu = TASK_NO_CPU;
 	task->type = GRINCH_UNDEF;
 	INIT_LIST_HEAD(&task->tasks);
 	INIT_LIST_HEAD(&task->timer_list);
@@ -325,6 +339,10 @@ static void task_activate(struct task *task)
 	if (old && old->state == TASK_RUNNING && old->on_cpu == this_cpu_id())
 		tpcpu->current_task->state = TASK_RUNNABLE;
 
+	/* We are switching away from old; it no longer belongs to this CPU. */
+	if (old)
+		task_release_cpu(old);
+
 	tpcpu->current_task = task;
 	if (!task) {
 		/* Don't leave the translation root on a process' page table */
@@ -336,7 +354,8 @@ static void task_activate(struct task *task)
 		panic("Activating non-runnable task: PID %u state: %x\n",
 		      task->pid, task->state);
 	task->state = TASK_RUNNING;
-	task->on_cpu = this_cpu_id();
+	/* Claim ownership; pairs with task_release_cpu() and the pick loop. */
+	WRITE_ONCE(task->on_cpu, this_cpu_id());
 
 #ifdef CONFIG_DEBUG_OUTPUT
 	pr_dbg("CPU %lu took PID %d\n", this_cpu_id(), task->pid);

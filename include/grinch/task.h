@@ -26,6 +26,9 @@
 
 #define TASK_NAME_LEN	16
 
+/* task->on_cpu value for a task not owned by any CPU */
+#define TASK_NO_CPU	(~0UL)
+
 enum task_state {
 	TASK_INIT = 0,
 	TASK_RUNNABLE, /* Scheduleable */
@@ -71,7 +74,12 @@ struct task {
 	struct registers regs;
 	pid_t pid;
 	enum task_state state;
-	unsigned long on_cpu; /* only valid if state == TASK_RUNNING */
+	/*
+	 * The CPU that currently owns this task, or TASK_NO_CPU if no CPU
+	 * holds it as its current_task. A task must not be activated on a
+	 * second CPU while another one still owns it.
+	 */
+	unsigned long on_cpu;
 
 	struct task *parent;
 	struct list_head children;
