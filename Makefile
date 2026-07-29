@@ -104,6 +104,10 @@ config_defines := CONFIG_ARCH="$(ARCH)"
 
 all: grinch.bin user/initrd.cpio tools
 
+# Delete a target whose recipe failed, so an interrupted or failed build
+# never leaves a truncated file with an up-to-date timestamp behind.
+.DELETE_ON_ERROR:
+
 HOSTCC=gcc
 
 DTC=dtc
