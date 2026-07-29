@@ -57,7 +57,7 @@ VPATH := $(srctree)
 # after that. Hand-edit, or run 'make mrproper' to reset.
 arch_vars     := ARCH PLATFORM
 compiler_vars := CROSS_COMPILE OPT
-build_vars    := CONFIG_GCOV CONFIG_DEBUG_OUTPUT CONFIG_INITCONST_STR CONFIG_VMM
+build_vars    := CONFIG_GCOV CONFIG_DEBUG_OUTPUT CONFIG_INITCONST_STR CONFIG_VMM CONFIG_TOOLS_DEBUG
 qemu_vars     := QEMU_CPUS QEMU_APPEND QEMU_DISPLAY QEMU_SERIAL
 tracked_vars  := $(arch_vars) $(compiler_vars) $(build_vars) $(qemu_vars)
 # Free-form string values: persisted in double quotes, unquoted again
@@ -83,6 +83,7 @@ CONFIG_VMM ?= 1
 #CONFIG_DEBUG_OUTPUT=1
 #CONFIG_INITCONST_STR=1
 #CONFIG_GCOV=1
+#CONFIG_TOOLS_DEBUG=1
 
 # QEMU runtime
 QEMU_CPUS ?= 2

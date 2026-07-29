@@ -3,13 +3,16 @@ TOOLS=tools/dump_layout tools/gcov_extract
 OBJ_DIRS += $(dir $(TOOLS))
 
 CFLAGS_TOOLS = $(CFLAGS_COMMON)
+ifeq ($(CONFIG_TOOLS_DEBUG), 1)
+CFLAGS_TOOLS += -ggdb
+endif
 
 .PHONY: tools
 tools: $(TOOLS)
 
 tools/%.o: tools/%.c $(config_h)
 	$(QUIET) "[HOSTCC]$@"
-	$(VERBOSE) $(HOSTCC) $(CFLAGS_TOOLS) $(DEPFLAGS) -ggdb -c -o $@ $<
+	$(VERBOSE) $(HOSTCC) $(CFLAGS_TOOLS) $(DEPFLAGS) -c -o $@ $<
 
 tools/dump_layout: tools/dump_layout.o
 	$(QUIET) "[HOSTCC]$@"
