@@ -92,11 +92,11 @@ $(LIBGRINCH_BUILTIN): $(LIBGRINCH_OBJS)
 	$(QUIET) "[GIMG]  $@"
 	$(VERBOSE) $^ $@
 
-user/%.o: user/%.c $(SYSCALL_HEADER) $(config_h)
+user/%.o: user/%.c | $(SYSCALL_HEADER) $(config_h)
 	$(QUIET) "[CC-U]  $@"
 	$(VERBOSE) $(CC) -c $(CFLAGS_USER) $(DEPFLAGS) -o $@ $<
 
-user/%.o: user/%.S $(GENERATED)
+user/%.o: user/%.S | $(GENERATED)
 	$(QUIET) "[AS-U]  $@"
 	$(VERBOSE) $(CC) -c $(AFLAGS_USER) $(CFLAGS_USER) $(DEPFLAGS) -o $@ $<
 

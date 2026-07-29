@@ -63,11 +63,11 @@ endif
 ASM_DEFINES = $(ARCH_DIR)/include/asm/asm_defines.h
 GENERATED = $(ASM_DEFINES) $(config_h) $(version_h) $(compile_h)
 
-%.o: %.c $(GENERATED)
+%.o: %.c | $(GENERATED)
 	$(QUIET) "[CC]    $@"
 	$(VERBOSE) $(CC) -c $(CFLAGS_KERNEL) $(DEPFLAGS) -o $@ $<
 
-%.o: %.S $(GENERATED)
+%.o: %.S | $(GENERATED)
 	$(QUIET) "[CC/AS] $@"
 	$(VERBOSE) $(CC) -c $(AFLAGS_KERNEL) $(CFLAGS_KERNEL) $(DEPFLAGS) -o $@ $<
 
