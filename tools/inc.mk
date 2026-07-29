@@ -20,4 +20,5 @@ tools/gcov_extract: tools/gcov_extract.o
 	$(VERBOSE) $(HOSTCC) $(CFLAGS_TOOLS) -lgcov -fprofile-arcs -o $@ $^
 
 clean_tools:
-	$(call clean_files,tools,$(TOOLS) tools/dump_layout.o tools/gcov_extract.o)
+	$(call clean_files,tools,$(TOOLS) tools/dump_layout.o tools/gcov_extract.o \
+		tools/dump_layout.d tools/gcov_extract.d)

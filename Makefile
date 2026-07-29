@@ -172,7 +172,7 @@ endif
 
 define clean_objects
 	$(QUIET) "[CLEAN]" $1
-	$(VERBOSE) $(RMF) $(1)/built-in.a $(2) $(2:.o=.gcno) $(2:.o=.gcda)
+	$(VERBOSE) $(RMF) $(1)/built-in.a $(2) $(2:.o=.gcno) $(2:.o=.gcda) $(2:.o=.d)
 endef
 
 define clean_files

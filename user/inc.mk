@@ -119,6 +119,7 @@ define define_app
 clean_$(1):
 	$(call clean_files,user/apps/$(1),\
 		$($(call UC,$(1))_OBJS)\
+		$(patsubst %.o,%.d,$($(call UC,$(1))_OBJS))\
 		user/apps/$(1)/built-in.a\
 		user/apps/$(1)/$(1)_linked.o)
 
