@@ -17,6 +17,7 @@
 #include <asm/spinlock.h>
 #include <asm/sysregs.h>
 
+#include <grinch/compiler_types.h>
 #include <grinch/errno.h>
 #include <grinch/fdt.h>
 #include <grinch/gfp.h>
