@@ -3,16 +3,17 @@ UBOOT_ENV=$(ARCH_DIR)/u-boot/qemu.env
 QEMU=qemu-system-$(ARCH)
 
 ifdef ARCH_RISCV64
-config_defines += CONFIG_ARCH_RISCV=64
-CFLAGS_ARCH = -mcmodel=medany -march=rv64imafdc_zifencei
-LDFLAGS_ARCH = -melf64lriscv
-QEMU_CPU = rv64
+XLEN = 64
+CFLAGS_ARCH = -mcmodel=medany
 else ifdef ARCH_RISCV32
-config_defines += CONFIG_ARCH_RISCV=32
-CFLAGS_ARCH = -march=rv32imafdc_zifencei -mabi=ilp32
-LDFLAGS_ARCH = -melf32lriscv
-QEMU_CPU = rv32
+XLEN = 32
+CFLAGS_ARCH = -mabi=ilp32
 endif
+
+config_defines += CONFIG_ARCH_RISCV=$(XLEN)
+CFLAGS_ARCH += -march=rv$(XLEN)imafdc_zifencei
+LDFLAGS_ARCH = -melf$(XLEN)lriscv
+QEMU_CPU = rv$(XLEN)
 
 QEMU_MACHINE=-machine virt
 
