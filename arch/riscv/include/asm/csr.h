@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -78,6 +78,7 @@
 #define EXC_SYSCALL			8
 #define EXC_HYPERVISOR_SYSCALL		9
 #define EXC_SUPERVISOR_SYSCALL		10
+#define EXC_MACHINE_SYSCALL		11
 #define EXC_INST_PAGE_FAULT		12
 #define EXC_LOAD_PAGE_FAULT		13
 #define EXC_STORE_PAGE_FAULT		15

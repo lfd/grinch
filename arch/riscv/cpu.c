@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2025
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -39,7 +39,7 @@ static const char *causes[] = {
 	[EXC_SYSCALL]			= "Env Call From U-Mode",
 	[EXC_HYPERVISOR_SYSCALL]	= "Env Call From S-Mode",
 	[EXC_SUPERVISOR_SYSCALL]	= "Env Call From VS-Mode",
-	[11]				= "Env Call From M-Mode",
+	[EXC_MACHINE_SYSCALL]		= "Env Call From M-Mode",
 	[EXC_INST_PAGE_FAULT]		= "Instruction Pagefault",
 	[EXC_LOAD_PAGE_FAULT]		= "Load Pagefault",
 	[14]				= "Reserved",
