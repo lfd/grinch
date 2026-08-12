@@ -1,26 +1,5 @@
 SYSCALL_HEADER = common/include/generated/syscall.h
 
-ifeq ($(ARCH),riscv64)
-	ARCH_SUPER = riscv
-	UBOOT_ARCH = riscv
-	ARCH_RISCV = true
-	ARCH_RISCV64 = true
-else ifeq ($(ARCH),riscv32)
-	ARCH_SUPER = riscv
-	UBOOT_ARCH = riscv
-	ARCH_RISCV = true
-	ARCH_RISCV32 = true
-else ifeq ($(ARCH),arm64)
-	ARCH_SUPER = arm64
-	# U-Boot builds aarch64 under its "arm" architecture
-	UBOOT_ARCH = arm
-	ARCH_ARM64 = true
-else
-$(error Unsupported Architecture $(ARCH))
-endif
-
-ARCH_DIR = arch/$(ARCH_SUPER)
-
 include $(srctree)/$(ARCH_DIR)/inc.mk
 include $(srctree)/fs/inc.mk
 include $(srctree)/kernel/inc.mk
@@ -54,7 +33,6 @@ AFLAGS_KERNEL = $(AFLAGS_COMMON)
 
 ifeq ($(CONFIG_GCOV), 1)
     CFLAGS_KERNEL += -fprofile-arcs -ftest-coverage
-    config_defines += CONFIG_GCOV=1
     ifdef ARCH_RISCV64
         CFLAGS_KERNEL += -fprofile-update=atomic
     endif

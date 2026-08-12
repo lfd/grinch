@@ -2,6 +2,8 @@ VERSION=3
 PATCHLEVEL=15
 EXTRAVERSION=
 
+PYTHON ?= python3
+
 # Supported architectures:
 #  - riscv64
 #  - riscv32 (no SMP)
@@ -52,44 +54,33 @@ objtree := $(CURDIR)
 
 VPATH := $(srctree)
 
-# Persisted build settings. Created on first invocation with current
-# defaults merged with any command-line overrides; never overwritten
-# after that. Hand-edit, or run 'make mrproper' to reset.
-arch_vars     := ARCH PLATFORM
-compiler_vars := CROSS_COMPILE OPT
-build_vars    := CONFIG_GCOV CONFIG_DEBUG_OUTPUT CONFIG_INITCONST_STR CONFIG_VMM CONFIG_TOOLS_DEBUG
-qemu_vars     := QEMU_CPUS QEMU_APPEND QEMU_DISPLAY QEMU_SERIAL
-tracked_vars  := $(arch_vars) $(compiler_vars) $(build_vars) $(qemu_vars)
-# Free-form string values: persisted in double quotes, unquoted again
-# right after inclusion. Flag-style options (CONFIG_*) stay bare.
-string_vars   := ARCH PLATFORM CROSS_COMPILE OPT QEMU_APPEND QEMU_DISPLAY QEMU_SERIAL
-config_mk     := $(objtree)/config.mk
+config_mk := $(objtree)/config.mk
 -include $(config_mk)
-$(foreach v,$(string_vars),$(if $($(v)),$(eval $(v) := $(patsubst "%",%,$($(v))))))
 
 ARCH ?= riscv64
-# Arch-specific defaults (e.g. CROSS_COMPILE, PLATFORM); silently absent for arches that need none.
--include $(srctree)/arch/$(ARCH)/defaults.mk
-# Generic fallbacks if the arch defaults.mk didn't set these.
-PLATFORM ?= any
 
-# Compiler
-CROSS_COMPILE ?= $(ARCH)-unknown-linux-gnu-
-OPT ?= -O0
-
-# Build options
-CONFIG_VMM ?= 1
-#V=1
-#CONFIG_DEBUG_OUTPUT=1
-#CONFIG_INITCONST_STR=1
-#CONFIG_GCOV=1
-#CONFIG_TOOLS_DEBUG=1
-
-# QEMU runtime
-QEMU_CPUS ?= 2
-QEMU_APPEND ?=
-QEMU_DISPLAY ?= none
-QEMU_SERIAL ?= stdio
+# Architecture identification. Sets ARCH_SUPER/ARCH_DIR -- used below to
+# locate the arch config.toml and sources -- and per-arch flags. Needs only
+# ARCH, so it runs before config generation.
+ifeq ($(ARCH),riscv64)
+ARCH_SUPER = riscv
+UBOOT_ARCH = riscv
+ARCH_RISCV = true
+ARCH_RISCV64 = true
+else ifeq ($(ARCH),riscv32)
+ARCH_SUPER = riscv
+UBOOT_ARCH = riscv
+ARCH_RISCV = true
+ARCH_RISCV32 = true
+else ifeq ($(ARCH),arm64)
+ARCH_SUPER = arm64
+# U-Boot builds aarch64 under its "arm" architecture
+UBOOT_ARCH = arm
+ARCH_ARM64 = true
+else
+$(error Unsupported Architecture $(ARCH))
+endif
+ARCH_DIR = arch/$(ARCH_SUPER)
 
 # Generated headers
 generated_dir := include/generated
@@ -97,11 +88,18 @@ config_h      := $(generated_dir)/config.h
 version_h     := $(generated_dir)/version.h
 compile_h     := $(generated_dir)/compile.h
 
-# Options consumed by the source world. Each NAME=VALUE entry ends up
-# as '#define NAME VALUE' in $(config_h), which is force-included into
-# every compilation unit instead of passing a pile of -D options.
-# Makefiles below (arch, kernel, ...) append their own entries.
-config_defines := CONFIG_ARCH="$(ARCH)"
+# Generate config.mk and config.h from the config.toml declarations.
+config_gen = $(PYTHON) $(srctree)/scripts/config.py \
+             --arch $(ARCH) \
+             --config-mk $(config_mk) \
+             --config-h $(objtree)/$(config_h)
+
+no_config_goals := clean mrproper defconfig help test
+goals := $(or $(MAKECMDGOALS),all)
+ifneq ($(filter-out $(no_config_goals),$(goals)),)
+$(if $(shell $(config_gen)),$(info [GEN]   config))
+-include $(config_mk)
+endif
 
 all: grinch.bin user/initrd.cpio tools
 
@@ -145,7 +143,6 @@ AFLAGS_COMMON=-D__ASSEMBLY__
 CFLAGS_STANDALONE=-nostdinc -ffreestanding -g -ggdb
 ifeq ($(CONFIG_INITCONST_STR), 1)
 CFLAGS_STANDALONE += -Wno-format-security
-config_defines += CONFIG_INITCONST_STR=1
 else
 CFLAGS_STANDALONE += -Wformat-security
 endif
@@ -167,14 +164,6 @@ DEPFLAGS = -MMD -MP
 
 LDFLAGS_COMMON=
 
-ifeq ($(CONFIG_DEBUG_OUTPUT), 1)
-config_defines += CONFIG_DEBUG_OUTPUT=1
-endif
-
-ifeq ($(CONFIG_VMM), 1)
-config_defines += CONFIG_VMM=1
-endif
-
 define clean_objects
 	$(QUIET) "[CLEAN]" $1
 	$(VERBOSE) $(RMF) $(1)/built-in.a $(2) $(2:.o=.gcno) $(2:.o=.gcda) $(2:.o=.d)
@@ -190,56 +179,15 @@ define clean_dir
 	$(VERBOSE) $(RMRF) $(1)
 endef
 
-# Emit one group of persisted settings (header + assignments) for the
-# config.mk writer. $(1) is the group label, $(2) is the var list.
-# Single-line on purpose so it works in both $(shell) and recipes.
-emit_group = echo; echo '\# $(1)'; $(foreach v,$(2),echo '$(v)=$(if $(filter $(v),$(string_vars)),"$($(v))",$($(v)))';)
-
-# Shell command that (re)writes config.mk in one go. Used both at parse
-# time (auto-create on first invocation) and from the defconfig recipe.
-config_mk_cmd = { \
-	echo '\# Auto-generated. Edit to change settings; run mrproper to reset.'; \
-	$(call emit_group,Architecture,$(arch_vars)) \
-	$(call emit_group,Compiler,$(compiler_vars)) \
-	$(call emit_group,Build options,$(build_vars)) \
-	$(call emit_group,QEMU runtime,$(qemu_vars)) \
-} > $(config_mk).new && mv -f $(config_mk).new $(config_mk)
-
-# Shell command that (re)writes the generated config header from the
-# config_defines list. Runs at parse time on every real build; the file
-# is only touched when its content changes, so flipping an option
-# rebuilds the tree while a no-op run rebuilds nothing.
-# make does not unescape \# inside function calls, hence the variable.
-pound := \#
-config_h_cmd = $(MKDIR_P) $(dir $(config_h)) && { \
-	echo '/* Auto-generated from config.mk. Do not edit. */'; \
-	$(foreach d,$(config_defines),echo '$(pound)define $(subst =, ,$(d))';) \
-} > $(config_h).new && \
-	if cmp -s $(config_h).new $(config_h); then $(RMF) $(config_h).new; \
-	else mv -f $(config_h).new $(config_h); echo updated; fi
-
 include $(srctree)/scripts/kernel.mk
 include $(srctree)/user/inc.mk
 include $(srctree)/tools/inc.mk
 
-# Auto-create config.mk for any goal that implies a real build.
-# Passive goals (clean, mrproper, defconfig, help) are listed below
-# and skip parse-time generation; defconfig has its own recipe.
-no_config_goals := clean mrproper defconfig help test
-goals := $(or $(MAKECMDGOALS),all)
-ifneq ($(filter-out $(no_config_goals),$(goals)),)
-ifeq ($(wildcard $(config_mk)),)
-$(if $(V),$(info $(config_mk_cmd)),$(info [GEN]   $(config_mk)))
-$(shell $(config_mk_cmd))
-endif
-$(if $(shell $(config_h_cmd)),$(info [GEN]   $(config_h)))
-endif
-
-# Normally kept fresh at parse time above; this rule only recreates the
-# header if it went missing mid-build (e.g. 'make clean all').
+# Kept fresh at parse time above; this rule only recreates the header if it
+# went missing mid-build (e.g. 'make clean all').
 $(config_h):
 	$(QUIET) "[GEN]   $@"
-	$(VERBOSE) $(config_h_cmd) >/dev/null
+	$(VERBOSE) $(config_gen) >/dev/null
 
 %.bin: %.elf
 	$(QUIET) "[OBJC]  $@"
@@ -253,7 +201,7 @@ $(config_h):
 QEMU_CMD=$(QEMU) $(QEMU_ARGS_COMMON) $(QEMU_ARGS)
 
 # -append needs -kernel (qemu folds it into the DTB), so it rides with each -kernel.
-QEMU_CMD_DIRECT=$(QEMU_CMD) -kernel grinch.bin -initrd user/initrd.cpio -append "$(QEMU_APPEND)"
+QEMU_CMD_DIRECT=$(QEMU_CMD) -kernel grinch.bin -initrd user/initrd.cpio -append '$(QEMU_APPEND)'
 QEMU_CMD_UBOOT=$(QEMU_CMD) $(QEMU_UBOOT_ARGS)
 
 qemu: all
@@ -302,7 +250,7 @@ test:
 .PHONY: defconfig
 defconfig:
 	$(QUIET) "[GEN]   $(config_mk)"
-	$(VERBOSE) $(config_mk_cmd)
+	$(VERBOSE) $(config_gen) --defconfig >/dev/null
 
 debug: grinch.elf
 	$(GDB) -nx -x $(srctree)/scripts/connect.gdb -x $(srctree)/scripts/debug.gdb

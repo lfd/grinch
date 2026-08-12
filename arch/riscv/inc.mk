@@ -10,15 +10,10 @@ XLEN = 32
 CFLAGS_ARCH = -mabi=ilp32
 endif
 
-# Compressed instructions (the 'c' ISA extension) are on by default;
-# disable by setting CONFIG_RISCV_COMPRESSED=0 in config.mk.
-CONFIG_RISCV_COMPRESSED ?= 1
-build_vars += CONFIG_RISCV_COMPRESSED
 ifeq ($(CONFIG_RISCV_COMPRESSED), 1)
 march_c := c
 endif
 
-config_defines += CONFIG_ARCH_RISCV=$(XLEN)
 CFLAGS_ARCH += -march=rv$(XLEN)imafd$(march_c)_zifencei
 LDFLAGS_ARCH = -melf$(XLEN)lriscv
 QEMU_CPU = rv$(XLEN)
@@ -31,7 +26,7 @@ QEMU_ARGS+=$(QEMU_MACHINE) -cpu $(QEMU_CPU),h=true
 
 QEMU_UBOOT_ARGS=\
 		-kernel $(UBOOT_BIN) \
-		-append "$(QEMU_APPEND)" \
+		-append '$(QEMU_APPEND)' \
 		-device loader,file=grinch.bin,addr=0x82000000,force-raw=on \
 		-device loader,file=user/initrd.cpio,addr=0x82800000,force-raw=on \
 

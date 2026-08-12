@@ -1,14 +1,12 @@
 UBOOT_CFG=$(ARCH_DIR)/u-boot/arm64-$(PLATFORM).config
 UBOOT_ENV=$(ARCH_DIR)/u-boot/$(PLATFORM).env
 
-config_defines += CONFIG_ARCH_ARM64=64
 # Kernel uses no FP/SIMD (its state is never saved); also bars -O3 NEON codegen.
 CFLAGS_ARCH = -mgeneral-regs-only
 LDFLAGS_ARCH =
 
 # Route the early debug console through the QEMU semihosting interface
 ifeq ($(CONFIG_ARM64_SEMIHOSTING),1)
-config_defines += CONFIG_ARM64_SEMIHOSTING=1
 QEMU_ARGS_SEMIHOSTING = -semihosting
 endif
 
