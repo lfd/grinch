@@ -101,8 +101,6 @@
 #define IRQ_VS_EXT		10
 #define IRQ_M_EXT		11
 
-#define VSIP_TO_HVIP_SHIFT	(IRQ_VS_SOFT - IRQ_S_SOFT)
-
 #define HCOUNTEREN_CY		(1 << 0)
 #define HCOUNTEREN_TM		(1 << 1)
 #define HCOUNTEREN_IR		(1 << 2)
@@ -112,9 +110,9 @@
 #define IE_TIE		(_UL(0x1) << IRQ_S_TIMER)
 #define IE_EIE		(_UL(0x1) << IRQ_S_EXT)
 
-#define VIE_SIE		(IE_SIE << VSIP_TO_HVIP_SHIFT)
-#define VIE_TIE		(IE_TIE << VSIP_TO_HVIP_SHIFT)
-#define VIE_EIE		(IE_EIE << VSIP_TO_HVIP_SHIFT)
+#define VIE_SIE		(_UL(0x1) << IRQ_VS_SOFT)
+#define VIE_TIE		(_UL(0x1) << IRQ_VS_TIMER)
+#define VIE_EIE		(_UL(0x1) << IRQ_VS_EXT)
 
 /* SATP flags */
 #if CONFIG_ARCH_RISCV == 64 /* rv64 */

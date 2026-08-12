@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023-2025
+ * Copyright (c) OTH Regensburg, 2023-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -50,10 +50,7 @@
 
 #define RISCV_INST_WFI	0x10500073
 
-#define HIDELEG					\
-	((IE_SIE << VSIP_TO_HVIP_SHIFT) |	\
-	(IE_TIE << VSIP_TO_HVIP_SHIFT) |	\
-	(IE_EIE << VSIP_TO_HVIP_SHIFT))
+#define HIDELEG		(VIE_SIE | VIE_TIE | VIE_EIE)
 
 #define HEDELEG					\
 	((1UL << EXC_INST_MISALIGNED) |		\
