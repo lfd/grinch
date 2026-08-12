@@ -4,7 +4,7 @@ QEMU=qemu-system-$(ARCH)
 
 ifdef ARCH_RISCV64
 XLEN = 64
-CFLAGS_ARCH = -mcmodel=medany
+CFLAGS_ARCH = -mcmodel=medany -mabi=lp64
 else ifdef ARCH_RISCV32
 XLEN = 32
 CFLAGS_ARCH = -mabi=ilp32
@@ -14,16 +14,14 @@ ifeq ($(CONFIG_RISCV_COMPRESSED), 1)
 march_c := c
 endif
 
-CFLAGS_ARCH += -march=rv$(XLEN)imafd$(march_c)_zifencei
+CFLAGS_ARCH += -march=rv$(XLEN)ima$(march_c)_zicsr_zifencei
 LDFLAGS_ARCH = -melf$(XLEN)lriscv
+
 QEMU_CPU = rv$(XLEN)
-
 QEMU_MACHINE=-machine virt
-
 QEMU_ARGS=-m 64M
 QEMU_ARGS+=-monitor telnet:127.0.0.1:55555,server,nowait
 QEMU_ARGS+=$(QEMU_MACHINE) -cpu $(QEMU_CPU),h=true
-
 QEMU_UBOOT_ARGS=\
 		-kernel $(UBOOT_BIN) \
 		-append '$(QEMU_APPEND)' \
