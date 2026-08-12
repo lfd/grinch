@@ -10,8 +10,16 @@ XLEN = 32
 CFLAGS_ARCH = -mabi=ilp32
 endif
 
+# Compressed instructions (the 'c' ISA extension) are on by default;
+# disable by setting CONFIG_RISCV_COMPRESSED=0 in config.mk.
+CONFIG_RISCV_COMPRESSED ?= 1
+build_vars += CONFIG_RISCV_COMPRESSED
+ifeq ($(CONFIG_RISCV_COMPRESSED), 1)
+march_c := c
+endif
+
 config_defines += CONFIG_ARCH_RISCV=$(XLEN)
-CFLAGS_ARCH += -march=rv$(XLEN)imafdc_zifencei
+CFLAGS_ARCH += -march=rv$(XLEN)imafd$(march_c)_zifencei
 LDFLAGS_ARCH = -melf$(XLEN)lriscv
 QEMU_CPU = rv$(XLEN)
 
