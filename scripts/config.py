@@ -142,7 +142,7 @@ def main():
     for kv in args.set:
         k, _, v = kv.partition("=")
         k = k.strip()
-        if k in decls and "default" in decls[k] and k not in existing:
+        if k in decls and "default" in decls[k] and (args.defconfig or k not in existing):
             values[k] = v.strip()
     values["ARCH"] = args.arch
 

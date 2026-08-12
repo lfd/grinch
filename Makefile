@@ -57,6 +57,17 @@ VPATH := $(srctree)
 config_mk := $(objtree)/config.mk
 -include $(config_mk)
 
+# config.mk is the source of truth once written; reject config tunables on
+# the command line (CROSS_COMPILE, V=, QEMU_* are still fine).
+ifneq ($(wildcard $(config_mk)),)
+ifeq ($(filter defconfig,$(MAKECMDGOALS)),)
+_config_overrides := $(filter ARCH=% PLATFORM=% OPT=% CONFIG_%,$(MAKEOVERRIDES))
+ifneq ($(_config_overrides),)
+$(error config.mk is locked; run 'make defconfig' to reconfigure. Refusing: $(_config_overrides))
+endif
+endif
+endif
+
 ARCH ?= riscv64
 
 # Architecture identification. Sets ARCH_SUPER/ARCH_DIR -- used below to
