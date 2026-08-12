@@ -10,7 +10,10 @@
  * the COPYING file in the top-level directory.
  */
 
-/* party copied from the Linux kernel sources */
+/* partly copied from the Linux kernel sources */
+
+#ifndef _CSR_H
+#define _CSR_H
 
 #include <grinch/bits.h>
 #include <grinch/const.h>
@@ -196,3 +199,5 @@
 })
 
 #endif /* __ASSEMBLY__ */
+
+#endif /* _CSR_H */
