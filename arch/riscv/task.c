@@ -59,8 +59,8 @@ void arch_process_activate(struct process *process)
 	if (has_hypervisor())
 		csr_write(CSR_HSTATUS, 0);
 
-	/* Ensure that sret returns to U-Mode */
-	csr_clear(sstatus, SR_SPP);
+	/* Ensure that we return to U-Mode */
+	csr_clear(CSR_STATUS, SR_PP);
 
 	switch_mmu_satp(process->mm.asid, v2p(process->mm.page_table));
 

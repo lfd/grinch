@@ -12,6 +12,7 @@
 
 #include <arch/asm.h>
 #include <asm/asm_defines.h>
+#include <asm/csr.h>
 
 #include <grinch/percpu.h>
 #include <asm-generic/grinch_layout.h>
@@ -31,13 +32,13 @@
 .endm
 
 /*
- * Mask all interrupts. Firmware only guarantees sstatus.SIE=0 on entry
- * (SBI HSM defines this for a started hart), not the sie/sip contents, so
- * make the masked state explicit instead of relying on it.
+ * Mask all interrupts. Firmware only guarantees that interrupts are off on
+ * entry (SBI HSM defines this for a started hart), not the enable/pending
+ * contents, so make the masked state explicit instead of relying on it.
  */
 .macro mask_all_irqs
-	csrw	sie, zero
-	csrw	sip, zero
+	csrw	CSR_IE, zero
+	csrw	CSR_IP, zero
 .endm
 
 /*
@@ -137,9 +138,9 @@ grinch_start:
 	jal	kmm_set_base
 
 	/* Setup exception trap vector. Exception stack is yet uninitialised. */
-	csrw	sscratch, zero
+	csrw	CSR_SCRATCH, zero
 	la	t0, excp_handler
-	csrw	stvec, t0
+	csrw	CSR_TVEC, t0
 
 	/* pop parameters from stack */
 	REG_L	a0, 0(sp) /* hart-id */
@@ -197,7 +198,7 @@ secondary_virt_entry:
 
 	/* Setup exception trap vector. Exception stack is yet uninitialised. */
 	la	t0, excp_handler
-	csrw	stvec, t0
+	csrw	CSR_TVEC, t0
 
 	jal	secondary_cmain
 

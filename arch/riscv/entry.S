@@ -27,11 +27,11 @@
 .align 4
 .globl excp_handler
 excp_handler:
-	csrrw	sp, sscratch, sp
+	csrrw	sp, CSR_SCRATCH, sp
 	bnez	sp, save_user_ctx
 
 	/* sp is zero: we have an exception from kernel space. So restore sp. */
-	csrr	sp, sscratch
+	csrr	sp, CSR_SCRATCH
 	addi	sp, sp, -STRUCT_REGISTERS_SIZE
 	context REG_S
 	j	common_ctx
@@ -49,13 +49,13 @@ save_user_ctx:
 	sub	tp, sp, t0
 
 common_ctx:
-	csrr	a0, sepc
+	csrr	a0, CSR_EPC
 	REG_S	a0, REG_PC(sp)
 
 	/* push SP */
-	csrr	a0, sscratch
+	csrr	a0, CSR_SCRATCH
 	REG_S	a0, REG_SP(sp)
-	csrw	sscratch, zero
+	csrw	CSR_SCRATCH, zero
 
 	/* Terminate stack frame */
 	mv	s0, sp
@@ -66,7 +66,7 @@ common_ctx:
 	mv	a0, sp
 
 	la	ra, return_from_trap
-	csrr	a1, scause
+	csrr	a1, CSR_CAUSE
 	bge	a1, zero, 1f
 	j	arch_handle_irq
 
@@ -77,7 +77,7 @@ common_ctx:
 return_from_trap:
 	/* restore the interrupted PC */
 	REG_L	a0, REG_PC(sp)
-	csrw	sepc, a0
+	csrw	CSR_EPC, a0
 
 	/*
 	 * Where do we return to? Only the frame on top of the per-CPU stack
@@ -90,23 +90,23 @@ return_from_trap:
 	bne	sp, a0, return_to_kernel
 
 return_to_user:
-	/* restore the context's SP, keep the kernel SP in sscratch */
+	/* restore the context's SP, keep the kernel SP in the scratch register */
 	REG_L	a0, REG_SP(sp)
 	/* No preemption must happen from now on */
-	csrw	sscratch, a0
+	csrw	CSR_SCRATCH, a0
 
 	context REG_L
 	addi	sp, sp, STRUCT_REGISTERS_SIZE
 
-	csrrw	sp, sscratch, sp
+	csrrw	sp, CSR_SCRATCH, sp
 
-	sret
+	xret
 
 return_to_kernel:
-	/* Supervisor return: sp is already the kernel stack; sscratch stays 0. */
-	csrw	sscratch, zero
+	/* Kernel return: sp is already the kernel stack; scratch stays 0. */
+	csrw	CSR_SCRATCH, zero
 
 	context REG_L
 	addi	sp, sp, STRUCT_REGISTERS_SIZE
 
-	sret
+	xret

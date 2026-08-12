@@ -108,10 +108,32 @@
 #define HCOUNTEREN_TM		(1 << 1)
 #define HCOUNTEREN_IR		(1 << 2)
 
-/* IE/IP (Supervisor/Machine Interrupt Enable/Pending) flags */
-#define IE_SIE		(_UL(0x1) << IRQ_S_SOFT)
-#define IE_TIE		(_UL(0x1) << IRQ_S_TIMER)
-#define IE_EIE		(_UL(0x1) << IRQ_S_EXT)
+/*
+ * Names for the privileged state the kernel uses for its own traps,
+ * independent of the level it runs in. A machine mode kernel repoints
+ * this block; inherently supervisor state keeps its explicit name.
+ */
+#define CSR_STATUS		sstatus
+#define CSR_IE			sie
+#define CSR_IP			sip
+#define CSR_TVEC		stvec
+#define CSR_SCRATCH		sscratch
+#define CSR_EPC			sepc
+#define CSR_CAUSE		scause
+#define CSR_TVAL		stval
+
+#define SR_IE			SR_SIE
+#define SR_PIE			SR_SPIE
+#define SR_PP			SR_SPP
+
+#define RV_IRQ_SOFT		IRQ_S_SOFT
+#define RV_IRQ_TIMER		IRQ_S_TIMER
+#define RV_IRQ_EXT		IRQ_S_EXT
+
+/* Interrupt enable/pending bits, for CSR_IE and CSR_IP */
+#define IE_SOFT		(_UL(0x1) << RV_IRQ_SOFT)
+#define IE_TIMER	(_UL(0x1) << RV_IRQ_TIMER)
+#define IE_EXT		(_UL(0x1) << RV_IRQ_EXT)
 
 #define VIE_SIE		(_UL(0x1) << IRQ_VS_SOFT)
 #define VIE_TIE		(_UL(0x1) << IRQ_VS_TIMER)
@@ -153,7 +175,14 @@
 #define HSTATUS_GVA             _UL(0x00000040)
 #define HSTATUS_VSBE            _UL(0x00000020)
 
-#ifndef __ASSEMBLY__
+#ifdef __ASSEMBLY__
+
+/* Return from a trap to the level the kernel runs in */
+.macro xret
+	sret
+.endm
+
+#else /* __ASSEMBLY__ */
 
 #define csr_read(csr)                                           \
 ({                                                              \

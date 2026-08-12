@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -62,7 +62,7 @@ void arch_handle_irq(struct registers *regs, u64 scause)
 
 	irq = to_irq(scause);
 	switch (irq) {
-		case IRQ_S_SOFT:
+		case RV_IRQ_SOFT:
 			ipi_clear();
 			/* Dispatch pending remote calls (on_each_cpu). */
 			check_events();
@@ -70,13 +70,13 @@ void arch_handle_irq(struct registers *regs, u64 scause)
 			prepare_user = true;
 			break;
 
-		case IRQ_S_TIMER:
+		case RV_IRQ_TIMER:
 			handle_timer();
 			this_per_cpu()->handle_events = true;
 			prepare_user = true;
 			break;
 
-		case IRQ_S_EXT:
+		case RV_IRQ_EXT:
 			irqchip_fn->handle_irq();
 			break;
 
@@ -97,7 +97,7 @@ void arch_handle_exception(struct registers *regs, u64 scause)
 	int err;
 
 	ctx.scause = scause;
-	ctx.sstatus = csr_read(sstatus);
+	ctx.sstatus = csr_read(CSR_STATUS);
 
 	vmtr = vmm_handle_trap(&ctx, regs);
 	if (vmtr == VMM_HANDLED) {
@@ -110,13 +110,13 @@ void arch_handle_exception(struct registers *regs, u64 scause)
 	}
 
 	err = -EINVAL;
-	if (ctx.sstatus & SR_SPP) {
+	if (ctx.sstatus & SR_PP) {
 		pr("FATAL: Trap taken from Supervisor mode\n");
 		goto out;
 	}
 
 	task_save(regs);
-	stval = (void __user *)csr_read(stval);
+	stval = (void __user *)csr_read(CSR_TVAL);
 	switch (ctx.scause) {
 		case EXC_INST_ILLEGAL:
 		case EXC_INST_PAGE_FAULT:
@@ -167,6 +167,6 @@ out:
 		panic("System halted\n");
 	}
 
-	if (vmtr == VMM_HANDLED || !(ctx.sstatus & SR_SPP))
+	if (vmtr == VMM_HANDLED || !(ctx.sstatus & SR_PP))
 		prepare_user_return();
 }

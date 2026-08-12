@@ -61,7 +61,7 @@ void dump_regs(struct registers *a)
 			satp >> SATP_MODE_SHIFT,
 			(satp >> SATP_ASID_SHIFT) & SATP_ASID_MASK,
 			(satp & SATP_PPN) << PAGE_SHIFT,
-			csr_read(stval));
+			csr_read(CSR_TVAL));
 	pr(" PC: " REG_FMT " RA: " REG_FMT "  SP: " REG_FMT "\n",
 	   a->pc, a->ra, a->sp);
 	pr(" GP: " REG_FMT " TP: " REG_FMT "  T0: " REG_FMT "\n",
@@ -93,7 +93,7 @@ void dump_exception(struct trap_context *ctx)
 		cause_str = causes[ctx->scause];
 	pr("FATAL: Exception on CPU %lu. Cause: %lu (%s)\n",
 	   this_cpu_id(), to_irq(ctx->scause), cause_str);
-	if (!(ctx->sstatus & SR_SPP))
+	if (!(ctx->sstatus & SR_PP))
 		pr("Active PID: %u\n", current_task()->pid);
 }
 
