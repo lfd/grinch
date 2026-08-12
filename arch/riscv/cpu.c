@@ -57,7 +57,7 @@ void dump_regs(struct registers *a)
 
 	satp = csr_read(CSR_SATP);
 
-	pr("SATP -- Mode: %lu, ASID: %lu, PFN: " REG_FMT "     STVAL: " REG_FMT "\n",
+	pr("SATP -- Mode: %lu, ASID: %lu, PFN: " REG_FMT "     TVAL: " REG_FMT "\n",
 			satp >> SATP_MODE_SHIFT,
 			(satp >> SATP_ASID_SHIFT) & SATP_ASID_MASK,
 			(satp & SATP_PPN) << PAGE_SHIFT,
@@ -89,11 +89,11 @@ void dump_exception(struct trap_context *ctx)
 {
 	const char *cause_str = "UNKNOWN";
 
-	if (ctx->scause <= 23)
-		cause_str = causes[ctx->scause];
+	if (ctx->cause <= 23)
+		cause_str = causes[ctx->cause];
 	pr("FATAL: Exception on CPU %lu. Cause: %lu (%s)\n",
-	   this_cpu_id(), to_irq(ctx->scause), cause_str);
-	if (!(ctx->sstatus & SR_PP))
+	   this_cpu_id(), to_irq(ctx->cause), cause_str);
+	if (!(ctx->status & SR_PP))
 		pr("Active PID: %u\n", current_task()->pid);
 }
 

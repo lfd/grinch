@@ -22,8 +22,8 @@
 #include <grinch/arch/sbi.h>
 
 /* called from entry.S */
-void arch_handle_exception(struct registers *regs, u64 scause);
-void arch_handle_irq(struct registers *regs, u64 scause);
+void arch_handle_exception(struct registers *regs, u64 cause);
+void arch_handle_irq(struct registers *regs, u64 cause);
 
 static void handle_syscall(void)
 {
@@ -52,7 +52,7 @@ static void handle_syscall(void)
  * below is guarded by !idling). The idle retry loop reschedules once we
  * unwind.
  */
-void arch_handle_irq(struct registers *regs, u64 scause)
+void arch_handle_irq(struct registers *regs, u64 cause)
 {
 	bool prepare_user = false;
 	u64 irq;
@@ -60,7 +60,7 @@ void arch_handle_irq(struct registers *regs, u64 scause)
 	if (!this_per_cpu()->idling)
 		task_save(regs);
 
-	irq = to_irq(scause);
+	irq = to_irq(cause);
 	switch (irq) {
 		case RV_IRQ_SOFT:
 			ipi_clear();
@@ -89,15 +89,15 @@ void arch_handle_irq(struct registers *regs, u64 scause)
 		prepare_user_return();
 }
 
-void arch_handle_exception(struct registers *regs, u64 scause)
+void arch_handle_exception(struct registers *regs, u64 cause)
 {
 	enum vmm_trap_result vmtr;
 	struct trap_context ctx;
-	void __user *stval;
+	void __user *tval;
 	int err;
 
-	ctx.scause = scause;
-	ctx.sstatus = csr_read(CSR_STATUS);
+	ctx.cause = cause;
+	ctx.status = csr_read(CSR_STATUS);
 
 	vmtr = vmm_handle_trap(&ctx, regs);
 	if (vmtr == VMM_HANDLED) {
@@ -110,14 +110,14 @@ void arch_handle_exception(struct registers *regs, u64 scause)
 	}
 
 	err = -EINVAL;
-	if (ctx.sstatus & SR_PP) {
-		pr("FATAL: Trap taken from Supervisor mode\n");
+	if (ctx.status & SR_PP) {
+		pr("FATAL: Trap taken from kernel mode\n");
 		goto out;
 	}
 
 	task_save(regs);
-	stval = (void __user *)csr_read(CSR_TVAL);
-	switch (ctx.scause) {
+	tval = (void __user *)csr_read(CSR_TVAL);
+	switch (ctx.cause) {
 		case EXC_INST_ILLEGAL:
 		case EXC_INST_PAGE_FAULT:
 			dump_exception(&ctx);
@@ -127,12 +127,12 @@ void arch_handle_exception(struct registers *regs, u64 scause)
 			break;
 
 		case EXC_LOAD_PAGE_FAULT:
-			task_handle_fault(stval, false);
+			task_handle_fault(tval, false);
 			err = 0;
 			break;
 
 		case EXC_STORE_PAGE_FAULT:
-			task_handle_fault(stval, true);
+			task_handle_fault(tval, true);
 			err = 0;
 			break;
 
@@ -142,7 +142,7 @@ void arch_handle_exception(struct registers *regs, u64 scause)
 		case EXC_INST_MISALIGNED:
 		case EXC_LOAD_ACCESS_MISALIGNED:
 		case EXC_AMO_ADDRESS_MISALIGNED:
-			pr("Faulting Address: %p\n", stval);
+			pr("Faulting Address: %p\n", tval);
 			break;
 
 		case EXC_SYSCALL:
@@ -167,6 +167,6 @@ out:
 		panic("System halted\n");
 	}
 
-	if (vmtr == VMM_HANDLED || !(ctx.sstatus & SR_PP))
+	if (vmtr == VMM_HANDLED || !(ctx.status & SR_PP))
 		prepare_user_return();
 }

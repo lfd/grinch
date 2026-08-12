@@ -68,8 +68,8 @@ struct registers {
 
 struct trap_context {
 	/* Privileged registers */
-	unsigned long scause;
-	unsigned long sstatus;
+	unsigned long cause;
+	unsigned long status;
 
 	/* Hypervisor registers */
 	unsigned long hstatus;

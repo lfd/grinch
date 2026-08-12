@@ -195,7 +195,7 @@ vmm_handle_trap(struct trap_context *ctx, struct registers *regs)
 		return VMM_FORWARD;
 
 	/* Was the VM in VU-Mode? */
-	if (!(ctx->sstatus & SR_SPP))
+	if (!(ctx->status & SR_SPP))
 		// Why does sfence.vma trap from VU->HS directly?
 		BUG();
 
@@ -208,7 +208,7 @@ vmm_handle_trap(struct trap_context *ctx, struct registers *regs)
 	arch_vmachine_save(vm);
 
 	/* Here we land if we take a trap vom V=1 */
-	switch (ctx->scause) {
+	switch (ctx->cause) {
 		case EXC_SUPERVISOR_SYSCALL:
 			err = vmm_handle_ecall();
 			if (err)
@@ -232,7 +232,7 @@ out:
 	vsatp = csr_read(vsatp);
 
 	pr("Hypervisor Context:\n");
-	pr("SSTATUS: " REG_FMT " SCAUSE: " REG_FMT "\n", ctx->sstatus, ctx->scause);
+	pr("SSTATUS: " REG_FMT " SCAUSE: " REG_FMT "\n", ctx->status, ctx->cause);
 	pr("HSTATUS: " REG_FMT "  HTVAL: " REG_FMT "\n",
 		ctx->hstatus, csr_read(CSR_HTVAL));
 	pr("VSATP: " REG_FMT "\n", vsatp);
