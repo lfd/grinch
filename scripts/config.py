@@ -128,6 +128,7 @@ def main():
     ap.add_argument("--config-mk", type=Path, required=True)
     ap.add_argument("--config-h", type=Path, required=True)
     ap.add_argument("--defconfig", action="store_true")
+    ap.add_argument("--set", action="append", metavar="KEY=VALUE", default=[])
     args = ap.parse_args()
 
     srctree = Path(__file__).resolve().parent.parent
@@ -136,7 +137,13 @@ def main():
     decls = load_decls([srctree / "config.toml",
                         srctree / "arch" / arch_super(args.arch) / "config.toml"], subs)
 
-    values = {} if args.defconfig else read_values(args.config_mk)
+    existing = read_values(args.config_mk)
+    values = {} if args.defconfig else existing.copy()
+    for kv in args.set:
+        k, _, v = kv.partition("=")
+        k = k.strip()
+        if k in decls and "default" in decls[k] and k not in existing:
+            values[k] = v.strip()
     values["ARCH"] = args.arch
 
     changed = []

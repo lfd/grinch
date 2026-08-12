@@ -94,6 +94,10 @@ config_gen = $(PYTHON) $(srctree)/scripts/config.py \
              --config-mk $(config_mk) \
              --config-h $(objtree)/$(config_h)
 
+# Seed a fresh config.mk from command-line tunables (ignored when config.mk
+# already exists; config.py only applies --set for keys not yet present).
+config_gen += $(foreach ov,$(MAKEOVERRIDES),--set $(ov))
+
 no_config_goals := clean mrproper defconfig help test
 goals := $(or $(MAKECMDGOALS),all)
 ifneq ($(filter-out $(no_config_goals),$(goals)),)
