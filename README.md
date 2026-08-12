@@ -56,6 +56,7 @@ Drivers
 - Serial and console
   - 8250/16550 UART
   - AXI UART Lite
+  - LiteUART (LiteX)
   - APBUART
   - PL011 (ARM)
   - RISC-V SBI console
@@ -101,23 +102,6 @@ For compiling grinch, simply run:
 
     make
 
-To select the target architecture (default `riscv64`):
-
-    make ARCH=riscv32
-    make ARCH=arm64
-
-For additional debug output, run:
-
-    make DEBUG_OUTPUT=1
-
-To enable GCOV coverage instrumentation, run:
-
-    make GCOV=1
-
-To override the optimisation level (default is `-O0`), run:
-
-    make OPT=-O2
-
 For verbose compiler output, run:
 
     make V=1
@@ -128,17 +112,26 @@ or via U-Boot on real platforms. `user/initrd.cpio` contains userland
 applications, as well as grinch itself (grinch is able to recursively boot
 itself as virtual machine).
 
-Build settings (`ARCH`, `OPT`, `GCOV`, ...) passed on the command line are
-persisted to `config.mk` on the first invocation; subsequent invocations
-reuse them automatically. Hand-edit `config.mk` to change a setting, or
-run `make mrproper` to discard it (along with all build output).
+### Configuration
 
-For out-of-tree builds, pass `O=`:
+Build configuration lives in `config.mk` in the build directory. On the first
+invocation (or after `make defconfig`), configuration tunables passed on the
+command line seed `config.mk`:
 
-    make O=build ARCH=riscv32 OPT=-O2
+    make O=build ARCH=riscv32 OPT=-O2 CONFIG_DEBUG_OUTPUT=1
 
-A small `Makefile` shim is generated in `build/`, so afterwards you can
-work from the build directory directly:
+Once `config.mk` exists it is the source of truth and passing configuration
+tunables (`ARCH`, `PLATFORM`, `OPT`, `CONFIG_*`) on the command line is
+rejected. Edit `config.mk` directly to change a setting, or run `make defconfig`
+to reset to defaults (optionally seeding new values on the same command line).
+`make mrproper` discards `config.mk` along with all build output.
+
+`V=1` and `QEMU_*` variables are always accepted on the command line regardless
+of whether `config.mk` exists.
+
+For out-of-tree builds, pass `O=` (tunables are seeded into `build/config.mk`
+on the first invocation, as shown above). A small `Makefile` shim is generated
+in `build/`, so afterwards you can work from the build directory directly:
 
     cd build
     make
