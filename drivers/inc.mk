@@ -11,6 +11,7 @@ DRIVERS_SERIAL_OBJS += serial/serial.o
 DRIVERS_SERIAL_OBJS += serial/uart-dummy.o
 DRIVERS_SERIAL_OBJS += serial/uart-8250.o
 DRIVERS_SERIAL_OBJS += serial/uart-apbuart.o
+DRIVERS_SERIAL_OBJS += serial/uart-liteuart.o
 
 DRIVERS_TIMER_OBJS =
 ifdef ARCH_RISCV
