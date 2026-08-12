@@ -2,6 +2,7 @@
 *.elf
 *.a
 *.o
+*.d
 *.ld
 *.dtb
 *.gimg
