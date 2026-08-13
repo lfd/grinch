@@ -26,9 +26,9 @@ const CONFIG_ARCH_GROUP "Architecture" {
 
     string RISCV_MODE "RISC-V privilege level" {
         default "s"
-        choices "s" "m"
+        choices "s" ("m" if !CONFIG_MMU)
         depends CONFIG_ARCH_RISCV
-        help "Privilege level the kernel runs in. 's' boots in supervisor mode on top of firmware providing SBI, such as OpenSBI. 'm' boots in machine mode on the bare hart, driving timer, IPI and reset hardware itself."
+        help "Privilege level the kernel runs in. 's' boots in supervisor mode on top of firmware providing SBI, such as OpenSBI. 'm' boots in machine mode on the bare hart, driving timer, IPI and reset hardware itself. Machine mode cannot translate its own accesses, so it requires address translation to be off."
     }
 
     bool CONFIG_RISCV_S_MODE { value RISCV_MODE == "s"  header }
@@ -57,6 +57,12 @@ const CONFIG_COMPILER "Compiler" {
 
 const CONFIG_FEATURES "Features" {
 
+    bool CONFIG_MMU "Address translation" {
+        default y
+        header
+        help "Run the kernel on virtual addresses and give every process its own address space. Turning this off makes the kernel run where it is loaded."
+    }
+
     bool CONFIG_OPENSBI "SBI firmware interface" {
         default y
         depends CONFIG_RISCV_S_MODE
@@ -66,7 +72,7 @@ const CONFIG_FEATURES "Features" {
 
     bool CONFIG_VMM "Virtual Machine Monitor" {
         default y
-        depends CONFIG_RISCV_S_MODE
+        depends CONFIG_RISCV_S_MODE && CONFIG_MMU
         header
         help "Include the virtual machine monitor (hypervisor) component."
     }
