@@ -22,8 +22,8 @@
 #include <grinch/task.h>
 #include <grinch/uaccess.h>
 
-static struct vma *
-__uvma_at(const struct process *p, const void __user *base, size_t size)
+struct vma *uvma_at_range(const struct mm *mm, const void __user *base,
+			  size_t size)
 {
 	struct vma *vma;
 
@@ -35,7 +35,7 @@ __uvma_at(const struct process *p, const void __user *base, size_t size)
 	if (!size)
 		BUG();
 
-	list_for_each_entry(vma, &p->mm.vmas, vmas)
+	list_for_each_entry(vma, &mm->vmas, vmas)
 		if (base + size > vma->base && base < vma->base + vma->size)
 			return vma;
 
@@ -44,12 +44,12 @@ __uvma_at(const struct process *p, const void __user *base, size_t size)
 
 struct vma *uvma_at(const struct process *p, const void __user *base)
 {
-	return __uvma_at(p, base, 1);
+	return uvma_at_range(&p->mm, base, 1);
 }
 
 bool uvma_collides(const struct process *p, const void __user *base, size_t size)
 {
-	return __uvma_at(p, base, size) ? true : false;
+	return uvma_at_range(&p->mm, base, size) ? true : false;
 }
 
 /*
@@ -274,6 +274,7 @@ void uvmas_destroy(struct process *p)
 struct vma *uvma_create(struct task *t, void *base, size_t size,
 		        unsigned int vma_flags, const char *name)
 {
+	unsigned long zeroed;
 	struct vma *vma;
 	int err;
 
@@ -304,11 +305,15 @@ struct vma *uvma_create(struct task *t, void *base, size_t size,
 		return ERR_PTR(err);
 	}
 
-	/* All pages that are given to the user must be zeroed */
-	if (!(vma->flags & VMA_FLAG_LAZY))
-		umemset(t, vma->base, 0, vma->size);
-
+	/* From here the memory is the process's, and can be reached as such */
 	list_add(&vma->vmas, &t->process.mm.vmas);
+
+	/* All pages that are given to the user must be zeroed */
+	if (!(vma->flags & VMA_FLAG_LAZY)) {
+		zeroed = umemset(t, vma->base, 0, vma->size);
+		if (zeroed != vma->size)
+			BUG();
+	}
 
 	return vma;
 }

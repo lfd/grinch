@@ -36,19 +36,7 @@ unsigned long copy_from_user(struct task *t, void *to, const void __user *from,
 			     unsigned long n);
 
 /** Utilities **/
-#ifdef CONFIG_MMU
-
 void *user_to_direct(struct mm *mm, const void __user *uptr);
-
-#else /* !CONFIG_MMU */
-
-/* The pointer already names the memory it stands for. */
-static inline void *user_to_direct(struct mm *mm, const void __user *uptr)
-{
-	return (void *)uptr;
-}
-
-#endif /* CONFIG_MMU */
 
 /* copies sizeof(void *) bytes behind *user from userspace to kernel space */
 int uptr_from_user(struct task *t, void *dst, const void __user *user);

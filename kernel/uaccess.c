@@ -40,6 +40,7 @@ bool is_urange(const void *_base, size_t size)
 }
 
 #ifdef CONFIG_MMU
+
 void *user_to_direct(struct mm *mm, const void __user *s)
 {
 	paddr_t pa;
@@ -50,6 +51,21 @@ void *user_to_direct(struct mm *mm, const void __user *s)
 
 	return p2v(pa);
 }
+
+#else /* !CONFIG_MMU */
+
+/*
+ * The pointer already names the memory, so the lookup is only left to answer
+ * whether the process owns it.
+ */
+void *user_to_direct(struct mm *mm, const void __user *s)
+{
+	if (!uvma_at_range(mm, s, 1))
+		return NULL;
+
+	return (void *)s;
+}
+
 #endif /* CONFIG_MMU */
 
 static void *user_to_direct_fault(struct task *t, void __user *s)
