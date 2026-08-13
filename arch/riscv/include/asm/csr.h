@@ -109,10 +109,30 @@
 #define HCOUNTEREN_IR		(1 << 2)
 
 /*
- * Names for the privileged state the kernel uses for its own traps,
- * independent of the level it runs in. A machine mode kernel repoints
- * this block; inherently supervisor state keeps its explicit name.
+ * The privileged state the kernel uses for its own traps, bound to the level
+ * it runs in. SR_PP is a mask: zero means the trap came from user mode.
  */
+#ifdef CONFIG_RISCV_M_MODE
+
+#define CSR_STATUS		mstatus
+#define CSR_IE			mie
+#define CSR_IP			mip
+#define CSR_TVEC		mtvec
+#define CSR_SCRATCH		mscratch
+#define CSR_EPC			mepc
+#define CSR_CAUSE		mcause
+#define CSR_TVAL		mtval
+
+#define SR_IE			SR_MIE
+#define SR_PIE			SR_MPIE
+#define SR_PP			SR_MPP
+
+#define RV_IRQ_SOFT		IRQ_M_SOFT
+#define RV_IRQ_TIMER		IRQ_M_TIMER
+#define RV_IRQ_EXT		IRQ_M_EXT
+
+#else /* !CONFIG_RISCV_M_MODE */
+
 #define CSR_STATUS		sstatus
 #define CSR_IE			sie
 #define CSR_IP			sip
@@ -129,6 +149,8 @@
 #define RV_IRQ_SOFT		IRQ_S_SOFT
 #define RV_IRQ_TIMER		IRQ_S_TIMER
 #define RV_IRQ_EXT		IRQ_S_EXT
+
+#endif /* CONFIG_RISCV_M_MODE */
 
 /* Interrupt enable/pending bits, for CSR_IE and CSR_IP */
 #define IE_SOFT		(_UL(0x1) << RV_IRQ_SOFT)
@@ -179,7 +201,11 @@
 
 /* Return from a trap to the level the kernel runs in */
 .macro xret
+#ifdef CONFIG_RISCV_M_MODE
+	mret
+#else
 	sret
+#endif
 .endm
 
 #else /* __ASSEMBLY__ */
