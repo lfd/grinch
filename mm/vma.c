@@ -213,7 +213,10 @@ static int uvma_reserve(const struct process *p, const void __user *base,
 	return 0;
 }
 
-/* The region takes its memory at once, and reports where that put it. */
+/*
+ * No fault arrives later to fill a lazy region in, so it takes its memory at
+ * once and reports where that put it.
+ */
 static int uvma_claim(struct task *t, struct vma *vma)
 {
 	paddr_t phys;

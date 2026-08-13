@@ -194,13 +194,13 @@ static int process_load_elf(struct task *task, Elf_Ehdr *ehdr,
 	Elf_Phdr *phdr;
 
 	/* Prepare user stack */
-	stack_top = (void *)USER_STACK_TOP;
-
 	vma_flags = VMA_FLAG_USER | VMA_FLAG_RW | VMA_FLAG_LAZY;
 	vma = uvma_create(task, (void *)USER_STACK_BOTTOM, USER_STACK_SIZE,
 			  vma_flags, "[stack]");
 	if (IS_ERR(vma))
 		return PTR_ERR(vma);
+
+	stack_top = vma->base + vma->size;
 
 	kinfo_init(&kinfo);
 	stack_top = PTR_ALIGN_DOWN(stack_top - sizeof(kinfo), 8);
@@ -292,6 +292,7 @@ static int process_load_elf(struct task *task, Elf_Ehdr *ehdr,
 		if (IS_ERR(vma))
 			return PTR_ERR(vma);
 
+		base = vma->base;
 		src = (void *)ehdr + phdr->p_offset;
 		copied = copy_to_user(task, base, src, phdr->p_filesz);
 		if (copied != phdr->p_filesz)
