@@ -1,11 +1,12 @@
-MM_OBJS = alloc.o
-MM_OBJS += asid.o
-MM_OBJS += gfp.o
-MM_OBJS += paging.o
-MM_OBJS += salloc.o
-MM_OBJS += ioremap.o
-MM_OBJS += mm.o
-MM_OBJS += vma.o
+MM_OBJS-y = alloc.o
+MM_OBJS-y += asid.o
+MM_OBJS-y += gfp.o
+MM_OBJS-y += paging.o
+MM_OBJS-y += salloc.o
+MM_OBJS-y += mm.o
+MM_OBJS-y += vma.o
+MM_OBJS-$(CONFIG_MMU) += ioremap.o
+MM_OBJS := $(MM_OBJS-y)
 
 MM_OBJS := $(addprefix mm/, $(MM_OBJS))
 

@@ -13,10 +13,34 @@
 #include <grinch/errno.h>
 #include <grinch/iores.h>
 
+#ifdef CONFIG_MMU
+
 int ioremap_init(void);
 
 /* IO mappers */
 void *ioremap(paddr_t paddr, size_t size);
+
+int iounmap(const void *vaddr, size_t size);
+
+#else /* !CONFIG_MMU */
+
+/* Devices are reachable where they are, so there is nothing to remap. */
+static inline int ioremap_init(void)
+{
+	return 0;
+}
+
+static inline void *ioremap(paddr_t paddr, size_t size)
+{
+	return (void *)(uintptr_t)paddr;
+}
+
+static inline int iounmap(const void *vaddr, size_t size)
+{
+	return 0;
+}
+
+#endif /* CONFIG_MMU */
 
 static inline void *ioremap_area(struct mmio_area *area)
 {
@@ -35,8 +59,6 @@ static inline int ioremap_res(struct mmio_resource *res)
 
 	return 0;
 }
-
-int iounmap(const void *vaddr, size_t size);
 
 static inline int iounmap_res(struct mmio_resource *res)
 {
