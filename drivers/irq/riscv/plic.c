@@ -142,7 +142,8 @@ static int __init plic_get_context(const void *fdt, int off, unsigned int cpu)
 	size /= sizeof(u32);
 
 	for (entry = 0; entry < size; entry += 2) {
-		if (fdt32_to_cpu(iext[entry + 1]) != 9)
+		/* Pick the context belonging to the level the kernel runs in. */
+		if (fdt32_to_cpu(iext[entry + 1]) != RV_IRQ_EXT)
 			continue;
 
 		phandle = fdt32_to_cpu(iext[entry]);
