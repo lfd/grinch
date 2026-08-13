@@ -1,19 +1,18 @@
-KERNEL_OBJS = bootparam.o
-KERNEL_OBJS += console.o
-KERNEL_OBJS += main.o
-KERNEL_OBJS += memtest.o
-KERNEL_OBJS += platform.o
-KERNEL_OBJS += process.o
-KERNEL_OBJS += reboot.o
-KERNEL_OBJS += smp.o
-KERNEL_OBJS += syscall.o
-KERNEL_OBJS += task.o
-KERNEL_OBJS += timer.o
-KERNEL_OBJS += uaccess.o
-
-ifdef CONFIG_GCOV
-KERNEL_OBJS += gcov.o
-endif
+KERNEL_OBJS-y = bootparam.o
+KERNEL_OBJS-y += console.o
+KERNEL_OBJS-y += main.o
+KERNEL_OBJS-y += memtest.o
+KERNEL_OBJS-y += platform.o
+KERNEL_OBJS-y += process.o
+KERNEL_OBJS-y += reboot.o
+KERNEL_OBJS-y += smp.o
+KERNEL_OBJS-y += syscall.o
+KERNEL_OBJS-y += task.o
+KERNEL_OBJS-y += timer.o
+KERNEL_OBJS-y += uaccess.o
+KERNEL_OBJS-$(CONFIG_GCOV) += gcov.o
+KERNEL_OBJS-$(CONFIG_GRINCH_GUEST) += guest.o
+KERNEL_OBJS := $(KERNEL_OBJS-y)
 
 KERNEL_OBJS := $(addprefix kernel/, $(KERNEL_OBJS))
 

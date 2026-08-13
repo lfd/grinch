@@ -14,19 +14,12 @@
 #include <asm/irq.h>
 
 #include <grinch/cpu.h>
-#include <grinch/errno.h>
-#include <grinch/boot.h>
-#include <grinch/hypercall.h>
 #include <grinch/irqchip.h>
 #include <grinch/paging.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/smp.h>
 #include <grinch/timer.h>
-
-#include <grinch/arch/sbi.h>
-
-bool grinch_is_guest;
 
 static const char *causes[] = {
 	[EXC_INST_MISALIGNED]		= "Instruction Address Misaligned",
@@ -96,29 +89,6 @@ void dump_exception(struct trap_context *ctx)
 	   this_cpu_id(), to_irq(ctx->cause), cause_str);
 	if (!(ctx->status & SR_PP))
 		pr("Active PID: %u\n", current_task()->pid);
-}
-
-int hypercall(unsigned long no, unsigned long arg1)
-{
-	struct sbiret ret;
-
-	ret = sbi_ecall(SBI_EXT_GRNC, no, arg1, 0, 0, 0, 0, 0);
-	if (ret.error != SBI_SUCCESS)
-		return -EINVAL;
-
-	return ret.value;
-}
-
-void __init arch_guest_init(void)
-{
-	int ret;
-
-	ret = hypercall_present();
-	if (ret <= 0)
-		return;
-
-	grinch_is_guest = true;
-	grinch_id = ret;
 }
 
 void flush_tlb_all(void)

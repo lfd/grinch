@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -13,15 +13,29 @@
 #ifndef _HYPERCALL_H
 #define _HYPERCALL_H
 
+#include <grinch/errno.h>
+
 /*
- * The hypercall interface may be used if grinch is run as guest inside grinch
+ * Call numbers of the grinch hypercall interface. Both ends need them, so
+ * they are declared whether or not this kernel can issue a hypercall.
  */
 #define GRINCH_HYPERCALL_PRESENT		0x1
 #define GRINCH_HYPERCALL_YIELD			0x2
 #define GRINCH_HYPERCALL_VMQUIT			0x3
 #define GRINCH_HYPERCALL_BP			0x4
 
-int hypercall(unsigned long no, unsigned long arg1);
+#ifdef CONFIG_HAVE_HYPERCALL
+
+#include <asm/hypercall.h>
+
+#else /* !CONFIG_HAVE_HYPERCALL */
+
+static inline int hypercall(unsigned long no, unsigned long arg1)
+{
+	return -ENOSYS;
+}
+
+#endif /* CONFIG_HAVE_HYPERCALL */
 
 #define DEFINE_HYPERCALL_0(name, no)		\
 static inline int hypercall_##name(void)	\

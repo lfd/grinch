@@ -18,6 +18,7 @@
 #include <grinch/boot.h>
 #include <grinch/cpu.h>
 #include <grinch/errno.h>
+#include <grinch/grinch_guest.h>
 #include <grinch/panic.h>
 #include <grinch/reboot.h>
 #include <grinch/string.h>

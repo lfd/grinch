@@ -26,6 +26,7 @@
 #include <grinch/fs/vfs.h>
 #include <grinch/gcov.h>
 #include <grinch/gfp.h>
+#include <grinch/grinch_guest.h>
 #include <grinch/header.h>
 #include <grinch/ioremap.h>
 #include <grinch/irqchip.h>
@@ -145,7 +146,7 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 	irq_disable();
 
 	gcov_init();
-	arch_guest_init();
+	guest_init();
 
 	_puts(ISTR("\n" UNAME_A "\n"));
 	if (grinch_is_guest)

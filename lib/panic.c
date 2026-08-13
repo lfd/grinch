@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -13,6 +13,7 @@
 #include <asm/spinlock.h>
 
 #include <grinch/cpu.h>
+#include <grinch/grinch_guest.h>
 #include <grinch/hypercall.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>

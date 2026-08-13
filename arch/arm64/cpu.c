@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023-2024
+ * Copyright (c) OTH Regensburg, 2023-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -15,12 +15,9 @@
 #include <asm/sysregs.h>
 
 #include <grinch/cpu.h>
-#include <grinch/hypercall.h>
 #include <grinch/paging.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
-
-bool grinch_is_guest;
 
 static const char *exception_codes[] = {
 	[ESR_EC_UNKNOWN] = "Unknown",
@@ -58,11 +55,6 @@ void dump_regs(struct registers *a)
 		   (x + 1 < 10) ? " " : "", x + 1, a->usr[x + 1],
 		   (x + 2 < 10) ? " " : "", x + 2, a->usr[x + 2]);
 	}
-}
-
-int hypercall(unsigned long no, unsigned long arg1)
-{
-	BUG();
 }
 
 /* Flush an entire address space on every CPU, including this one. */

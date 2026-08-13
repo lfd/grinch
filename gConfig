@@ -71,6 +71,17 @@ const CONFIG_FEATURES "Features" {
         help "Include the virtual machine monitor (hypervisor) component."
     }
 
+    # Architectures providing a hypercall transport. RISC-V rides on SBI,
+    # arm64 has none yet, and no hypervisor to be a guest of either.
+    bool CONFIG_HAVE_HYPERCALL { value CONFIG_OPENSBI  header }
+
+    bool CONFIG_GRINCH_GUEST "Support for running as guest of the grinch hypervisor" {
+        default y
+        depends CONFIG_HAVE_HYPERCALL
+        header
+        help "Include the hypercall interface used when running as a guest of the grinch hypervisor."
+    }
+
     bool CONFIG_DEBUG_OUTPUT "Verbose kernel log output" {
         default n
         header

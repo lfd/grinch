@@ -15,28 +15,14 @@
 #include <asm/firmware.h>
 
 #include <grinch/arch.h>
-#include <grinch/cpu.h>
 #include <grinch/errno.h>
-#include <grinch/hypercall.h>
 #include <grinch/irqchip.h>
 #include <grinch/percpu.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
-#include <grinch/reboot.h>
 #include <grinch/timer.h>
 
 #include <grinch/arch/vmm.h>
-
-static int guest_shutdown(int err)
-{
-	return hypercall_vmquit(err);
-}
-
-static int guest_reboot(void)
-{
-	/* No reboot hypercall yet -- fall back to halt */
-	return hypercall_vmquit(0);
-}
 
 int __init arch_init(void)
 {
@@ -45,11 +31,6 @@ int __init arch_init(void)
 	err = firmware_init();
 	if (err)
 		goto out;
-
-	if (grinch_is_guest) {
-		arch_shutdown = guest_shutdown;
-		arch_reboot = guest_reboot;
-	}
 
 	/* Boot secondary CPUs */
 	pri("Booting secondary CPUs\n");

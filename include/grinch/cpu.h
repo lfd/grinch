@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2024
+ * Copyright (c) OTH Regensburg, 2024-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -14,8 +14,6 @@
 #define _CPU_H
 
 #include <asm/cpu.h>
-
-extern bool grinch_is_guest;
 
 void dump_regs(struct registers *a);
 void dump_exception(struct trap_context *ctx);

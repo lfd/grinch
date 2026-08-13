@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023-2024
+ * Copyright (c) OTH Regensburg, 2023-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -158,7 +158,5 @@ static inline void timer_start(u64 timeout)
 	arm_write_sysreg(CNTV_TVAL_EL0, timeout);
 	arm_write_sysreg(CNTV_CTL_EL0, 1);
 }
-
-static inline void arch_guest_init(void) {}
 
 #endif /* _ASM_CPU_H */
