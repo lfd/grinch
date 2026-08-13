@@ -19,8 +19,6 @@
 #include <grinch/syscall.h>
 #include <grinch/task.h>
 
-#include <grinch/arch/sbi.h>
-
 /* called from entry.S */
 void arch_handle_exception(struct registers *regs, u64 cause);
 void arch_handle_irq(struct registers *regs, u64 cause);
