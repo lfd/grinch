@@ -415,23 +415,28 @@ err_out:
 
 static int __init phys_mem_init(struct mmio_area *area)
 {
+	void *virt;
 	int err;
 
 	pri("Found main memory: %lx, size: %lx\n", area->paddr, area->size);
+#ifdef CONFIG_MMU
 	/*
 	 * Create a direct physical R/W mapping, so that the kernel may easily
 	 * access every single byte of physical memory.
 	 */
-	err = map_range(kernel_root, (void *)DIR_PHYS_BASE,
-			area->paddr, area->size, GRINCH_MEM_RW);
+	virt = (void *)DIR_PHYS_BASE;
+	err = map_range(kernel_root, virt, area->paddr, area->size,
+			GRINCH_MEM_RW);
 	if (err)
 		return err;
+#else
+	/* Untranslated, the direct mapping is the memory itself. */
+	virt = (void *)(uintptr_t)area->paddr;
+#endif
 
-	err = create_memory_area(area->paddr, area->size, (void *)DIR_PHYS_BASE);
-	if (err)
-		return err;
+	err = create_memory_area(area->paddr, area->size, virt);
 
-	return 0;
+	return err;
 }
 
 int __init phys_mem_init_fdt(void)
