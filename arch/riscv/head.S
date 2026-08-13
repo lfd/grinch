@@ -71,13 +71,15 @@ _loader_start:
 	 * a1: device-tree address <- already present
 	 * a2: pc-rel load addr
 	 */
-	lpc	sp, __internal_page_pool_end
 	lpc	a2, __start
+#ifdef CONFIG_MMU
+	lpc	sp, __internal_page_pool_end
 	jal	loader
 
 1:
 	wfi
 	j 1b
+#endif
 
 /* grinch startup code */
 .globl grinch_start
@@ -169,6 +171,7 @@ secondary_start:
 
 	mask_all_irqs
 
+#ifdef CONFIG_MMU
 	/* Activate the MMU */
 	sfence.vma
 	csrw	satp, a1
@@ -182,6 +185,7 @@ secondary_start:
 	jalr	t0
 
 secondary_virt_entry:
+#endif
 	/* a0 still holds the hart_id: locate our per_cpu structure */
 	la	t0, __internal_page_pool_end
 	li	t1, STRUCT_PER_CPU_SIZE

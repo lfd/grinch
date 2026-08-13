@@ -64,9 +64,14 @@ int __init arch_boot_cpu(unsigned long hart_id)
 
 	paddr = v2p(secondary_start);
 
+#ifdef CONFIG_MMU
 	/* Make it easy for secondary_entry: provide the content of satp */
 	opaque = (v2p(secondary_boot_root) >> PAGE_SHIFT)
 		| (csr_read(satp) & (SATP_MODE_MASK << SATP_MODE_SHIFT));
+#else
+	/* Nothing to hand over: the secondary runs where it lands. */
+	opaque = 0;
+#endif
 
 	return firmware_hart_start(hart_id, paddr, opaque);
 }
