@@ -73,7 +73,7 @@ endif
 # the command line (CROSS_COMPILE, V=, QEMU_* are still fine).
 ifneq ($(wildcard $(config_mk)),)
 ifeq ($(filter defconfig %_defconfig,$(MAKECMDGOALS)),)
-_config_overrides := $(filter ARCH=% PLATFORM=% OPT=% CONFIG_%,$(MAKEOVERRIDES))
+_config_overrides := $(filter ARCH=% PLATFORM=% OPT=% RISCV_MODE=% CONFIG_%,$(MAKEOVERRIDES))
 ifneq ($(_config_overrides),)
 $(error config.mk is locked; run 'make defconfig' to reconfigure. Refusing: $(_config_overrides))
 endif

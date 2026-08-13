@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2024
+ * Copyright (c) OTH Regensburg, 2024-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -13,7 +13,11 @@
 #ifndef _ARCH_CONSOLE_H
 #define _ARCH_CONSOLE_H
 
+#ifdef CONFIG_SBI_TTY
 #define DEFAULT_CONSOLE		"ttySBI"
+#else
+#define DEFAULT_CONSOLE		"null"
+#endif
 
 #ifdef CONFIG_EARLYCON_SEMIHOST
 #include <grinch/semihost.h>
