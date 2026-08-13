@@ -16,6 +16,10 @@
 #include <asm/csr.h>
 #include <grinch/types.h>
 
+#ifdef CONFIG_RISCV_M_MODE
+#include <asm/clint.h>
+#endif
+
 /* Helpers for external IRQs */
 static inline void ext_enable(void)
 {
@@ -40,7 +44,12 @@ static inline void ipi_disable(void)
 
 static inline void ipi_clear(void)
 {
+#ifdef CONFIG_RISCV_M_MODE
+	/* mip.MSIP only mirrors the CLINT, so the ack has to go there. */
+	clint_ipi_clear();
+#else
 	csr_clear(CSR_IP, IE_SOFT);
+#endif
 }
 
 /* Helpers for timers */

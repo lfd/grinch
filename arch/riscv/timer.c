@@ -12,6 +12,7 @@
 
 #define dbg_fmt(x)	"timer: " x
 
+#include <asm/counter.h>
 #include <asm/cpu.h>
 #include <asm/firmware.h>
 #include <asm/irq.h>
@@ -28,16 +29,12 @@ u32 riscv_timebase_frequency;
 
 static inline timeu_t get_time(void)
 {
-#ifdef CONFIG_ARCH_RISCV64
+#if defined(CONFIG_RISCV_M_MODE)
+	return clint_time();
+#elif defined(CONFIG_ARCH_RISCV64)
 	return csr_read(time);
-#elif CONFIG_ARCH_RISCV32
-	u32 hi, lo;
-	do {
-		hi = csr_read(timeh);
-		lo = csr_read(time);
-	} while (hi != csr_read(timeh));
-
-	return ((u64)hi << 32) | lo;
+#else
+	return read_counter64(csr_read(timeh), csr_read(time));
 #endif
 }
 

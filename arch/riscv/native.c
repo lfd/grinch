@@ -13,11 +13,14 @@
 
 #define dbg_fmt(x) "native: " x
 
+#include <asm/clint.h>
 #include <asm/cpu.h>
 #include <asm/firmware.h>
 
 #include <grinch/errno.h>
+#include <grinch/fdt.h>
 #include <grinch/init.h>
+#include <grinch/ioremap.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
 
@@ -28,22 +31,56 @@
  */
 #define todo(service)	panic("no machine mode " service " yet\n")
 
+void *clint;
+
+static __initconst const struct of_device_id clint_compats[] = {
+	{ .compatible = "riscv,clint0", },
+	{ .compatible = "sifive,clint0", },
+	{ /* sentinel */ }
+};
+
+int __init clint_init(void)
+{
+	struct mmio_area area;
+	int off, err;
+
+	off = fdt_find_device(_fdt, ISTR("/soc"), clint_compats, NULL);
+	if (off < 0)
+		return off;
+
+	err = fdt_read_reg(_fdt, off, 0, &area);
+	if (err)
+		return err;
+
+	clint = ioremap(area.paddr, area.size);
+	if (IS_ERR(clint))
+		return PTR_ERR(clint);
+
+	pri("CLINT at 0x%llx, size 0x%lx\n", (u64)area.paddr, area.size);
+
+	return 0;
+}
+
 int __init firmware_init(void)
 {
 	pr_info_i("Running in machine mode\n");
 	pr_warn_i("No reset handler: shutdown and reboot unavailable\n");
 
-	return 0;
+	return clint_init();
 }
 
 void firmware_timer_set(u64 ticks)
 {
-	todo("timer");
+	clint_timer_set(ticks);
 }
 
 void firmware_ipi_send(unsigned long hmask)
 {
-	todo("IPI");
+	unsigned long hart;
+
+	for (hart = 0; hmask; hmask >>= 1, hart++)
+		if (hmask & 1)
+			clint_ipi(hart, true);
 }
 
 /* Set by the boot code, where the harts we did not boot on are waiting. */
