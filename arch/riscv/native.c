@@ -13,6 +13,7 @@
 
 #define dbg_fmt(x) "native: " x
 
+#include <asm/cpu.h>
 #include <asm/firmware.h>
 
 #include <grinch/errno.h>
@@ -45,10 +46,17 @@ void firmware_ipi_send(unsigned long hmask)
 	todo("IPI");
 }
 
+/* Set by the boot code, where the harts we did not boot on are waiting. */
+extern u32 hart_release;
+
 int firmware_hart_start(unsigned long hart_id, paddr_t entry,
 			unsigned long opaque)
 {
-	return -ENOSYS;
+	/* They resume at the secondary entry on their own, so only name it. */
+	hart_release = hart_id;
+	mb();
+
+	return 0;
 }
 
 void firmware_remote_fence(unsigned long hmask, const void *addr, size_t size)

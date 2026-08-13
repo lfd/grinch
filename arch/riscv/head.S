@@ -71,6 +71,13 @@ _loader_start:
 	 * a1: device-tree address <- already present
 	 * a2: pc-rel load addr
 	 */
+#ifdef CONFIG_RISCV_M_MODE
+	/* Nothing below us parked the other harts, so they all arrive here. */
+	lpc	t0, boot_lottery
+	li	t1, 1
+	amoswap.w t1, t1, (t0)
+	bnez	t1, park_hart
+#endif
 	lpc	a2, __start
 #ifdef CONFIG_MMU
 	lpc	sp, __internal_page_pool_end
@@ -161,6 +168,28 @@ grinch_start:
 _cpu_halt:
 	wfi
 	j	_cpu_halt
+
+#ifdef CONFIG_RISCV_M_MODE
+/*
+ * A hart that lost the lottery waits to be named. Both words live in .data:
+ * the boot hart clears the BSS while the others already spin on them.
+ */
+park_hart:
+	lpc	t0, hart_release
+1:	lw	t1, 0(t0)
+	bne	t1, a0, 1b
+	fence	r, rw
+	j	secondary_start
+
+.section .data
+.balign 4
+boot_lottery:
+	.word	0
+.globl hart_release
+hart_release:
+	.word	-1
+.section .text, "ax"
+#endif
 
 .globl secondary_start
 secondary_start:
