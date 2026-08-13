@@ -18,6 +18,7 @@
 #include <grinch/alloc.h>
 #include <grinch/bootparam.h>
 #include <grinch/errno.h>
+#include <grinch/gfp.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/salloc.h>
@@ -26,7 +27,6 @@
 static DEFINE_SPINLOCK(alloc_lock);
 
 static struct vma vma_kheap = {
-	.base = (void*)KHEAP_BASE,
 	.size = 1 * MIB,
 	.flags = VMA_FLAG_RW,
 };
@@ -143,18 +143,24 @@ void kfree(const void *ptr)
 
 int __init kheap_init(void)
 {
+#ifdef CONFIG_MMU
 	int err;
+
+	vma_kheap.base = (void *)KHEAP_BASE;
+	err = kvma_create(&vma_kheap);
+	if (err)
+		return err;
+#else
+	/* Untranslated, the heap sits wherever the page allocator puts it. */
+	vma_kheap.base = alloc_pages(PAGES(vma_kheap.size));
+	if (!vma_kheap.base)
+		return -ENOMEM;
+#endif
 
 	pri("Kernel Heap base: %p, size: 0x%lx\n",
 	    vma_kheap.base, vma_kheap.size);
 
-	err = kvma_create(&vma_kheap);
-	if (err)
-		return err;
-
-	err = salloc_init(vma_kheap.base, vma_kheap.size);
-
-	return err;
+	return salloc_init(vma_kheap.base, vma_kheap.size);
 }
 
 size_t kheap_size(void)
