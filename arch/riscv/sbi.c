@@ -12,13 +12,16 @@
 
 #define dbg_fmt(x) "sbi: " x
 
+#include <asm/firmware.h>
+
 #include <grinch/errno.h>
+#include <grinch/panic.h>
 #include <grinch/printk.h>
+#include <grinch/reboot.h>
 
 #include <grinch/arch/sbi.h>
 
 static unsigned long sbi_spec_version;
-bool sbi_srst_available;
 
 static inline unsigned long __init sbi_major_version(void)
 {
@@ -45,7 +48,74 @@ static bool __init sbi_probe_extension(unsigned long extension, const char *name
 	return 0;
 }
 
-int __init sbi_init(void)
+void firmware_timer_set(u64 ticks)
+{
+	struct sbiret ret;
+
+	ret = sbi_set_timer(ticks);
+	if (ret.error)
+		panic("SBI Error\n");
+}
+
+void firmware_ipi_send(unsigned long hmask)
+{
+	struct sbiret ret;
+
+	ret = sbi_send_ipi(hmask, 0);
+	if (ret.error != SBI_SUCCESS)
+		pr("WARNING: Unable to send IPI\n");
+}
+
+int firmware_hart_start(unsigned long hart_id, paddr_t entry,
+			unsigned long opaque)
+{
+	struct sbiret ret;
+
+	ret = sbi_hart_start(hart_id, entry, opaque);
+	if (ret.error) {
+		pr("Failed to start hart %lu Error: %ld Value: %ld\n",
+		   hart_id, ret.error, ret.value);
+		return -ENOSYS;
+	}
+
+	return 0;
+}
+
+void firmware_remote_fence(unsigned long hmask, const void *addr, size_t size)
+{
+	struct sbiret ret;
+
+	ret = sbi_rfence_sfence_vma(hmask, 0, (unsigned long)addr, size);
+	if (ret.error != SBI_SUCCESS)
+		BUG();
+}
+
+void firmware_remote_fence_asid(unsigned long hmask, unsigned long asid,
+				const void *addr, size_t size)
+{
+	struct sbiret ret;
+
+	ret = sbi_rfence_sfence_vma_asid(hmask, 0, (unsigned long)addr, size,
+					 asid);
+	if (ret.error != SBI_SUCCESS)
+		BUG();
+}
+
+static int sbi_shutdown(int err)
+{
+	sbi_system_reset(SBI_SRST_RESET_TYPE_SHUTDOWN,
+			 SBI_SRST_RESET_REASON_NONE);
+	return -EIO;
+}
+
+static int sbi_reboot(void)
+{
+	sbi_system_reset(SBI_SRST_RESET_TYPE_COLD_REBOOT,
+			 SBI_SRST_RESET_REASON_NONE);
+	return -EIO;
+}
+
+int __init firmware_init(void)
 {
 	struct sbiret ret;
 	bool ext;
@@ -84,8 +154,13 @@ int __init sbi_init(void)
 	if (!ext)
 		return -ENOSYS;
 
-	/* Optional: system reset */
-	sbi_srst_available = sbi_probe_extension(SBI_EXT_SRST, ISTR("SRST"));
+	/* Optional: system reset. Leave whatever above us already provides. */
+	if (sbi_probe_extension(SBI_EXT_SRST, ISTR("SRST"))) {
+		if (!arch_shutdown)
+			arch_shutdown = sbi_shutdown;
+		if (!arch_reboot)
+			arch_reboot = sbi_reboot;
+	}
 
 	return 0;
 }

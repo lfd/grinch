@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -13,22 +13,18 @@
 #define dbg_fmt(x)	"timer: " x
 
 #include <asm/cpu.h>
+#include <asm/firmware.h>
 #include <asm/irq.h>
 
 #include <grinch/div64.h>
 #include <grinch/errno.h>
 #include <grinch/fdt.h>
 #include <grinch/init.h>
-#include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/smp.h>
 #include <grinch/timer.h>
 
-#include <grinch/arch/sbi.h>
-
 u32 riscv_timebase_frequency;
-
-static __initdata int _err;
 
 static inline timeu_t get_time(void)
 {
@@ -62,29 +58,20 @@ timeu_t arch_timer_get(void)
 
 void arch_timer_set(timeu_t ns)
 {
-	struct sbiret ret;
 	timeu_t then;
 
 	then = ns * riscv_timebase_frequency;
 	do_div(then, NSEC_PER_SEC);
 
 	// FIXME: implement SSTC
-	ret = sbi_set_timer(then);
-	if (ret.error)
-		panic("SBI Error\n");
+	firmware_timer_set(then);
 }
 
 static void __init arch_timer_cpu_init(void *)
 {
-	struct sbiret ret;
-
 	timer_disable();
 	// FIXME: implement SSTC
-	ret = sbi_set_timer(-1);
-	if (ret.error) {
-		_err = -EINVAL;
-		mb();
-	}
+	firmware_timer_set(-1);
 }
 
 int __init arch_timer_init(void)
@@ -93,8 +80,6 @@ int __init arch_timer_init(void)
 
 	pri("Initialising platform timer\n");
 	on_each_cpu(arch_timer_cpu_init, NULL);
-	if (_err)
-		return _err;
 
 	nodeoffset = fdt_path_offset(_fdt, ISTR("/cpus"));
 	if (nodeoffset <= 0)

@@ -10,6 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <asm/firmware.h>
 #include <asm/irq.h>
 
 #include <grinch/cpu.h>
@@ -123,7 +124,6 @@ void __init arch_guest_init(void)
 void flush_tlb_all(void)
 {
 	unsigned long hmask;
-	struct sbiret ret;
 	unsigned int cpu;
 
 	local_flush_tlb_all();
@@ -135,11 +135,8 @@ void flush_tlb_all(void)
 		hmask |= (1UL << cpu);
 	}
 
-	if (hmask) {
-		ret = sbi_rfence_sfence_vma(hmask, 0, 0, 0);
-		if (ret.error != SBI_SUCCESS)
-			BUG();
-	}
+	if (hmask)
+		firmware_remote_fence(hmask, 0, 0);
 }
 
 /* Flush an entire address space on every CPU, including this one. */
@@ -157,7 +154,6 @@ void flush_tlb_asid(unsigned long asid)
 void flush_tlb_others_asid(unsigned long asid, const void *addr, size_t size)
 {
 	unsigned long hmask;
-	struct sbiret ret;
 	unsigned int cpu;
 
 	hmask = 0;
@@ -170,8 +166,5 @@ void flush_tlb_others_asid(unsigned long asid, const void *addr, size_t size)
 	if (!hmask)
 		return;
 
-	ret = sbi_rfence_sfence_vma_asid(hmask, 0, (unsigned long)addr, size,
-					 asid);
-	if (ret.error != SBI_SUCCESS)
-		BUG();
+	firmware_remote_fence_asid(hmask, asid, addr, size);
 }

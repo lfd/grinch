@@ -169,7 +169,4 @@ static inline unsigned long sbi_version(unsigned long major, unsigned long minor
 		(minor & SBI_SPEC_VERSION_MINOR_MASK);
 }
 
-int sbi_init(void);
-extern bool sbi_srst_available;
-
 #endif /* _SBI_H */

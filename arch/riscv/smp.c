@@ -12,6 +12,7 @@
 
 #define dbg_fmt(x)	"smp: " x
 
+#include <asm/firmware.h>
 #include <asm/irq.h>
 #include <asm/isa.h>
 #include <asm/spinlock.h>
@@ -25,8 +26,6 @@
 #include <grinch/printk.h>
 #include <grinch/smp.h>
 #include <grinch/string.h>
-
-#include <grinch/arch/sbi.h>
 
 /* Assembly entry point for secondary CPUs */
 void secondary_start(void);
@@ -49,10 +48,9 @@ void __init arch_smp_bringup_init(void)
 
 int __init arch_boot_cpu(unsigned long hart_id)
 {
-	paddr_t paddr;
-	struct sbiret ret;
 	unsigned long opaque;
 	struct per_cpu *pcpu;
+	paddr_t paddr;
 
 	pr("Bringing up HART %lu\n", hart_id);
 	pcpu = per_cpu(hart_id);
@@ -66,22 +64,11 @@ int __init arch_boot_cpu(unsigned long hart_id)
 	opaque = (v2p(secondary_boot_root) >> PAGE_SHIFT)
 		| (csr_read(satp) & (SATP_MODE_MASK << SATP_MODE_SHIFT));
 
-	ret = sbi_hart_start(hart_id, paddr, opaque);
-	if (ret.error) {
-		pr("Failed to bring up CPU %lu Error: %ld Value: %ld\n",
-		   hart_id, ret.error, ret.value);
-		return -ENOSYS;
-	}
-
-	return 0;
+	return firmware_hart_start(hart_id, paddr, opaque);
 }
 
 
 void ipi_send(unsigned long cpu)
 {
-	struct sbiret ret;
-
-	ret = sbi_send_ipi((1UL << cpu), 0);
-	if (ret.error != SBI_SUCCESS)
-		pr("WARNING: Unable to send IPI\n");
+	firmware_ipi_send(1UL << cpu);
 }

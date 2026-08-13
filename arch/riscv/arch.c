@@ -12,6 +12,8 @@
 
 #define dbg_fmt(x)	"arch: " x
 
+#include <asm/firmware.h>
+
 #include <grinch/arch.h>
 #include <grinch/cpu.h>
 #include <grinch/errno.h>
@@ -23,22 +25,7 @@
 #include <grinch/reboot.h>
 #include <grinch/timer.h>
 
-#include <grinch/arch/sbi.h>
 #include <grinch/arch/vmm.h>
-
-static int sbi_shutdown(int err)
-{
-	sbi_system_reset(SBI_SRST_RESET_TYPE_SHUTDOWN,
-			 SBI_SRST_RESET_REASON_NONE);
-	return -EIO;
-}
-
-static int sbi_reboot(void)
-{
-	sbi_system_reset(SBI_SRST_RESET_TYPE_COLD_REBOOT,
-			 SBI_SRST_RESET_REASON_NONE);
-	return -EIO;
-}
 
 static int guest_shutdown(int err)
 {
@@ -55,16 +42,13 @@ int __init arch_init(void)
 {
 	int err;
 
-	err = sbi_init();
+	err = firmware_init();
 	if (err)
 		goto out;
 
 	if (grinch_is_guest) {
 		arch_shutdown = guest_shutdown;
 		arch_reboot = guest_reboot;
-	} else if (sbi_srst_available) {
-		arch_shutdown = sbi_shutdown;
-		arch_reboot = sbi_reboot;
 	}
 
 	/* Boot secondary CPUs */
