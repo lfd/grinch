@@ -63,6 +63,14 @@ const CONFIG_FEATURES "Features" {
         help "Run the kernel on virtual addresses and give every process its own address space. Turning this off makes the kernel run where it is loaded."
     }
 
+    int CONFIG_GRINCH_BASE "Kernel base address" {
+        default 0x80000000 if CONFIG_RISCV_M_MODE
+        default 0x80200000
+        depends !CONFIG_MMU
+        header
+        help "Address the kernel is linked at. It runs where it is loaded, so this must match the platform: the start of RAM in machine mode, and wherever the firmware places the kernel in supervisor mode. With address translation the kernel picks its own address and this is not asked."
+    }
+
     bool CONFIG_OPENSBI "SBI firmware interface" {
         default y
         depends CONFIG_RISCV_S_MODE

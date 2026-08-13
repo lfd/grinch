@@ -463,9 +463,11 @@ int __init paging_init(unsigned long this_cpu)
 
 	pri("=== Grinch memory layout ===\n");
 	pri(" Grinch area: 0x%lx -- 0x%lx\n", GRINCH_BASE, GRINCH_END);
+#ifdef CONFIG_MMU
 	pri("ioremap area: 0x%lx -- 0x%lx\n", IOREMAP_BASE, IOREMAP_END);
 	pri("  kheap area: 0x%lx\n", KHEAP_BASE);
 	pri(" direct phys: 0x%lx\n", DIR_PHYS_BASE);
+#endif
 	pri("=== Grinch memory layout end ===\n");
 
 	root = kernel_root;

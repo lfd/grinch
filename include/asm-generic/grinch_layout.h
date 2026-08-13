@@ -16,6 +16,9 @@
 #define GRINCH_SIZE	(8 * 256 * KIB)
 
 #define GRINCH_END	(GRINCH_BASE + GRINCH_SIZE)
+
+#ifdef CONFIG_MMU
+
 #define IOREMAP_END	(IOREMAP_BASE + IOREMAP_SIZE)
 
 #ifdef CONFIG_ARCH_RISCV32 /* rv32 */
@@ -44,6 +47,14 @@
 #define USER_END	(_UL(1) << (39 - 1))
 
 #endif
+
+#else /* !CONFIG_MMU */
+
+/* The kernel is linked where the platform loads it, and userland ends there. */
+#define GRINCH_BASE	_UL(CONFIG_GRINCH_BASE)
+#define USER_END	GRINCH_BASE
+
+#endif /* CONFIG_MMU */
 
 #define USER_STACK_SIZE		(1 * MIB)
 #define USER_STACK_TOP		USER_END
