@@ -14,9 +14,9 @@
 
 #include <asm/cpu.h>
 
+#include <grinch/driver.h>
 #include <grinch/errno.h>
-#include <grinch/init.h>
-#include <grinch/irqchip.h>
+#include <grinch/xplic.h>
 
 static int aplic_enable_irq(u32 irq)
 {
@@ -43,3 +43,10 @@ const struct irqchip_fn irqchip_fn_aplic = {
 	.disable_irq = aplic_disable_irq,
 	.init = aplic_init,
 };
+
+static __initconst const struct of_device_id aplic_compats[] = {
+	{ .compatible = "riscv,aplic", .data = &irqchip_fn_aplic, },
+	{ /* sentinel */ }
+};
+
+DECLARE_IRQCHIP(APLIC, "APLIC", xplic_probe, aplic_compats);

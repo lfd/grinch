@@ -14,12 +14,11 @@
 
 #include <asm/cpu.h>
 
-#include <grinch/device.h>
-#include <grinch/fdt.h>
-#include <grinch/irqchip.h>
+#include <grinch/driver.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/mmio.h>
+#include <grinch/xplic.h>
 
 #define CTX_MAX		32
 
@@ -190,3 +189,11 @@ const struct irqchip_fn irqchip_fn_plic = {
 	.set_affinity = plic_set_affinity,
 	.init = plic_init,
 };
+
+static __initconst const struct of_device_id plic_compats[] = {
+	{ .compatible = "riscv,plic0", .data = &irqchip_fn_plic, },
+	{ .compatible = "sifive,plic-1.0.0", .data = &irqchip_fn_plic, },
+	{ /* sentinel */ }
+};
+
+DECLARE_IRQCHIP(PLIC, "PLIC", xplic_probe, plic_compats);

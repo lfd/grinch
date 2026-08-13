@@ -15,22 +15,9 @@
 #include <asm/csr.h>
 #include <asm/irq.h>
 
-#include <grinch/device.h>
-#include <grinch/driver.h>
-#include <grinch/irqchip.h>
+#include <grinch/xplic.h>
 
-static __initconst const struct of_device_id plic_compats[] = {
-	{ .compatible = "riscv,plic0", .data = &irqchip_fn_plic, },
-	{ .compatible = "sifive,plic-1.0.0", .data = &irqchip_fn_plic, },
-	{ /* sentinel */ }
-};
-
-static __initconst const struct of_device_id aplic_compats[] = {
-	{ .compatible = "riscv,aplic", .data = &irqchip_fn_aplic, },
-	{ /* sentinel */ }
-};
-
-static int __init xplic_probe(struct device *dev)
+int __init xplic_probe(struct device *dev)
 {
 	const struct irqchip_fn *fn;
 	int err;
@@ -56,6 +43,3 @@ static int __init xplic_probe(struct device *dev)
 
 	return 0;
 }
-
-DECLARE_IRQCHIP(PLIC, "PLIC", xplic_probe, plic_compats);
-DECLARE_IRQCHIP(APLIC, "APLIC", xplic_probe, aplic_compats);
