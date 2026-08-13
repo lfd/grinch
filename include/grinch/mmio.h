@@ -13,6 +13,7 @@
 #ifndef _MMIO_H
 #define _MMIO_H
 
+#include <grinch/compiler_attributes.h>
 #include <grinch/types.h>
 
 #define DEFINE_MMIO_READ(size)						\
