@@ -28,24 +28,30 @@ QEMU_UBOOT_ARGS=\
 		-device loader,file=grinch.bin,addr=0x82000000,force-raw=on \
 		-device loader,file=user/initrd.cpio,addr=0x82800000,force-raw=on \
 
-ARCH_OBJS =arch.o
-ARCH_OBJS+=cpu.o
-ARCH_OBJS+=entry.o
-ARCH_OBJS+=head.o
-ARCH_OBJS+=isa.o
-ARCH_OBJS+=loader.o
-ARCH_OBJS+=paging.o
-ARCH_OBJS+=platform.o
-ARCH_OBJS+=sbi.o
-ARCH_OBJS+=smp.o
-ARCH_OBJS+=stackdump.o
-ARCH_OBJS+=task.o
-ARCH_OBJS+=timer.o
-ARCH_OBJS+=traps.o
-ifeq ($(CONFIG_VMM), y)
-ARCH_OBJS+=vmm/vmm.o
-ARCH_OBJS+=vmm/vmm_ecall.o
+# The privilege level reaches config.mk as a string; the object list below
+# keys on it like any other config symbol.
+ifeq ($(RISCV_MODE), m)
+CONFIG_RISCV_M_MODE = y
 endif
+
+ARCH_OBJS-y =arch.o
+ARCH_OBJS-y+=cpu.o
+ARCH_OBJS-y+=entry.o
+ARCH_OBJS-y+=head.o
+ARCH_OBJS-y+=isa.o
+ARCH_OBJS-y+=loader.o
+ARCH_OBJS-y+=paging.o
+ARCH_OBJS-y+=platform.o
+ARCH_OBJS-y+=smp.o
+ARCH_OBJS-y+=stackdump.o
+ARCH_OBJS-y+=task.o
+ARCH_OBJS-y+=timer.o
+ARCH_OBJS-y+=traps.o
+ARCH_OBJS-$(CONFIG_OPENSBI)+=sbi.o
+ARCH_OBJS-$(CONFIG_RISCV_M_MODE)+=native.o
+ARCH_OBJS-$(CONFIG_VMM)+=vmm/vmm.o
+ARCH_OBJS-$(CONFIG_VMM)+=vmm/vmm_ecall.o
+ARCH_OBJS := $(ARCH_OBJS-y)
 
 ARCH_OBJS := $(addprefix $(ARCH_DIR)/, $(ARCH_OBJS))
 
