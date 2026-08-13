@@ -10,6 +10,9 @@
  * the COPYING file in the top-level directory.
  */
 
+#ifndef _SBI_H
+#define _SBI_H
+
 #include <grinch/compiler_attributes.h>
 #include <grinch/types.h>
 
@@ -168,3 +171,5 @@ static inline unsigned long sbi_version(unsigned long major, unsigned long minor
 
 int sbi_init(void);
 extern bool sbi_srst_available;
+
+#endif /* _SBI_H */
