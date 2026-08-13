@@ -11,6 +11,9 @@ QEMU_ARGS_COMMON=-monitor telnet:127.0.0.1:11111,server,nowait -s
 QEMU_ARGS_COMMON+=-device VGA -display $(QEMU_DISPLAY)
 QEMU_ARGS_COMMON+=-smp $(QEMU_CPUS)
 QEMU_ARGS_COMMON+=-serial $(QEMU_SERIAL)
+ifeq ($(EARLYCON), semihost)
+QEMU_ARGS_COMMON+=-semihosting
+endif
 
 INCLUDES_KERNEL_SRC = -I$(srctree)/include/ \
                       -I$(srctree)/common/include \

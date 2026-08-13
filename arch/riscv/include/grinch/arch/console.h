@@ -13,14 +13,24 @@
 #ifndef _ARCH_CONSOLE_H
 #define _ARCH_CONSOLE_H
 
-#include <grinch/arch/sbi.h>
-
 #define DEFAULT_CONSOLE		"ttySBI"
 
-static inline void arch_early_dbg(const char *str, unsigned int len)
+#ifdef CONFIG_EARLYCON_SEMIHOST
+#include <grinch/semihost.h>
+static void arch_early_dbg(const char *str, unsigned int len)
+{
+	while (len--)
+		semihosting_putchar(*str++);
+}
+#elif defined(CONFIG_EARLYCON_SBI)
+#include <grinch/arch/sbi.h>
+static void arch_early_dbg(const char *str, unsigned int len)
 {
 	while (len--)
 		sbi_console_putchar(*str++);
 }
+#else
+#define arch_early_dbg		NULL
+#endif
 
 #endif /* _ARCH_CONSOLE_H */

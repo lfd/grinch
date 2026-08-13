@@ -59,6 +59,19 @@ const CONFIG_FEATURES "Features" {
         header
         help "Enable verbose debug messages in the kernel log."
     }
+
+    const CONFIG_EARLYCON "Early console" {
+
+        string EARLYCON "Early console driver" {
+            default "sbi"  if CONFIG_ARCH_RISCV
+            default "none"
+            choices "none" ("sbi" if CONFIG_ARCH_RISCV) "semihost"
+            help "Select the driver used for early console output before the serial subsystem initialises. 'sbi' uses the RISC-V SBI console extension; 'semihost' uses the processor semihosting interface."
+        }
+
+        bool CONFIG_EARLYCON_SEMIHOST { value EARLYCON == "semihost"  header }
+        bool CONFIG_EARLYCON_SBI      { value EARLYCON == "sbi"       header }
+    }
 }
 
 const CONFIG_BUILD "Build options" {

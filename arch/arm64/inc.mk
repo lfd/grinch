@@ -5,11 +5,6 @@ UBOOT_ENV=$(ARCH_DIR)/u-boot/$(PLATFORM).env
 CFLAGS_ARCH = -mgeneral-regs-only
 LDFLAGS_ARCH =
 
-# Route the early debug console through the QEMU semihosting interface
-ifeq ($(CONFIG_ARM64_SEMIHOSTING), y)
-QEMU_ARGS_SEMIHOSTING = -semihosting
-endif
-
 ARCH_OBJS = arch.o cpu.o entry.o head.o loader.o paging.o platform.o
 ARCH_OBJS += psci.o smp.o stackdump.o task.o timer.o traps.o
 
@@ -22,7 +17,7 @@ QEMU_INITRD_ADDR = 0x48000000
 QEMU_LOAD_UBOOT = -bios $(UBOOT_BIN)
 endif
 
-QEMU_ARGS = $(QEMU_ARGS_PLATFORM) $(QEMU_MACHINE) $(QEMU_ARGS_SEMIHOSTING)
+QEMU_ARGS = $(QEMU_ARGS_PLATFORM) $(QEMU_MACHINE)
 QEMU_UBOOT_ARGS = \
 	$(QEMU_LOAD_UBOOT) \
 	-device loader,file=grinch.bin,addr=$(QEMU_KERNEL_ADDR),force-raw=on \
