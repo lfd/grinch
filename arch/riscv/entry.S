@@ -80,18 +80,17 @@ return_from_trap:
 	csrw	sepc, a0
 
 	/*
-	 * Where do we return to? A trap taken from supervisor mode -- which
-	 * happens when we take an interrupt while idling (do_idle runs the
-	 * idle instruction with interrupts enabled) -- returns to the kernel:
-	 * sp is already the kernel stack and sscratch stays 0, so skip the
-	 * user-mode sp/sscratch swap.
+	 * Where do we return to? Only the frame on top of the per-CPU stack
+	 * belongs to a context of its own -- a task or a VM -- whose sp has to
+	 * be swapped back in. A nested kernel frame, taken while idling, sits
+	 * deeper and returns to the stack it already runs on.
 	 */
-	csrr	a0, sstatus
-	andi	a0, a0, SR_SPP
-	bnez	a0, return_to_kernel
+	li	a0, STACK_SIZE - STRUCT_REGISTERS_SIZE
+	add	a0, tp, a0
+	bne	sp, a0, return_to_kernel
 
 return_to_user:
-	/* restore user's SP, keep the kernel SP in sscratch */
+	/* restore the context's SP, keep the kernel SP in sscratch */
 	REG_L	a0, REG_SP(sp)
 	/* No preemption must happen from now on */
 	csrw	sscratch, a0
