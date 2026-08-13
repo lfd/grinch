@@ -1,8 +1,8 @@
 DRIVERS_OBJS-y := device.o
 DRIVERS_OBJS-y += driver.o
-DRIVERS_OBJS-y += fb/bochs.o
-DRIVERS_OBJS-y += fb/host.o
-DRIVERS_OBJS-y += pci/pci.o
+DRIVERS_OBJS-$(CONFIG_PCI) += pci/pci.o
+DRIVERS_OBJS-$(CONFIG_FB) += fb/host.o
+DRIVERS_OBJS-$(CONFIG_FB_BOCHS) += fb/bochs.o
 DRIVERS_OBJS-$(CONFIG_SBI_TTY) += sbi-tty.o
 DRIVERS_OBJS := $(DRIVERS_OBJS-y)
 

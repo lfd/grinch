@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2024
+ * Copyright (c) OTH Regensburg, 2024-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -9,6 +9,11 @@
  * This work is licensed under the terms of the GNU GPL, version 2.  See
  * the COPYING file in the top-level directory.
  */
+
+#ifndef _PCI_H
+#define _PCI_H
+
+#ifdef CONFIG_PCI
 
 #include <grinch/bitmap.h>
 #include <grinch/device.h>
@@ -121,3 +126,7 @@ void pci_scan(void);
 
 #define DECLARE_PCI_DRIVER(NAME)	\
 	static const struct pci_driver __NAME __used __section(".pci_drivers")
+
+#endif /* CONFIG_PCI */
+
+#endif /* _PCI_H */

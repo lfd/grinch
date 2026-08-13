@@ -756,7 +756,11 @@ SYSCALL_DEF2(grinch_call, unsigned long, no, unsigned long, arg)
 			break;
 
 		case GCALL_LSPCI:
+#ifdef CONFIG_PCI
 			pci_lspci();
+#else
+			ret = -ENOSYS;
+#endif
 			break;
 
 		case GCALL_LSOF:

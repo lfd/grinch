@@ -122,7 +122,9 @@ int __init driver_init(void)
 			return err;
 	}
 
+#ifdef CONFIG_PCI
 	pci_scan();
+#endif
 
 	return 0;
 }
