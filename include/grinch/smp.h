@@ -72,11 +72,13 @@ int arch_boot_cpu(unsigned long cpu);
 /* Arch hook: per-CPU C-side bring-up before the common secondary path */
 void arch_secondary_init(void);
 
+#ifdef CONFIG_MMU
 /* Arch hook: populate the arch view of secondary_boot_root before mapping */
 void arch_smp_bringup_init(void);
 
 /* Trampoline root the secondaries boot on (owned by kernel/smp.c). */
 extern page_table_t secondary_boot_root;
+#endif /* CONFIG_MMU */
 
 int smp_init(void);
 

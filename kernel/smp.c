@@ -24,8 +24,58 @@
 DECLARE_BITMAP(cpus_available, MAX_CPUS);
 DECLARE_BITMAP(cpus_online, MAX_CPUS);
 
+#ifdef CONFIG_MMU
+
 /* Identity-mapped trampoline root the secondaries boot on. */
 page_table_t secondary_boot_root;
+
+/*
+ * A secondary starts at its physical PC, so it needs a root that maps grinch
+ * identically until it arrives in the kernel's own address space.
+ */
+static int __init trampoline_create(paddr_t *paddr)
+{
+	int err;
+
+	secondary_boot_root = zalloc_pages(1);
+	if (!secondary_boot_root)
+		return -ENOMEM;
+
+	/* Let the arch populate its view of the root before we map it. */
+	arch_smp_bringup_init();
+
+	*paddr = v2p(grinch_base());
+	err = map_range(secondary_boot_root, (void *)*paddr, *paddr,
+			GRINCH_SIZE, GRINCH_MEM_RX);
+	if (err) {
+		free_pages(secondary_boot_root, 1);
+		secondary_boot_root = NULL;
+	}
+
+	return err;
+}
+
+static void __init trampoline_destroy(paddr_t paddr)
+{
+	unmap_range(secondary_boot_root, (void *)paddr, GRINCH_SIZE);
+	free_pages(secondary_boot_root, 1);
+	secondary_boot_root = NULL;
+}
+
+#else /* !CONFIG_MMU */
+
+static inline int trampoline_create(paddr_t *paddr)
+{
+	*paddr = 0;
+
+	return 0;
+}
+
+static inline void trampoline_destroy(paddr_t paddr)
+{
+}
+
+#endif /* CONFIG_MMU */
 
 unsigned int next_cpu(unsigned int cpu, unsigned long *bitmap,
 		      unsigned int exception)
@@ -43,19 +93,9 @@ int __init smp_init(void)
 	paddr_t paddr;
 	int err;
 
-	secondary_boot_root = zalloc_pages(1);
-	if (!secondary_boot_root)
-		return -ENOMEM;
-
-	/* Let the arch populate its view of the root before we map it. */
-	arch_smp_bringup_init();
-
-	/* Identity-map grinch so secondaries run at their physical PC. */
-	paddr = v2p(grinch_base());
-	err = map_range(secondary_boot_root, (void *)paddr, paddr,
-			GRINCH_SIZE, GRINCH_MEM_RX);
+	err = trampoline_create(&paddr);
 	if (err)
-		goto out_free;
+		return err;
 
 	cpus = 1;
 	for_each_available_cpu_except_this(cpu) {
@@ -74,14 +114,9 @@ int __init smp_init(void)
 	pri("Successfully brought up %lu CPUs\n", cpus);
 
 	/* The trampoline is only needed during bring-up. */
-	unmap_range(secondary_boot_root, (void *)paddr, GRINCH_SIZE);
-	err = 0;
+	trampoline_destroy(paddr);
 
-out_free:
-	free_pages(secondary_boot_root, 1);
-	secondary_boot_root = NULL;
-
-	return err;
+	return 0;
 }
 
 /* Called from the arch boot asm; no C caller, so declared here only. */
