@@ -8,7 +8,6 @@ DRIVERS_IRQ_OBJS = irq/irqchip.o
 
 DRIVERS_SERIAL_OBJS = serial/chardev.o
 DRIVERS_SERIAL_OBJS += serial/serial.o
-DRIVERS_SERIAL_OBJS += serial/uart-dummy.o
 DRIVERS_SERIAL_OBJS += serial/uart-8250.o
 DRIVERS_SERIAL_OBJS += serial/uart-apbuart.o
 DRIVERS_SERIAL_OBJS += serial/uart-liteuart.o
