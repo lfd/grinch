@@ -12,5 +12,11 @@
 
 #define ELF_ARCH	EM_AARCH64
 
+/* The only relocation a position independent image leaves for the loader */
+#define ELF_R_RELATIVE	1027 /* R_AARCH64_RELATIVE */
+
 typedef Elf64_Ehdr Elf_Ehdr;
 typedef Elf64_Phdr Elf_Phdr;
+typedef Elf64_Dyn Elf_Dyn;
+typedef Elf64_Rela Elf_Rela;
+#define ELF_R_TYPE	ELF64_R_TYPE

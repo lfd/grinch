@@ -40,7 +40,23 @@ typedef __s64 Elf64_Sxword;
 #define ELFMAG		"\177ELF"
 #define SELFMAG		4
 
+#define ET_EXEC		2
+#define ET_DYN		3
+
 #define PT_LOAD		1
+#define PT_DYNAMIC	2
+
+/* Where the relocations are, and how much of them */
+#define DT_NULL		0
+#define DT_RELA		7
+#define DT_RELASZ	8
+#define DT_RELAENT	9
+
+/* A relocation the linker dropped, left behind to keep the table its size */
+#define ELF_R_NONE	0
+
+#define ELF32_R_TYPE(i)	((i) & 0xff)
+#define ELF64_R_TYPE(i)	((i) & 0xffffffff)
 
 #define EM_AARCH64	183 /* ARM 64 bit */
 #define EM_RISCV	243 /* RISC-V */
@@ -101,6 +117,34 @@ typedef struct elf64_phdr {
 	Elf64_Xword p_memsz;          /* Segment size in memory */
 	Elf64_Xword p_align;          /* Segment alignment, file & memory */
 } Elf64_Phdr;
+
+typedef struct elf32_dyn {
+	Elf32_Sword d_tag;
+	union {
+		Elf32_Word d_val;
+		Elf32_Addr d_ptr;
+	} d_un;
+} Elf32_Dyn;
+
+typedef struct elf64_dyn {
+	Elf64_Sxword d_tag;
+	union {
+		Elf64_Xword d_val;
+		Elf64_Addr d_ptr;
+	} d_un;
+} Elf64_Dyn;
+
+typedef struct elf32_rela {
+	Elf32_Addr r_offset;
+	Elf32_Word r_info;
+	Elf32_Sword r_addend;
+} Elf32_Rela;
+
+typedef struct elf64_rela {
+	Elf64_Addr r_offset;
+	Elf64_Xword r_info;
+	Elf64_Sxword r_addend;
+} Elf64_Rela;
 
 #define AT_NULL		0 /* End of vector */
 #define AT_KINFO	100 /* Address if struct kinfo */
