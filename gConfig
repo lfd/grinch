@@ -72,6 +72,14 @@ const CONFIG_FEATURES "Features" {
 
     bool CONFIG_USER_PIE { value !CONFIG_USER_FIXED  header }
 
+    int CONFIG_USER_HEAP_SIZE "Heap given to each process" {
+        default 0x10000
+        depends !CONFIG_MMU
+        align PAGE_SIZE
+        header
+        help "Memory set aside for a process to allocate from. Without translation a heap cannot grow into the space above it, as something else is likely already there, so it is given its final size when the program is loaded."
+    }
+
     int CONFIG_GRINCH_BASE "Kernel base address" {
         default 0x80000000 if CONFIG_RISCV_M_MODE
         default 0x80200000

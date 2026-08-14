@@ -33,6 +33,8 @@
 
 #define ARG_MAX		PAGE_SIZE
 
+#define VMA_NAME_HEAP	"[heap]"
+
 struct auxv {
 	unsigned long tag;
 	unsigned long value;
@@ -458,6 +460,24 @@ static int process_load_elf(struct task *task, Elf_Ehdr *ehdr,
 	if (err)
 		return err;
 
+#ifndef CONFIG_MMU
+	/*
+	 * A heap has nowhere to grow into once the program runs, as whatever
+	 * follows it is already spoken for, so it is given its size here. The
+	 * break then only moves within what it was given.
+	 */
+	static_assert(IS_ALIGNED(CONFIG_USER_HEAP_SIZE, PAGE_SIZE),
+		      "the heap must be whole pages");
+	vma = uvma_create(task, task->process.brk.base, CONFIG_USER_HEAP_SIZE,
+			  VMA_FLAG_USER | VMA_FLAG_RW, VMA_NAME_HEAP);
+	if (IS_ERR(vma))
+		return PTR_ERR(vma);
+
+	task->process.brk.base = vma->base;
+	task->process.brk.cur = vma->base;
+	task->process.brk.vma = vma;
+#endif
+
 	task_set_context(task, ehdr->e_entry + bias, (uintptr_t)stack_top);
 
 	return 0;
@@ -797,10 +817,12 @@ SYSCALL_DEF1(brk, unsigned long, addr)
 {
 	struct process *process;
 	unsigned long base, brk;
+	struct task *task;
+#ifdef CONFIG_MMU
 	unsigned int vma_flags;
 	struct vma *vma_heap;
-	struct task *task;
 	size_t size;
+#endif
 
 	task = current_task();
 	process = &task->process;
@@ -822,6 +844,8 @@ SYSCALL_DEF1(brk, unsigned long, addr)
 		brk = -EINVAL;
 		goto unlock_out;
 	}
+
+#ifdef CONFIG_MMU
 	size = addr - base;
 
 	/* Zero-size VMAs are not allowed */
@@ -832,7 +856,7 @@ SYSCALL_DEF1(brk, unsigned long, addr)
 
 	if (!process->brk.vma) {
 		vma_flags = VMA_FLAG_USER | VMA_FLAG_RW | VMA_FLAG_LAZY;
-		vma_heap = uvma_create(task, process->brk.base, size, vma_flags, "[heap]");
+		vma_heap = uvma_create(task, process->brk.base, size, vma_flags, VMA_NAME_HEAP);
 		if (IS_ERR(vma_heap)) {
 			brk = PTR_ERR(vma_heap);
 			goto unlock_out;
@@ -843,9 +867,22 @@ SYSCALL_DEF1(brk, unsigned long, addr)
 		if (brk)
 			goto unlock_out;
 	}
+#else
+	/* The heap has all it will get: the break only moves inside it. */
+	if (addr > base + process->brk.vma->size) {
+		brk = -ENOMEM;
+		goto unlock_out;
+	}
+
+	process->brk.cur = (void __user *)addr;
+#endif
 
 report_out:
+#ifdef CONFIG_MMU
 	brk = base + (process->brk.vma ? process->brk.vma->size : 0);
+#else
+	brk = (unsigned long)process->brk.cur;
+#endif
 
 unlock_out:
 	spin_unlock(&task->lock);

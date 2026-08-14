@@ -31,6 +31,8 @@ struct process {
 	/* Heap aka. program break */
 	struct {
 		void __user *base;
+		/* Where the break stands, when the heap cannot grow */
+		void __user *cur;
 		struct vma *vma;
 	} brk;
 
