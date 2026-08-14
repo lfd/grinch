@@ -11,6 +11,12 @@
  */
 
 #include <arch/asm.h>
+
+#ifdef CONFIG_USER_PIE
+/* A program that may be placed anywhere has to describe itself. */
+#define PHDRS_DYNAMIC
+#endif
+
 #include <asm-generic/elf.h>
 #include <asm-generic/paging.h>
 
@@ -26,11 +32,23 @@ SECTIONS
 	} :text
 
 	. = ALIGN(PAGE_SIZE);
+#ifdef CONFIG_USER_PIE
+	.rela.dyn : {
+	    *(.rela.dyn)
+	} :rodata
+#endif
+
 	.rodata : {
 	    *(.rodata)
 	} :rodata
 
 	. = ALIGN(PAGE_SIZE);
+#ifdef CONFIG_USER_PIE
+	.dynamic : {
+	    *(.dynamic)
+	} :data :dynamic
+#endif
+
 	.data : {
 	    *(.data)
 	} :data

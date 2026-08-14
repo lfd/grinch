@@ -63,6 +63,15 @@ const CONFIG_FEATURES "Features" {
         help "Run the kernel on virtual addresses and give every process its own address space. Turning this off makes the kernel run where it is loaded."
     }
 
+    bool CONFIG_USER_FIXED "Link userland at a fixed address" {
+        default n
+        depends CONFIG_MMU
+        header
+        help "Link programs to run at one address, so that loading them is a plain copy. Two processes cannot occupy the same address without translation, so this is unavailable there and programs are built to be placed anywhere instead."
+    }
+
+    bool CONFIG_USER_PIE { value !CONFIG_USER_FIXED  header }
+
     int CONFIG_GRINCH_BASE "Kernel base address" {
         default 0x80000000 if CONFIG_RISCV_M_MODE
         default 0x80200000

@@ -179,6 +179,150 @@ static int elf_check_bounds(const Elf_Ehdr *ehdr, size_t len)
 	return 0;
 }
 
+/*
+ * An image is one piece: its parts only work at the distance from each other
+ * that they were linked at, so where they may go is decided once, for all of
+ * them. Where they may not move at all, the answer is where they asked to be.
+ */
+static int process_place(struct task *task, Elf_Ehdr *ehdr, uintptr_t *bias)
+{
+#ifdef CONFIG_MMU
+	*bias = 0;
+
+	return 0;
+#else
+	uintptr_t lo, hi;
+	Elf_Phdr *phdr;
+	struct vma *vma;
+	unsigned int d;
+	size_t size;
+
+	lo = -1;
+	hi = 0;
+	phdr = (Elf_Phdr *)((void *)ehdr + ehdr->e_phoff);
+	for (d = 0; d < ehdr->e_phnum; d++, phdr++) {
+		if (phdr->p_type != PT_LOAD)
+			continue;
+
+		if (phdr->p_vaddr < lo)
+			lo = phdr->p_vaddr;
+		if (phdr->p_vaddr + phdr->p_memsz > hi)
+			hi = phdr->p_vaddr + phdr->p_memsz;
+	}
+
+	if (lo >= hi)
+		return -EINVAL;
+
+	lo &= PAGE_MASK;
+	size = page_up(hi - lo);
+
+	/* Rounded up, the whole of it must still fit in the address space */
+	if (lo + size <= lo)
+		return -EINVAL;
+
+	vma = uvma_create(task, (void *)lo, size,
+			  VMA_FLAG_USER | VMA_FLAG_RW | VMA_FLAG_X, "[image]");
+	if (IS_ERR(vma))
+		return PTR_ERR(vma);
+
+	*bias = (uintptr_t)vma->base - lo;
+
+	return 0;
+#endif
+}
+
+#ifdef CONFIG_USER_PIE
+/* Find a link time range in the image we were handed, whole or not at all. */
+static void *elf_at(Elf_Ehdr *ehdr, uintptr_t addr, size_t size)
+{
+	Elf_Phdr *phdr;
+	unsigned int d;
+
+	phdr = (Elf_Phdr *)((void *)ehdr + ehdr->e_phoff);
+	for (d = 0; d < ehdr->e_phnum; d++, phdr++) {
+		if (phdr->p_type != PT_LOAD)
+			continue;
+
+		if (!elf_within(phdr->p_vaddr, phdr->p_filesz, addr, size))
+			continue;
+
+		return (void *)ehdr + phdr->p_offset + (addr - phdr->p_vaddr);
+	}
+
+	return NULL;
+}
+
+/*
+ * Every word the image holds that names an address was left blank, to be
+ * filled in once the image knows where it is.
+ */
+static int process_relocate(struct task *task, Elf_Ehdr *ehdr, uintptr_t bias)
+{
+	uintptr_t table, value;
+	unsigned int d, entries;
+	size_t size, copied;
+	Elf_Phdr *phdr;
+	Elf_Rela *rela;
+	Elf_Dyn *dyn;
+
+	dyn = NULL;
+	entries = 0;
+	phdr = (Elf_Phdr *)((void *)ehdr + ehdr->e_phoff);
+	for (d = 0; d < ehdr->e_phnum; d++, phdr++)
+		if (phdr->p_type == PT_DYNAMIC) {
+			dyn = (Elf_Dyn *)((void *)ehdr + phdr->p_offset);
+			entries = phdr->p_filesz / sizeof(*dyn);
+		}
+
+	/* An image that may not be moved says nothing about itself. */
+	if (!dyn)
+		return 0;
+
+	table = 0;
+	size = 0;
+	for (; entries && dyn->d_tag != DT_NULL; entries--, dyn++) {
+		if (dyn->d_tag == DT_RELA)
+			table = dyn->d_un.d_ptr;
+		else if (dyn->d_tag == DT_RELASZ)
+			size = dyn->d_un.d_val;
+	}
+
+	if (!table || !size)
+		return 0;
+
+	rela = elf_at(ehdr, table, size);
+	if (!rela)
+		return -EINVAL;
+
+	for (entries = size / sizeof(*rela); entries; entries--, rela++) {
+		/* The linker leaves what it dropped in place, to be skipped. */
+		if (ELF_R_TYPE(rela->r_info) == ELF_R_NONE)
+			continue;
+
+		if (ELF_R_TYPE(rela->r_info) != ELF_R_RELATIVE) {
+			pr_warn("Unhandled relocation type %lu\n",
+				(unsigned long)ELF_R_TYPE(rela->r_info));
+			return -ENOSYS;
+		}
+
+		value = bias + rela->r_addend;
+		copied = copy_to_user(task,
+				      (void __user *)(uintptr_t)(rela->r_offset + bias),
+				      &value, sizeof(value));
+		if (copied != sizeof(value))
+			return -EFAULT;
+	}
+
+	return 0;
+}
+#else
+static inline int
+process_relocate(struct task *task, Elf_Ehdr *ehdr, uintptr_t bias)
+{
+	return 0;
+}
+#endif
+
 static int process_load_elf(struct task *task, Elf_Ehdr *ehdr,
 			    const struct uenv_array *argv,
 			    const struct uenv_array *envp)
@@ -192,6 +336,8 @@ static int process_load_elf(struct task *task, Elf_Ehdr *ehdr,
 	struct vma *vma;
 	size_t vma_size;
 	Elf_Phdr *phdr;
+	uintptr_t bias;
+	int err;
 
 	/* Prepare user stack */
 	vma_flags = VMA_FLAG_USER | VMA_FLAG_RW | VMA_FLAG_LAZY;
@@ -266,6 +412,10 @@ static int process_load_elf(struct task *task, Elf_Ehdr *ehdr,
 			return -ENOMEM;
 	}
 
+	err = process_place(task, ehdr, &bias);
+	if (err)
+		return err;
+
 	/* Load process */
 	phdr = (Elf_Phdr*)((void*)ehdr + ehdr->e_phoff);
 	task->process.brk.base = NULL;
@@ -273,8 +423,10 @@ static int process_load_elf(struct task *task, Elf_Ehdr *ehdr,
 		if (phdr->p_type != PT_LOAD)
 			continue;
 
-		base = (void *)(uintptr_t)phdr->p_vaddr;
+		base = (void *)(uintptr_t)(phdr->p_vaddr + bias);
+		vma_size = page_up(phdr->p_memsz);
 
+#ifdef CONFIG_MMU
 		vma_flags = VMA_FLAG_USER;
 		if (phdr->p_flags & PF_R)
 			vma_flags |= VMA_FLAG_R;
@@ -284,7 +436,6 @@ static int process_load_elf(struct task *task, Elf_Ehdr *ehdr,
 			vma_flags |= VMA_FLAG_X;
 
 		/* The region must not collide with any other VMA */
-		vma_size = page_up(phdr->p_memsz);
 		if (uvma_collides(&task->process, base, vma_size))
 			return -EINVAL;
 
@@ -293,6 +444,7 @@ static int process_load_elf(struct task *task, Elf_Ehdr *ehdr,
 			return PTR_ERR(vma);
 
 		base = vma->base;
+#endif
 		src = (void *)ehdr + phdr->p_offset;
 		copied = copy_to_user(task, base, src, phdr->p_filesz);
 		if (copied != phdr->p_filesz)
@@ -302,7 +454,11 @@ static int process_load_elf(struct task *task, Elf_Ehdr *ehdr,
 			task->process.brk.base = base + vma_size;
 	}
 
-	task_set_context(task, ehdr->e_entry, (uintptr_t)stack_top);
+	err = process_relocate(task, ehdr, bias);
+	if (err)
+		return err;
+
+	task_set_context(task, ehdr->e_entry + bias, (uintptr_t)stack_top);
 
 	return 0;
 }

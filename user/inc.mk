@@ -26,6 +26,14 @@ INCLUDES_USER = $(INCLUDES_USER_SRC) $(INCLUDES_USER_GEN)
 CFLAGS_USER = $(CFLAGS_COMMON) $(CFLAGS_ARCH) $(CFLAGS_STANDALONE) $(INCLUDES_USER)
 AFLAGS_USER = $(AFLAGS_COMMON)
 LDFLAGS_USER = $(LDFLAGS_COMMON) $(LDFLAGS_ARCH)
+LDFLAGS_BINARY =
+
+ifneq ($(CONFIG_USER_FIXED), y)
+# Placed by the loader, not by the linker: keep the relocations, and ask for no
+# interpreter, as the loader applies them itself.
+CFLAGS_USER += -fPIE
+LDFLAGS_BINARY += -pie --no-dynamic-linker
+endif
 
 DIR_USER_BINARIES = user/apps/build
 
@@ -105,7 +113,7 @@ user/%.o: user/%.S | $(GENERATED)
 
 define ld_app_user
 	$(QUIET) "[LD-APP]$(1)"
-	$(VERBOSE) $(LD) $(LDFLAGS_USER) --gc-sections -T $(2) -o $(1)
+	$(VERBOSE) $(LD) $(LDFLAGS_USER) $(LDFLAGS_BINARY) --gc-sections -T $(2) -o $(1)
 	$(if $(V), $(SZ) --format=SysV -x $(1))
 endef
 
