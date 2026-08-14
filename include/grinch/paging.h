@@ -63,6 +63,15 @@ void arch_paging_enable(unsigned long this_cpu, page_table_t pt);
 int paging_init(unsigned long this_cpu);
 int paging_discard_init(void);
 
+#ifdef CONFIG_MMU
+int paging_map_kernel(unsigned long this_cpu);
+int paging_release_init(void *base, size_t size);
+#else
+/* No address space to build, and no permissions to take back. */
+static inline int paging_map_kernel(unsigned long this_cpu) { return 0; }
+static inline int paging_release_init(void *base, size_t size) { return 0; }
+#endif
+
 paddr_t paging_get_phys(page_table_t pt, const void *virt);
 
 int paging_prealloc(page_table_t pt, const void *vaddr, size_t size);

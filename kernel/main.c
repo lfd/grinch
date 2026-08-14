@@ -196,10 +196,12 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 	if (err)
 		goto out;
 
+#ifdef CONFIG_MMU
 	/* The ASID bitmap needs the kernel heap and the probed ASID width. */
 	err = asid_init();
 	if (err)
 		goto out;
+#endif
 
 	err = platform_init();
 	if (err)

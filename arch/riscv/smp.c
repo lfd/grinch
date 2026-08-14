@@ -32,10 +32,13 @@ void secondary_start(void);
 
 void arch_secondary_init(void)
 {
+#ifdef CONFIG_MMU
 	/* We still run on the shared boot root: switch to the kernel root */
 	arch_paging_enable(this_cpu_id(), kernel_root);
+#endif
 }
 
+#ifdef CONFIG_MMU
 void __init arch_smp_bringup_init(void)
 {
 	/*
@@ -45,6 +48,7 @@ void __init arch_smp_bringup_init(void)
 	 */
 	memcpy(secondary_boot_root, kernel_root, PAGE_SIZE);
 }
+#endif
 
 int __init arch_boot_cpu(unsigned long hart_id)
 {

@@ -21,6 +21,7 @@
 #include <grinch/fs/util.h>
 #include <grinch/fs/vfs.h>
 #include <grinch/gcall.h>
+#include <grinch/gconfig.h>
 #include <grinch/gfp.h>
 #include <grinch/pci.h>
 #include <grinch/printk.h>
@@ -433,6 +434,7 @@ void process_destroy(struct task *task)
 		process->cwd.pathname = NULL;
 	}
 
+#ifdef CONFIG_MMU
 	if (process->mm.page_table) {
 		/* The dying process' page table may be the live root */
 		if (this_per_cpu()->current_task == task)
@@ -441,6 +443,7 @@ void process_destroy(struct task *task)
 	}
 
 	asid_free(process->mm.asid);
+#endif
 }
 
 struct task *process_alloc_new(const char *name)
@@ -452,6 +455,7 @@ struct task *process_alloc_new(const char *name)
 		return task;
 
 	task->type = GRINCH_PROCESS;
+#ifdef CONFIG_MMU
 	task->process.mm.page_table = zalloc_pages(1);
 	if (!task->process.mm.page_table) {
 		kfree(task);
@@ -461,6 +465,7 @@ struct task *process_alloc_new(const char *name)
 	task->process.mm.asid = asid_alloc();
 
 	arch_mm_init(&task->process.mm);
+#endif
 
 	INIT_LIST_HEAD(&task->process.mm.vmas);
 
@@ -490,6 +495,10 @@ int process_handle_fault(struct task *task, void __user *addr, bool is_write)
 {
 	struct vma *vma;
 	int err;
+
+	/* Nothing is filled in on demand where nothing can fault. */
+	if (!IS_ENABLED(CONFIG_MMU))
+		return -EFAULT;
 
 	vma = uvma_at(&task->process, addr);
 	if (!vma) {

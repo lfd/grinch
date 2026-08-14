@@ -38,6 +38,7 @@ void arch_kinfo_init(struct kinfo *kinfo)
  */
 void arch_mm_init(struct mm *mm)
 {
+#ifdef CONFIG_MMU
 	page_table_t pt = mm->page_table;
 	unsigned int kernel_index;
 
@@ -51,6 +52,7 @@ void arch_mm_init(struct mm *mm)
 	       (PTES_PER_PT - kernel_index) * sizeof(*pt));
 
 	local_flush_tlb_all();
+#endif /* CONFIG_MMU */
 }
 
 void arch_process_activate(struct process *process)
@@ -62,6 +64,7 @@ void arch_process_activate(struct process *process)
 	/* Ensure that we return to U-Mode */
 	csr_clear(CSR_STATUS, SR_PP);
 
+#ifdef CONFIG_MMU
 	switch_mmu_satp(process->mm.asid, v2p(process->mm.page_table));
 
 	/*
@@ -71,12 +74,15 @@ void arch_process_activate(struct process *process)
 	 */
 	if (!process->mm.asid)
 		local_flush_tlb_all();
+#endif
 
 	asm volatile("fence.i");
 }
 
 void arch_process_deactivate(void)
 {
+#ifdef CONFIG_MMU
 	/* The kernel root holds only global entries: it lives under ASID 0. */
 	switch_mmu_satp(0, v2p(kernel_root));
+#endif
 }

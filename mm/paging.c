@@ -433,42 +433,13 @@ paddr_t paging_get_phys(page_table_t pt, const void *_virt)
 	return INVALID_PHYS_ADDR;
 }
 
-int paging_discard_init(void)
-{
-	page_table_t root;
-	size_t size;
-	int err;
-
-	root = kernel_root;
-	size = page_up(__init_rw_end - __init_text_start);
-	pri("Freeing %lu bytes of init code\n", size);
-	err = map_osmem(root, __init_text_start, size, GRINCH_MEM_RW);
-	if (err)
-		return err;
-	flush_tlb_all();
-
-	err = free_pages(__init_text_start, PAGES(size));
-	if (err)
-		return err;
-
-	return 0;
-}
-
-int __init paging_init(unsigned long this_cpu)
+/* Build the address space the kernel runs in, and switch onto it. */
+int __init paging_map_kernel(unsigned long this_cpu)
 {
 	int err;
 	page_table_t root;
 
 	arch_paging_init();
-
-	pri("=== Grinch memory layout ===\n");
-	pri(" Grinch area: 0x%lx -- 0x%lx\n", GRINCH_BASE, GRINCH_END);
-#ifdef CONFIG_MMU
-	pri("ioremap area: 0x%lx -- 0x%lx\n", IOREMAP_BASE, IOREMAP_END);
-	pri("  kheap area: 0x%lx\n", KHEAP_BASE);
-	pri(" direct phys: 0x%lx\n", DIR_PHYS_BASE);
-#endif
-	pri("=== Grinch memory layout end ===\n");
 
 	root = kernel_root;
 
@@ -511,8 +482,6 @@ int __init paging_init(unsigned long this_cpu)
 
 	arch_paging_enable(this_cpu, root);
 
-	this_per_cpu()->cpuid = this_cpu;
-
 	return 0;
 
 out:
@@ -552,6 +521,22 @@ int paging_prealloc(page_table_t pt, const void *vaddr, size_t size)
 			return -ENOMEM;
 		root->set_next_pt(pte, v2p(sub));
 	}
+
+	return 0;
+}
+
+/*
+ * Init memory goes back to the allocator: drop the permissions it had. Not
+ * __init itself, as it takes execute from the section it would live in.
+ */
+int paging_release_init(void *base, size_t size)
+{
+	int err;
+
+	err = map_osmem(kernel_root, base, size, GRINCH_MEM_RW);
+	if (err)
+		return err;
+	flush_tlb_all();
 
 	return 0;
 }

@@ -39,6 +39,7 @@ bool is_urange(const void *_base, size_t size)
 	return false;
 }
 
+#ifdef CONFIG_MMU
 void *user_to_direct(struct mm *mm, const void __user *s)
 {
 	paddr_t pa;
@@ -49,6 +50,7 @@ void *user_to_direct(struct mm *mm, const void __user *s)
 
 	return p2v(pa);
 }
+#endif /* CONFIG_MMU */
 
 static void *user_to_direct_fault(struct task *t, void __user *s)
 {

@@ -299,7 +299,9 @@ void *alloc_pages_aligned(unsigned int pages, unsigned int alignment)
 paddr_t v2p(const void *virt)
 {
 	struct memory_area *area;
+#ifdef CONFIG_MMU
 	paddr_t phys;
+#endif
 
 	/*
 	 * If virt is inside the grinch area of direct physical area, we can go
@@ -312,6 +314,7 @@ paddr_t v2p(const void *virt)
 	if (is_uaddr(virt))
 		panic("Don't resolve userspace addresses via v2p()!\n");
 
+#ifdef CONFIG_MMU
 	/*
 	 * Perform a PTW walk. This could indeed be implemented more efficient.
 	 * But we're usually not in a hot path here, so keep it simple.
@@ -319,6 +322,7 @@ paddr_t v2p(const void *virt)
 	phys = paging_get_phys(kernel_root, virt);
 	if (phys != INVALID_PHYS_ADDR)
 		return phys;
+#endif
 
 	panic("Unable to resolve address %p\n", virt);
 }

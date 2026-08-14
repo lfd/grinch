@@ -53,9 +53,12 @@ bool uvma_collides(const struct process *p, const void __user *base, size_t size
 }
 
 /*
- * Everything below reaches a region through its page tables: taking the
- * address it asks for, backing it with memory, and giving both back.
+ * How a region gets the memory it stands for, and how it gives it back.
+ * Translated, it is mapped at the address it asked for. Untranslated, it can
+ * only be the pages themselves, so the address is never honoured and nothing
+ * arrives later to fill it in.
  */
+#ifdef CONFIG_MMU
 
 static int vma_alloc_range(page_table_t pt, struct vma *vma, void *base,
 			   size_t size, unsigned int alignment)
@@ -201,6 +204,40 @@ int uvma_handle_fault(struct task *t, struct vma *vma, void __user *addr)
 	return 0;
 }
 
+#else /* !CONFIG_MMU */
+
+/* No address can be honoured, so there is nothing to hold against others. */
+static int uvma_reserve(const struct process *p, const void __user *base,
+			size_t size)
+{
+	return 0;
+}
+
+/* The region takes its memory at once, and reports where that put it. */
+static int uvma_claim(struct task *t, struct vma *vma)
+{
+	paddr_t phys;
+	int err;
+
+	err = phys_pages_alloc(&phys, PAGES(vma->size), PAGE_SIZE);
+	if (err)
+		return err;
+
+	vma->base = (void *)(uintptr_t)phys;
+	vma->flags &= ~VMA_FLAG_LAZY;
+
+	return 0;
+}
+
+/* Nothing stands between the range and its pages: hand them back. */
+static int
+uvma_dealloc_range(const struct mm *mm, struct vma *vma, void *base, size_t size)
+{
+	return phys_free_pages((paddr_t)(uintptr_t)base, PAGES(size));
+}
+
+#endif /* CONFIG_MMU */
+
 static int uvma_dealloc(const struct mm *mm, struct vma *vma)
 {
 	return uvma_dealloc_range(mm, vma, vma->base, vma->size);
@@ -273,6 +310,8 @@ struct vma *uvma_create(struct task *t, void *base, size_t size,
 	return vma;
 }
 
+/* Duplicating a process only happens where one can be copied at all. */
+#ifdef CONFIG_MMU
 int uvma_duplicate(struct task *dst, struct task *src, struct vma *vma)
 {
 	void *base, __user *psrc;
@@ -301,6 +340,7 @@ int uvma_duplicate(struct task *dst, struct task *src, struct vma *vma)
 
 	return 0;
 }
+#endif /* CONFIG_MMU */
 
 int uvma_resize(const struct process *p, struct vma *vma, size_t size)
 {

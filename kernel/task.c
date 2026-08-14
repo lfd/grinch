@@ -18,6 +18,7 @@
 #include <grinch/boot.h>
 #include <grinch/cpu.h>
 #include <grinch/errno.h>
+#include <grinch/gconfig.h>
 #include <grinch/grinch_guest.h>
 #include <grinch/panic.h>
 #include <grinch/reboot.h>
@@ -470,6 +471,10 @@ SYSCALL_DEF0(fork)
 	struct task *this, *new;
 	struct vma *vma;
 	int err;
+
+	/* A process can only be copied where addresses are translated. */
+	if (!IS_ENABLED(CONFIG_MMU))
+		return -ENOSYS;
 
 	this = current_task();
 	new = process_alloc_new(this->name);

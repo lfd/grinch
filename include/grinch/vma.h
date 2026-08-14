@@ -32,11 +32,13 @@ struct vma {
 };
 
 struct mm {
+#ifdef CONFIG_MMU
 	/* Holds the user mappings; kernel entries are installed on activation */
 	page_table_t page_table;
 
 	/* Tags this address space's translations; 0 if untaggable */
 	unsigned long asid;
+#endif
 
 	/* list of struct vma */
 	struct list_head vmas;
