@@ -22,6 +22,41 @@
 #include <grinch/task.h>
 #include <grinch/uaccess.h>
 
+static struct vma *
+__uvma_at(const struct process *p, const void __user *base, size_t size)
+{
+	struct vma *vma;
+
+	/* A range that runs off the end of the address space names no memory */
+	if (base + size < base)
+		return NULL;
+
+	/* Sanity check */
+	if (!size)
+		BUG();
+
+	list_for_each_entry(vma, &p->mm.vmas, vmas)
+		if (base + size > vma->base && base < vma->base + vma->size)
+			return vma;
+
+	return NULL;
+}
+
+struct vma *uvma_at(const struct process *p, const void __user *base)
+{
+	return __uvma_at(p, base, 1);
+}
+
+bool uvma_collides(const struct process *p, const void __user *base, size_t size)
+{
+	return __uvma_at(p, base, size) ? true : false;
+}
+
+/*
+ * Everything below reaches a region through its page tables: taking the
+ * address it asks for, backing it with memory, and giving both back.
+ */
+
 static int vma_alloc_range(page_table_t pt, struct vma *vma, void *base,
 			   size_t size, unsigned int alignment)
 {
@@ -57,6 +92,48 @@ static int vma_alloc_range(page_table_t pt, struct vma *vma, void *base,
 free_out:
 	phys_free_pages(phys, PAGES(size));
 	return err;
+}
+
+static inline int
+vma_alloc(page_table_t pt, struct vma *vma, unsigned int alignment)
+{
+	return vma_alloc_range(pt, vma, vma->base, vma->size, alignment);
+}
+
+int kvma_create(struct vma *vma)
+{
+	int err;
+
+	// FIXME: We must somewhen take care, that this applies to all page
+	// tables of all CPUs
+	// FIXME: Get alignment via argument
+	err = vma_alloc(kernel_root, vma, PAGE_SIZE);
+	if (err)
+		return err;
+
+	return 0;
+}
+
+/* The address was asked for, so it must be in reach and unclaimed. */
+static int uvma_reserve(const struct process *p, const void __user *base,
+			size_t size)
+{
+	if (!is_urange(base, size))
+		return -ERANGE;
+
+	if (uvma_collides(p, base, size))
+		return -EINVAL;
+
+	return 0;
+}
+
+/* Back the region with memory, unless it is to be filled in on demand. */
+static int uvma_claim(struct task *t, struct vma *vma)
+{
+	if (vma->flags & VMA_FLAG_LAZY)
+		return 0;
+
+	return vma_alloc(t->process.mm.page_table, vma, PAGE_SIZE);
 }
 
 static int
@@ -105,6 +182,25 @@ uvma_dealloc_range(const struct mm *mm, struct vma *vma, void *base, size_t size
 	return 0;
 }
 
+int uvma_handle_fault(struct task *t, struct vma *vma, void __user *addr)
+{
+	void *base;
+	int err;
+
+	if (!(vma->flags & VMA_FLAG_LAZY))
+		BUG();
+
+	base = PTR_PAGE_ALIGN_DOWN(addr);
+	err = vma_alloc_range(t->process.mm.page_table, vma, base,
+			      PAGE_SIZE, PAGE_SIZE);
+	if (err)
+		return err;
+
+	umemset(t, base, 0, PAGE_SIZE);
+
+	return 0;
+}
+
 static int uvma_dealloc(const struct mm *mm, struct vma *vma)
 {
 	return uvma_dealloc_range(mm, vma, vma->base, vma->size);
@@ -120,56 +216,6 @@ static void uvma_destroy(const struct mm *mm, struct vma *vma)
 	err = uvma_dealloc(mm, vma);
 	if (err)
 		BUG();
-}
-
-static inline int
-vma_alloc(page_table_t pt, struct vma *vma, unsigned int alignment)
-{
-	return vma_alloc_range(pt, vma, vma->base, vma->size, alignment);
-}
-
-int kvma_create(struct vma *vma)
-{
-	int err;
-
-	// FIXME: We must somewhen take care, that this applies to all page
-	// tables of all CPUs
-	// FIXME: Get alignment via argument
-	err = vma_alloc(kernel_root, vma, PAGE_SIZE);
-	if (err)
-		return err;
-
-	return 0;
-}
-
-static struct vma *
-__uvma_at(const struct process *p, const void __user *base, size_t size)
-{
-	struct vma *vma;
-
-	/* A range that runs off the end of the address space names no memory */
-	if (base + size < base)
-		return NULL;
-
-	/* Sanity check */
-	if (!size)
-		BUG();
-
-	list_for_each_entry(vma, &p->mm.vmas, vmas)
-		if (base + size > vma->base && base < vma->base + vma->size)
-			return vma;
-
-	return NULL;
-}
-
-struct vma *uvma_at(const struct process *p, const void __user *base)
-{
-	return __uvma_at(p, base, 1);
-}
-
-bool uvma_collides(const struct process *p, const void __user *base, size_t size)
-{
-	return __uvma_at(p, base, size) ? true : false;
 }
 
 void uvmas_destroy(struct process *p)
@@ -191,12 +237,9 @@ struct vma *uvma_create(struct task *t, void *base, size_t size,
 	struct vma *vma;
 	int err;
 
-	if (!is_urange(base, size))
-		return ERR_PTR(-ERANGE);
-
-	/* Check that the VMA won't collide with any other VMA */
-	if (uvma_collides(&t->process, base, size))
-		return ERR_PTR(-EINVAL);
+	err = uvma_reserve(&t->process, base, size);
+	if (err)
+		return ERR_PTR(err);
 
 	vma = kmalloc(sizeof(*vma));
 	if (!vma)
@@ -214,17 +257,16 @@ struct vma *uvma_create(struct task *t, void *base, size_t size,
 	} else
 		vma->name = NULL;
 
-	if (!(vma->flags & VMA_FLAG_LAZY)) {
-		err = vma_alloc(t->process.mm.page_table, vma, PAGE_SIZE);
-		if (err) {
-			kfree(vma->name);
-			kfree(vma);
-			return ERR_PTR(err);
-		}
-
-		/* All pages that are given to the user must be zeroed */
-		umemset(t, vma->base, 0, vma->size);
+	err = uvma_claim(t, vma);
+	if (err) {
+		kfree(vma->name);
+		kfree(vma);
+		return ERR_PTR(err);
 	}
+
+	/* All pages that are given to the user must be zeroed */
+	if (!(vma->flags & VMA_FLAG_LAZY))
+		umemset(t, vma->base, 0, vma->size);
 
 	list_add(&vma->vmas, &t->process.mm.vmas);
 
@@ -256,25 +298,6 @@ int uvma_duplicate(struct task *dst, struct task *src, struct vma *vma)
 
 		copy_to_user(dst, base, psrc, PAGE_SIZE);
 	}
-
-	return 0;
-}
-
-int uvma_handle_fault(struct task *t, struct vma *vma, void __user *addr)
-{
-	void *base;
-	int err;
-
-	if (!(vma->flags & VMA_FLAG_LAZY))
-		BUG();
-
-	base = PTR_PAGE_ALIGN_DOWN(addr);
-	err = vma_alloc_range(t->process.mm.page_table, vma, base,
-			      PAGE_SIZE, PAGE_SIZE);
-	if (err)
-		return err;
-
-	umemset(t, base, 0, PAGE_SIZE);
 
 	return 0;
 }
