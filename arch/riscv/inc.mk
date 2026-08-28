@@ -22,6 +22,10 @@ QEMU_MACHINE=-machine virt
 QEMU_ARGS=-m 64M
 QEMU_ARGS+=-monitor telnet:127.0.0.1:55555,server,nowait
 QEMU_ARGS+=$(QEMU_MACHINE) -cpu $(QEMU_CPU),h=true
+# Machine mode is the kernel's own: nothing may be loaded below it.
+ifeq ($(RISCV_MODE), m)
+QEMU_ARGS+=-bios none
+endif
 QEMU_UBOOT_ARGS=\
 		-kernel $(UBOOT_BIN) \
 		-append '$(QEMU_APPEND)' \
