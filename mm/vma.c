@@ -217,6 +217,7 @@ struct vma *uvma_create(struct task *t, void *base, size_t size,
 	if (!(vma->flags & VMA_FLAG_LAZY)) {
 		err = vma_alloc(t->process.mm.page_table, vma, PAGE_SIZE);
 		if (err) {
+			kfree(vma->name);
 			kfree(vma);
 			return ERR_PTR(err);
 		}
