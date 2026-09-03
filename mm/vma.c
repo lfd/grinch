@@ -147,8 +147,12 @@ __uvma_at(const struct process *p, const void __user *base, size_t size)
 {
 	struct vma *vma;
 
-	/* Overflow and sanity check */
-	if (base + size < base || !size)
+	/* A range that runs off the end of the address space names no memory */
+	if (base + size < base)
+		return NULL;
+
+	/* Sanity check */
+	if (!size)
 		BUG();
 
 	list_for_each_entry(vma, &p->mm.vmas, vmas)
