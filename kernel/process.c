@@ -99,6 +99,20 @@ static size_t uenv_sz(const struct uenv_array *uenv)
 	return ret;
 }
 
+/* All of it goes on the new stack, where there is only so much room */
+static int uenv_check(const struct uenv_array *argv,
+		      const struct uenv_array *envp)
+{
+	size_t size;
+
+	size = uenv_sz(argv) + uenv_sz(envp) + sizeof(unsigned long) +
+	       2 * sizeof(struct auxv);
+	if (size > ARG_MAX)
+		return -E2BIG;
+
+	return 0;
+}
+
 static void kinfo_init(struct kinfo *kinfo)
 {
 	kinfo->wall_base = wall_base;
@@ -118,19 +132,6 @@ static int process_load_elf(struct task *task, Elf_Ehdr *ehdr,
 	struct vma *vma;
 	size_t vma_size;
 	Elf_Phdr *phdr;
-
-	if (memcmp(ehdr->e_ident, ELFMAG, SELFMAG))
-		return trace_error(-EINVAL);
-
-	if (ehdr->e_machine != ELF_ARCH)
-		return -EINVAL;
-
-	// TODO: Check for out of bounds in ehdr
-
-	/* check if arguments exceed ARG_MAX size */
-	copied = uenv_sz(argv) + uenv_sz(envp) + sizeof(argc) + sizeof(aux);
-	if (copied > ARG_MAX)
-		return -E2BIG;
 
 	/* Prepare user stack */
 	stack_top = (void *)USER_STACK_TOP;
@@ -245,24 +246,101 @@ static int process_load_elf(struct task *task, Elf_Ehdr *ehdr,
 	return 0;
 }
 
-int process_from_path(struct task *task, struct file *at, const char *pathname,
-		      struct uenv_array *argv, struct uenv_array *envp)
+/*
+ * Fetch a program, and refuse it here for everything it can be refused for:
+ * this is the last point at which there is still a caller to tell.
+ */
+static void *process_fetch_elf(struct file *at, const char *pathname)
 {
+	const Elf_Ehdr *ehdr;
 	struct file *file;
 	void *elf;
 	int err;
 
 	file = file_open_at(at, pathname);
 	if (IS_ERR(file))
-		return PTR_ERR(file);
+		return file;
 
 	elf = vfs_read_file(file, NULL);
 	file_close(file);
+	if (IS_ERR(elf))
+		return elf;
+
+	ehdr = elf;
+	if (memcmp(ehdr->e_ident, ELFMAG, SELFMAG)) {
+		err = trace_error(-EINVAL);
+		goto free_out;
+	}
+
+	if (ehdr->e_machine != ELF_ARCH) {
+		err = -EINVAL;
+		goto free_out;
+	}
+
+	// TODO: Check for out of bounds in ehdr
+
+	return elf;
+
+free_out:
+	kfree(elf);
+	return ERR_PTR(err);
+}
+
+int process_from_path(struct task *task, struct file *at, const char *pathname,
+		      struct uenv_array *argv, struct uenv_array *envp)
+{
+	void *elf;
+	int err;
+
+	err = uenv_check(argv, envp);
+	if (err)
+		return err;
+
+	elf = process_fetch_elf(at, pathname);
 	if (IS_ERR(elf))
 		return PTR_ERR(elf);
 
 	err = process_load_elf(task, elf, argv, envp);
 	kfree(elf);
+
+	return err;
+}
+
+/*
+ * Put a program in the place of the one a task is already running. Nothing is
+ * given up until the new one is in hand; past that there is no image left to
+ * carry an error back to, so what fails from there on ends the task.
+ */
+static int process_replace(struct task *task, struct file *at,
+			   const char *pathname, struct uenv_array *argv,
+			   struct uenv_array *envp)
+{
+	struct process *process;
+	void *elf;
+	int err;
+
+	process = &task->process;
+
+	err = uenv_check(argv, envp);
+	if (err)
+		return err;
+
+	elf = process_fetch_elf(at, pathname);
+	if (IS_ERR(elf))
+		return PTR_ERR(elf);
+
+	task_set_name(task, argv->elements ? argv->string : "NO NAME");
+
+	uvmas_destroy(process);
+	process->brk.base = NULL;
+	process->brk.vma = NULL;
+
+	err = process_load_elf(task, elf, argv, envp);
+	kfree(elf);
+	if (err) {
+		pr("execve failed on task %u: %pe\n", task->pid, ERR_PTR(err));
+		task_exit(task, err);
+	}
 
 	return err;
 }
@@ -345,19 +423,16 @@ int process_handle_fault(struct task *task, void __user *addr, bool is_write)
 	return err;
 }
 
-static long _sys_execve(const char __user *_pathname,
-			const char *const __user *uargv,
-			const char *const __user *uenvp)
+SYSCALL_DEF3(execve, const char __user *, _pathname,
+	       const char __user *const __user *, uargv,
+	       const char __user *const __user *, uenvp)
 {
 	struct uenv_array argv, envp;
-	struct process *process;
 	struct task *this;
-	const char *name;
 	char *pathname;
 	int err;
 
 	this = current_task();
-	process = &this->process;
 
 	pathname = pathname_from_user(_pathname, NULL);
 	if (IS_ERR(pathname))
@@ -371,14 +446,7 @@ static long _sys_execve(const char __user *_pathname,
 	if (err)
 		goto uargv_free_out;
 
-	name = argv.elements ? argv.string : "NO NAME";
-	task_set_name(this, name);
-
-	uvmas_destroy(process);
-	process->brk.base = NULL;
-	process->brk.vma = NULL;
-
-	err = process_from_path(this, cwd(), pathname, &argv, &envp);
+	err = process_replace(this, cwd(), pathname, &argv, &envp);
 
 	uenv_free(&envp);
 
@@ -389,23 +457,6 @@ pathname_out:
 	kfree(pathname);
 
 	return err;
-}
-
-SYSCALL_DEF3(execve, const char __user *, pathname,
-	       const char __user *const __user *, uargv,
-	       const char __user *const __user *, uenvp)
-{
-	long ret;
-	struct task *cur;
-
-	ret = _sys_execve(pathname, uargv, uenvp);
-	if (ret) {
-		cur = current_task();
-		pr("execve failed on task %u: %pe\n", cur->pid, ERR_PTR(ret));
-		task_exit(cur, ret);
-	}
-
-	return ret;
 }
 
 SYSCALL_DEF1(brk, unsigned long, addr)
