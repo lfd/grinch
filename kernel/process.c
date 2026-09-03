@@ -119,6 +119,58 @@ static void kinfo_init(struct kinfo *kinfo)
 	arch_kinfo_init(kinfo);
 }
 
+/* Does a range of size bytes at addr lie inside len bytes at base? */
+static bool elf_within(uintptr_t base, size_t len, uintptr_t addr, size_t size)
+{
+	if (addr < base || addr - base > len)
+		return false;
+
+	return size <= len - (addr - base);
+}
+
+/*
+ * An image is only as long as it was read, and everything it says about itself
+ * has to fit in that. Whoever walks it afterwards may take that for granted.
+ */
+static int elf_check_bounds(const Elf_Ehdr *ehdr, size_t len)
+{
+	const Elf_Phdr *phdr;
+	unsigned int d;
+
+	if (len < sizeof(*ehdr))
+		return -EINVAL;
+
+	if (ehdr->e_phentsize != sizeof(*phdr))
+		return -EINVAL;
+
+	if (!elf_within(0, len, ehdr->e_phoff,
+			(size_t)ehdr->e_phnum * sizeof(*phdr)))
+		return -EINVAL;
+
+	phdr = (const Elf_Phdr *)((const void *)ehdr + ehdr->e_phoff);
+	for (d = 0; d < ehdr->e_phnum; d++, phdr++) {
+		if (!elf_within(0, len, phdr->p_offset, phdr->p_filesz))
+			return -EINVAL;
+
+		if (phdr->p_type != PT_LOAD)
+			continue;
+
+		/* A part cannot bring more along than it makes room for */
+		if (phdr->p_filesz > phdr->p_memsz)
+			return -EINVAL;
+
+		/* A part that makes room for nothing is no part at all */
+		if (!phdr->p_memsz)
+			return -EINVAL;
+
+		/* Nor may the pages it takes reach around the address space */
+		if (phdr->p_vaddr + page_up(phdr->p_memsz) <= phdr->p_vaddr)
+			return -EINVAL;
+	}
+
+	return 0;
+}
+
 static int process_load_elf(struct task *task, Elf_Ehdr *ehdr,
 			    const struct uenv_array *argv,
 			    const struct uenv_array *envp)
@@ -254,6 +306,7 @@ static void *process_fetch_elf(struct file *at, const char *pathname)
 {
 	const Elf_Ehdr *ehdr;
 	struct file *file;
+	size_t len;
 	void *elf;
 	int err;
 
@@ -261,12 +314,17 @@ static void *process_fetch_elf(struct file *at, const char *pathname)
 	if (IS_ERR(file))
 		return file;
 
-	elf = vfs_read_file(file, NULL);
+	elf = vfs_read_file(file, &len);
 	file_close(file);
 	if (IS_ERR(elf))
 		return elf;
 
+	/* Before anything is read from it, it has to be long enough to read */
 	ehdr = elf;
+	err = elf_check_bounds(ehdr, len);
+	if (err)
+		goto free_out;
+
 	if (memcmp(ehdr->e_ident, ELFMAG, SELFMAG)) {
 		err = trace_error(-EINVAL);
 		goto free_out;
@@ -276,8 +334,6 @@ static void *process_fetch_elf(struct file *at, const char *pathname)
 		err = -EINVAL;
 		goto free_out;
 	}
-
-	// TODO: Check for out of bounds in ehdr
 
 	return elf;
 
