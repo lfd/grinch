@@ -534,8 +534,10 @@ SYSCALL_DEF1(brk, unsigned long, addr)
 		goto report_out;
 
 	/* We only support page-wise changes of the program break */
-	if (addr % PAGE_SIZE)
-		return -EINVAL;
+	if (addr % PAGE_SIZE) {
+		brk = -EINVAL;
+		goto unlock_out;
+	}
 
 	/* We can not shift break to the left */
 	if (addr < base) {
