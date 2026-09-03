@@ -47,15 +47,17 @@ static const char *causes[] = {
 
 void dump_regs(struct registers *a)
 {
+#ifdef CONFIG_RISCV_S_MODE
 	unsigned long satp;
 
 	satp = csr_read(CSR_SATP);
 
-	pr("SATP -- Mode: %lu, ASID: %lu, PFN: " REG_FMT "     TVAL: " REG_FMT "\n",
+	pr("SATP -- Mode: %lu, ASID: %lu, PFN: " REG_FMT "\n",
 			satp >> SATP_MODE_SHIFT,
 			(satp >> SATP_ASID_SHIFT) & SATP_ASID_MASK,
-			(satp & SATP_PPN) << PAGE_SHIFT,
-			csr_read(CSR_TVAL));
+			(satp & SATP_PPN) << PAGE_SHIFT);
+#endif
+	pr("TVAL: " REG_FMT "\n", csr_read(CSR_TVAL));
 	pr(" PC: " REG_FMT " RA: " REG_FMT "  SP: " REG_FMT "\n",
 	   a->pc, a->ra, a->sp);
 	pr(" GP: " REG_FMT " TP: " REG_FMT "  T0: " REG_FMT "\n",
