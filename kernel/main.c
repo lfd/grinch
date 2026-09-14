@@ -97,28 +97,27 @@ static int __init init(void)
 	if (err)
 		goto exit_out;
 
-	/* stdin */
-	fh = &task->process.fds[0];
-	fh->flags.may_read = true;
-	fh->flags.may_write = false;
-	fh->flags.is_kernel = false;
-	fh->flags.nonblock = false;
-
-	/* stdout + stderr */
-	fh = &task->process.fds[1];
-	fh->flags.may_read = false;
-	fh->flags.may_write = true;
-	fh->flags.is_kernel = false;
-	fh->flags.nonblock = false;
-	task->process.fds[2].flags = fh->flags;
-
+	/* stdin, stdout and stderr, each an open of the console of its own */
 	for (i = 0; i < 3; i++) {
-		fh = &task->process.fds[i];
-		fh->fp = file_open_at(NULL, ISTR(DEVICE_NAME("console")));
-		if (IS_ERR(fh->fp)) {
-			err = PTR_ERR(fh->fp);
+		struct fs_flags flags = { 0 };
+		struct file *fp;
+
+		flags.may_read = i == 0;
+		flags.may_write = i != 0;
+
+		fp = file_open_at(NULL, ISTR(DEVICE_NAME("console")));
+		if (IS_ERR(fp)) {
+			err = PTR_ERR(fp);
 			goto exit_out;
 		}
+
+		fh = file_handle_new(fp, flags);
+		if (IS_ERR(fh)) {
+			file_close(fp);
+			err = PTR_ERR(fh);
+			goto exit_out;
+		}
+		task->process.fds[i] = fh;
 	}
 
 	err = process_setcwd(task, ISTR("/"));

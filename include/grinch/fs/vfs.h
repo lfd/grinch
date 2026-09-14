@@ -13,7 +13,10 @@
 #ifndef _FS_VFS_H
 #define _FS_VFS_H
 
+#include <asm/spinlock.h>
+
 #include <grinch/dirent.h>
+#include <grinch/refcount.h>
 #include <grinch/types.h>
 #include <grinch/stat.h>
 
@@ -31,10 +34,18 @@ struct fs_flags {
 	unsigned char create:1;
 };
 
+/*
+ * One open file description. Descriptors that came from the same open share
+ * it, so they move one offset together; the lock keeps that offset whole
+ * where two of them move it at once.
+ */
 struct file_handle {
 	struct file *fp;
 	struct fs_flags flags;
 	loff_t position;
+
+	refcount_t refs;
+	spinlock_t lock;
 };
 
 struct file_operations {
@@ -82,6 +93,14 @@ void file_close(struct file *file);
 
 /* Duplicates a file handle (e.g., used in fork()) */
 void file_dup(struct file *file);
+
+/*
+ * An open file description of its own, owning the file reference it is
+ * handed. It lives as long as a descriptor names it.
+ */
+struct file_handle *file_handle_new(struct file *fp, struct fs_flags flags);
+void file_handle_get(struct file_handle *h);
+void file_handle_put(struct file_handle *h);
 
 char *file_realpath(struct file *file);
 

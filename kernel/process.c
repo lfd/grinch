@@ -411,8 +411,10 @@ void process_destroy(struct task *task)
 
 	process = &task->process;
 	for (i = 0; i < MAX_FDS; i++)
-		if (process->fds[i].fp)
-			file_close(process->fds[i].fp);
+		if (process->fds[i]) {
+			file_handle_put(process->fds[i]);
+			process->fds[i] = NULL;
+		}
 
 	uvmas_destroy(process);
 
@@ -459,7 +461,8 @@ struct task *process_alloc_new(const char *name)
 }
 
 /*
- * Hand a copy of every open file of one process to another. The caller holds
+ * Hand every open file of one process to another. Both end up naming the same
+ * open file descriptions, so they move each offset together. The caller holds
  * the lock of the task the files come from, so the set is taken whole.
  */
 void process_dup_fds(struct task *from, struct task *to)
@@ -468,10 +471,10 @@ void process_dup_fds(struct task *from, struct task *to)
 	int fd;
 
 	for (fd = 0; fd < MAX_FDS; fd++) {
-		fh = &from->process.fds[fd];
-		if (fh->fp) {
-			file_dup(fh->fp);
-			to->process.fds[fd] = *fh;
+		fh = from->process.fds[fd];
+		if (fh) {
+			file_handle_get(fh);
+			to->process.fds[fd] = fh;
 		}
 	}
 }

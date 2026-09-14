@@ -65,8 +65,8 @@ static struct file_handle *get_handle(unsigned int fd)
 	if (fd >= MAX_FDS)
 		return ERR_PTR(-EBADF);
 
-	handle = &current_process()->fds[fd];
-	if (!handle->fp)
+	handle = current_process()->fds[fd];
+	if (!handle)
 		return ERR_PTR(-EINVAL);
 
 	return handle;
@@ -102,7 +102,7 @@ SYSCALL_DEF2(open, const char __user *, _pathname, int, oflag)
 	spin_lock(&task->lock);
 	process = &task->process;
 	for (d = 0; d < MAX_FDS; d++)
-		if (process->fds[d].fp == NULL)
+		if (process->fds[d] == NULL)
 			goto found;
 
 	ret = -ENOENT;
@@ -121,9 +121,13 @@ found:
 		goto unlock_out;
 	}
 
-	process->fds[d].fp = file;
-	process->fds[d].flags = flags;
-	process->fds[d].position = 0;
+	process->fds[d] = file_handle_new(file, flags);
+	if (IS_ERR(process->fds[d])) {
+		ret = PTR_ERR(process->fds[d]);
+		process->fds[d] = NULL;
+		file_close(file);
+		goto unlock_out;
+	}
 
 	ret = d;
 
@@ -150,8 +154,8 @@ SYSCALL_DEF1(close, unsigned int, fd)
 		goto unlock_out;
 	}
 
-	file_close(handle->fp);
-	handle->fp = NULL;
+	task->process.fds[fd] = NULL;
+	file_handle_put(handle);
 	err = 0;
 
 unlock_out:
@@ -182,7 +186,14 @@ SYSCALL_DEF3(read, unsigned int, fd, char __user *, buf, size_t, count)
 	if (!file->fops->read)
 		return -EBADF;
 
+	/*
+	 * The offset is shared with whoever else names this description, so
+	 * everything that moves it moves it alone. Waiting for a character
+	 * happens outside: whatever blocks has no offset to move.
+	 */
+	spin_lock(&handle->lock);
 	bread = file->fops->read(handle, buf, count);
+	spin_unlock(&handle->lock);
 	if (bread != -EWOULDBLOCK)
 		return bread;
 
@@ -200,6 +211,7 @@ SYSCALL_DEF3(write, unsigned int, fd, const char __user *, buf, size_t, count)
 {
 	struct file_handle *handle;
 	struct file *file;
+	ssize_t ret;
 
 	if ((ssize_t)count < 0)
 		return -EFBIG;
@@ -218,7 +230,11 @@ SYSCALL_DEF3(write, unsigned int, fd, const char __user *, buf, size_t, count)
 	if (!file->fops->write)
 		return -EBADF;
 
-	return file->fops->write(handle, buf, count);
+	spin_lock(&handle->lock);
+	ret = file->fops->write(handle, buf, count);
+	spin_unlock(&handle->lock);
+
+	return ret;
 }
 
 SYSCALL_DEF2(stat, const char __user *, _pathname, struct stat __user *, _st)
@@ -264,6 +280,7 @@ SYSCALL_DEF3(getdents, unsigned int, fd, struct dirent __user *, dents,
 {
 	struct file_handle *handle;
 	struct file *file;
+	int ret;
 
 	handle = get_handle(fd);
 	if (IS_ERR(handle))
@@ -276,7 +293,11 @@ SYSCALL_DEF3(getdents, unsigned int, fd, struct dirent __user *, dents,
 	if (!file->fops->getdents)
 		return -EBADF;
 
-	return file->fops->getdents(handle, dents, size);
+	spin_lock(&handle->lock);
+	ret = file->fops->getdents(handle, dents, size);
+	spin_unlock(&handle->lock);
+
+	return ret;
 }
 
 SYSCALL_DEF2(mkdir, const char __user *, _pathname, mode_t, mode)

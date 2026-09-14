@@ -163,6 +163,36 @@ void file_close(struct file *file)
 	dflc_put(entry);
 }
 
+struct file_handle *file_handle_new(struct file *fp, struct fs_flags flags)
+{
+	struct file_handle *h;
+
+	h = kzalloc(sizeof(*h));
+	if (!h)
+		return ERR_PTR(-ENOMEM);
+
+	h->fp = fp;
+	h->flags = flags;
+	spin_init(&h->lock);
+	refcount_set(&h->refs, 1);
+
+	return h;
+}
+
+void file_handle_get(struct file_handle *h)
+{
+	refcount_inc(&h->refs);
+}
+
+void file_handle_put(struct file_handle *h)
+{
+	if (!refcount_dec_and_test(&h->refs))
+		return;
+
+	file_close(h->fp);
+	kfree(h);
+}
+
 static void dflc_init(struct dflc *dflc, struct dflc *parent)
 {
 	spin_init(&dflc->lock);

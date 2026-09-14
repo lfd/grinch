@@ -39,7 +39,7 @@ struct process {
 		struct file *file;
 	} cwd;
 
-	struct file_handle fds[MAX_FDS];
+	struct file_handle *fds[MAX_FDS];
 };
 
 struct task *process_alloc_new(const char *name);
