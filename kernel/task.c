@@ -468,20 +468,23 @@ SYSCALL_DEF0(fork)
 	int err;
 
 	this = current_task();
-	spin_lock(&this->lock);
 	new = process_alloc_new(this->name);
-	if (IS_ERR(new)) {
-		err = PTR_ERR(new);
-		goto unlock_out;
-	}
-	spin_lock(&new->lock);
-
-	process_dup_fds(this, new);
+	if (IS_ERR(new))
+		return PTR_ERR(new);
 
 	new->regs = this->regs;
 	new->parent = this;
 	regs_set_retval(&new->regs, 0);
 
+	spin_lock(&this->lock);
+	process_dup_fds(this, new);
+	spin_unlock(&this->lock);
+
+	/*
+	 * The copy runs unlocked: until the new task is enqueued no one else
+	 * can reach it, and what it copies cannot change while its parent
+	 * stands here.
+	 */
 	err = process_setcwd(new, this->process.cwd.pathname);
 	if (err)
 		goto destroy_out;
@@ -492,26 +495,19 @@ SYSCALL_DEF0(fork)
 			goto destroy_out;
 	}
 
+	spin_lock(&this->lock);
+	spin_lock(&new->lock);
 	new->state = TASK_RUNNABLE;
-
 	list_add(&new->sibling, &this->children);
-
-	spin_unlock(&this->lock);
 	spin_unlock(&new->lock);
+	spin_unlock(&this->lock);
 
 	task_enqueue(new);
 	sched_all();
 
 	return new->pid;
 
-unlock_out:
-	spin_unlock(&this->lock);
-
-	return err;
-
 destroy_out:
-	spin_unlock(&new->lock);
-	spin_unlock(&this->lock);
 	task_exit(new, err);
 	task_put(new);
 
