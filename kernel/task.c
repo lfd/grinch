@@ -464,9 +464,8 @@ out:
 SYSCALL_DEF0(fork)
 {
 	struct task *this, *new;
-	struct file_handle *fh;
 	struct vma *vma;
-	int fd, err;
+	int err;
 
 	this = current_task();
 	spin_lock(&this->lock);
@@ -477,13 +476,7 @@ SYSCALL_DEF0(fork)
 	}
 	spin_lock(&new->lock);
 
-	for (fd = 0; fd < MAX_FDS; fd++) {
-		fh = &this->process.fds[fd];
-		if (fh->fp) {
-			file_dup(fh->fp);
-			new->process.fds[fd] = *fh;
-		}
-	}
+	process_dup_fds(this, new);
 
 	new->regs = this->regs;
 	new->parent = this;

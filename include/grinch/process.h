@@ -50,6 +50,7 @@ int process_from_path(struct task *task, struct file *at, const char *pathname,
 		      struct uenv_array *argv, struct uenv_array *envp);
 
 int process_setcwd(struct task *t, const char *pathname);
+void process_dup_fds(struct task *from, struct task *to);
 
 /* Arch specific routines */
 void arch_mm_init(struct mm *mm);
