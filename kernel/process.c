@@ -533,6 +533,90 @@ pathname_out:
 	return err;
 }
 
+/*
+ * Start a program as a task of its own. Nothing is inherited that would have
+ * to be placed twice: the new task is given an address space of its own and
+ * the program is loaded straight into it, so this asks nothing of translation
+ * and works where a process cannot be duplicated at all.
+ */
+SYSCALL_DEF3(grinch_spawn, const char __user *, _pathname,
+	     const char __user *const __user *, uargv,
+	     const char __user *const __user *, uenvp)
+{
+	struct task *this, *new;
+	struct uenv_array argv, envp;
+	char *pathname;
+	int err;
+
+	this = current_task();
+
+	pathname = pathname_from_user(_pathname, NULL);
+	if (IS_ERR(pathname))
+		return PTR_ERR(pathname);
+
+	err = uenv_dup(this, uargv, &argv);
+	if (err)
+		goto pathname_out;
+
+	err = uenv_dup(this, uenvp, &envp);
+	if (err)
+		goto uargv_free_out;
+
+	new = process_alloc_new(argv.elements ? argv.string : pathname);
+	if (IS_ERR(new)) {
+		err = PTR_ERR(new);
+		goto uenvp_free_out;
+	}
+
+	new->parent = this;
+
+	spin_lock(&this->lock);
+	process_dup_fds(this, new);
+	spin_unlock(&this->lock);
+
+	/*
+	 * Loading touches the filesystem, so it runs unlocked: until the task
+	 * is enqueued, no one but us can reach it, and what it inherits from
+	 * us cannot change, as we are here and not at chdir or execve.
+	 */
+	err = process_setcwd(new, this->process.cwd.pathname);
+	if (err)
+		goto destroy_out;
+
+	/* Resolved against our own directory, as the child has just taken it */
+	err = process_from_path(new, cwd(), pathname, &argv, &envp);
+	if (err)
+		goto destroy_out;
+
+	spin_lock(&this->lock);
+	spin_lock(&new->lock);
+	new->state = TASK_RUNNABLE;
+	list_add(&new->sibling, &this->children);
+	spin_unlock(&new->lock);
+	spin_unlock(&this->lock);
+
+	task_enqueue(new);
+	sched_all();
+
+	err = new->pid;
+	goto uenvp_free_out;
+
+destroy_out:
+	task_exit(new, err);
+	task_put(new);
+
+uenvp_free_out:
+	uenv_free(&envp);
+
+uargv_free_out:
+	uenv_free(&argv);
+
+pathname_out:
+	kfree(pathname);
+
+	return err;
+}
+
 SYSCALL_DEF1(brk, unsigned long, addr)
 {
 	struct process *process;
