@@ -261,7 +261,10 @@ void task_exit(struct task *task, int code)
 	spin_unlock(&task->lock);
 }
 
-/* must hold the parent's lock */
+/*
+ * The caller holds the parent's lock where the task hangs among its children;
+ * a task that was never published there is put down without it.
+ */
 void task_put(struct task *task)
 {
 	if (task->state != TASK_EXIT_DEAD && task->state != TASK_INIT)
