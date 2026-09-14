@@ -29,6 +29,14 @@ void __noreturn exit(int status);
 pid_t getpid(void);
 pid_t fork(void);
 
+/*
+ * Start a program as a process of its own. It inherits the caller's open
+ * files and working directory, but unlike fork none of the caller's memory
+ * is copied, so this works where a process cannot be duplicated.
+ */
+pid_t grinch_spawn(const char *pathname, char *const argv[],
+		   char *const envp[]);
+
 int execve(const char *pathname, char *const argv[], char *const envp[]);
 
 int nanosleep(const struct timespec *req, struct timespec *rem);

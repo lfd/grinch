@@ -35,13 +35,9 @@ static pid_t start_background(const char *path, char *const argv[], bool wait)
 
 	printf("Starting %s\n", path);
 	err = 0;
-	child = fork();
-	if (child == 0) {
-		err = execve(path, argv, envp);
-		perror("execve");
-		exit(-errno);
-	} else if (child == -1) {
-		perror("fork");
+	child = grinch_spawn(path, argv, envp);
+	if (child == -1) {
+		perror(path);
 		return -errno;
 	}
 

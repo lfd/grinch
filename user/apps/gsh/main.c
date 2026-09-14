@@ -158,13 +158,9 @@ static int start(const char *cmd, char *argv[], char *env[])
 	pid_t child;
 	int wstatus;
 
-	child = fork();
-	if (child == 0) {
-		execve(cmd, argv, env);
-		perror("execve");
-		return -errno;
-	} else if (child == -1) {
-		perror("fork");
+	child = grinch_spawn(cmd, argv, env);
+	if (child == -1) {
+		perror(cmd);
 		return -errno;
 	}
 

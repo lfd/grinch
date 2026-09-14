@@ -34,6 +34,12 @@ pid_t fork(void)
 	return syscall(SYS_fork);
 }
 
+pid_t grinch_spawn(const char *pathname, char *const argv[],
+		   char *const envp[])
+{
+	return syscall(SYS_grinch_spawn, pathname, argv, envp);
+}
+
 pid_t getpid(void)
 {
 	return syscall(SYS_getpid);
