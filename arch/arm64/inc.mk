@@ -6,7 +6,7 @@ CFLAGS_ARCH = -mgeneral-regs-only
 LDFLAGS_ARCH =
 
 # Route the early debug console through the QEMU semihosting interface
-ifeq ($(CONFIG_ARM64_SEMIHOSTING),1)
+ifeq ($(CONFIG_ARM64_SEMIHOSTING), y)
 QEMU_ARGS_SEMIHOSTING = -semihosting
 endif
 

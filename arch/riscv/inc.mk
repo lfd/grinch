@@ -10,7 +10,7 @@ XLEN = 32
 CFLAGS_ARCH = -mabi=ilp32
 endif
 
-ifeq ($(CONFIG_RISCV_COMPRESSED), 1)
+ifeq ($(CONFIG_RISCV_COMPRESSED), y)
 march_c := c
 endif
 
@@ -42,7 +42,7 @@ ARCH_OBJS+=stackdump.o
 ARCH_OBJS+=task.o
 ARCH_OBJS+=timer.o
 ARCH_OBJS+=traps.o
-ifeq ($(CONFIG_VMM), 1)
+ifeq ($(CONFIG_VMM), y)
 ARCH_OBJS+=vmm/vmm.o
 ARCH_OBJS+=vmm/vmm_ecall.o
 endif

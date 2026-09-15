@@ -20,9 +20,9 @@
 #include <grinch/compiler_attributes.h>
 #include <grinch/types.h>
 
-#if CONFIG_ARCH_RISCV == 32 /* rv32 */
+#ifdef CONFIG_ARCH_RISCV32
 #define REG_FMT_PFX	"08"
-#elif CONFIG_ARCH_RISCV == 64 /* rv64 */
+#elif CONFIG_ARCH_RISCV64
 #define REG_FMT_PFX	"016"
 #else
 #error "Unknown RISC-V Architecture"

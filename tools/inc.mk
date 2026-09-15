@@ -3,7 +3,7 @@ TOOLS=tools/dump_layout tools/gcov_extract
 OBJ_DIRS += $(dir $(TOOLS))
 
 CFLAGS_TOOLS = $(CFLAGS_COMMON)
-ifeq ($(CONFIG_TOOLS_DEBUG), 1)
+ifeq ($(CONFIG_TOOLS_DEBUG), y)
 CFLAGS_TOOLS += -ggdb
 endif
 

@@ -13,7 +13,7 @@
 #ifndef __ARCH_LIBGCC_H
 #define __ARCH_LIBGCC_H
 
-#if CONFIG_ARCH_RISCV == 32
+#ifdef CONFIG_ARCH_RISCV32
 
 #include <grinch/compiler_attributes.h>
 
@@ -35,6 +35,6 @@ unsigned long long __weak __lshrdi3(unsigned long long u, int b)
 	       ((lo >> b) | (hi << (32 - b)));
 }
 
-#endif /* CONFIG_ARCH_RISCV == 32 */
+#endif /* CONFIG_ARCH_RISCV32 */
 
 #endif /* __ARCH_LIBGCC_H */

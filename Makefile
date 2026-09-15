@@ -55,12 +55,24 @@ objtree := $(CURDIR)
 VPATH := $(srctree)
 
 config_mk := $(objtree)/config.mk
+
+no_config_goals := clean mrproper oldconfig defconfig %_defconfig menuconfig help test
+goals := $(or $(MAKECMDGOALS),all)
+
+# Building regenerates config.mk below and includes it there. Reading it here
+# too would keep stale values, as a re-include cannot unset what the new file
+# omits. Take only ARCH, needed before generation. Other goals do not
+# regenerate and read the file as it stands.
+ifeq ($(filter-out $(no_config_goals),$(goals)),)
 -include $(config_mk)
+else
+config_arch := $(shell sed -n 's/^ARCH=//p' $(config_mk) 2>/dev/null)
+endif
 
 # config.mk is the source of truth once written; reject config tunables on
 # the command line (CROSS_COMPILE, V=, QEMU_* are still fine).
 ifneq ($(wildcard $(config_mk)),)
-ifeq ($(filter defconfig,$(MAKECMDGOALS)),)
+ifeq ($(filter defconfig %_defconfig,$(MAKECMDGOALS)),)
 _config_overrides := $(filter ARCH=% PLATFORM=% OPT=% CONFIG_%,$(MAKEOVERRIDES))
 ifneq ($(_config_overrides),)
 $(error config.mk is locked; run 'make defconfig' to reconfigure. Refusing: $(_config_overrides))
@@ -68,11 +80,11 @@ endif
 endif
 endif
 
-ARCH ?= riscv64
+ARCH ?= $(or $(config_arch),riscv64)
 
 # Architecture identification. Sets ARCH_SUPER/ARCH_DIR -- used below to
-# locate the arch config.toml and sources -- and per-arch flags. Needs only
-# ARCH, so it runs before config generation.
+# locate the arch sources -- and per-arch flags. Needs only ARCH, so it runs
+# before config generation.
 ifeq ($(ARCH),riscv64)
 ARCH_SUPER = riscv
 UBOOT_ARCH = riscv
@@ -99,20 +111,18 @@ config_h      := $(generated_dir)/config.h
 version_h     := $(generated_dir)/version.h
 compile_h     := $(generated_dir)/compile.h
 
-# Generate config.mk and config.h from the config.toml declarations.
-config_gen = $(PYTHON) $(srctree)/scripts/config.py \
-             --arch $(ARCH) \
-             --config-mk $(config_mk) \
-             --config-h $(objtree)/$(config_h)
+# Generates config.mk and config.h from the gConfig declarations; takes the
+# command to run (oldconfig, defconfig, menuconfig) as its last argument.
+gconfig = $(PYTHON) $(srctree)/scripts/gconfig.py \
+          --config-mk $(config_mk) \
+          --config-h $(objtree)/$(config_h)
 
 # Seed a fresh config.mk from command-line tunables (ignored when config.mk
-# already exists; config.py only applies --set for keys not yet present).
-config_gen += $(foreach ov,$(MAKEOVERRIDES),--set $(ov))
+# already exists; --set only applies to keys not yet present).
+gconfig += $(foreach ov,$(MAKEOVERRIDES),--set $(ov))
 
-no_config_goals := clean mrproper defconfig help test
-goals := $(or $(MAKECMDGOALS),all)
 ifneq ($(filter-out $(no_config_goals),$(goals)),)
-$(if $(shell $(config_gen)),$(info [GEN]   config))
+$(if $(shell $(gconfig) oldconfig),$(info [GEN]   config))
 -include $(config_mk)
 endif
 
@@ -155,14 +165,29 @@ endif
 
 AFLAGS_COMMON=-D__ASSEMBLY__
 
-CFLAGS_STANDALONE=-nostdinc -ffreestanding -g -ggdb
-ifeq ($(CONFIG_INITCONST_STR), 1)
+CFLAGS_STANDALONE=-nostdinc -ffreestanding
+ifeq ($(CONFIG_DEBUG), y)
+CFLAGS_STANDALONE += -g -ggdb
+endif
+ifeq ($(CONFIG_INITCONST_STR), y)
 CFLAGS_STANDALONE += -Wno-format-security
 else
 CFLAGS_STANDALONE += -Wformat-security
 endif
 
-CFLAGS_COMMON=$(OPT) \
+ifeq ($(OPT),none)
+OPT_FLAG := -O0
+else ifeq ($(OPT),speed)
+OPT_FLAG := -O2
+else ifeq ($(OPT),size)
+OPT_FLAG := -Os
+else ifeq ($(OPT),release)
+OPT_FLAG := -O3
+else
+OPT_FLAG := -O0
+endif
+
+CFLAGS_COMMON=$(OPT_FLAG) \
               -fno-strict-aliasing \
               -fno-omit-frame-pointer -fno-stack-protector \
               -ffunction-sections -fdata-sections \
@@ -202,7 +227,7 @@ include $(srctree)/tools/inc.mk
 # went missing mid-build (e.g. 'make clean all').
 $(config_h):
 	$(QUIET) "[GEN]   $@"
-	$(VERBOSE) $(config_gen) >/dev/null
+	$(VERBOSE) $(gconfig) oldconfig >/dev/null
 
 %.bin: %.elf
 	$(QUIET) "[OBJC]  $@"
@@ -262,10 +287,20 @@ $(UBOOT_BIN):
 test:
 	$(srctree)/tests/run.py
 
-.PHONY: defconfig
-defconfig:
+.PHONY: oldconfig defconfig
+oldconfig defconfig:
 	$(QUIET) "[GEN]   $(config_mk)"
-	$(VERBOSE) $(config_gen) --defconfig >/dev/null
+	$(VERBOSE) $(gconfig) $@ >/dev/null
+
+# Seed config.mk from a preset in configs/, then fill in the rest.
+%_defconfig:
+	$(QUIET) "[GEN]   $(config_mk)"
+	$(VERBOSE) cp $(srctree)/configs/$@ $(config_mk)
+	$(VERBOSE) $(gconfig) oldconfig >/dev/null
+
+.PHONY: menuconfig
+menuconfig:
+	$(VERBOSE) $(gconfig) menuconfig
 
 debug: grinch.elf
 	$(GDB) -nx -x $(srctree)/scripts/connect.gdb -x $(srctree)/scripts/debug.gdb

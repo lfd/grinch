@@ -41,10 +41,10 @@ void arch_mm_init(struct mm *mm)
 	page_table_t pt = mm->page_table;
 	unsigned int kernel_index;
 
-#if CONFIG_ARCH_RISCV == 64 /* rv64 */
+#ifdef CONFIG_ARCH_RISCV64
 	/* On SV39, SV48, …: The upper half belongs to the kernel */
 	kernel_index = PTES_PER_PT / 2;
-#elif CONFIG_ARCH_RISCV == 32 /* rv32 */
+#elif CONFIG_ARCH_RISCV32
 	kernel_index = vaddr2vpn((void *)USER_END, 1);
 #endif
 	memcpy(&pt[kernel_index], &kernel_root[kernel_index],

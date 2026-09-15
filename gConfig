@@ -1,0 +1,204 @@
+# Grinch build configuration.
+# Types: const (structural grouping only), bool, int, string.
+# Symbols with 'default' are user-tunable and live in config.mk.
+# Symbols with 'value' are computed from an expression; config.h only.
+
+const CONFIG_ARCH_GROUP "Architecture" {
+
+    string ARCH "Target architecture" {
+        default "riscv64"
+        choices "riscv64" "riscv32" "arm64"
+        header CONFIG_ARCH
+        help "Instruction set architecture to build for. Selects the toolchain prefix and arch-specific sources."
+    }
+
+    string PLATFORM "Target platform/board" {
+        default "virt" if CONFIG_ARCH_ARM64
+        default "any"
+        help "Target platform or board name. Selects platform-specific memory map and peripheral configuration."
+    }
+
+    # Computed arch booleans; header only (not in config.mk).
+    bool CONFIG_ARCH_RISCV64 { value ARCH == "riscv64"  header }
+    bool CONFIG_ARCH_RISCV32 { value ARCH == "riscv32"  header }
+    bool CONFIG_ARCH_RISCV   { value CONFIG_ARCH_RISCV64 || CONFIG_ARCH_RISCV32  header }
+    bool CONFIG_ARCH_ARM64   { value ARCH == "arm64"     header }
+}
+
+const CONFIG_COMPILER "Compiler" {
+
+    string CROSS_COMPILE "Cross-compiler prefix" {
+        default "riscv64-unknown-linux-gnu-" if CONFIG_ARCH_RISCV64
+        default "riscv32-unknown-linux-gnu-" if CONFIG_ARCH_RISCV32
+        default "aarch64-none-elf-"          if CONFIG_ARCH_ARM64
+        help "Prefix for the cross-compiler toolchain (e.g. riscv64-unknown-linux-gnu-)."
+    }
+
+    string OPT "Optimisation level" {
+        default "none"
+        choices "none" "speed" "size" "release"
+        help "Optimisation level: none (-O0), speed (-O2), size (-Os), release (-O3)."
+    }
+}
+
+const CONFIG_FEATURES "Features" {
+
+    bool CONFIG_VMM "Virtual Machine Monitor" {
+        default y
+        depends CONFIG_ARCH_RISCV
+        header
+        help "Include the virtual machine monitor (hypervisor) component."
+    }
+
+    bool CONFIG_DEBUG_OUTPUT "Verbose kernel log output" {
+        default n
+        header
+        help "Enable verbose debug messages in the kernel log."
+    }
+}
+
+const CONFIG_BUILD "Build options" {
+
+    bool CONFIG_DEBUG "GDB debug info (Kernel + Userspace)" {
+        default y
+        header
+        help "Compile kernel and user code with -g -ggdb for source-level debugging."
+    }
+
+    bool CONFIG_TOOLS_DEBUG "GDB debug info (Tools)" {
+        default n
+        help "Compile host-side tools (gcov_extract etc.) with -ggdb for source-level debugging."
+    }
+
+    bool CONFIG_GCOV "Coverage instrumentation" {
+        default n
+        header
+        help "Instrument the kernel with GCC gcov profiling support. Requires the gcov_extract host tool to retrieve counters."
+    }
+
+    bool CONFIG_INITCONST_STR "Move const strings into .init section" {
+        default n
+        header
+        help "Place constant format strings in .init to reclaim memory after boot. Disables -Wformat-security."
+    }
+
+    bool CONFIG_RISCV_COMPRESSED "Compressed instructions" {
+        default y
+        depends CONFIG_ARCH_RISCV
+        header
+        help "Enable the RISC-V C (compressed) extension, reducing code size by ~25%."
+    }
+}
+
+const CONFIG_DRIVERS "Device Drivers" {
+
+    bool CONFIG_PCI "PCI bus support" {
+        default y
+        header
+        help "Enable support for the PCI/PCIe bus. Required for any PCI device driver."
+    }
+
+    bool CONFIG_FB "Framebuffer support" {
+        default y
+        help "Enable the framebuffer subsystem."
+
+        bool BOCHS "Bochs/QEMU GPU" {
+            default y
+            depends CONFIG_FB && CONFIG_PCI
+            help "Driver for the Bochs dispi VGA adapter, used as the GPU in QEMU."
+        }
+    }
+
+    bool CONFIG_UART "UART Drivers" {
+        default y
+        help "Enable serial console support. At least one UART driver must also be selected."
+
+        bool 8250 "8250/16550 UART" {
+            default y
+            depends CONFIG_UART
+            help "Driver for the classic 8250/16550 UART, present on QEMU virt and most PC-derived platforms."
+        }
+
+        bool APBUART "GRLIB APBUART" {
+            default n
+            depends CONFIG_UART && CONFIG_ARCH_RISCV
+            help "Driver for the GRLIB APBUART found in LEON-based FPGA SoCs."
+        }
+
+        bool LITEUART "LiteUART (LiteX)" {
+            default n
+            depends CONFIG_UART && CONFIG_ARCH_RISCV
+            help "Driver for the LiteUART core from the LiteX SoC framework."
+        }
+
+        bool UARTLITE "AXI UART Lite" {
+            default y if CONFIG_ARCH_RISCV
+            default n
+            depends CONFIG_UART && CONFIG_ARCH_RISCV
+            help "Driver for the Xilinx AXI UART Lite, common on Xilinx/AMD FPGA designs."
+        }
+
+        bool PL011 "PL011 UART" {
+            default y if CONFIG_ARCH_ARM64
+            default n
+            depends CONFIG_UART && CONFIG_ARCH_ARM64
+            help "Driver for the ARM PrimeCell PL011 UART, used on ARM platforms and QEMU virt."
+        }
+    }
+
+    bool CONFIG_SBI_TTY "SBI TTY device" {
+        default y
+        depends CONFIG_ARCH_RISCV
+        help "Character device providing console I/O via the RISC-V SBI console interface."
+    }
+
+    const CONFIG_IRQ_DRIVERS "Interrupt controllers" {
+
+        bool CONFIG_IRQ_XPLIC "RISC-V XPLIC" {
+            default y
+            depends CONFIG_ARCH_RISCV
+            help "Shared detection and initialisation layer for RISC-V interrupt controllers."
+        }
+
+        bool CONFIG_IRQ_APLIC "RISC-V APLIC" {
+            default y
+            depends CONFIG_IRQ_XPLIC
+            help "Support for the RISC-V Advanced Platform-Level Interrupt Controller (APLIC), defined in the RISC-V AIA specification."
+        }
+
+        bool CONFIG_IRQ_PLIC "RISC-V PLIC" {
+            default y
+            depends CONFIG_IRQ_XPLIC
+            help "Support for the RISC-V Platform-Level Interrupt Controller (PLIC), the standard external interrupt controller for RISC-V systems."
+        }
+
+        bool CONFIG_IRQ_GIC_V2 "ARM GICv2" {
+            default y
+            depends CONFIG_ARCH_ARM64
+            help "Driver for the ARM Generic Interrupt Controller version 2 (GICv2)."
+        }
+    }
+}
+
+const CONFIG_QEMU "QEMU runtime" {
+
+    int QEMU_CPUS "Number of guest CPUs" {
+        default 2
+        help "Number of virtual CPUs to pass to QEMU via -smp."
+    }
+
+    string QEMU_APPEND "Extra kernel command line" {
+        default ""
+        help "Additional arguments appended to the kernel command line when running under QEMU."
+    }
+
+    string QEMU_DISPLAY "QEMU display backend" {
+        default "none"
+        help "QEMU display backend (none, sdl, gtk, ...)."
+    }
+
+    string QEMU_SERIAL "QEMU serial backend" {
+        default "stdio"
+        help "QEMU serial backend (stdio, telnet::4321, ...)."
+    }
+}

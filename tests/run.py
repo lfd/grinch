@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0
-"""Build- and boot-test grinch across the arch x opt x feature matrix.
+"""Build- and boot-test grinch across every checked-in preset and -O level.
 
-For every variant we build out-of-tree under ``$outdir/<variant>/build``,
-then spawn a fresh QEMU per registered test and drive its serial line
+A variant is one preset from ``configs/`` at one optimisation level. We seed
+``$outdir/<variant>/build/config.mk`` from the preset and let the build fill in
+the rest, then spawn a fresh QEMU per registered test and drive its serial line
 over a TCP socket. Per-test transcripts land in ``$outdir/<variant>/log/``.
 A pass/fail table is printed on exit.
 """
@@ -30,44 +31,45 @@ SRCTREE = Path(__file__).resolve().parent.parent
 # Matrix
 # ---------------------------------------------------------------------------
 
-ARCHES = ('riscv64', 'riscv32', 'arm64')
-OPTS   = ('-O0', '-O1', '-O2', '-Os', '-O3')
-CPUS   = (1, 2, 4)
-
-# Feature -> extra make flags that switch it on. 'plain' is the
-# baseline without optional features.
-FEATURE_FLAGS = {
-    'plain':     ('CONFIG_VMM=0',),
-    'vmm':       ('CONFIG_VMM=1',),
-    'gcov':      ('CONFIG_GCOV=1',),
-    'debug':     ('CONFIG_DEBUG_OUTPUT=1',),
-    'initconst': ('CONFIG_INITCONST_STR=1',),
-}
+CONFIGS = SRCTREE / 'configs'
+SUFFIX  = '_defconfig'
+OPTS    = ('none', 'speed', 'size', 'release')
+CPUS    = (1, 2, 4)
 
 # Variant names to skip entirely.
 EXCLUDE = ()
 
 
+def read_config(path):
+    """Parse a preset or a generated config.mk into a plain dict."""
+    values = {}
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if line and not line.startswith('#') and '=' in line:
+            k, _, v = line.partition('=')
+            values[k.strip()] = v.strip()
+    return values
+
+
 @dataclass(frozen=True)
 class Variant:
-    arch: str
+    preset: str         # preset name without the _defconfig suffix
     opt: str
-    feature: str
 
     @property
     def name(self):
-        return f'{self.arch}-{self.opt[1:]}-{self.feature}'
+        return f'{self.preset}-{self.opt}'
 
     @property
-    def make_flags(self):
-        return (f'ARCH={self.arch}', f'OPT={self.opt}',
-                *FEATURE_FLAGS[self.feature])
+    def stub(self):
+        """What config.mk starts as; oldconfig derives everything else."""
+        return {**read_config(CONFIGS / f'{self.preset}{SUFFIX}'), 'OPT': self.opt}
 
 
 def all_variants():
-    return [Variant(a, o, f)
-            for a in ARCHES for o in OPTS for f in FEATURE_FLAGS
-            if Variant(a, o, f).name not in EXCLUDE]
+    presets = sorted(p.name[:-len(SUFFIX)] for p in CONFIGS.glob(f'*{SUFFIX}'))
+    return [Variant(p, o) for p in presets for o in OPTS
+            if Variant(p, o).name not in EXCLUDE]
 
 
 # ---------------------------------------------------------------------------
@@ -252,7 +254,7 @@ class Qemu:
 class Test:
     name: str
     fn: object          # callable(Qemu) -> None
-    requires: dict      # optional {'arch','opt','feature'} filter
+    requires: dict      # config symbol -> required value
 
 
 TESTS = []
@@ -261,8 +263,8 @@ TESTS = []
 def test(name, **requires):
     """Register the decorated function as a test.
 
-    Optional keyword filters restrict the test to matching variants,
-    e.g. ``@test('smp', arch='riscv64')`` skips it on riscv32.
+    Optional keyword filters name config symbols the variant has to match,
+    e.g. ``@test('vm', CONFIG_VMM='y')`` skips it wherever the VMM is off.
     """
     def register(fn):
         TESTS.append(Test(name, fn, requires))
@@ -270,11 +272,8 @@ def test(name, **requires):
     return register
 
 
-def test_applies_to(t, v):
-    for key in ('arch', 'opt', 'feature'):
-        if key in t.requires and getattr(v, key) != t.requires[key]:
-            return False
-    return True
+def test_applies_to(t, config):
+    return all(config.get(k, '') == v for k, v in t.requires.items())
 
 
 # ---------------------------------------------------------------------------
@@ -377,7 +376,7 @@ def _schedtest(q):
 
 # TODO: Enable once jittertest can be made to return (see project TODO —
 # pass argv to init= so a finite run count can be configured).
-# @test('vm', arch='riscv64', feature='vmm')
+# @test('vm', CONFIG_VMM='y')
 # def _vm(q):
 #     q.expect(PROMPT)
 #     q.send('vm')
@@ -436,8 +435,12 @@ def alarm(seconds):
 
 def build(v, build_dir, log_dir, jobs, verbose):
     log_dir.mkdir(parents=True, exist_ok=True)
-    cmd = ['make', '-C', str(SRCTREE), f'O={build_dir}',
-           *v.make_flags, f'-j{jobs}']
+    # Seed config.mk from the preset. Nothing goes on the make command line:
+    # config.mk is the source of truth and rejects tunables once it exists.
+    build_dir.mkdir(parents=True, exist_ok=True)
+    (build_dir / 'config.mk').write_text(
+        ''.join(f'{k}={val}\n' for k, val in v.stub.items()))
+    cmd = ['make', '-C', str(SRCTREE), f'O={build_dir}', f'-j{jobs}']
     if verbose >= 2:
         cmd.append('V=1')
     if verbose >= 1:
@@ -469,7 +472,8 @@ def dump_log(log_path):
 
 def run_tests(v, build_dir, log_dir, *, cpus, stop, verbose, tests=None):
     r = Result()
-    applicable = [t for t in TESTS if test_applies_to(t, v)]
+    config = read_config(build_dir / 'config.mk')
+    applicable = [t for t in TESTS if test_applies_to(t, config)]
     if tests:
         applicable = [t for t in applicable if t.name in tests]
     r.skipped = len(TESTS) - len(applicable)
@@ -586,8 +590,6 @@ def main():
         build_dir = outdir / v.name / 'build'
         log_dir   = outdir / v.name / 'log'
         log_dir.mkdir(parents=True, exist_ok=True)
-        (outdir / v.name / 'variant.env').write_text(
-            f'ARCH={v.arch}\nOPT={v.opt}\nFEATURE={v.feature}\n')
 
         vr = VariantResult()
         results[v.name] = vr

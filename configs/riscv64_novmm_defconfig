@@ -1,0 +1,2 @@
+ARCH=riscv64
+CONFIG_VMM=

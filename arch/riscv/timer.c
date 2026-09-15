@@ -32,9 +32,9 @@ static __initdata int _err;
 
 static inline timeu_t get_time(void)
 {
-#if CONFIG_ARCH_RISCV == 64 /* rv64 */
+#ifdef CONFIG_ARCH_RISCV64
 	return csr_read(time);
-#elif CONFIG_ARCH_RISCV == 32 /* rv32 */
+#elif CONFIG_ARCH_RISCV32
 	u32 hi, lo;
 	do {
 		hi = csr_read(timeh);

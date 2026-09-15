@@ -13,9 +13,9 @@
 #ifndef _ARCH_PAGING_H
 #define _ARCH_PAGING_H
 
-#if CONFIG_ARCH_RISCV == 32
+#ifdef CONFIG_ARCH_RISCV32
 #define VPN_SHIFT		10
-#elif CONFIG_ARCH_RISCV == 64
+#elif CONFIG_ARCH_RISCV64
 #define VPN_SHIFT		9
 #endif
 

@@ -57,7 +57,7 @@ sv## NAME ##_vpn## LEVEL ##_get_entry(page_table_t pt,		\
 
 DEF_GET_ENTRY(X, 0, false)
 DEF_GET_ENTRY(X, 1, false)
-#if CONFIG_ARCH_RISCV == 64 /* rv64 */
+#ifdef CONFIG_ARCH_RISCV64
 DEF_GET_ENTRY(X, 2, false)
 DEF_GET_ENTRY(X, 3, false)
 #endif
@@ -91,7 +91,7 @@ svX_vpn## LEVEL ##_get_phys (pt_entry_t pte, unsigned long virt)\
 
 DEF_GET_PHYS(0)
 DEF_GET_PHYS(1)
-#if CONFIG_ARCH_RISCV == 64 /* rv64 */
+#ifdef CONFIG_ARCH_RISCV64
 DEF_GET_PHYS(2)
 DEF_GET_PHYS(3)
 #endif
@@ -150,7 +150,7 @@ static bool svX_page_table_empty(page_table_t page_table)
 		.page_table_empty = svX_page_table_empty,	\
 	}
 
-#if CONFIG_ARCH_RISCV == 64
+#ifdef CONFIG_ARCH_RISCV64
 /* sequence is from root to leaves */
 static const struct paging riscv_Sv39[] = {
 	RISCV_SVX_PAGING_LEVEL(2),
@@ -191,7 +191,7 @@ static bool svXx4_root_page_table_empty(page_table_t page_table)
 	return _svX_page_table_empty(page_table, 2 << (2 + PAGE_LEVEL_BITS));
 }
 
-#if CONFIG_ARCH_RISCV == 32
+#ifdef CONFIG_ARCH_RISCV32
 #define sv32x4_vpn0_get_entry	svX_vpn0_get_entry
 #define sv32x4_vpn0_get_phys	svX_vpn0_get_phys
 
@@ -210,7 +210,7 @@ static const struct paging riscv_Sv32[] = {
 };
 #endif
 
-#if CONFIG_ARCH_RISCV == 64
+#ifdef CONFIG_ARCH_RISCV64
 /*** sv39x ***/
 /* 4K*2 for level 2 */
 DEF_GET_ENTRY(39x4, 2, true)
@@ -254,7 +254,7 @@ void __init arch_paging_init(void)
 {
 	unsigned long old;
 
-#if CONFIG_ARCH_RISCV == 64 /* rv64 */
+#ifdef CONFIG_ARCH_RISCV64
 	/* SV39 should suffice for everything */
 	if (1) {
 		root_paging = riscv_Sv39;
@@ -269,7 +269,7 @@ void __init arch_paging_init(void)
 		vm_paging = riscv_Sv48x4;
 		hgatp_mode = SATP_MODE_48;
 	}
-#elif CONFIG_ARCH_RISCV == 32 /* rv32 */
+#elif CONFIG_ARCH_RISCV32
 	root_paging = riscv_Sv32;
 	satp_mode = SATP_MODE_32;
 

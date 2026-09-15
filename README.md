@@ -114,17 +114,40 @@ itself as virtual machine).
 
 ### Configuration
 
-Build configuration lives in `config.mk` in the build directory. On the first
-invocation (or after `make defconfig`), configuration tunables passed on the
-command line seed `config.mk`:
+Options are declared in the `gConfig` file at the top of the source tree. Their
+values live in `config.mk` in the build directory, and `config.h` is derived
+from them and included into every translation unit.
 
-    make O=build ARCH=riscv32 OPT=-O2 CONFIG_DEBUG_OUTPUT=1
+On the first invocation (or after `make defconfig`), configuration tunables
+passed on the command line seed `config.mk`:
+
+    make O=build ARCH=riscv32 OPT=speed CONFIG_DEBUG_OUTPUT=y
+
+`OPT` selects an optimisation level by name: `none` (`-O0`), `speed` (`-O2`),
+`size` (`-Os`) or `release` (`-O3`).
 
 Once `config.mk` exists it is the source of truth and passing configuration
 tunables (`ARCH`, `PLATFORM`, `OPT`, `CONFIG_*`) on the command line is
-rejected. Edit `config.mk` directly to change a setting, or run `make defconfig`
-to reset to defaults (optionally seeding new values on the same command line).
-`make mrproper` discards `config.mk` along with all build output.
+rejected. To change a setting afterwards:
+
+    make menuconfig    # edit interactively
+    make oldconfig     # keep the values, pick up newly declared options
+    make defconfig     # reset everything to its default
+
+Editing `config.mk` by hand works as well. `make defconfig` optionally seeds new
+values from the same command line. `make mrproper` discards `config.mk` along
+with all build output.
+
+Presets for the configurations that are regularly built live in `configs/`. Each
+holds only the values that define it, so everything else follows its default.
+Apply one by name:
+
+    make riscv32_defconfig
+    make riscv64_gcov_defconfig
+
+A value that no default could have produced counts as a deliberate override and
+stays. Everything else follows its default, so changing `ARCH` switches
+`CROSS_COMPILE`, `PLATFORM` and the driver selection along with it.
 
 `V=1` and `QEMU_*` variables are always accepted on the command line regardless
 of whether `config.mk` exists.
@@ -201,13 +224,20 @@ Automated tests drive QEMU from Python over a TCP serial socket, with
 the HMP monitor used for guaranteed shutdown. `tests/run.py` builds
 each variant, runs the applicable tests, and prints a summary table.
 
+A variant is one preset from `configs/` at one optimisation level, named
+`<preset>-<opt>`. Adding a preset therefore adds coverage without touching
+the test runner.
+
 To run everything:
 
     ./tests/run.py
 
 To build and run a single variant:
 
-    ./tests/run.py riscv64-O0-plain
+    ./tests/run.py riscv64-speed
+
+Variant names are globs, so `./tests/run.py 'riscv32-*'` covers one preset
+across all optimisation levels.
 
 To build all variants without running tests:
 

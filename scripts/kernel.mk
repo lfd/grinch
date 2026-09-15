@@ -31,7 +31,7 @@ CFLAGS_KERNEL = $(CFLAGS_KERNEL_COMMON)
 LDFLAGS_KERNEL = $(LDFLAGS_COMMON) $(LDFLAGS_ARCH)
 AFLAGS_KERNEL = $(AFLAGS_COMMON)
 
-ifeq ($(CONFIG_GCOV), 1)
+ifeq ($(CONFIG_GCOV), y)
     CFLAGS_KERNEL += -fprofile-arcs -ftest-coverage
     ifdef ARCH_RISCV64
         CFLAGS_KERNEL += -fprofile-update=atomic

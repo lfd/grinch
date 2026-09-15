@@ -24,9 +24,9 @@ riscv_isa_t riscv_isa;
 static riscv_isa_t
 riscv_parse_isa_token(unsigned long hart_id, const char *token)
 {
-#if CONFIG_ARCH_RISCV == 64
+#ifdef CONFIG_ARCH_RISCV64
 	if (!strncmp(token, "rv64", 4)) {
-#elif CONFIG_ARCH_RISCV == 32
+#elif CONFIG_ARCH_RISCV32
 	if (!strncmp(token, "rv32", 4)) {
 #endif
 		if (strchr(token, 'h')) {
