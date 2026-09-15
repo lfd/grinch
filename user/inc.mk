@@ -161,6 +161,6 @@ user/initrd.cpio: $(USER_APPS) $(IMAGES) $(srctree)/res/test.txt $(INITRD_EXTRAS
 clean_user: $(patsubst %,clean_%,$(APPS))
 	$(call clean_objects,user/libc,$(LIBC_OBJS))
 	$(call clean_objects,user/libgrinch,$(LIBGRINCH_OBJS))
-	$(call clean_files,user,user/user.ld user/initrd.cpio $(USER_APPS))
+	$(call clean_files,user,user/user.ld user/user.ld.d user/initrd.cpio $(USER_APPS))
 	$(call clean_dir,$(DIR_USER_BINARIES))
 	$(call clean_files,res,$(IMAGES))

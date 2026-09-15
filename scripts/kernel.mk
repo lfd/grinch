@@ -49,9 +49,9 @@ GENERATED = $(ASM_DEFINES) $(config_h) $(version_h) $(compile_h)
 	$(QUIET) "[CC/AS] $@"
 	$(VERBOSE) $(CC) -c $(AFLAGS_KERNEL) $(CFLAGS_KERNEL) $(DEPFLAGS) -o $@ $<
 
-%.ld: %.ld.S
+%.ld: %.ld.S | $(GENERATED)
 	$(QUIET) "[CC/AS] $@"
-	$(VERBOSE) $(CC) $(CFLAGS_KERNEL) $(AFLAGS_KERNEL) -DLINKER_SCRIPT -E -o $@ $^
+	$(VERBOSE) $(CC) $(CFLAGS_KERNEL) $(AFLAGS_KERNEL) $(DEPFLAGS) -MT $@ -MF $@.d -DLINKER_SCRIPT -E -o $@ $<
 	$(VERBOSE) sed -e '/^#/d' -i $@
 
 $(ASM_DEFINES): $(ARCH_DIR)/asm_defines.S
