@@ -13,7 +13,6 @@
 #ifndef _ARCH_PAGING_H
 #define _ARCH_PAGING_H
 
-#define PAGE_SHIFT		12
 #define MEGA_PAGE_SHIFT 	(PAGE_SHIFT + 9)
 
 #endif /* _ARCH_PAGING_H */

@@ -19,6 +19,7 @@
 
 #define PMASK(X)	(~((X) - 1))
 
+#define PAGE_SHIFT		CONFIG_PAGE_SHIFT
 #define PAGE_SIZE		_BITUL(PAGE_SHIFT)
 #define PAGE_MASK		PMASK(PAGE_SIZE)
 #define PAGE_OFFS_MASK		(~PAGE_MASK)

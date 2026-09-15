@@ -23,6 +23,10 @@ const CONFIG_ARCH_GROUP "Architecture" {
     bool CONFIG_ARCH_RISCV32 { value ARCH == "riscv32"  header }
     bool CONFIG_ARCH_RISCV   { value CONFIG_ARCH_RISCV64 || CONFIG_ARCH_RISCV32  header }
     bool CONFIG_ARCH_ARM64   { value ARCH == "arm64"     header }
+
+    # 4K pages on every architecture we have.
+    int CONFIG_PAGE_SHIFT { value 12  header  base dec }
+    int PAGE_SIZE { value 1 << CONFIG_PAGE_SHIFT }
 }
 
 const CONFIG_COMPILER "Compiler" {

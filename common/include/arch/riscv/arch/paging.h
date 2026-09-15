@@ -21,7 +21,6 @@
 
 #define VPN_MASK		((1UL << VPN_SHIFT) - 1)
 
-#define PAGE_SHIFT		12
 #define MEGA_PAGE_SHIFT 	(PAGE_SHIFT + VPN_SHIFT)
 
 #endif /* _ARCH_PAGING_H */
