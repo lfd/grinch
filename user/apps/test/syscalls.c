@@ -30,10 +30,10 @@ static int test_fork(void)
 	for (i = 0; i < NO_FORKS; i++) {
 		child = fork();
 		if (child == 0) {
-			err = execve("/initrd/bin/true", NULL, NULL);
+			execve("/initrd/bin/true", NULL, NULL);
+			/* A child that did not become the program must not go on */
 			perror("execve");
-			failed = true;
-			break;
+			exit(-errno);
 		} else if (child == -1) {
 			perror("fork!");
 			failed = true;
