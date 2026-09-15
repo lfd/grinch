@@ -143,6 +143,13 @@ static int elf_check_bounds(const Elf_Ehdr *ehdr, size_t len)
 	if (ehdr->e_phentsize != sizeof(*phdr))
 		return -EINVAL;
 
+	/*
+	 * The table is walked in place, so it must lie as the walk reads it:
+	 * a misaligned load is the firmware's mercy at best, a trap at worst.
+	 */
+	if (!IS_ALIGNED(ehdr->e_phoff, __alignof__(*phdr)))
+		return -EINVAL;
+
 	if (!elf_within(0, len, ehdr->e_phoff,
 			(size_t)ehdr->e_phnum * sizeof(*phdr)))
 		return -EINVAL;
