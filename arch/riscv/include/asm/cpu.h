@@ -75,6 +75,12 @@ struct trap_context {
 	unsigned long hstatus;
 };
 
+/* Whether the trap came from the level below us, which is where a task runs. */
+static inline bool trap_from_umode(struct trap_context *ctx)
+{
+	return !(ctx->status & SR_PP);
+}
+
 static inline void regs_set_retval(struct registers *r, unsigned long val)
 {
 	r->a0 = val;

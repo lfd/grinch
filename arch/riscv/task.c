@@ -61,8 +61,11 @@ void arch_process_activate(struct process *process)
 	if (has_hypervisor())
 		csr_write(CSR_HSTATUS, 0);
 
-	/* Ensure that we return to U-Mode */
-	csr_clear(CSR_STATUS, SR_PP);
+	/* Return to the level a task runs in: user mode, or ours if it has none */
+	if (riscv_have_umode)
+		csr_clear(CSR_STATUS, SR_PP);
+	else
+		csr_set(CSR_STATUS, SR_PP);
 
 #ifdef CONFIG_MMU
 	switch_mmu_satp(process->mm.asid, v2p(process->mm.page_table));

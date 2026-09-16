@@ -12,6 +12,7 @@
 
 #include <asm/firmware.h>
 #include <asm/irq.h>
+#include <asm/isa.h>
 
 #include <grinch/cpu.h>
 #include <grinch/irqchip.h>
@@ -84,12 +85,23 @@ void dump_regs(struct registers *a)
 void dump_exception(struct trap_context *ctx)
 {
 	const char *cause_str = "UNKNOWN";
+	bool from_task;
 
 	if (ctx->cause <= 23)
 		cause_str = causes[ctx->cause];
 	pr("FATAL: Exception on CPU %lu. Cause: %lu (%s)\n",
 	   this_cpu_id(), to_irq(ctx->cause), cause_str);
-	if (!(ctx->status & SR_PP))
+
+	/*
+	 * Where a task runs in machine mode, the level the trap came from no
+	 * longer tells it apart from the kernel: go by whether there is a task.
+	 */
+	if (riscv_have_umode)
+		from_task = trap_from_umode(ctx);
+	else
+		from_task = current_task() != NULL;
+
+	if (from_task)
 		pr("Active PID: %u\n", current_task()->pid);
 }
 

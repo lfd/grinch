@@ -23,6 +23,21 @@
 void arch_handle_exception(struct registers *regs, u64 cause);
 void arch_handle_irq(struct registers *regs, u64 cause);
 
+/*
+ * Did the trap interrupt a task, rather than the kernel itself? Where there is
+ * a user mode, the level the trap came from says it. Where there is not, a task
+ * runs in machine mode just like us, so ask the same question entry.S asks:
+ * only the frame at the top of the per-CPU stack belongs to a context of its
+ * own. A trap taken in the kernel lands on a nested frame deeper down.
+ */
+static bool trap_from_task(struct registers *regs, struct trap_context *ctx)
+{
+	if (!riscv_have_umode)
+		return regs == &this_per_cpu()->stack.regs;
+
+	return trap_from_umode(ctx);
+}
+
 static void handle_syscall(void)
 {
 	struct registers *regs;
@@ -108,7 +123,7 @@ void arch_handle_exception(struct registers *regs, u64 cause)
 	}
 
 	err = -EINVAL;
-	if (ctx.status & SR_PP) {
+	if (!trap_from_task(regs, &ctx)) {
 		pr("FATAL: Trap taken from kernel mode\n");
 		goto out;
 	}
@@ -143,6 +158,22 @@ void arch_handle_exception(struct registers *regs, u64 cause)
 			pr("Faulting Address: %p\n", tval);
 			break;
 
+		case EXC_MACHINE_SYSCALL:
+			/*
+			 * A task without a user mode to run in makes its calls
+			 * from machine mode, which the hart reports under its
+			 * own cause. Where there is a user mode, an environment
+			 * call from machine mode is the kernel calling itself,
+			 * and that is a bug rather than a syscall.
+			 *
+			 * FIXME: This is only as trustworthy as the frame check
+			 * in trap_from_task(). A task in machine mode is not
+			 * separated from the kernel at all, so anything it
+			 * passes us it could equally have taken itself.
+			 */
+			if (riscv_have_umode)
+				break;
+			fallthrough;
 		case EXC_SYSCALL:
 			handle_syscall();
 			err = 0;
@@ -165,6 +196,6 @@ out:
 		panic("System halted\n");
 	}
 
-	if (vmtr == VMM_HANDLED || !(ctx.status & SR_PP))
+	if (vmtr == VMM_HANDLED || trap_from_task(regs, &ctx))
 		prepare_user_return();
 }

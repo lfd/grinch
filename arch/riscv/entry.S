@@ -90,6 +90,24 @@ return_from_trap:
 	bne	sp, a0, return_to_kernel
 
 return_to_user:
+#ifdef CONFIG_RISCV_M_MODE
+	/*
+	 * A task on a hart without a user mode runs at the level we run in,
+	 * where CSR_STATUS's interrupt enable governs. The kernel keeps that
+	 * clear and xret hands the saved copy back, so such a task would never
+	 * see a timer tick and never be preempted. Arm the saved copy instead.
+	 *
+	 * FIXME: this lets the task run with interrupts enabled at our own
+	 * level, which is only tolerable because a task that shares our level
+	 * is not separated from us to begin with.
+	 */
+	la	a0, riscv_have_umode
+	lb	a0, 0(a0)
+	bnez	a0, 1f
+	li	a0, SR_PIE
+	csrs	CSR_STATUS, a0
+1:
+#endif
 	/* restore the context's SP, keep the kernel SP in the scratch register */
 	REG_L	a0, REG_SP(sp)
 	/* No preemption must happen from now on */
