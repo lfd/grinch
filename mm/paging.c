@@ -455,6 +455,12 @@ int __init paging_map_kernel(unsigned long this_cpu)
 	if (err)
 		goto out;
 
+	err = map_osmem(root, __bss_start,
+			page_up(__bss_end - __bss_start),
+			GRINCH_MEM_RW);
+	if (err)
+		goto out;
+
 	err = map_osmem(root, __rodata_start,
 			page_up(__rodata_end - __rodata_start),
 			GRINCH_MEM_R);

@@ -22,6 +22,10 @@ PHDRS {
 	text	PT_LOAD FLAGS(PF_R | PF_X);
 	rodata	PT_LOAD FLAGS(PF_R);
 	data	PT_LOAD FLAGS(PF_R | PF_W);
+#ifdef PHDRS_BSS
+	/* Only for images whose bss lies apart from the other writable data. */
+	bss	PT_LOAD FLAGS(PF_R | PF_W);
+#endif
 #ifdef PHDRS_DYNAMIC
 	/* Only a relocatable image carries the table that describes it. */
 	dynamic	PT_DYNAMIC FLAGS(PF_R);

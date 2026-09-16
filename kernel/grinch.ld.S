@@ -11,6 +11,8 @@
  */
 
 #include <arch/asm.h>
+
+#define PHDRS_BSS
 #include <asm-generic/elf.h>
 #include <asm-generic/grinch_layout.h>
 #include <asm-generic/paging.h>
@@ -73,20 +75,10 @@ SECTIONS
 	__rw_data_start = .;
 	.data           : {
 		*(.sdata)
+		*(.sdata.*)
 		*(.data)
+		*(.data.*)
 	} :data
-
-	. = ALIGN(PAGE_SIZE);
-	.bss            : {
-		__bss_start = .;
-		*(.bss)
-		. = ALIGN(8);
-		*(.bss.*)
-		. = ALIGN(8);
-		*(.sbss)
-		. = ALIGN(8);
-	} :data
-	__bss_words = SIZEOF(.bss) / SZREG;
 	__rw_data_end = .;
 
 	. = ALIGN(PAGE_SIZE);
@@ -107,6 +99,25 @@ SECTIONS
 		__dtb_end = .;
 	} :rodata
 	__rodata_end = .;
+
+	/*
+	 * Last, so that it takes no room in the image file: whatever loads the
+	 * file only carries what has content, and the kernel zeroes this
+	 * itself on entry.
+	 */
+	. = ALIGN(PAGE_SIZE);
+	.bss            : {
+		__bss_start = .;
+		*(.bss)
+		. = ALIGN(8);
+		*(.bss.*)
+		. = ALIGN(8);
+		*(.sbss)
+		*(.sbss.*)
+		. = ALIGN(8);
+	} :bss
+	__bss_words = SIZEOF(.bss) / SZREG;
+	__bss_end = .;
 
 	. = ALIGN(PAGE_SIZE);
 
