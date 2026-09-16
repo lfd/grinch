@@ -441,38 +441,68 @@ def active_choices(choices, ctx):
     return result
 
 
-def declared_defaults(sym, ctx):
-    """Every value the symbol's default clauses can yield, ignoring conditions."""
-    out = []
-    for val_expr, _ in sym.fields.get('default', []):
-        # A number keeps the form it was written in, so it still compares
-        # equal to what config.mk carries.
-        if isinstance(val_expr, IntLit):
-            out.append(val_expr.text)
-            continue
-        try:
-            v = eval_expr(val_expr, ctx)
-        except Exception:
-            continue
-        out.append('y' if v is True else '' if v is False else str(v))
-    return out
-
-
 def compute_pinned(ordered, values, ctx, stored, cmdline=()):
     """Collect the symbols that must not follow their default any more.
 
-    A stored value that no default clause could have produced is a user
-    override and is left alone.  Anything else floats, so switching ARCH
-    drags CROSS_COMPILE and the driver selection along with it.
+    A value written down in config.mk is an answer somebody gave, so it is
+    kept as it stands.  Only what was never written follows its default.
+    Menuconfig lets go of an answer again, see Config.set().
     """
-    pinned = set(cmdline)
+    return {sym.flat for sym in ordered
+            if is_tunable(sym) and (sym.flat in stored or sym.flat in cmdline)}
+
+
+def expr_refs(expr, out):
+    """Every symbol an expression names."""
+    if isinstance(expr, SymRef):
+        out.add(expr.name)
+    elif isinstance(expr, BinOp):
+        expr_refs(expr.left, out)
+        expr_refs(expr.right, out)
+    elif isinstance(expr, UnOp):
+        expr_refs(expr.operand, out)
+    return out
+
+
+def symbol_refs(sym):
+    """What a symbol's own value, defaults, choices and depends are keyed on."""
+    out = set()
+    for key in ('value', 'depends'):
+        if key in sym.fields:
+            expr_refs(sym.fields[key], out)
+    for val_expr, cond in sym.fields.get('default', []):
+        expr_refs(val_expr, out)
+        if cond is not None:
+            expr_refs(cond, out)
+    for choice in sym.fields.get('choices') or []:
+        if isinstance(choice, tuple):
+            expr_refs(choice[1], out)
+    return out
+
+
+def build_followers(ordered):
+    """Map a symbol to everything that answers to it, however far along.
+
+    A computed symbol carries the chain further: RISCV_MODE is read by
+    CONFIG_RISCV_M_MODE, which a default of CONFIG_GRINCH_BASE asks for.
+    """
+    direct = {}
     for sym in ordered:
-        # Never written down and not given on the command line: no user intent.
-        if not is_tunable(sym) or sym.flat in pinned or sym.flat not in stored:
-            continue
-        if values.get(sym.flat, '') not in declared_defaults(sym, ctx):
-            pinned.add(sym.flat)
-    return pinned
+        for ref in symbol_refs(sym):
+            direct.setdefault(ref, set()).add(sym.flat)
+
+    followers = {}
+    for flat in direct:
+        seen, todo = set(), list(direct[flat])
+        while todo:
+            other = todo.pop()
+            if other in seen:
+                continue
+            seen.add(other)
+            todo.extend(direct.get(other, ()))
+        seen.discard(flat)
+        followers[flat] = seen
+    return followers
 
 
 def _pass_computed(ordered, ctx):
@@ -630,14 +660,23 @@ class Config:
     values:     dict
     ctx:        dict
     pinned:     set
+    followers:  dict = field(default_factory=dict)
+    answered:   set  = field(default_factory=set)
 
     def settle(self):
         settle(self.ordered, self.values, self.ctx, self.pinned)
 
     def set(self, flat, value):
-        """Record an explicit choice, then let everything unpinned follow it."""
+        """Record an explicit choice, then let what answers to it follow.
+
+        Everything keyed on the symbol goes back to its default, so that
+        choosing machine mode moves the address the kernel is linked at.
+        An answer given here stands, and is not taken back by a later one.
+        """
         self.values[flat] = value
+        self.answered.add(flat)
         self.pinned.add(flat)
+        self.pinned -= self.followers.get(flat, set()) - self.answered
         self.ctx = build_ctx(self.values, self.by_flat)
         self.settle()
 
@@ -666,7 +705,8 @@ def load(config_mk, cmdline=None, defconfig=False):
     settle_computed(ordered, ctx)
 
     cfg = Config(roots, ordered, by_flat, section_of, values, ctx,
-                 compute_pinned(ordered, values, ctx, stored, cmdline))
+                 compute_pinned(ordered, values, ctx, stored, cmdline),
+                 build_followers(ordered))
     cfg.settle()
     return cfg
 
