@@ -81,6 +81,13 @@ SECTIONS
 		*(.sdata.*)
 		*(.data)
 		*(.data.*)
+
+		/*
+		 * Name the tables the linker builds itself, or they land
+		 * behind the end of the data and outside what it maps.
+		 */
+		*(.got)
+		*(.got.*)
 	} :data
 	__rw_data_end = .;
 
