@@ -77,6 +77,13 @@ static struct memory_area memory_areas[2] =
 	    i < ARRAY_SIZE(memory_areas);	\
 	    (IT)++, (AREA)++)
 
+/* Backwards, so that the kernel's own area only serves last. */
+#define for_each_valid_memory_area_reverse(IT, AREA)		\
+	for ((IT) = ARRAY_SIZE(memory_areas); (IT)-- > 0;)	\
+		if (!((AREA) = &memory_areas[(IT)])->valid)	\
+			continue;				\
+		else
+
 /* only used once during initialisation */
 void kmm_set_base(paddr_t pbase);
 
@@ -175,7 +182,7 @@ static int _alloc_pages_aligned(void **res, unsigned int pages,
 
 	err = -EINVAL;
 	off = 0;
-	for_each_valid_memory_area(i, area) {
+	for_each_valid_memory_area_reverse(i, area) {
 		if (!area->v.base)
 			continue;
 
@@ -231,7 +238,7 @@ _phys_pages_alloc(paddr_t *res, size_t pages, unsigned int alignment,
 	int err;
 
 	err = -EINVAL;
-	for_each_valid_memory_area(i, area) {
+	for_each_valid_memory_area_reverse(i, area) {
 		if (hint != INVALID_PHYS_ADDR) {
 			if (p_in_area(area, hint, pages)) {
 				err = memory_area_alloc_aligned(area, &off, pages, alignment, hint);
@@ -378,7 +385,6 @@ static int __init create_memory_area(paddr_t addrp, size_t sizep, void *virt)
 	return -ENOENT;
 
 found_free_area:
-	area->valid = true;
 	spin_unlock(&gfp_lock);
 
 	area->p.base = addrp;
@@ -387,10 +393,8 @@ found_free_area:
 
 	area->bitmap.bitmap = zalloc_pages(
 		PAGES(page_up(bitmap_size(area->bitmap.bit_max))));
-	if (!area->bitmap.bitmap) {
-		err = -ENOMEM;
-		goto err_out;
-	}
+	if (!area->bitmap.bitmap)
+		return -ENOMEM;
 	if (virt) {
 		area->v.base = virt;
 		area->v.end = area->v.base + area->bitmap.bit_max * PAGE_SIZE;
@@ -403,15 +407,12 @@ found_free_area:
 		err = memory_area_alloc_aligned(area, NULL, PAGES(GRINCH_SIZE),
 						PAGE_SIZE, pgrinch);
 		if (err)
-			goto err_out;
+			return err;
 	}
 
+	area->valid = true;
+
 	return 0;
-
-err_out:
-	area->valid = false;
-	return err;
-
 }
 
 static int __init phys_mem_init(struct mmio_area *area)
