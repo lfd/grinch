@@ -113,7 +113,7 @@ int __init fdt_init(paddr_t pfdt)
 	} else if (pfdt) {
 		pri("Using device tree from firmware handover\n");
 		/* be pessimistic and remap 2 MiB */
-		fdt = ioremap(pfdt, MEGA_PAGE_SIZE);
+		fdt = memremap(pfdt, MEGA_PAGE_SIZE);
 		if (IS_ERR(fdt))
 			return PTR_ERR(fdt);
 		mapped = true;
@@ -163,8 +163,8 @@ int __init fdt_init(paddr_t pfdt)
 	return 0;
 
 unmap:
-	if (mapped && iounmap(fdt, MEGA_PAGE_SIZE))
-		pri("iounmap failed\n");
+	if (mapped && memunmap(fdt, MEGA_PAGE_SIZE))
+		pri("memunmap failed\n");
 	return err;
 }
 
