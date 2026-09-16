@@ -485,13 +485,6 @@ int __init paging_map_kernel(unsigned long this_cpu)
 	if (err)
 		goto out;
 
-	/* Map the page pool */
-	err = map_osmem(root, __internal_page_pool_start,
-			internal_page_pool_pages() * PAGE_SIZE,
-			GRINCH_MEM_RW);
-	if (err)
-		goto out;
-
 	arch_paging_enable(this_cpu, root);
 
 	return 0;

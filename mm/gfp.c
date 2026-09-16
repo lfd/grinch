@@ -25,8 +25,13 @@
 #include <grinch/symbols.h>
 #include <grinch/uaccess.h>
 
-#define KMM_PAGES	PAGES(GRINCH_SIZE)
-#define KMM_SIZE	(KMM_PAGES * PAGE_SIZE)
+/*
+ * Pages the kernel sets aside for allocations made before the memory of the
+ * machine is known: early page tables, and the bitmap that will describe
+ * that memory once found.
+ */
+static unsigned char early_pool[CONFIG_EARLY_POOL_PAGES][PAGE_SIZE]
+	__aligned(PAGE_SIZE);
 
 static DEFINE_SPINLOCK(gfp_lock);
 
@@ -45,7 +50,9 @@ struct memory_area {
 
 /*
  * For the moment, we have two areas:
- *   0: Kernel Memory area. Here lives grinch and some free pages.
+ *   0: Kernel Memory area. Here lives grinch, marked as used down to the
+ *      early pool it carries, which serves the few allocations that must
+ *      happen before the memory of the machine is known.
  *   1: Physical Memory. Here lives the whole physical memory. The whole
  *      grinch/KMM area is marked as used here.
  */
@@ -53,14 +60,16 @@ static struct memory_area memory_areas[2] =
 {
 	[0] = {
 		.bitmap = {
-			.bitmap = (unsigned long[BITS_TO_LONGS(KMM_PAGES)]){},
-			.bit_max = KMM_PAGES,
+			.bitmap = (unsigned long[BITS_TO_LONGS(KMM_PAGES_MAX)]){},
+			// bit_max filled during initialisation
 		},
 		.p = {}, // filled during initialisation
 		.v = {
-			.base = (void *)GRINCH_BASE,
-			.end = (void *)GRINCH_BASE + KMM_PAGES * PAGE_SIZE,
+			.base = __start,
+			.end = __percpu_end,
 		},
+		/* Not before its physical range is known. */
+		.valid = false,
 	},
 	[1] = {
 	},
@@ -90,7 +99,6 @@ void kmm_set_base(paddr_t pbase);
 void kmm_set_base(paddr_t pbase)
 {
 	KMM_AREA->p.base = pbase;
-	KMM_AREA->p.end = pbase + KMM_PAGES * PAGE_SIZE;
 }
 
 size_t memory_size(void)
@@ -348,23 +356,25 @@ void *p2v(paddr_t phys)
 
 int __init kernel_mem_init(void)
 {
-	int err;
+	struct memory_area *kmm = KMM_AREA;
+	unsigned long pages, pool_start;
 
-	pri("OS pages: %lu\n", num_os_pages());
-	pri("Internal page pool pages: %lu\n", internal_page_pool_pages());
+	pages = PAGES(page_up((uintptr_t)__percpu_end - (uintptr_t)__start));
+	kmm->bitmap.bit_max = pages;
+	kmm->p.end = kmm->p.base + pages * PAGE_SIZE;
+
+	pri("Kernel pages: %lu\n", pages);
+	pri("Early pool pages: %u\n", CONFIG_EARLY_POOL_PAGES);
 
 	/*
-	 * Mark OS pages as used. The per_cpu blocks lie right behind the
-	 * image, so this covers them too; slots of CPUs that never come are
-	 * freed in arch_platform_init().
+	 * Everything the kernel is stays taken; only the early pool serves.
+	 * Slots of CPUs that never come are freed in arch_platform_init().
 	 */
-	memory_areas[0].valid = true;
-	err = _alloc_pages_aligned(NULL, num_os_pages(), PAGE_SIZE,
-				   (void *)GRINCH_BASE);
-	if (err) {
-		memory_areas[0].valid = false;
-		return err;
-	}
+	bitmap_set(kmm->bitmap.bitmap, 0, pages);
+	pool_start = PAGES((uintptr_t)early_pool - (uintptr_t)__start);
+	bitmap_clear(kmm->bitmap.bitmap, pool_start, CONFIG_EARLY_POOL_PAGES);
+
+	kmm->valid = true;
 
 	return 0;
 }
@@ -403,8 +413,9 @@ found_free_area:
 
 	/* check if the physical location of grinch is inside that region */
 	pgrinch = KMM_AREA->p.base;
-	if (pgrinch >= addrp && pgrinch + GRINCH_SIZE < addrp + sizep) {
-		err = memory_area_alloc_aligned(area, NULL, PAGES(GRINCH_SIZE),
+	if (pgrinch >= addrp && KMM_AREA->p.end < addrp + sizep) {
+		err = memory_area_alloc_aligned(area, NULL,
+						KMM_AREA->bitmap.bit_max,
 						PAGE_SIZE, pgrinch);
 		if (err)
 			return err;

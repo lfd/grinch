@@ -12,6 +12,9 @@
 
 #define USER_START		_UL(0x1000)
 
+/* Upper bound on the kernel's own span; the linker holds it to that. */
+#define KMM_PAGES_MAX	256
+
 /* Must be a multiple of 256 KiB */
 #define GRINCH_SIZE	(8 * 256 * KIB)
 

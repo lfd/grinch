@@ -80,6 +80,13 @@ const CONFIG_FEATURES "Features" {
         help "Memory set aside for a process to allocate from. Without translation a heap cannot grow into the space above it, as something else is likely already there, so it is given its final size when the program is loaded."
     }
 
+    int CONFIG_EARLY_POOL_PAGES "Early memory pool pages" {
+        default 32
+        base dec
+        header
+        help "Pages the kernel sets aside for allocations made before the memory of the machine is known."
+    }
+
     int CONFIG_GRINCH_BASE "Kernel base address" {
         default 0x80000000 if CONFIG_RISCV_M_MODE
         default 0x80200000
