@@ -11,6 +11,7 @@
  */
 
 #ifndef _ISA_H
+#define _ISA_H
 
 #include <grinch/percpu.h>
 #include <grinch/init.h>
