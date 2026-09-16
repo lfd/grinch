@@ -13,6 +13,7 @@
 #define dbg_fmt(x)	"arch: " x
 
 #include <asm/firmware.h>
+#include <asm/isa.h>
 
 #include <grinch/arch.h>
 #include <grinch/errno.h>
@@ -31,6 +32,7 @@ int __init arch_init(void)
 	int err;
 
 	pmp_init();
+	riscv_umode_probe();
 
 	err = firmware_init();
 	if (err)

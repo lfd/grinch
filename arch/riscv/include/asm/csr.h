@@ -104,6 +104,10 @@
 #define IRQ_VS_EXT		10
 #define IRQ_M_EXT		11
 
+/* misa names the extensions a hart implements, one bit per letter */
+#define MISA_EXT(letter)	(_UL(1) << ((letter) - 'a'))
+#define MISA_U			MISA_EXT('u')
+
 /* Physical memory protection, one byte of configuration per region */
 #define PMP_R			(1 << 0)
 #define PMP_W			(1 << 1)

@@ -27,6 +27,7 @@
 #include <grinch/smp.h>
 #include <grinch/string.h>
 
+#include <asm/isa.h>
 #include <asm/pmp.h>
 
 /* Assembly entry point for secondary CPUs */
@@ -35,6 +36,7 @@ void secondary_start(void);
 void arch_secondary_init(void)
 {
 	pmp_init();
+	riscv_umode_probe();
 
 #ifdef CONFIG_MMU
 	/* We still run on the shared boot root: switch to the kernel root */

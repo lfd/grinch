@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023-2024
+ * Copyright (c) OTH Regensburg, 2023-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -12,14 +12,58 @@
 
 #define dbg_fmt(x)	"isa: " x
 
+#include <asm/csr.h>
 #include <asm/isa.h>
 
 #include <grinch/errno.h>
+#include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/string.h>
 
 static __initdata bool isa_seen;
 riscv_isa_t riscv_isa;
+
+#ifdef CONFIG_RISCV_M_MODE
+
+bool riscv_have_umode = true;
+static bool umode_probed;
+
+/*
+ * Ask the hart whether it implements user mode. misa says so directly, but is
+ * allowed to read as zero when it reports nothing at all. Then fall back on
+ * asking mstatus.MPP for user mode: the field is WARL, so a hart that has none
+ * leaves a level behind that it does have.
+ *
+ * Every hart asks for itself, and all must give the same answer.
+ */
+void __init riscv_umode_probe(void)
+{
+	unsigned long misa, status;
+	bool have;
+
+	misa = csr_read(misa);
+	if (misa) {
+		have = !!(misa & MISA_U);
+	} else {
+		status = csr_read(CSR_STATUS);
+		csr_clear(CSR_STATUS, SR_PP);
+		have = !(csr_read(CSR_STATUS) & SR_PP);
+		csr_write(CSR_STATUS, status);
+	}
+
+	if (umode_probed) {
+		if (have != riscv_have_umode)
+			panic("Harts disagree on user mode\n");
+		return;
+	}
+	umode_probed = true;
+	riscv_have_umode = have;
+
+	if (!have)
+		pri("No user mode: tasks run in machine mode, unprotected\n");
+}
+
+#endif /* CONFIG_RISCV_M_MODE */
 
 static riscv_isa_t
 riscv_parse_isa_token(unsigned long hart_id, const char *token)
