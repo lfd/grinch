@@ -18,10 +18,11 @@ CFLAGS_ARCH += -march=rv$(XLEN)ima$(march_c)_zicsr_zifencei
 LDFLAGS_ARCH = -melf$(XLEN)lriscv
 
 QEMU_CPU = rv$(XLEN)
+QEMU_CPU_FLAGS ?= h=true
 QEMU_MACHINE=-machine virt
 QEMU_ARGS=-m 64M
 QEMU_ARGS+=-monitor telnet:127.0.0.1:55555,server,nowait
-QEMU_ARGS+=$(QEMU_MACHINE) -cpu $(QEMU_CPU),h=true
+QEMU_ARGS+=$(QEMU_MACHINE) -cpu $(QEMU_CPU),$(QEMU_CPU_FLAGS)
 # Machine mode is the kernel's own: nothing may be loaded below it.
 ifeq ($(RISCV_MODE), m)
 QEMU_ARGS+=-bios none

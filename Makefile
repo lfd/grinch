@@ -250,6 +250,10 @@ qemu: all
 qemux: QEMU_DISPLAY=sdl
 qemux: qemu
 
+# The same machine with the modes below machine mode switched off.
+qemum: QEMU_CPU_FLAGS=h=false,s=false,u=false
+qemum: qemu
+
 qemuu: all $(UBOOT_BIN)
 	$(QEMU_CMD_UBOOT)
 
