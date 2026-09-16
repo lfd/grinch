@@ -24,9 +24,13 @@
 
 #include <grinch/arch/vmm.h>
 
+#include <asm/pmp.h>
+
 int __init arch_init(void)
 {
 	int err;
+
+	pmp_init();
 
 	err = firmware_init();
 	if (err)

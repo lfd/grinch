@@ -104,6 +104,12 @@
 #define IRQ_VS_EXT		10
 #define IRQ_M_EXT		11
 
+/* Physical memory protection, one byte of configuration per region */
+#define PMP_R			(1 << 0)
+#define PMP_W			(1 << 1)
+#define PMP_X			(1 << 2)
+#define PMP_TOR			(1 << 3)
+
 #define HCOUNTEREN_CY		(1 << 0)
 #define HCOUNTEREN_TM		(1 << 1)
 #define HCOUNTEREN_IR		(1 << 2)

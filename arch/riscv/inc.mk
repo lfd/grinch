@@ -53,6 +53,7 @@ ARCH_OBJS-y+=timer.o
 ARCH_OBJS-y+=traps.o
 ARCH_OBJS-$(CONFIG_OPENSBI)+=sbi.o
 ARCH_OBJS-$(CONFIG_RISCV_M_MODE)+=native.o
+ARCH_OBJS-$(CONFIG_RISCV_M_MODE)+=pmp.o
 ARCH_OBJS-$(CONFIG_VMM)+=vmm/vmm.o
 ARCH_OBJS-$(CONFIG_VMM)+=vmm/vmm_ecall.o
 ARCH_OBJS := $(ARCH_OBJS-y)
