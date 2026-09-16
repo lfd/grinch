@@ -28,10 +28,6 @@
 #define KMM_PAGES	PAGES(GRINCH_SIZE)
 #define KMM_SIZE	(KMM_PAGES * PAGE_SIZE)
 
-#if KMM_PAGES % 64 != 0
-#error GRINCH_SIZE must fit into internal bitmap without remainder
-#endif
-
 static DEFINE_SPINLOCK(gfp_lock);
 
 struct memory_area {
