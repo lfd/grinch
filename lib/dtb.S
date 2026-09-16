@@ -1,0 +1,15 @@
+/*
+ * Grinch, a minimalist operating system
+ *
+ * Copyright (c) OTH Regensburg, 2026
+ *
+ * Authors:
+ *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
+ *
+ * This work is licensed under the terms of the GNU GPL, version 2.  See
+ * the COPYING file in the top-level directory.
+ */
+
+.section .dtb, "a"
+.balign 8
+.incbin CONFIG_BUILTIN_DTB

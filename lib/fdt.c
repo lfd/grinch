@@ -17,6 +17,7 @@
 #include <grinch/gfp.h>
 #include <grinch/ioremap.h>
 #include <grinch/printk.h>
+#include <grinch/symbols.h>
 
 unsigned char *_fdt;
 
@@ -94,13 +95,28 @@ int fdt_find_device(const void *fdt, const char *path,
 
 int __init fdt_init(paddr_t pfdt)
 {
+	bool mapped;
 	void *fdt;
 	int err;
 
-	/* be pessimistic and remap 2 MiB */
-	fdt = ioremap(pfdt, MEGA_PAGE_SIZE);
-	if (IS_ERR(fdt))
-		return PTR_ERR(fdt);
+	/*
+	 * A tree built into the image is the most deliberate word of all: it
+	 * outranks what the firmware hands over.
+	 */
+	if (__dtb_end - __dtb_start) {
+		pri("Using built-in device tree\n");
+		fdt = __dtb_start;
+		mapped = false;
+	} else if (pfdt) {
+		pri("Using device tree from firmware handover\n");
+		/* be pessimistic and remap 2 MiB */
+		fdt = ioremap(pfdt, MEGA_PAGE_SIZE);
+		if (IS_ERR(fdt))
+			return PTR_ERR(fdt);
+		mapped = true;
+	} else {
+		return -ENOENT;
+	}
 
 	err = fdt_check_header(fdt);
 	if (err) {
@@ -109,12 +125,18 @@ int __init fdt_init(paddr_t pfdt)
 		goto unmap;
 	}
 
-	/* Strip bootloader padding before sizing the allocation */
-	err = fdt_pack(fdt);
-	if (err) {
-		pri("FDT pack failed: %d\n", err);
-		err = -EINVAL;
-		goto unmap;
+	if (mapped) {
+		/*
+		 * Strip bootloader padding before sizing the allocation. A
+		 * built-in tree was packed when it was built, and lies in
+		 * memory that is not ours to write to.
+		 */
+		err = fdt_pack(fdt);
+		if (err) {
+			pri("FDT pack failed: %d\n", err);
+			err = -EINVAL;
+			goto unmap;
+		}
 	}
 
 	err = fdt_totalsize(fdt);
@@ -136,7 +158,7 @@ int __init fdt_init(paddr_t pfdt)
 		pri("FDT move failed\n");
 
 unmap:
-	if (iounmap(fdt, MEGA_PAGE_SIZE))
+	if (mapped && iounmap(fdt, MEGA_PAGE_SIZE))
 		pri("iounmap failed\n");
 	return err;
 }

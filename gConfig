@@ -88,6 +88,12 @@ const CONFIG_FEATURES "Features" {
         help "Address the kernel is linked at. It runs where it is loaded, so this must match the platform: the start of RAM in machine mode, and wherever the firmware places the kernel in supervisor mode. With address translation the kernel picks its own address and this is not asked."
     }
 
+    string BUILTIN_DTB "Built-in device tree blob" {
+        default ""
+        header CONFIG_BUILTIN_DTB
+        help "Path to a device tree blob compiled into the kernel image, relative to the source tree. A tree built in outranks one handed over by the firmware. Leave empty for none."
+    }
+
     bool CONFIG_OPENSBI "SBI firmware interface" {
         default y
         depends CONFIG_RISCV_S_MODE

@@ -15,6 +15,11 @@ LIB_OBJS += time.o
 LIB_OBJS += ttp.o
 LIB_OBJS += vsprintf.o
 
+ifneq ($(BUILTIN_DTB),)
+LIB_OBJS += dtb.o
+lib/dtb.o: $(BUILTIN_DTB)
+endif
+
 LIBFDT_OBJS = libfdt/fdt.o
 LIBFDT_OBJS += libfdt/fdt_ro.o
 LIBFDT_OBJS += libfdt/fdt_rw.o

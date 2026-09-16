@@ -27,6 +27,7 @@ LINKER_REGION(__drivers);
 LINKER_REGION(__irqchip_drivers);
 LINKER_REGION(__pci_drivers);
 LINKER_REGION(__rodata);
+LINKER_REGION(__dtb);
 LINKER_REGION(__rw_data);
 LINKER_REGION(__internal_page_pool);
 

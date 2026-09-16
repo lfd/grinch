@@ -100,6 +100,11 @@ SECTIONS
 		__init_array_start = .;
 		KEEP(*(.init_array.*)) *(.init_array)
 		__init_array_end = .;
+
+		. = ALIGN(8);
+		__dtb_start = .;
+		KEEP(*(.dtb));
+		__dtb_end = .;
 	} :rodata
 	__rodata_end = .;
 
