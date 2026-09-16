@@ -15,11 +15,6 @@
 /* Upper bound on the kernel's own span; the linker holds it to that. */
 #define KMM_PAGES_MAX	256
 
-/* Must be a multiple of 256 KiB */
-#define GRINCH_SIZE	(8 * 256 * KIB)
-
-#define GRINCH_END	(GRINCH_BASE + GRINCH_SIZE)
-
 #ifdef CONFIG_MMU
 
 #define IOREMAP_END	(IOREMAP_BASE + IOREMAP_SIZE)
@@ -30,7 +25,7 @@
 #define IOREMAP_BASE	_UL(0xc0000000)
 #define IOREMAP_SIZE	((256 + 128) * MIB)
 
-#define KHEAP_BASE      (GRINCH_END + (32 * 64) * KIB)
+#define KHEAP_BASE      (GRINCH_BASE + 4 * MIB)
 
 /* The uppermost 512 MiB belong to the direct mapping */
 #define DIR_PHYS_BASE	_UL(0xe0000000)

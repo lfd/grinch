@@ -12,6 +12,7 @@
 
 #include <grinch/init.h>
 #include <grinch/loader.h>
+#include <grinch/symbols.h>
 #include <asm-generic/grinch_layout.h>
 
 /* Set PTE access bits to RWX + AD to prevent page faults */
@@ -118,6 +119,7 @@ loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr)
 {
 	void *next, *l0;
 	unsigned int d;
+	size_t size;
 	paddr_t offset;
 
 	/*
@@ -125,13 +127,15 @@ loader(unsigned long hart_id, paddr_t fdt, paddr_t load_addr)
 	 * For the kernel's initial page tables grinch will use the internal
 	 * page pool, so this is fine.
 	 */
-	next = (void *)load_addr + GRINCH_SIZE;
+	size = mega_page_up(kernel_size());
+
+	next = (void *)load_addr + size;
 	l0 = loader_page_zalloc(&next);
-	for (d = 0; d + MEGA_PAGE_SIZE <= GRINCH_SIZE; d += MEGA_PAGE_SIZE) {
+	for (d = 0; d + MEGA_PAGE_SIZE <= size; d += MEGA_PAGE_SIZE) {
 		map_mega(&next, l0, (void *)load_addr + d, load_addr + d);
 		map_mega(&next, l0, grinch_base() + d, load_addr + d);
 	}
-	for (; d < GRINCH_SIZE; d += PAGE_SIZE) {
+	for (; d < size; d += PAGE_SIZE) {
 		map_page(&next, l0, (void *)load_addr + d, load_addr + d);
 		map_page(&next, l0, grinch_base() + d, load_addr + d);
 	}

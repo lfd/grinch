@@ -359,7 +359,7 @@ int __init kernel_mem_init(void)
 	struct memory_area *kmm = KMM_AREA;
 	unsigned long pages, pool_start;
 
-	pages = PAGES(page_up((uintptr_t)__percpu_end - (uintptr_t)__start));
+	pages = kernel_pages();
 	kmm->bitmap.bit_max = pages;
 	kmm->p.end = kmm->p.base + pages * PAGE_SIZE;
 

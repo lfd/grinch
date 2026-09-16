@@ -46,7 +46,7 @@ static int __init trampoline_create(paddr_t *paddr)
 
 	*paddr = v2p(grinch_base());
 	err = map_range(secondary_boot_root, (void *)*paddr, *paddr,
-			GRINCH_SIZE, GRINCH_MEM_RX);
+			kernel_pages() * PAGE_SIZE, GRINCH_MEM_RX);
 	if (err) {
 		free_pages(secondary_boot_root, 1);
 		secondary_boot_root = NULL;
@@ -57,7 +57,8 @@ static int __init trampoline_create(paddr_t *paddr)
 
 static void __init trampoline_destroy(paddr_t paddr)
 {
-	unmap_range(secondary_boot_root, (void *)paddr, GRINCH_SIZE);
+	unmap_range(secondary_boot_root, (void *)paddr,
+		    kernel_pages() * PAGE_SIZE);
 	free_pages(secondary_boot_root, 1);
 	secondary_boot_root = NULL;
 }

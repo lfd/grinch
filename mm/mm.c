@@ -52,7 +52,8 @@ int __init paging_init(unsigned long this_cpu)
 	int err;
 
 	pri("=== Grinch memory layout ===\n");
-	pri(" Grinch area: 0x%lx -- 0x%lx\n", GRINCH_BASE, GRINCH_END);
+	pri(" Grinch area: 0x%lx -- 0x%lx\n", GRINCH_BASE,
+	    (unsigned long)__percpu_end);
 #ifdef CONFIG_MMU
 	pri("ioremap area: 0x%lx -- 0x%lx\n", IOREMAP_BASE, IOREMAP_END);
 	pri("  kheap area: 0x%lx\n", KHEAP_BASE);

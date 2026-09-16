@@ -45,8 +45,9 @@ _loader_start:
 	/* Drop to EL1 with the MMU off; x0 (the FDT pointer) is preserved. */
 	bl	converge_to_el1
 
-	/* Load pc-rel sp */
-	adrp	x1, __internal_page_pool_end
+	/* Borrow the boot CPU's stack; it is zeroed right after the loader. */
+	adrp	x1, __percpu_start
+	add	x1, x1, #STACK_SIZE
 	mov	sp, x1
 
 	msr	daif, xzr

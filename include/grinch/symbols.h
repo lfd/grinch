@@ -31,7 +31,6 @@ LINKER_REGION(__dtb);
 LINKER_REGION(__rw_data);
 LINKER_REGION(__bss);
 LINKER_REGION(__percpu);
-LINKER_REGION(__internal_page_pool);
 
 extern unsigned char __init_text_start[];
 extern unsigned char __init_start[], __init_ro_end[];
@@ -43,16 +42,16 @@ extern unsigned char __start[], __text_end[];
 /* Function pointers, walked as pointer-sized cells. */
 LINKER_REGION_TYPED(__init_array, unsigned long);
 
-static __always_inline size_t num_os_pages(void)
+/* Everything the kernel spans, from its first byte to the last per-CPU block. */
+static __always_inline size_t kernel_size(void)
 {
-    return ((uintptr_t)__internal_page_pool_start -
-	   (uintptr_t)__start) >> PAGE_SHIFT;
+	return (uintptr_t)__percpu_end - (uintptr_t)__start;
 }
 
-static __always_inline size_t internal_page_pool_pages(void)
+static __always_inline size_t kernel_pages(void)
 {
-	return ((uintptr_t)__internal_page_pool_end -
-	        (uintptr_t)__internal_page_pool_start) >> PAGE_SHIFT;
+	return PAGES(page_up(kernel_size()));
 }
+
 
 #endif /* _SYMBOLS_H */

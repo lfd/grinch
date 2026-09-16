@@ -128,20 +128,23 @@ void __noreturn __init loader(paddr_t fdt, paddr_t load_addr)
 	u64 *page_directory_0, *page_directory_1;
 	unsigned long sctlr;
 	unsigned int d;
+	size_t size;
 	paddr_t tmp;
 	void *next;
 	u64 offset;
 
-	next = (void *)(uintptr_t)(load_addr + GRINCH_SIZE);
+	size = mega_page_up(kernel_size());
+
+	next = (void *)(uintptr_t)(load_addr + size);
 	page_directory_0 = loader_page_zalloc(&next); /* TTBR0: identity map */
 	page_directory_1 = loader_page_zalloc(&next); /* TTBR1: virtual map  */
 
-	for (d = 0; d + MEGA_PAGE_SIZE <= GRINCH_SIZE; d += MEGA_PAGE_SIZE) {
+	for (d = 0; d + MEGA_PAGE_SIZE <= size; d += MEGA_PAGE_SIZE) {
 		tmp = load_addr + d;
 		map_huge_page(&next, page_directory_0, (void *)tmp, tmp, MAP_CACHED);
 		map_huge_page(&next, page_directory_1, (void *)GRINCH_BASE + d, tmp, MAP_CACHED);
 	}
-	for (; d < GRINCH_SIZE; d += PAGE_SIZE) {
+	for (; d < size; d += PAGE_SIZE) {
 		tmp = load_addr + d;
 		map_page(&next, page_directory_0, (void *)tmp, tmp, MAP_CACHED);
 		map_page(&next, page_directory_1, (void *)GRINCH_BASE + d, tmp, MAP_CACHED);

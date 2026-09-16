@@ -80,7 +80,10 @@ _loader_start:
 #endif
 	lpc	a2, __start
 #ifdef CONFIG_MMU
-	lpc	sp, __internal_page_pool_end
+	/* Borrow the first per-CPU stack; its owner zeroes it on entry. */
+	lpc	sp, __percpu_start
+	li	t0, STACK_SIZE
+	add	sp, sp, t0
 	jal	loader
 
 1:

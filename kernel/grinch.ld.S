@@ -131,10 +131,4 @@ SECTIONS
 	/* The KMM bitmap is bounded at build time; hold the kernel to it. */
 	ASSERT(__percpu_end - __start <= KMM_PAGES_MAX * PAGE_SIZE,
 	       "the kernel outgrew KMM_PAGES_MAX")
-
-	. = ALIGN(PAGE_SIZE);
-
-	__internal_page_pool_start = .;
-	. = __start + GRINCH_SIZE;
-	__internal_page_pool_end = .;
 }
