@@ -55,6 +55,8 @@ LIBC_OBJS += wait.o
 
 LIBC_OBJS := $(addprefix user/libc/src/, $(LIBC_OBJS))
 
+# The user linker script writes its dependencies right here.
+OBJ_DIRS += user/
 OBJ_DIRS += $(dir $(LIBC_OBJS))
 LIBC_BUILTIN = user/libc/built-in.a
 
