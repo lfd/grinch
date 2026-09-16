@@ -21,6 +21,9 @@
 
 unsigned char *_fdt;
 
+/* Where the tree was found; it is read from there in place. */
+paddr_t fdt_location;
+
 bool fdt_device_is_available(const void *fdt, unsigned long node)
 {
 	const char *status = fdt_getprop(fdt, node, "status", NULL);
@@ -126,9 +129,18 @@ int __init fdt_init(paddr_t pfdt)
 	}
 
 	if (mapped) {
+		if (fdt_totalsize(fdt) > MEGA_PAGE_SIZE) {
+			pri("FDT too large\n");
+			err = -E2BIG;
+			goto unmap;
+		}
+
 		/*
-		 * Strip bootloader padding before sizing the allocation. A
-		 * built-in tree was packed when it was built, and lies in
+		 * A loader may pass the tree with generous padding for edits
+		 * it never made: totalsize then claims dozens of kilobytes
+		 * for a small tree, and every page reserved on its word would
+		 * stay reserved. Pack it, so the tree only claims what it is.
+		 * A built-in tree was packed when it was built, and lies in
 		 * memory that is not ours to write to.
 		 */
 		err = fdt_pack(fdt);
@@ -138,29 +150,27 @@ int __init fdt_init(paddr_t pfdt)
 			goto unmap;
 		}
 	}
+	pri("FDT size: %u\n", fdt_totalsize(fdt));
 
-	err = fdt_totalsize(fdt);
-	if (err <= 0) {
-		pri("FDT totalsize\n");
-		err = -EINVAL;
-		goto unmap;
-	}
-	pri("FDT size: %u\n", err);
+	/*
+	 * The tree is read where it was found, for as long as the system
+	 * runs: the mapping stays, and the memory it covers is reserved once
+	 * the allocator learns about the memory it lies in.
+	 */
+	_fdt = fdt;
+	fdt_location = mapped ? pfdt : v2p(__dtb_start);
 
-	_fdt = alloc_pages(PAGES(page_up(err)));
-	if (!_fdt) {
-		err = -ENOMEM;
-		goto unmap;
-	}
-
-	err = fdt_move(fdt, _fdt, err);
-	if (err)
-		pri("FDT move failed\n");
+	return 0;
 
 unmap:
 	if (mapped && iounmap(fdt, MEGA_PAGE_SIZE))
 		pri("iounmap failed\n");
 	return err;
+}
+
+size_t fdt_size(void)
+{
+	return _fdt ? fdt_totalsize(_fdt) : 0;
 }
 
 static int _fdt_read_cells(const fdt32_t *cells, unsigned int n, uint64_t *value)

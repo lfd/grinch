@@ -456,6 +456,7 @@ int __init phys_mem_init_fdt(void)
 {
 	int child, err, len, memory, ac, sc, parent;
 	struct mmio_area mem;
+	paddr_t fstart, fend;
 	const char *uname;
 	const void *reg;
 
@@ -493,6 +494,21 @@ int __init phys_mem_init_fdt(void)
 	err = phys_mem_init(&mem);
 	if (err)
 		return trace_error(err);
+
+	/*
+	 * The device tree is read in place for as long as the system runs.
+	 * The kernel's own window is already reserved as a whole, so only
+	 * what reaches beyond it needs to be held.
+	 */
+	fstart = fdt_location & PAGE_MASK;
+	fend = page_up(fdt_location + fdt_size());
+	if (fstart >= KMM_AREA->p.base && fstart < KMM_AREA->p.end)
+		fstart = KMM_AREA->p.end;
+	if (fstart < fend) {
+		err = phys_mark_used(fstart, PAGES(fend - fstart));
+		if (err)
+			return trace_error(err);
+	}
 
 	/* search for reserved regions in the device tree */
 	memory = fdt_path_offset(_fdt, ISTR("/reserved-memory"));

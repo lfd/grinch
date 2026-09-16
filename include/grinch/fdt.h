@@ -24,8 +24,12 @@ struct of_device_id {
 };
 
 extern unsigned char *_fdt;
+/* Where the tree was found; it is read from there in place. */
+extern paddr_t fdt_location;
 
 int fdt_init(paddr_t pfdt);
+
+size_t fdt_size(void);
 
 int fdt_read_reg(const void *fdt, int nodeoffset, int idx,
 		 struct mmio_area *mmio);
