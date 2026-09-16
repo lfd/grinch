@@ -28,6 +28,3 @@ ARCH_OBJS := $(addprefix $(ARCH_DIR)/, $(ARCH_OBJS))
 OBJ_DIRS += $(dir $(ARCH_OBJS))
 
 arch/arm64/built-in.a: $(ARCH_OBJS)
-
-clean_arch:
-	$(call clean_objects,arch/arm64,$(ARCH_OBJS))

@@ -35,7 +35,3 @@ OBJ_DIRS += $(dir $(LIB_OBJS) $(LIBFDT_OBJS))
 lib/libfdt/built-in.a: $(LIBFDT_OBJS)
 
 lib/built-in.a: lib/libfdt/built-in.a $(LIB_OBJS)
-
-clean_lib:
-	$(call clean_objects,lib/libfdt,$(LIBFDT_OBJS))
-	$(call clean_objects,lib,$(LIB_OBJS))

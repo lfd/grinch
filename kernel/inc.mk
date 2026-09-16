@@ -31,7 +31,3 @@ kernel/syscall_table.c: $(srctree)/tools/mksyscalltbl $(srctree)/syscall.tbl
 	$(QUIET) "[SYSCL]" $@
 	$(VERBOSE) $(MKDIR_P) $(dir $@)
 	$(VERBOSE) $^ source $@
-
-clean_kernel:
-	$(call clean_objects,kernel,$(KERNEL_OBJS))
-	$(call clean_files,kernel,kernel/grinch.ld kernel/grinch.ld.d)

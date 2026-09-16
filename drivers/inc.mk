@@ -31,8 +31,3 @@ OBJ_DIRS += $(dir $(DRIVERS_OBJS) $(DRIVERS_IRQ_OBJS) $(DRIVERS_SERIAL_OBJS))
 drivers/irq/built-in.a: $(DRIVERS_IRQ_OBJS)
 drivers/serial/built-in.a: $(DRIVERS_SERIAL_OBJS)
 drivers/built-in.a: drivers/irq/built-in.a drivers/serial/built-in.a $(DRIVERS_OBJS)
-
-clean_drivers:
-	$(call clean_objects,drivers/serial,$(DRIVERS_SERIAL_OBJS))
-	$(call clean_objects,drivers/irq,$(DRIVERS_IRQ_OBJS))
-	$(call clean_objects,drivers,$(DRIVERS_OBJS))

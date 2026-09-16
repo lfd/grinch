@@ -127,13 +127,6 @@ include $(patsubst %,$(srctree)/user/apps/%/inc.mk,$(APPS))
 UC = $(shell echo '$1' | tr '[:lower:]' '[:upper:]')
 
 define define_app
-clean_$(1):
-	$(call clean_files,user/apps/$(1),\
-		$($(call UC,$(1))_OBJS)\
-		$(patsubst %.o,%.d,$($(call UC,$(1))_OBJS))\
-		user/apps/$(1)/built-in.a\
-		user/apps/$(1)/$(1)_linked.o)
-
 user/apps/$(1)/built-in.a: $(LIBC_BUILTIN) $(LIBGRINCH_BUILTIN) $($(call UC,$(1))_OBJS)
 
 user/apps/$(1)/$(1)_linked.o: user/apps/$(1)/built-in.a
@@ -168,9 +161,7 @@ user/initrd.cpio: $(USER_APPS) $(IMAGES) $(srctree)/res/test.txt $(INITRD_EXTRAS
 	$(QUIET) "[CPIO]  $@"
 	$(VERBOSE) $(srctree)/scripts/create_cpio $@ $(DIR_USER_BINARIES) -- $(IMAGES) $(srctree)/res/test.txt $(INITRD_EXTRAS)
 
-clean_user: $(patsubst %,clean_%,$(APPS))
-	$(call clean_objects,user/libc,$(LIBC_OBJS))
-	$(call clean_objects,user/libgrinch,$(LIBGRINCH_OBJS))
-	$(call clean_files,user,user/user.ld user/user.ld.d user/initrd.cpio $(USER_APPS))
+clean_user:
+	$(call clean_files,user,user/initrd.cpio)
 	$(call clean_dir,$(DIR_USER_BINARIES))
 	$(call clean_files,res,$(IMAGES))

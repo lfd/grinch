@@ -204,9 +204,17 @@ DEPFLAGS = -MMD -MP
 
 LDFLAGS_COMMON=
 
-define clean_objects
-	$(QUIET) "[CLEAN]" $1
-	$(VERBOSE) $(RMF) $(1)/built-in.a $(2) $(2:.o=.gcno) $(2:.o=.gcda) $(2:.o=.d)
+CLEAN_NAMES = -name '*.o' -o -name '*.a' -o -name '*.d' -o -name '*.ld' \
+	      -o -name '*.gcno' -o -name '*.gcda'
+
+# Sweep what the compiler and the archiver leave by name. -delete would turn
+# on -depth, which makes -prune a no-op, so hand the names to rm instead.
+define clean_sweep
+	$(QUIET) "[CLEAN]" objects
+	$(VERBOSE) find $(objtree) -path '$(objtree)/res' -prune -o \
+				   -path '$(objtree)/build' -prune -o \
+				   -type f \( $(CLEAN_NAMES) \) -print0 | \
+		   xargs -0 $(RMF)
 endef
 
 define clean_files
@@ -309,7 +317,8 @@ menuconfig:
 debug: grinch.elf
 	$(GDB) -nx -x $(srctree)/scripts/connect.gdb -x $(srctree)/scripts/debug.gdb
 
-clean: clean_core clean_lib clean_mm clean_fs clean_user clean_arch clean_drivers clean_kernel clean_tools
+clean: clean_core clean_user clean_tools
+	$(call clean_sweep)
 	$(call clean_files,all,grinch.bin grinch.elf grinch.dump grinch.info)
 	$(call clean_dir,gcov)
 

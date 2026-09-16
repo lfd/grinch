@@ -13,6 +13,3 @@ MM_OBJS := $(addprefix mm/, $(MM_OBJS))
 OBJ_DIRS += $(dir $(MM_OBJS))
 
 mm/built-in.a: $(MM_OBJS)
-
-clean_mm:
-	$(call clean_objects,mm,$(MM_OBJS))

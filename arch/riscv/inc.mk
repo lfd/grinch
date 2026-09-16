@@ -64,6 +64,3 @@ ARCH_OBJS := $(addprefix $(ARCH_DIR)/, $(ARCH_OBJS))
 OBJ_DIRS += $(dir $(ARCH_OBJS))
 
 arch/riscv/built-in.a: $(ARCH_OBJS)
-
-clean_arch:
-	$(call clean_objects,arch/riscv,$(ARCH_OBJS))
