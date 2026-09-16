@@ -101,18 +101,17 @@ grinch_start:
 	mask_all_irqs
 
 	/*
-	 * Setup stack: The stack for a HART is located at
-	 * __internal_page_pool_end - hartid * STRUCT_PER_CPU_SIZE + STACK_SIZE
+	 * Setup stack: each HART's per_cpu block lies at
+	 * __percpu_start + hartid * STRUCT_PER_CPU_SIZE, its stack on top.
 	 *
 	 * From this address, subtract STRUCT_REGISTERS_SIZE. We will place
 	 * user context here on return.
 	 */
-	la	t0, __internal_page_pool_end
+	la	t0, __percpu_start
 	li	t1, STRUCT_PER_CPU_SIZE
 
-	addi	t2, a0, 1
-	mul	t2, t2, t1
-	sub	tp, t0, t2
+	mul	t2, a0, t1
+	add	tp, t0, t2
 	/* tp holds this CPU's per_cpu structure from here on */
 
 	/* Zero the per_cpu pages, as they may be dirty */
@@ -216,11 +215,10 @@ secondary_start:
 secondary_virt_entry:
 #endif
 	/* a0 still holds the hart_id: locate our per_cpu structure */
-	la	t0, __internal_page_pool_end
+	la	t0, __percpu_start
 	li	t1, STRUCT_PER_CPU_SIZE
-	addi	t2, a0, 1
-	mul	t2, t2, t1
-	sub	tp, t0, t2
+	mul	t2, a0, t1
+	add	tp, t0, t2
 
 	/* setup stack */
 	li	t0, STACK_SIZE - STRUCT_REGISTERS_SIZE

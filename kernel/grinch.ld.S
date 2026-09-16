@@ -11,6 +11,9 @@
  */
 
 #include <arch/asm.h>
+#include <asm/asm_defines.h>
+
+#include <grinch/percpu.h>
 
 #define PHDRS_BSS
 #include <asm-generic/elf.h>
@@ -118,6 +121,12 @@ SECTIONS
 	} :bss
 	__bss_words = SIZEOF(.bss) / SZREG;
 	__bss_end = .;
+
+	/* One block per possible CPU, right behind the image. */
+	. = ALIGN(PAGE_SIZE);
+	__percpu_start = .;
+	. = . + MAX_CPUS * STRUCT_PER_CPU_SIZE;
+	__percpu_end = .;
 
 	. = ALIGN(PAGE_SIZE);
 

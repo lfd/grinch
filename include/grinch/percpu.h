@@ -77,8 +77,7 @@ static __always_inline unsigned long this_cpu_id(void)
 
 static __always_inline struct per_cpu *per_cpu(unsigned long cpuid)
 {
-	return (struct per_cpu *)((uintptr_t)GRINCH_END -
-				  (cpuid + 1) * sizeof(struct per_cpu));
+	return (struct per_cpu *)__percpu_start + cpuid;
 }
 
 #endif /* __ASSEMBLY__ */

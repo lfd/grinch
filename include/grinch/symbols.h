@@ -30,6 +30,7 @@ LINKER_REGION(__rodata);
 LINKER_REGION(__dtb);
 LINKER_REGION(__rw_data);
 LINKER_REGION(__bss);
+LINKER_REGION(__percpu);
 LINKER_REGION(__internal_page_pool);
 
 extern unsigned char __init_text_start[];

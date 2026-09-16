@@ -346,7 +346,11 @@ int __init kernel_mem_init(void)
 	pri("OS pages: %lu\n", num_os_pages());
 	pri("Internal page pool pages: %lu\n", internal_page_pool_pages());
 
-	/* mark OS pages as used */
+	/*
+	 * Mark OS pages as used. The per_cpu blocks lie right behind the
+	 * image, so this covers them too; slots of CPUs that never come are
+	 * freed in arch_platform_init().
+	 */
 	memory_areas[0].valid = true;
 	err = _alloc_pages_aligned(NULL, num_os_pages(), PAGE_SIZE,
 				   (void *)GRINCH_BASE);
@@ -354,13 +358,6 @@ int __init kernel_mem_init(void)
 		memory_areas[0].valid = false;
 		return err;
 	}
-
-	/* pre-reserve all per_cpu slots; unused ones freed in arch_platform_init() */
-	err = _alloc_pages_aligned(NULL,
-				   MAX_CPUS * PAGES(sizeof(struct per_cpu)),
-				   PAGE_SIZE, per_cpu(MAX_CPUS - 1));
-	if (err)
-		return err;
 
 	return 0;
 }

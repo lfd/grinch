@@ -63,9 +63,8 @@ grinch_start:
 	msr	TCR, x3
 
 	/* Zero the boot CPU's per_cpu block, as it may be dirty */
-	ldr	x2, =__internal_page_pool_end
+	ldr	x2, =__percpu_start
 	mov	x3, #STRUCT_PER_CPU_SIZE
-	sub	x2, x2, x3
 1:	str	xzr, [x2], #8
 	subs	x3, x3, #8
 	b.ne	1b
@@ -168,24 +167,21 @@ converge_to_el1:
  * register frame at the top of the stack. Uses no stack of its own (safe to
  * bl before a stack exists); clobbers x2-x5, preserves x0/x1/x30.
  *
- * Stacks grow down from __internal_page_pool_end, one STRUCT_PER_CPU_SIZE
- * block per CPU; the slot is mpidr[7:0] (== the logical cpuid assigned in
- * arch_platform_init).
+ * One STRUCT_PER_CPU_SIZE block per CPU, ascending from __percpu_start; the
+ * slot is mpidr[7:0] (== the logical cpuid assigned in arch_platform_init).
  */
 setup_percpu_stack:
-	ldr	x2, =__internal_page_pool_end
+	ldr	x2, =__percpu_start
 	mov	x3, #STRUCT_PER_CPU_SIZE
 	mrs	x4, mpidr_el1
 	and	x4, x4, #0xff
-	add	x4, x4, #1
 	mul	x4, x4, x3
-	sub	sp, x2, x4
+	add	x5, x2, x4
 
 	/* TPIDR_EL1 holds this CPU's per_cpu structure from here on. */
-	mov	x5, sp
 	msr	tpidr_el1, x5
 
-	add	sp, sp, #STACK_SIZE
+	add	sp, x5, #STACK_SIZE
 	sub	sp, sp, #STRUCT_REGISTERS_SIZE
 	ret
 
