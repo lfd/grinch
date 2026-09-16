@@ -60,7 +60,7 @@ int __init ioremap_init(void)
 			       ioremap_pages * PAGE_SIZE);
 }
 
-void __init *ioremap(paddr_t paddr, size_t size)
+void __init *_ioremap(paddr_t paddr, size_t size, unsigned long flags)
 {
 	unsigned int start, pages, paddr_al, size_al;
 	unsigned long align_mask;
@@ -100,8 +100,7 @@ retry:
 	}
 
 	ret = (void *)IOREMAP_BASE + (start * PAGE_SIZE) + page_offset(paddr);
-	err = map_range(kernel_root, ret, paddr, size,
-			GRINCH_MEM_DEVICE | GRINCH_MEM_RW);
+	err = map_range(kernel_root, ret, paddr, size, flags);
 	if (err)
 		return ERR_PTR(err);
 

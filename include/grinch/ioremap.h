@@ -12,13 +12,13 @@
 
 #include <grinch/errno.h>
 #include <grinch/iores.h>
+#include <grinch/paging.h>
 
 #ifdef CONFIG_MMU
 
 int ioremap_init(void);
 
-/* IO mappers */
-void *ioremap(paddr_t paddr, size_t size);
+void *_ioremap(paddr_t paddr, size_t size, unsigned long flags);
 
 int iounmap(const void *vaddr, size_t size);
 
@@ -30,7 +30,7 @@ static inline int ioremap_init(void)
 	return 0;
 }
 
-static inline void *ioremap(paddr_t paddr, size_t size)
+static inline void *_ioremap(paddr_t paddr, size_t size, unsigned long flags)
 {
 	return (void *)(uintptr_t)paddr;
 }
@@ -41,6 +41,23 @@ static inline int iounmap(const void *vaddr, size_t size)
 }
 
 #endif /* CONFIG_MMU */
+
+/* IO mappers */
+static inline void *ioremap(paddr_t paddr, size_t size)
+{
+	return _ioremap(paddr, size, GRINCH_MEM_DEVICE | GRINCH_MEM_RW);
+}
+
+/* Memory that is memory: it must not be reached the way a device is. */
+static inline void *memremap(paddr_t paddr, size_t size)
+{
+	return _ioremap(paddr, size, GRINCH_MEM_RW);
+}
+
+static inline int memunmap(const void *vaddr, size_t size)
+{
+	return iounmap(vaddr, size);
+}
 
 static inline void *ioremap_area(struct mmio_area *area)
 {
