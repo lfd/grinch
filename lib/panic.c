@@ -11,10 +11,9 @@
  */
 
 #include <grinch/cpu.h>
-#include <grinch/grinch_guest.h>
-#include <grinch/hypercall.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
+#include <grinch/reboot.h>
 #include <grinch/spinlock.h>
 #include <grinch/stackdump.h>
 
@@ -28,8 +27,8 @@ static void __noreturn panic_stop(void)
 	spin_lock(&panic_lock);
 	pr(PANIC_PREFIX "CPU %lu HALTED\n", this_cpu_id());
 	spin_unlock(&panic_lock);
-	if (grinch_is_guest)
-		hypercall_vmquit(-1);
+	/* Not shutdown(): it panics on failure, and we are that failure. */
+	shutdown_attempt(-1);
 	cpu_halt();
 }
 
