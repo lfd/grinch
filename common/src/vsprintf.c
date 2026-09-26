@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2024
+ * Copyright (c) OTH Regensburg, 2024-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -485,6 +485,54 @@ static char *err_ptr(char *buf, char *end, void *ptr,
 }
 
 static noinline_for_stack
+char *mac_address_string(char *buf, char *end, const unsigned char *addr,
+			 struct printf_spec spec)
+{
+	char mac_addr[sizeof("ff:ff:ff:ff:ff:ff")];
+	char *p = mac_addr;
+	unsigned int i;
+
+	if (check_pointer(&buf, end, addr, spec))
+		return buf;
+
+	for (i = 0; i < 6; i++) {
+		if (i)
+			*p++ = ':';
+		*p++ = hex_asc_upper[addr[i] >> 4] | 0x20;
+		*p++ = hex_asc_upper[addr[i] & 0xf] | 0x20;
+	}
+	*p = '\0';
+
+	return string_nocheck(buf, end, mac_addr, spec);
+}
+
+static noinline_for_stack
+char *ip4_addr_string(char *buf, char *end, const unsigned char *addr,
+		      struct printf_spec spec)
+{
+	char ip4_addr[sizeof("255.255.255.255")];
+	char *p = ip4_addr;
+	unsigned int i, v;
+
+	if (check_pointer(&buf, end, addr, spec))
+		return buf;
+
+	for (i = 0; i < 4; i++) {
+		if (i)
+			*p++ = '.';
+		v = addr[i];
+		if (v >= 100)
+			*p++ = '0' + v / 100;
+		if (v >= 10)
+			*p++ = '0' + v / 10 % 10;
+		*p++ = '0' + v % 10;
+	}
+	*p = '\0';
+
+	return string_nocheck(buf, end, ip4_addr, spec);
+}
+
+static noinline_for_stack
 char *pointer(const char *fmt, char *buf, char *end, void *ptr,
 	      struct printf_spec spec)
 {
@@ -496,6 +544,12 @@ char *pointer(const char *fmt, char *buf, char *end, void *ptr,
 		if (!IS_ERR(ptr))
 			return pointer_string(buf, end, ptr, spec);
 		return err_ptr(buf, end, ptr, spec);
+	case 'I':
+		if (fmt[1] == '4')
+			return ip4_addr_string(buf, end, ptr, spec);
+		return pointer_string(buf, end, ptr, spec);
+	case 'M':
+		return mac_address_string(buf, end, ptr, spec);
 	case 'x':
 	default:
 		return pointer_string(buf, end, ptr, spec);
