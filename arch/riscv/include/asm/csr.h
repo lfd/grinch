@@ -247,6 +247,16 @@
 	__r;							\
 })
 
+#define csr_read_clear(csr, val)                                \
+({                                                              \
+	register unsigned long __r;                             \
+	unsigned long __v = (unsigned long)(val);               \
+	__asm__ __volatile__ ("csrrc %0, " __stringify(csr) ", %1" \
+			      : "=r" (__r) : "rK" (__v)         \
+			      : "memory");                      \
+	__r;							\
+})
+
 #define csr_clear(csr, val)                                     \
 ({                                                              \
 	unsigned long __v = (unsigned long)(val);               \
