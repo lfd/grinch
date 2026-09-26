@@ -215,6 +215,12 @@ const CONFIG_DRIVERS "Device Drivers" {
         }
     }
 
+    bool CONFIG_SIM_FINISH "LiteX simulation finish" {
+        default n
+        depends CONFIG_ARCH_RISCV
+        help "Shutdown method for simulated LiteX SoCs: a register write ends the simulator process."
+    }
+
     bool CONFIG_UART "UART Drivers" {
         default y
         help "Enable serial console support. At least one UART driver must also be selected."
