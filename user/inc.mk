@@ -147,7 +147,9 @@ endef
 
 USER_APPS=$(foreach app,$(APPS),$(call app_of,$(app)))
 
-IMAGES=res/logo.gimg
+IMAGES-y =
+IMAGES-$(CONFIG_FB) += res/logo.gimg
+IMAGES = $(IMAGES-y)
 
 OBJ_DIRS += $(dir $(IMAGES))
 
