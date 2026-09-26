@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -23,6 +23,21 @@ static inline void irq_enable(void)
 static inline void irq_disable(void)
 {
 	asm volatile("msr daifset, #(" __stringify(DAIF_IRQ | DAIF_FIQ) ")");
+}
+
+static inline unsigned long irq_save(void)
+{
+	unsigned long flags;
+
+	asm volatile("mrs %0, daif" : "=r" (flags) : : "memory");
+	irq_disable();
+
+	return flags;
+}
+
+static inline void irq_restore(unsigned long flags)
+{
+	asm volatile("msr daif, %0" : : "r" (flags) : "memory");
 }
 
 /*

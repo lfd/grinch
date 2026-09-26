@@ -74,6 +74,16 @@ static inline void irq_enable(void)
 	csr_set(CSR_STATUS, SR_IE);
 }
 
+static inline unsigned long irq_save(void)
+{
+	return csr_read_clear(CSR_STATUS, SR_IE) & SR_IE;
+}
+
+static inline void irq_restore(unsigned long flags)
+{
+	csr_set(CSR_STATUS, flags & SR_IE);
+}
+
 static inline bool is_irq(u64 cause)
 {
 	return !!(cause & CAUSE_IRQ_FLAG);
