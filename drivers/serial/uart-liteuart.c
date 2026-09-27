@@ -62,6 +62,7 @@ static const struct uart_driver uart_liteuart = {
 	.write_byte	= uart_liteuart_write_byte,
 	.is_busy	= uart_liteuart_is_busy,
 	.rcv_handler	= uart_liteuart_rcv_handler,
+	.io_width	= 4,
 };
 
 static const struct of_device_id uart_liteuart_matches[] = {
