@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023-2024
+ * Copyright (c) OTH Regensburg, 2023-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -109,7 +109,7 @@ static void _dflc_put(struct dflc *entry)
 		if (fp->fops && fp->fops->close)
 			fp->fops->close(fp);
 
-		if (entry->parent) {
+		if (entry != &root) {
 			kfree(entry->name);
 			list_del(&entry->siblings);
 			kfree(entry);
@@ -153,6 +153,28 @@ static inline struct dflc *dflc_of(struct file *file)
 void file_dup(struct file *file)
 {
 	dflc_get(dflc_of(file));
+}
+
+/* A file without a name: never in the cache tree, gone with its last user. */
+struct file *file_new_anon(const struct file_operations *fops, mode_t mode,
+			   void *drvdata)
+{
+	struct dflc *entry;
+
+	entry = kzalloc(sizeof(*entry));
+	if (!entry)
+		return ERR_PTR(-ENOMEM);
+
+	spin_init(&entry->lock);
+	INIT_LIST_HEAD(&entry->siblings);
+	INIT_LIST_HEAD(&entry->children);
+	refcount_set(&entry->refs, 1);
+
+	entry->fp.fops = fops;
+	entry->fp.mode = mode;
+	entry->fp.drvdata = drvdata;
+
+	return &entry->fp;
 }
 
 void file_close(struct file *file)

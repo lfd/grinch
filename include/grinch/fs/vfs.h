@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023-2024
+ * Copyright (c) OTH Regensburg, 2023-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -87,6 +87,8 @@ struct file_system {
 
 /* Opens a file, and increments references to the file */
 struct file *file_open_at(struct file *at, const char *path);
+struct file *file_new_anon(const struct file_operations *fops, mode_t mode,
+			   void *drvdata);
 struct file *file_ocreate_at(struct file *at, const char *path, bool create);
 
 /* Releases the file */
