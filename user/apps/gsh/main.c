@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2024
+ * Copyright (c) OTH Regensburg, 2024-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -34,6 +34,7 @@
 #define ASCII_BACKSPACE	0x8
 #define ASCII_TAB	0x9
 #define ASCII_CR	'\r'
+#define ASCII_LF	'\n'
 #define ASCII_DEL	0x7f
 
 #define GSH_BUF_GROWTH	32
@@ -126,7 +127,7 @@ static int read_line(char **_buf)
 		if (c == ASCII_TAB) {
 			/* no action on tab atm */
 			continue;
-		} else if (c == ASCII_CR) {
+		} else if (c == ASCII_CR || c == ASCII_LF) {
 			*pos = 0;
 			err = 0;
 			break;
