@@ -204,7 +204,12 @@ SYSCALL_DEF3(read, unsigned int, fd, char __user *, buf, size_t, count)
 	if (!file->fops->register_reader)
 		return -EWOULDBLOCK;
 
-	return file->fops->register_reader(handle, buf, count);
+	bread = file->fops->register_reader(handle, buf, count);
+	if (bread)
+		return bread;
+
+	/* Parked: whoever wakes us sets the return value. */
+	return SYSCALL_PARKED;
 }
 
 SYSCALL_DEF3(write, unsigned int, fd, const char __user *, buf, size_t, count)

@@ -63,11 +63,15 @@ void syscall(unsigned long no, struct syscall_args *args)
 		ret = -ENOSYS;
 
 	/*
-	 * 1. On errors, always set the return value
-	 * 2. We have special treatments for exit,execve,wait
-	 * 3. Syscalls might have killed the task. Check for its existence
+	 * 1. Parked handlers leave the return value to whoever wakes the task
+	 * 2. On errors, always set the return value
+	 * 3. We have special treatments for exit,execve,wait
+	 * 4. Syscalls might have killed the task. Check for its existence
 	 */
 sys_out:
+	if (ret == SYSCALL_PARKED)
+		return;
+
 	cur = current_task();
 	if ((ret < 0 ||
 	    !(no == SYS_exit || no == SYS_execve || no == SYS_wait)) && cur)

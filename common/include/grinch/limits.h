@@ -19,6 +19,8 @@
 #define INT32_MAX	((s32)(UINT32_MAX >> 1))
 #define ULLONG_MAX	(~0ULL)
 #define ULONG_MAX	(~0UL)
+#define LONG_MAX	((long)(ULONG_MAX >> 1))
+#define LONG_MIN	(-LONG_MAX - 1)
 
 #define PATH_MAX	4096
 

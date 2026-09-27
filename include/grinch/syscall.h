@@ -16,6 +16,7 @@
 #define _SYSCALL_H
 
 #include <grinch/dirent.h>
+#include <grinch/limits.h>
 #include <grinch/stat.h>
 
 struct syscall_args {
@@ -28,6 +29,12 @@ struct syscall_args {
 };
 
 typedef long (*syscall_stub_t)(struct syscall_args *args);
+
+/*
+ * Returned by handlers that parked the task: the return value belongs to
+ * whoever wakes it, and the dispatcher must not touch it.
+ */
+#define SYSCALL_PARKED	LONG_MIN
 
 #define __SC_DECL(t,a)		t a
 #define __SC_CA(type, no)	(type)(___a->arg##no)
