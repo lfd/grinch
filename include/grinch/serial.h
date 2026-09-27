@@ -27,6 +27,9 @@ struct uart_driver {
 	void (*write_byte)(struct uart_chip *chip, unsigned char b);
 	bool (*is_busy)(struct uart_chip *chip);
 	int (*rcv_handler)(struct uart_chip *chip);
+
+	/* Register width when the DT carries no reg-io-width; 0 means 1. */
+	unsigned int io_width;
 };
 
 struct uart_chip {

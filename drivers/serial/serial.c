@@ -103,10 +103,13 @@ int __init uart_probe_generic(struct device *dev)
 {
 	const struct uart_driver *d;
 	struct devfs_node *node;
-	int err, io_width = 1;
 	struct uart_chip *c;
 	const int *res;
+	int err, io_width;
 	u32 irq;
+
+	d = dev->of.match->data;
+	io_width = d->io_width ? d->io_width : 1;
 
 	res = fdt_getprop(_fdt, dev->of.node, ISTR("reg-io-width"), &err);
 	if (err > 0)
@@ -176,8 +179,6 @@ int __init uart_probe_generic(struct device *dev)
 	} else
 		dev_pri(dev, "No IRQ found!\n");
 
-	d = dev->of.match->data;
-	c = dev->data;
 	c->driver = d;
 
 	err = d->init(c);
