@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023-2024
+ * Copyright (c) OTH Regensburg, 2023-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -34,6 +34,8 @@ static inline long __syscall_ret(unsigned long err)
 #define __syscall2(n, arg0, arg1)		__syscall2(n, __scast(arg0), __scast(arg1))
 #define __syscall3(n, arg0, arg1, arg2)		__syscall3(n, __scast(arg0), __scast(arg1), __scast(arg2))
 #define __syscall4(n, arg0, arg1, arg2, arg3)	__syscall4(n, __scast(arg0), __scast(arg1), __scast(arg2), __scast(arg3))
+#define __syscall5(n, arg0, arg1, arg2, arg3, arg4)	__syscall5(n, __scast(arg0), __scast(arg1), __scast(arg2), __scast(arg3), __scast(arg4))
+#define __syscall6(n, arg0, arg1, arg2, arg3, arg4, arg5)	__syscall6(n, __scast(arg0), __scast(arg1), __scast(arg2), __scast(arg3), __scast(arg4), __scast(arg5))
 
 #define __SYSCALL_NARGS_X(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, n,...) n
 #define __SYSCALL_NARGS(...)	__SYSCALL_NARGS_X(__VA_ARGS__, 7, 6, 5, 4, 3, 2, 1, 0,)

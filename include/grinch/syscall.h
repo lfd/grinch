@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023-2024
+ * Copyright (c) OTH Regensburg, 2023-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -45,6 +45,8 @@ typedef long (*syscall_stub_t)(struct syscall_args *args);
 #define __MAP2(m, t, a,...)	m(t, a), __MAP1(m, __VA_ARGS__)
 #define __MAP3(m, t, a,...)	m(t, a), __MAP2(m, __VA_ARGS__)
 #define __MAP4(m, t, a,...)	m(t, a), __MAP3(m, __VA_ARGS__)
+#define __MAP5(m, t, a,...)	m(t, a), __MAP4(m, __VA_ARGS__)
+#define __MAP6(m, t, a,...)	m(t, a), __MAP5(m, __VA_ARGS__)
 #define __MAP(n, ...)		__MAP##n(__VA_ARGS__)
 
 #define __MAPARGS0(...)
@@ -56,6 +58,10 @@ typedef long (*syscall_stub_t)(struct syscall_args *args);
 	__MAPARGS2(t1, a1, t2, a2), __SC_CA(t3, 3)
 #define __MAPARGS4(t1, a1, t2, a2, t3, a3, t4, a4)	\
 	__MAPARGS3(t1, a1, t2, a2, t3, a3), __SC_CA(t4, 4)
+#define __MAPARGS5(t1, a1, t2, a2, t3, a3, t4, a4, t5, a5)	\
+	__MAPARGS4(t1, a1, t2, a2, t3, a3, t4, a4), __SC_CA(t5, 5)
+#define __MAPARGS6(t1, a1, t2, a2, t3, a3, t4, a4, t5, a5, t6, a6)	\
+	__MAPARGS5(t1, a1, t2, a2, t3, a3, t4, a4, t5, a5), __SC_CA(t6, 6)
 #define __MAPARGS(n, ...)			__MAPARGS##n(__VA_ARGS__)
 
 #define SC_STUB_PROTO(name)	long ___sys_##name(struct syscall_args *___a)
@@ -78,6 +84,8 @@ typedef long (*syscall_stub_t)(struct syscall_args *args);
 #define SYSCALL_DEF2(name, ...)	SYSCALL_DEFx(name, 2, __VA_ARGS__)
 #define SYSCALL_DEF3(name, ...)	SYSCALL_DEFx(name, 3, __VA_ARGS__)
 #define SYSCALL_DEF4(name, ...)	SYSCALL_DEFx(name, 4, __VA_ARGS__)
+#define SYSCALL_DEF5(name, ...)	SYSCALL_DEFx(name, 5, __VA_ARGS__)
+#define SYSCALL_DEF6(name, ...)	SYSCALL_DEFx(name, 6, __VA_ARGS__)
 
 void syscall(unsigned long no, struct syscall_args *args);
 
