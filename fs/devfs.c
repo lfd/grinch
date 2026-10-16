@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023-2024
+ * Copyright (c) OTH Regensburg, 2023-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -334,8 +334,9 @@ void devfs_chardev_write(struct devfs_node *node, char c)
 	spin_unlock(&task->lock);
 }
 
-ssize_t devfs_chardev_read(struct task *task, struct devfs_node *node,
-			   struct file_handle *h, char *buf, size_t count)
+static ssize_t __devfs_chardev_read(struct task *task, struct devfs_node *node,
+				    struct file_handle *h, char *buf,
+				    size_t count)
 {
 	unsigned long copied;
 	struct ringbuf *rb;
@@ -354,7 +355,6 @@ ssize_t devfs_chardev_read(struct task *task, struct devfs_node *node,
 
 	rb = &node->rb;
 	ret = 0;
-	spin_lock(&node->lock);
 	do {
 		src = ringbuf_read(rb, &cnt);
 		if (!cnt)
@@ -370,10 +370,21 @@ ssize_t devfs_chardev_read(struct task *task, struct devfs_node *node,
 		if (copied != cnt)
 			break;
 	} while (count);
-	spin_unlock(&node->lock);
 
 	if (!ret)
 		return -EWOULDBLOCK;
+
+	return ret;
+}
+
+ssize_t devfs_chardev_read(struct task *task, struct devfs_node *node,
+			   struct file_handle *h, char *buf, size_t count)
+{
+	ssize_t ret;
+
+	spin_lock(&node->lock);
+	ret = __devfs_chardev_read(task, node, h, buf, count);
+	spin_unlock(&node->lock);
 
 	return ret;
 }
