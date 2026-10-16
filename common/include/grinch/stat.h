@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2024
+ * Copyright (c) OTH Regensburg, 2024-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -21,11 +21,13 @@
 #define S_IFCHR 00020000
 #define S_IFDIR	00040000
 #define S_IFLNK	00120000
+#define S_IFSOCK	00140000
 
 #define S_ISREG(m)	(((m) & S_IFMT) == S_IFREG)
 #define S_ISCHR(m)	(((m) & S_IFMT) == S_IFCHR)
 #define S_ISDIR(m)	(((m) & S_IFMT) == S_IFDIR)
 #define S_ISLNK(m)	(((m) & S_IFMT) == S_IFLNK)
+#define S_ISSOCK(m)	(((m) & S_IFMT) == S_IFSOCK)
 
 #define S_IRWXU	00700
 #define S_IRUSR	00400

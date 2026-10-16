@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -33,14 +33,17 @@
 #define EISDIR		21
 #define EINVAL		22
 #define EFBIG		27
+#define ENOSPC		28
 #define EROFS		30
 #define ERANGE		34
 #define ENOSYS		38
 #define ENAMETOOLONG	78
+#define	ENOTSOCK	88
 #define	EOPNOTSUPP	95
 #define	EMSGSIZE	97
+#define	EADDRINUSE	98
 
-#define MAX_ERRNO	97
+#define MAX_ERRNO	98
 
 #define IS_ERR_VALUE(x)	unlikely((unsigned long)(void *)(x) >= (unsigned long)-MAX_ERRNO)
 
