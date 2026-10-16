@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -57,8 +57,10 @@ static int serial_rcv(void *_c)
 	int err;
 
 	err = c->driver->rcv_handler(c);
+	if (err < 0)
+		return err;
 
-	return err;
+	return IRQ_HANDLED;
 }
 
 void uart_write_byte(struct uart_chip *chip, unsigned char b)

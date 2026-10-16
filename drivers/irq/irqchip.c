@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -186,16 +186,19 @@ int irq_register_handler(u32 irq, irq_handler_t handler, void *userdata)
 void irqchip_handle_irq(unsigned int irq)
 {
 	irq_handler_t handler = NULL;
-	int err;
+	int ret;
 
 	if (irq < IRQ_MAX)
 		handler = irq_handlers[irq];
 
-	if (handler) {
-		err = handler(irq_handlers_userdata[irq]);
-		if (err)
-			pr("Handler error for IRQ %u: %pe\n",
-			   irq, ERR_PTR(err));
-	} else
+	if (!handler) {
 		pr("No Handler for IRQ %u\n", irq);
+		return;
+	}
+
+	ret = handler(irq_handlers_userdata[irq]);
+	if (ret < 0)
+		pr("Handler error for IRQ %u: %pe\n", irq, ERR_PTR(ret));
+	else if (ret == IRQ_NONE)
+		pr("Unclaimed IRQ %u\n", irq);
 }

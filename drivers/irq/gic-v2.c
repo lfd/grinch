@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023-2024
+ * Copyright (c) OTH Regensburg, 2023-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -91,7 +91,7 @@ static void gic_v2_handle_irq(void)
 static int gic_v2_ipi_handler(void *unused)
 {
 	check_events();
-	return 0;
+	return IRQ_HANDLED;
 }
 
 static void gic_v2_send_ipi(unsigned long cpuid)

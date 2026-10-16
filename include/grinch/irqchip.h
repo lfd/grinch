@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -18,6 +18,9 @@
 #define	IRQ_INVALID	((u32)-1)
 
 struct device;
+
+#define IRQ_NONE	0
+#define IRQ_HANDLED	1
 
 typedef int (*irq_handler_t)(void *userdata);
 

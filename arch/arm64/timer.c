@@ -61,7 +61,7 @@ void arch_timer_set(timeu_t ns)
 static int timer_arm64_handler(void *unused)
 {
 	handle_timer();
-	return 0;
+	return IRQ_HANDLED;
 }
 
 static void __init arch_timer_cpu_init(void *)
