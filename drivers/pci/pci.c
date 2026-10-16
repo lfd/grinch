@@ -215,13 +215,14 @@ static int pci_scan_bar(struct pci_device *dev, unsigned int bar_no)
 
 	/* Only MMIO-BARs are supported */
 	if ((val & (1 << 0)) != 0)
-		return -EINVAL;
+		return -EOPNOTSUPP;
 
 	bar->prefetchable = !!(val & (1 << 3));
 	bar->type = (val >> 1) & 3;
 
-	if (bar->type > 2)
-		return -EINVAL;
+	/* A type we do not know decodes like a 32 bit one. */
+	if (bar->type == PCI_BAR_RSVD)
+		bar->type = PCI_BAR_32;
 
 	sz = pci_bar_test(dev, bar_no);
 	if (sz == 0)
@@ -284,7 +285,7 @@ int pci_map_bars(struct pci_device *dev)
 
 	for (bar = 0; bar < PCI_NUM_BARS; bar++) {
 		err = pci_scan_bar(dev, bar);
-		if (err == -ENOENT)
+		if (err == -ENOENT || err == -EOPNOTSUPP)
 			continue;
 		if (err)
 			return err;

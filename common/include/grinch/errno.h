@@ -37,6 +37,7 @@
 #define ERANGE		34
 #define ENOSYS		38
 #define ENAMETOOLONG	78
+#define	EOPNOTSUPP	95
 #define	EMSGSIZE	97
 
 #define MAX_ERRNO	97
