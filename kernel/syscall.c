@@ -69,7 +69,7 @@ void syscall(unsigned long no, struct syscall_args *args)
 	 * 4. Syscalls might have killed the task. Check for its existence
 	 */
 sys_out:
-	if (ret == SYSCALL_PARKED)
+	if (ret == SYSCALL_NO_RETVAL)
 		return;
 
 	cur = current_task();

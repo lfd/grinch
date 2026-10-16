@@ -209,7 +209,7 @@ SYSCALL_DEF3(read, unsigned int, fd, char __user *, buf, size_t, count)
 		return bread;
 
 	/* Parked: whoever wakes us sets the return value. */
-	return SYSCALL_PARKED;
+	return SYSCALL_NO_RETVAL;
 }
 
 SYSCALL_DEF3(write, unsigned int, fd, const char __user *, buf, size_t, count)
