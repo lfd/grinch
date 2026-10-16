@@ -18,6 +18,7 @@
 #include <grinch/driver.h>
 #include <grinch/fdt.h>
 #include <grinch/ioremap.h>
+#include <grinch/irqchip.h>
 #include <grinch/mm.h>
 #include <grinch/pci.h>
 #include <grinch/mmio.h>
@@ -299,6 +300,85 @@ int pci_map_bars(struct pci_device *dev)
 	}
 
 	return 0;
+}
+
+static int of_cells(int node, const char *name, int absent)
+{
+	const fdt32_t *prop;
+	int len;
+
+	prop = fdt_getprop(_fdt, node, name, &len);
+	if (!prop)
+		return absent;
+	if (len != (int)sizeof(*prop))
+		return -EINVAL;
+
+	return fdt32_to_cpu(*prop);
+}
+
+/*
+ * An entry is three address cells and the pin, then the parent's phandle;
+ * only the parent says how long the rest of it is.
+ */
+int pci_intx_irq(struct pci_device *dev)
+{
+	const fdt32_t *map, *mask, *entry;
+	unsigned int i, j, stride, n;
+	int node, parent, pac, pic;
+	int len, mlen;
+	u32 key[4];
+	u32 pin;
+
+	node = dev->pci->of_node;
+
+	pin = pci_dev_config_read(dev, PCI_INTERRUPT_PIN, 1);
+	if (pin < 1 || pin > 4)
+		return -ENOENT;
+
+	mask = fdt_getprop(_fdt, node, ISTR("interrupt-map-mask"), &mlen);
+	if (!mask || mlen != 4 * (int)sizeof(*mask))
+		return -ENOENT;
+
+	map = fdt_getprop(_fdt, node, ISTR("interrupt-map"), &len);
+	if (!map || len <= 0)
+		return -ENOENT;
+	n = len / sizeof(*map);
+
+	key[0] = (u32)(dev->bdf >> 8) << 16 |
+		 (u32)((dev->bdf >> 3) & 0x1f) << 11 |
+		 (u32)(dev->bdf & 7) << 8;
+	key[1] = 0;
+	key[2] = 0;
+	key[3] = pin;
+	for (i = 0; i < ARRAY_SIZE(key); i++)
+		key[i] &= fdt32_to_cpu(mask[i]);
+
+	for (i = 0; i + 5 <= n; i += stride) {
+		entry = map + i;
+
+		parent = fdt_node_offset_by_phandle(_fdt, fdt32_to_cpu(entry[4]));
+		if (parent < 0)
+			return parent;
+
+		pac = of_cells(parent, ISTR("#address-cells"), 0);
+		pic = of_cells(parent, ISTR("#interrupt-cells"), -EINVAL);
+		if (pac < 0 || pic < 0)
+			return -EINVAL;
+
+		stride = 5 + pac + pic;
+		if (i + stride > n)
+			break;
+
+		for (j = 0; j < ARRAY_SIZE(key); j++)
+			if ((fdt32_to_cpu(entry[j]) & fdt32_to_cpu(mask[j])) !=
+			    key[j])
+				break;
+
+		if (j == ARRAY_SIZE(key))
+			return irqchip_decode(entry + 5 + pac, pic);
+	}
+
+	return -ENOENT;
 }
 
 static const struct pci_device_id * __init

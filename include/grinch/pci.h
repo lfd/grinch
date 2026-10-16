@@ -38,6 +38,8 @@
 #define PCI_BASE_ADDRESS_4	0x20	/* 32 bits */
 #define PCI_BASE_ADDRESS_5	0x24	/* 32 bits */
 
+#define PCI_INTERRUPT_PIN	0x3d	/* 8 bits, 0 none, 1..4 INTA..INTD */
+
 #define PCI_VENDOR_ID_NOTVALID	0xffff
 
 #define PCI_NUM_BARS	6
@@ -120,6 +122,9 @@ struct pci_driver {
 
 void pci_device_enable(struct pci_device *device);
 int pci_map_bars(struct pci_device *device);
+
+/* The line its legacy interrupt pin arrives on. */
+int pci_intx_irq(struct pci_device *device);
 
 void pci_lspci(void);
 
