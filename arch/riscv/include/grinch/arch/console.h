@@ -28,10 +28,14 @@
 #endif
 
 #ifdef arch_early_putc
+/* As uart_write_char does for the console that takes over later. */
 static void arch_early_dbg(const char *str, unsigned int len)
 {
-	while (len--)
+	while (len--) {
+		if (*str == '\n')
+			arch_early_putc('\r');
 		arch_early_putc(*str++);
+	}
 }
 #else
 #define arch_early_dbg		NULL
