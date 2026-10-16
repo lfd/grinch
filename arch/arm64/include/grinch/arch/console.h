@@ -18,6 +18,10 @@
 #ifdef CONFIG_EARLYCON_SEMIHOST
 #include <grinch/semihost.h>
 #define arch_early_putc(c)	semihosting_putchar(c)
+#elif defined(CONFIG_EARLYCON_MMIO)
+#include <grinch/mmio.h>
+#define arch_early_putc(c)	mmio_write32((void *)CONFIG_EARLYCON_MMIO_BASE, \
+					     (unsigned char)(c))
 #endif
 
 #ifdef arch_early_putc

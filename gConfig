@@ -137,12 +137,20 @@ const CONFIG_FEATURES "Features" {
         string EARLYCON "Early console driver" {
             default "sbi"  if CONFIG_OPENSBI
             default "none"
-            choices "none" ("sbi" if CONFIG_OPENSBI) "semihost"
-            help "Select the driver used for early console output before the serial subsystem initialises. 'sbi' uses the RISC-V SBI console extension; 'semihost' uses the processor semihosting interface."
+            choices "none" ("sbi" if CONFIG_OPENSBI) "semihost" ("mmio" if !CONFIG_MMU)
+            help "Select the driver used for early console output before the serial subsystem initialises. 'sbi' uses the RISC-V SBI console extension; 'semihost' uses the processor semihosting interface; 'mmio' stores each character to a bare device register."
         }
 
         bool CONFIG_EARLYCON_SEMIHOST { value EARLYCON == "semihost"  header }
         bool CONFIG_EARLYCON_SBI      { value EARLYCON == "sbi"       header }
+        bool CONFIG_EARLYCON_MMIO     { value EARLYCON == "mmio"      header }
+
+        int CONFIG_EARLYCON_MMIO_BASE "Early console register address" {
+            default 0x0
+            depends CONFIG_EARLYCON_MMIO
+            header
+            help "Physical address of a register that transmits a character stored to it, written as a 32 bit store. The kernel must run on physical addresses."
+        }
     }
 }
 

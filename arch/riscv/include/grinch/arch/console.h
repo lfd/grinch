@@ -25,6 +25,10 @@
 #elif defined(CONFIG_EARLYCON_SBI)
 #include <grinch/arch/sbi.h>
 #define arch_early_putc(c)	sbi_console_putchar(c)
+#elif defined(CONFIG_EARLYCON_MMIO)
+#include <grinch/mmio.h>
+#define arch_early_putc(c)	mmio_write32((void *)CONFIG_EARLYCON_MMIO_BASE, \
+					     (unsigned char)(c))
 #endif
 
 #ifdef arch_early_putc
