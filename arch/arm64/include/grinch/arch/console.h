@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2024
+ * Copyright (c) OTH Regensburg, 2024-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -17,10 +17,14 @@
 
 #ifdef CONFIG_EARLYCON_SEMIHOST
 #include <grinch/semihost.h>
+#define arch_early_putc(c)	semihosting_putchar(c)
+#endif
+
+#ifdef arch_early_putc
 static void arch_early_dbg(const char *str, unsigned int len)
 {
 	while (len--)
-		semihosting_putchar(*str++);
+		arch_early_putc(*str++);
 }
 #else
 #define arch_early_dbg		NULL

@@ -21,17 +21,17 @@
 
 #ifdef CONFIG_EARLYCON_SEMIHOST
 #include <grinch/semihost.h>
-static void arch_early_dbg(const char *str, unsigned int len)
-{
-	while (len--)
-		semihosting_putchar(*str++);
-}
+#define arch_early_putc(c)	semihosting_putchar(c)
 #elif defined(CONFIG_EARLYCON_SBI)
 #include <grinch/arch/sbi.h>
+#define arch_early_putc(c)	sbi_console_putchar(c)
+#endif
+
+#ifdef arch_early_putc
 static void arch_early_dbg(const char *str, unsigned int len)
 {
 	while (len--)
-		sbi_console_putchar(*str++);
+		arch_early_putc(*str++);
 }
 #else
 #define arch_early_dbg		NULL
