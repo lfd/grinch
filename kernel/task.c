@@ -121,7 +121,7 @@ static int task_notify_wait(struct task *parent, struct task *child)
 SYSCALL_DEF3(wait, pid_t, pid, int __user *, wstatus, int, options)
 {
 	struct task *task, *child;
-	int err;
+	long err;
 
 	/* not supported at the moment */
 	if (options)
@@ -170,9 +170,9 @@ found:
 
 	if (child) {
 		if (child->state == TASK_EXIT_DEAD) {
-			err = task_notify_wait(task, child);
-			if (err)
+			if (task_notify_wait(task, child))
 				BUG();
+			err = SYSCALL_NO_RETVAL;
 			goto unlock_out;
 		} else
 			spin_unlock(&child->lock);
@@ -182,7 +182,7 @@ found:
 	this_per_cpu()->schedule = true;
 	this_per_cpu()->current_task = NULL;
 	task_release_cpu(task);
-	err = 0;
+	err = SYSCALL_NO_RETVAL;
 
 unlock_out:
 	spin_unlock(&task->lock);

@@ -726,7 +726,8 @@ uargv_free_out:
 pathname_out:
 	kfree(pathname);
 
-	return err;
+	/* On success the registers belong to the program we just loaded. */
+	return err ?: SYSCALL_NO_RETVAL;
 }
 
 /*
