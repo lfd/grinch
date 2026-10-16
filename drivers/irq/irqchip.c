@@ -170,36 +170,48 @@ int irqchip_cpu_init(void)
 
 int irq_register_action(u32 irq, struct irq_action *act)
 {
+	struct irq_action *head, **tail;
+
 	if (!act || !act->handler)
 		return -EINVAL;
 
 	if (irq >= IRQ_MAX)
 		return -EINVAL;
 
-	if (irq_actions[irq])
+	head = irq_actions[irq];
+	if (head && !((head->flags & act->flags) & IRQ_SHARED))
 		return -EBUSY;
 
-	irq_actions[irq] = act;
+	tail = &irq_actions[irq];
+	while (*tail)
+		tail = &(*tail)->next;
+
+	act->next = NULL;
+	*tail = act;
 
 	return 0;
 }
 
 void irqchip_handle_irq(unsigned int irq)
 {
-	struct irq_action *act = NULL;
-	int ret;
+	struct irq_action *act;
+	int ret = IRQ_NONE;
 
-	if (irq < IRQ_MAX)
-		act = irq_actions[irq];
-
-	if (!act) {
+	if (irq >= IRQ_MAX || !irq_actions[irq]) {
 		pr("No Handler for IRQ %u\n", irq);
 		return;
 	}
 
-	ret = act->handler(act->userdata);
-	if (ret < 0)
-		pr("Handler error for IRQ %u: %pe\n", irq, ERR_PTR(ret));
-	else if (ret == IRQ_NONE)
+	for (act = irq_actions[irq]; act; act = act->next) {
+		int res = act->handler(act->userdata);
+
+		if (res < 0) {
+			pr("Handler error for IRQ %u: %pe\n", irq, ERR_PTR(res));
+			ret |= IRQ_HANDLED;
+		} else
+			ret |= res;
+	}
+
+	if (ret == IRQ_NONE)
 		pr("Unclaimed IRQ %u\n", irq);
 }

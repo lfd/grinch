@@ -24,9 +24,13 @@ struct device;
 
 typedef int (*irq_handler_t)(void *userdata);
 
+#define IRQ_SHARED	(1 << 0)
+
 struct irq_action {
 	irq_handler_t handler;
 	void *userdata;
+	unsigned int flags;
+	struct irq_action *next;
 };
 
 struct irqchip_fn {
