@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023
+ * Copyright (c) OTH Regensburg, 2023-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -55,6 +55,51 @@ static __always_inline long __syscall3(long no, long arg0, long arg1, long arg2)
 	register long x2 asm("x2") = arg2;
 
 	__SYSCALL("0"(x0), "r"(x1), "r"(x2));
+
+	return x0;
+}
+
+static __always_inline long __syscall4(long no, long arg0, long arg1, long arg2,
+				       long arg3)
+{
+	register long x8 asm("x8") = no;
+	register long x0 asm("x0") = arg0;
+	register long x1 asm("x1") = arg1;
+	register long x2 asm("x2") = arg2;
+	register long x3 asm("x3") = arg3;
+
+	__SYSCALL("0"(x0), "r"(x1), "r"(x2), "r"(x3));
+
+	return x0;
+}
+
+static __always_inline long __syscall5(long no, long arg0, long arg1, long arg2,
+				       long arg3, long arg4)
+{
+	register long x8 asm("x8") = no;
+	register long x0 asm("x0") = arg0;
+	register long x1 asm("x1") = arg1;
+	register long x2 asm("x2") = arg2;
+	register long x3 asm("x3") = arg3;
+	register long x4 asm("x4") = arg4;
+
+	__SYSCALL("0"(x0), "r"(x1), "r"(x2), "r"(x3), "r"(x4));
+
+	return x0;
+}
+
+static __always_inline long __syscall6(long no, long arg0, long arg1, long arg2,
+				       long arg3, long arg4, long arg5)
+{
+	register long x8 asm("x8") = no;
+	register long x0 asm("x0") = arg0;
+	register long x1 asm("x1") = arg1;
+	register long x2 asm("x2") = arg2;
+	register long x3 asm("x3") = arg3;
+	register long x4 asm("x4") = arg4;
+	register long x5 asm("x5") = arg5;
+
+	__SYSCALL("0"(x0), "r"(x1), "r"(x2), "r"(x3), "r"(x4), "r"(x5));
 
 	return x0;
 }
