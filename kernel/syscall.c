@@ -63,17 +63,14 @@ void syscall(unsigned long no, struct syscall_args *args)
 		ret = -ENOSYS;
 
 	/*
-	 * 1. Parked handlers leave the return value to whoever wakes the task
-	 * 2. On errors, always set the return value
-	 * 3. We have special treatments for exit,execve,wait
-	 * 4. Syscalls might have killed the task. Check for its existence
+	 * 1. A handler may have left the return value to someone else
+	 * 2. Syscalls might have killed the task. Check for its existence
 	 */
 sys_out:
 	if (ret == SYSCALL_NO_RETVAL)
 		return;
 
 	cur = current_task();
-	if ((ret < 0 ||
-	    !(no == SYS_exit || no == SYS_execve || no == SYS_wait)) && cur)
+	if (cur)
 		regs_set_retval(&cur->regs, ret);
 }
