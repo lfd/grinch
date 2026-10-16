@@ -192,6 +192,21 @@ int irq_register_action(u32 irq, struct irq_action *act)
 	return 0;
 }
 
+void irq_unregister_action(u32 irq, struct irq_action *act)
+{
+	struct irq_action **link;
+
+	if (irq >= IRQ_MAX)
+		return;
+
+	for (link = &irq_actions[irq]; *link; link = &(*link)->next)
+		if (*link == act) {
+			*link = act->next;
+			act->next = NULL;
+			return;
+		}
+}
+
 void irqchip_handle_irq(unsigned int irq)
 {
 	struct irq_action *act;

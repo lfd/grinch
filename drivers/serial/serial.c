@@ -90,6 +90,8 @@ static void __init uart_deinit(struct device *dev)
 	if (!c)
 		return;
 
+	irq_unregister_action(c->irq, &c->action);
+
 	node = &c->node;
 	devfs_node_unregister(node);
 	devfs_node_deinit(node);

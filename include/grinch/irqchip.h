@@ -49,6 +49,7 @@ extern const struct irqchip_fn *irqchip_fn;
 
 int irqchip_init(void);
 int irq_register_action(u32 irq, struct irq_action *act);
+void irq_unregister_action(u32 irq, struct irq_action *act);
 void irqchip_handle_irq(unsigned int irq);
 int irqchip_enable_irq(unsigned int irq);
 int irqchip_set_affinity(unsigned int irq, unsigned long cpu);
