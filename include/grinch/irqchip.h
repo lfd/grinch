@@ -24,6 +24,11 @@ struct device;
 
 typedef int (*irq_handler_t)(void *userdata);
 
+struct irq_action {
+	irq_handler_t handler;
+	void *userdata;
+};
+
 struct irqchip_fn {
 	void (*handle_irq)(void);
 	int (*enable_irq)(unsigned int irq);
@@ -39,7 +44,7 @@ struct irqchip_fn {
 extern const struct irqchip_fn *irqchip_fn;
 
 int irqchip_init(void);
-int irq_register_handler(u32 irq, irq_handler_t handler, void *userdata);
+int irq_register_action(u32 irq, struct irq_action *act);
 void irqchip_handle_irq(unsigned int irq);
 int irqchip_enable_irq(unsigned int irq);
 int irqchip_set_affinity(unsigned int irq, unsigned long cpu);

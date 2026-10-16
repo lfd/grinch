@@ -157,7 +157,9 @@ int __init uart_probe_generic(struct device *dev)
 	c->irq = irq;
 	if (irq != IRQ_INVALID) {
 		dev_pri(dev, "UART: using IRQ %d\n", irq);
-		err = irq_register_handler(irq, serial_rcv, c);
+		c->action.handler = serial_rcv;
+		c->action.userdata = c;
+		err = irq_register_action(irq, &c->action);
 		if (err) {
 			dev_pri(dev, "Unable to register IRQ %d (%pe)\n",
 				irq, ERR_PTR(err));

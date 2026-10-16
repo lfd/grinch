@@ -23,8 +23,7 @@
 
 const struct irqchip_fn *irqchip_fn;
 
-static irq_handler_t irq_handlers[IRQ_MAX];
-static void *irq_handlers_userdata[IRQ_MAX];
+static struct irq_action *irq_actions[IRQ_MAX];
 
 struct irqchip_candidate {
 	const struct driver *drv;
@@ -169,34 +168,36 @@ int irqchip_cpu_init(void)
 	return 0;
 }
 
-int irq_register_handler(u32 irq, irq_handler_t handler, void *userdata)
+int irq_register_action(u32 irq, struct irq_action *act)
 {
-	if (!handler)
+	if (!act || !act->handler)
 		return -EINVAL;
 
 	if (irq >= IRQ_MAX)
 		return -EINVAL;
 
-	irq_handlers[irq] = handler;
-	irq_handlers_userdata[irq] = userdata;
+	if (irq_actions[irq])
+		return -EBUSY;
+
+	irq_actions[irq] = act;
 
 	return 0;
 }
 
 void irqchip_handle_irq(unsigned int irq)
 {
-	irq_handler_t handler = NULL;
+	struct irq_action *act = NULL;
 	int ret;
 
 	if (irq < IRQ_MAX)
-		handler = irq_handlers[irq];
+		act = irq_actions[irq];
 
-	if (!handler) {
+	if (!act) {
 		pr("No Handler for IRQ %u\n", irq);
 		return;
 	}
 
-	ret = handler(irq_handlers_userdata[irq]);
+	ret = act->handler(act->userdata);
 	if (ret < 0)
 		pr("Handler error for IRQ %u: %pe\n", irq, ERR_PTR(ret));
 	else if (ret == IRQ_NONE)

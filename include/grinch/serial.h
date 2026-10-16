@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -17,6 +17,7 @@
 #include <asm/spinlock.h>
 
 #include <grinch/fs/devfs.h>
+#include <grinch/irqchip.h>
 #include <grinch/types.h>
 
 struct uart_chip;
@@ -34,6 +35,7 @@ struct uart_chip {
 	u32 irq;
 
 	struct devfs_node node;
+	struct irq_action action;
 
 	void (*reg_out)(struct uart_chip *chip, unsigned int reg, u32 value);
 	u32 (*reg_in)(struct uart_chip *chip, unsigned int reg);

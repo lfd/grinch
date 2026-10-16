@@ -94,6 +94,10 @@ static int gic_v2_ipi_handler(void *unused)
 	return IRQ_HANDLED;
 }
 
+static struct irq_action ipi_action = {
+	.handler = gic_v2_ipi_handler,
+};
+
 static void gic_v2_send_ipi(unsigned long cpuid)
 {
 	/* TargetListFilter 0b00: deliver to the CPU interface in the list. */
@@ -141,7 +145,7 @@ static int irq_gic_v2_init(void)
 		mmio_write8(gicd.base + GICD_ITARGETSR + irq, 1 << 0);
 	}
 
-	err = irq_register_handler(IPI_SGI, gic_v2_ipi_handler, NULL);
+	err = irq_register_action(IPI_SGI, &ipi_action);
 	if (err)
 		return err;
 

@@ -64,6 +64,10 @@ static int timer_arm64_handler(void *unused)
 	return IRQ_HANDLED;
 }
 
+static struct irq_action timer_action = {
+	.handler = timer_arm64_handler,
+};
+
 static void __init arch_timer_cpu_init(void *)
 {
 	/*
@@ -80,7 +84,7 @@ int __init arch_timer_init(void)
 	arm_read_sysreg(CNTFRQ_EL0, timebase_frequency);
 	pri("Timebase frequency: %llx\n", timebase_frequency);
 
-	err = irq_register_handler(TIMER_IRQ, timer_arm64_handler, NULL);
+	err = irq_register_action(TIMER_IRQ, &timer_action);
 	if (err)
 		return err;
 
