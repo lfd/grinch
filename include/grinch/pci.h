@@ -74,6 +74,7 @@ struct pci_range {
 struct pci {
 	void *mmcfg;
 	u32 end_bus;
+	int of_node;	/* the bridge's own */
 
 	struct list_head ranges;
 };

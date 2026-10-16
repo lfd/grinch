@@ -552,6 +552,7 @@ static int __init pci_probe(struct device *dev)
 	INIT_LIST_HEAD(&pci->ranges);
 
 	pci->mmcfg = dev->mmio.base;
+	pci->of_node = dev->of.node;
 
 	err = fdt_read_u32_array(_fdt, dev->of.node, ISTR("bus-range"),
 				 bus_range, 0, ARRAY_SIZE(bus_range));
