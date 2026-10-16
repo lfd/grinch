@@ -27,6 +27,7 @@
 #define  PCI_COMMAND_IO		0x1	/* Enable response in I/O space */
 #define  PCI_COMMAND_MEMORY	0x2	/* Enable response in Memory space */
 #define  PCI_COMMAND_MASTER	0x4	/* Enable bus mastering */
+#define  PCI_COMMAND_INTX_OFF	0x400	/* Mask the legacy interrupt */
 #define PCI_STATUS		0x06	/* 16 bits */
 
 #define PCI_CLASS_REVISION	0x08
@@ -94,12 +95,20 @@ struct pci_bar {
 	struct mmio_resource iomem;
 };
 
+enum pci_irq_mode {
+	PCI_IRQ_INTX,
+};
+
 struct pci_device {
 	struct device dev;
 	struct pci *pci;
 	const struct pci_driver *driver;
 	u16 bdf;
 	struct pci_bar bars[PCI_NUM_BARS];
+
+	enum pci_irq_mode irq_mode;
+	unsigned int irq_nvec;
+	u32 irq_base;	/* vector n is irq_base + n */
 
 	void *data;
 };
@@ -125,6 +134,10 @@ int pci_map_bars(struct pci_device *device);
 
 /* The line its legacy interrupt pin arrives on. */
 int pci_intx_irq(struct pci_device *device);
+
+/* Claim up to `count` vectors; returns how many were given. */
+int pci_irq_alloc(struct pci_device *device, unsigned int count);
+int pci_irq_vector(struct pci_device *device, unsigned int n);
 
 void pci_lspci(void);
 

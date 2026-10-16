@@ -119,6 +119,7 @@ static void pci_device_disable(struct pci_device *dev)
 
 	cmd = pci_config_read(dev->pci, dev->bdf, PCI_COMMAND, 2);
 	cmd &= ~(PCI_COMMAND_IO | PCI_COMMAND_MEMORY | PCI_COMMAND_MASTER);
+	cmd |= PCI_COMMAND_INTX_OFF;
 	pci_config_write(dev->pci, dev->bdf, PCI_COMMAND, 2, cmd);
 }
 
@@ -439,6 +440,36 @@ static int pci_get_id(struct pci *pci, u16 bdf, struct pci_device_id *id)
 	id->revision = (class_rev >> 0) & 0xff;
 
 	return 0;
+}
+
+int pci_irq_alloc(struct pci_device *dev, unsigned int count)
+{
+	u16 cmd;
+	int irq;
+
+	if (!count)
+		return -EINVAL;
+
+	irq = pci_intx_irq(dev);
+	if (irq < 0)
+		return irq;
+
+	cmd = pci_dev_config_read(dev, PCI_COMMAND, 2);
+	pci_dev_config_write(dev, PCI_COMMAND, 2, cmd & ~PCI_COMMAND_INTX_OFF);
+
+	dev->irq_mode = PCI_IRQ_INTX;
+	dev->irq_base = irq;
+	dev->irq_nvec = 1;
+
+	return dev->irq_nvec;
+}
+
+int pci_irq_vector(struct pci_device *dev, unsigned int n)
+{
+	if (n >= dev->irq_nvec)
+		return -EINVAL;
+
+	return dev->irq_base + n;
 }
 
 static int __init _pci_scan(struct device *dom)
