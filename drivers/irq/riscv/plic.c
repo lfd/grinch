@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2022-2024
+ * Copyright (c) OTH Regensburg, 2022-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -183,8 +183,17 @@ static int __init plic_init(struct device *dev)
 	return 0;
 }
 
+static int plic_decode(const u32 *cells, unsigned int n)
+{
+	if (n != 1)
+		return -EINVAL;
+
+	return fdt32_to_cpu(cells[0]);
+}
+
 const struct irqchip_fn irqchip_fn_plic = {
 	.handle_irq = plic_handle_irq,
+	.decode = plic_decode,
 	.enable_irq = plic_enable_irq,
 	.disable_irq = plic_disable_irq,
 	.set_affinity = plic_set_affinity,

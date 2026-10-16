@@ -155,7 +155,27 @@ static int irq_gic_v2_init(void)
 	return 0;
 }
 
+/* <type hwirq flags>: type 0 is an SPI, which starts at 32; type 1 a PPI at 16. */
+static int gic_v2_decode(const u32 *cells, unsigned int n)
+{
+	u32 hwirq, type;
+
+	if (n != 3)
+		return -EINVAL;
+
+	type = fdt32_to_cpu(cells[0]);
+	hwirq = fdt32_to_cpu(cells[1]);
+
+	if (type == 0)
+		return GIC_SPI_BASE + hwirq;
+	if (type == 1)
+		return 16 + hwirq;
+
+	return -EINVAL;
+}
+
 const struct irqchip_fn irqchip_fn_gic_v2 = {
+	.decode = gic_v2_decode,
 	.handle_irq = gic_v2_handle_irq,
 	.enable_irq = gic_v2_enable_irq,
 	.disable_irq = gic_v2_disable_irq,

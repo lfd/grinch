@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2023-2024
+ * Copyright (c) OTH Regensburg, 2023-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -37,8 +37,18 @@ static int __init aplic_init(struct device *dev)
 	return -ENOSYS;
 }
 
+/* <hwirq flags>; the trigger mode the flags name is not ours to pick. */
+static int aplic_decode(const u32 *cells, unsigned int n)
+{
+	if (n != 2)
+		return -EINVAL;
+
+	return fdt32_to_cpu(cells[0]);
+}
+
 const struct irqchip_fn irqchip_fn_aplic = {
 	.handle_irq = aplic_handle_irq,
+	.decode = aplic_decode,
 	.enable_irq = aplic_enable_irq,
 	.disable_irq = aplic_disable_irq,
 	.init = aplic_init,

@@ -129,6 +129,14 @@ int __init irqchip_init(void)
 	return 0;
 }
 
+int irqchip_decode(const u32 *cells, unsigned int n)
+{
+	if (!irqchip_fn || !irqchip_fn->decode)
+		return -ENOSYS;
+
+	return irqchip_fn->decode(cells, n);
+}
+
 int irqchip_enable_irq(unsigned int irq)
 {
 	if (irqchip_fn)

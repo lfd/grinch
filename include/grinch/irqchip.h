@@ -39,6 +39,8 @@ struct irqchip_fn {
 	int (*disable_irq)(unsigned int irq);
 	int (*set_affinity)(unsigned int irq, unsigned long cpu);
 	int (*init)(struct device *dev);
+	/* A line number out of the cells a tree spends on this chip. */
+	int (*decode)(const u32 *cells, unsigned int n);
 	/* Send an inter-processor interrupt to a remote CPU. */
 	void (*send_ipi)(unsigned long cpuid);
 	/* Per-CPU controller setup, run on every CPU that comes online. */
@@ -48,6 +50,7 @@ struct irqchip_fn {
 extern const struct irqchip_fn *irqchip_fn;
 
 int irqchip_init(void);
+int irqchip_decode(const u32 *cells, unsigned int n);
 int irq_register_action(u32 irq, struct irq_action *act);
 void irq_unregister_action(u32 irq, struct irq_action *act);
 void irqchip_handle_irq(unsigned int irq);
