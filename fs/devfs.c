@@ -161,13 +161,17 @@ static long devfs_ioctl(struct file *file, unsigned int op, unsigned long arg)
 	return node->fops->ioctl(node, op, arg);
 }
 
-static int
+static ssize_t __devfs_chardev_read(struct task *task, struct devfs_node *node,
+				    struct file_handle *h, char *buf,
+				    size_t count);
+
+static ssize_t
 devfs_register_reader(struct file_handle *fh, char *ubuf, size_t count)
 {
 	struct devfs_node *node;
 	struct wfe_read *reader;
 	struct task *task;
-	int err;
+	ssize_t err;
 
 	node = fh->fp->drvdata;
 	if (node->type == DEVFS_SYMLINK)
@@ -183,6 +187,11 @@ devfs_register_reader(struct file_handle *fh, char *ubuf, size_t count)
 		BUG();
 
 	spin_lock(&node->lock);
+
+	/* What arrived since the read came up empty must not park us. */
+	err = __devfs_chardev_read(task, node, fh, ubuf, count);
+	if (err != -EWOULDBLOCK)
+		goto unlock_out;
 
 	if (node->reader) {
 		err = -EBUSY;
