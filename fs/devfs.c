@@ -169,6 +169,7 @@ devfs_register_reader(struct file_handle *fh, char *ubuf, size_t count)
 {
 	struct devfs_node *node;
 	struct wfe_read *reader;
+	unsigned long flags;
 	struct task *task;
 	ssize_t err;
 
@@ -185,7 +186,7 @@ devfs_register_reader(struct file_handle *fh, char *ubuf, size_t count)
 	if (task->wfe.type != WFE_NONE)
 		BUG();
 
-	spin_lock(&node->lock);
+	flags = spin_lock_irqsave(&node->lock);
 
 	/* What arrived since the read came up empty must not park us. */
 	err = __devfs_chardev_read(task, node, fh, ubuf, count);
@@ -212,7 +213,7 @@ devfs_register_reader(struct file_handle *fh, char *ubuf, size_t count)
 	err = 0;
 
 unlock_out:
-	spin_unlock(&node->lock);
+	spin_unlock_irqrestore(&node->lock, flags);
 	return err;
 }
 
@@ -317,6 +318,7 @@ void devfs_chardev_write(struct devfs_node *node, char c)
 	if (node->type != DEVFS_CHARDEV)
 		BUG();
 
+	/* Runs from the UART handler, so interrupts are masked already. */
 	spin_lock(&node->lock);
 	ringbuf_write(&node->rb, c);
 
@@ -388,11 +390,12 @@ static ssize_t __devfs_chardev_read(struct task *task, struct devfs_node *node,
 ssize_t devfs_chardev_read(struct task *task, struct devfs_node *node,
 			   struct file_handle *h, char *buf, size_t count)
 {
+	unsigned long flags;
 	ssize_t ret;
 
-	spin_lock(&node->lock);
+	flags = spin_lock_irqsave(&node->lock);
 	ret = __devfs_chardev_read(task, node, h, buf, count);
-	spin_unlock(&node->lock);
+	spin_unlock_irqrestore(&node->lock, flags);
 
 	return ret;
 }
