@@ -25,8 +25,8 @@
 
 #include <asm/cpu.h>
 #include <asm/percpu.h>
-#include <asm/spinlock.h>
 
+#include <grinch/spinlock.h>
 #include <grinch/symbols.h>
 #include <grinch/smp.h>
 #include <grinch/time_abi.h>

@@ -12,8 +12,6 @@
 
 #define dbg_fmt(x)	"devfs: " x
 
-#include <asm/spinlock.h>
-
 #include <grinch/alloc.h>
 #include <grinch/errno.h>
 #include <grinch/fs/devfs.h>
@@ -21,6 +19,7 @@
 #include <grinch/minmax.h>
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
+#include <grinch/spinlock.h>
 #include <grinch/task.h>
 #include <grinch/uaccess.h>
 

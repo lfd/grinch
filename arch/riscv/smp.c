@@ -15,7 +15,6 @@
 #include <asm/firmware.h>
 #include <asm/irq.h>
 #include <asm/isa.h>
-#include <asm/spinlock.h>
 
 #include <grinch/fdt.h>
 #include <grinch/gfp.h>
@@ -25,6 +24,7 @@
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/smp.h>
+#include <grinch/spinlock.h>
 #include <grinch/string.h>
 
 #include <asm/isa.h>

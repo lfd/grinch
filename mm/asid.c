@@ -12,8 +12,6 @@
 
 #define dbg_fmt(x)	"asid: " x
 
-#include <asm/spinlock.h>
-
 #include <grinch/alloc.h>
 #include <grinch/asid.h>
 #include <grinch/bitmap.h>
@@ -21,6 +19,7 @@
 #include <grinch/init.h>
 #include <grinch/paging.h>
 #include <grinch/printk.h>
+#include <grinch/spinlock.h>
 
 /*
  * ASIDs come from a global bitmap sized by the number of ASIDs the

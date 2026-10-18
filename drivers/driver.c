@@ -12,13 +12,12 @@
 
 #define dbg_fmt(x) "driver: " x
 
-#include <asm/spinlock.h>
-
 #include <grinch/alloc.h>
 #include <grinch/device.h>
 #include <grinch/driver.h>
 #include <grinch/ioremap.h>
 #include <grinch/pci.h>
+#include <grinch/spinlock.h>
 #include <grinch/symbols.h>
 
 #define for_each_driver(X)					\

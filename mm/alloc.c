@@ -12,8 +12,6 @@
 
 #define dbg_fmt(x) "alloc: " x
 
-#include <asm/spinlock.h>
-
 #include <grinch/align.h>
 #include <grinch/alloc.h>
 #include <grinch/bootparam.h>
@@ -22,6 +20,7 @@
 #include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/salloc.h>
+#include <grinch/spinlock.h>
 #include <grinch/vma.h>
 
 static DEFINE_SPINLOCK(alloc_lock);

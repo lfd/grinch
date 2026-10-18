@@ -12,13 +12,12 @@
 
 #define dbg_fmt(x) "device: " x
 
-#include <asm/spinlock.h>
-
 #include <grinch/alloc.h>
 #include <grinch/device.h>
 #include <grinch/driver.h>
 #include <grinch/ioremap.h>
 #include <grinch/panic.h>
+#include <grinch/spinlock.h>
 #include <grinch/symbols.h>
 
 #define IDX_INVALID	(unsigned int)(-1)

@@ -14,7 +14,6 @@
 
 #include <asm/irq.h>
 #include <asm/psci.h>
-#include <asm/spinlock.h>
 #include <asm/sysregs.h>
 
 #include <grinch/compiler_types.h>
@@ -28,6 +27,7 @@
 #include <grinch/percpu.h>
 #include <grinch/printk.h>
 #include <grinch/smp.h>
+#include <grinch/spinlock.h>
 #include <grinch/string.h>
 
 /* Assembly entry point for secondary CPUs (head.S). */

@@ -13,10 +13,9 @@
 #ifndef _FS_VFS_H
 #define _FS_VFS_H
 
-#include <asm/spinlock.h>
-
 #include <grinch/dirent.h>
 #include <grinch/refcount.h>
+#include <grinch/spinlock.h>
 #include <grinch/types.h>
 #include <grinch/stat.h>
 

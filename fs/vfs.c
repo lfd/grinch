@@ -12,8 +12,6 @@
 
 #define dbg_fmt(x)	"vfs: " x
 
-#include <asm/spinlock.h>
-
 #include <grinch/alloc.h>
 #include <grinch/fs/devfs.h>
 #include <grinch/fs/initrd.h>
@@ -25,6 +23,7 @@
 #include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/refcount.h>
+#include <grinch/spinlock.h>
 
 /*
  * When looking up dflc entries, having D_DIR set as flag means:

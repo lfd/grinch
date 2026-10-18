@@ -14,10 +14,10 @@
 #define _SERIAL_H
 
 #include <asm/cpu.h>
-#include <asm/spinlock.h>
 
 #include <grinch/fs/devfs.h>
 #include <grinch/irqchip.h>
+#include <grinch/spinlock.h>
 #include <grinch/types.h>
 
 struct uart_chip;

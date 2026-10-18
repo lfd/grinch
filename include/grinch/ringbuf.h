@@ -13,8 +13,6 @@
 #ifndef _RINGBUF_H
 #define _RINGBUF_H
 
-#include <asm/spinlock.h>
-
 struct ringbuf {
 	char *buf;
 	unsigned int head;

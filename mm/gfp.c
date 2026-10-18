@@ -12,8 +12,6 @@
 
 #define dbg_fmt(x)	"gfp: " x
 
-#include <asm/spinlock.h>
-
 #include <grinch/bitmap.h>
 #include <grinch/fdt.h>
 #include <grinch/gfp.h>
@@ -22,6 +20,7 @@
 #include <grinch/percpu.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
+#include <grinch/spinlock.h>
 #include <grinch/symbols.h>
 #include <grinch/uaccess.h>
 
