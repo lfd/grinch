@@ -30,3 +30,36 @@ struct file_handle *fd_get(unsigned int fd)
 
 	return handle;
 }
+
+/* Consumes the file reference on success. */
+int fd_new(struct file *file, struct fs_flags flags)
+{
+	struct process *process;
+	struct task *task;
+	unsigned int d;
+	int ret;
+
+	task = current_task();
+	spin_lock(&task->lock);
+	process = &task->process;
+	for (d = 0; d < MAX_FDS; d++)
+		if (process->fds[d] == NULL)
+			goto found;
+
+	ret = -EMFILE;
+	goto unlock_out;
+
+found:
+	process->fds[d] = file_handle_new(file, flags);
+	if (IS_ERR(process->fds[d])) {
+		ret = PTR_ERR(process->fds[d]);
+		process->fds[d] = NULL;
+		goto unlock_out;
+	}
+
+	ret = d;
+
+unlock_out:
+	spin_unlock(&task->lock);
+	return ret;
+}

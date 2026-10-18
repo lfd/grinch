@@ -107,6 +107,7 @@ void file_handle_put(struct file_handle *h);
 
 /* Descriptor table of the current task */
 struct file_handle *fd_get(unsigned int fd);
+int fd_new(struct file *file, struct fs_flags flags);
 
 char *file_realpath(struct file *file);
 

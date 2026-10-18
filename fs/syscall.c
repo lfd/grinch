@@ -60,14 +60,11 @@ static struct fs_flags get_flags(int oflag)
 
 SYSCALL_DEF2(open, const char __user *, _pathname, int, oflag)
 {
-	struct process *process;
 	struct fs_flags flags;
 	struct file *file;
-	struct task *task;
 	char *pathname;
 	bool must_dir;
 	long ret;
-	int d;
 
 	pathname = pathname_from_user(_pathname, &must_dir);
 	if (IS_ERR(pathname))
@@ -84,41 +81,22 @@ SYSCALL_DEF2(open, const char __user *, _pathname, int, oflag)
 		goto free_out;
 	}
 
-	task = current_task();
-	spin_lock(&task->lock);
-	process = &task->process;
-	for (d = 0; d < MAX_FDS; d++)
-		if (process->fds[d] == NULL)
-			goto found;
-
-	ret = -EMFILE;
-	goto unlock_out;
-
-found:
 	file = file_ocreate_at(cwd(), pathname, flags.create);
 	if (IS_ERR(file)) {
 		ret = PTR_ERR(file);
-		goto unlock_out;
+		goto free_out;
 	}
 
 	if (must_dir && !S_ISDIR(file->mode)) {
 		file_close(file);
 		ret = -ENOTDIR;
-		goto unlock_out;
+		goto free_out;
 	}
 
-	process->fds[d] = file_handle_new(file, flags);
-	if (IS_ERR(process->fds[d])) {
-		ret = PTR_ERR(process->fds[d]);
-		process->fds[d] = NULL;
+	ret = fd_new(file, flags);
+	if (ret < 0)
 		file_close(file);
-		goto unlock_out;
-	}
 
-	ret = d;
-
-unlock_out:
-	spin_unlock(&task->lock);
 free_out:
 	kfree(pathname);
 
