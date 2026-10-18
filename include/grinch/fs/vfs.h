@@ -105,6 +105,9 @@ struct file_handle *file_handle_new(struct file *fp, struct fs_flags flags);
 void file_handle_get(struct file_handle *h);
 void file_handle_put(struct file_handle *h);
 
+/* Descriptor table of the current task */
+struct file_handle *fd_get(unsigned int fd);
+
 char *file_realpath(struct file *file);
 
 /* VFS operations */

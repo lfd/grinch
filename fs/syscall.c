@@ -58,20 +58,6 @@ static struct fs_flags get_flags(int oflag)
 	return ret;
 }
 
-static struct file_handle *get_handle(unsigned int fd)
-{
-	struct file_handle *handle;
-
-	if (fd >= MAX_FDS)
-		return ERR_PTR(-EBADF);
-
-	handle = current_process()->fds[fd];
-	if (!handle)
-		return ERR_PTR(-EINVAL);
-
-	return handle;
-}
-
 SYSCALL_DEF2(open, const char __user *, _pathname, int, oflag)
 {
 	struct process *process;
@@ -148,7 +134,7 @@ SYSCALL_DEF1(close, unsigned int, fd)
 	task = current_task();
 	spin_lock(&task->lock);
 
-	handle = get_handle(fd);
+	handle = fd_get(fd);
 	if (IS_ERR(handle)) {
 		err = PTR_ERR(handle);
 		goto unlock_out;
@@ -172,7 +158,7 @@ SYSCALL_DEF3(read, unsigned int, fd, char __user *, buf, size_t, count)
 	if ((ssize_t)count < 0)
 		return -EFBIG;
 
-	handle = get_handle(fd);
+	handle = fd_get(fd);
 	if (IS_ERR(handle))
 		return PTR_ERR(handle);
 
@@ -221,7 +207,7 @@ SYSCALL_DEF3(write, unsigned int, fd, const char __user *, buf, size_t, count)
 	if ((ssize_t)count < 0)
 		return -EFBIG;
 
-	handle = get_handle(fd);
+	handle = fd_get(fd);
 	if (IS_ERR(handle))
 		return PTR_ERR(handle);
 
@@ -287,7 +273,7 @@ SYSCALL_DEF3(getdents, unsigned int, fd, struct dirent __user *, dents,
 	struct file *file;
 	int ret;
 
-	handle = get_handle(fd);
+	handle = fd_get(fd);
 	if (IS_ERR(handle))
 		return PTR_ERR(handle);
 
@@ -388,7 +374,7 @@ SYSCALL_DEF3(ioctl, unsigned int, fd, unsigned int, op, unsigned long, arg)
 	struct file_handle *handle;
 	struct file *file;
 
-	handle = get_handle(fd);
+	handle = fd_get(fd);
 	if (IS_ERR(handle))
 		return PTR_ERR(handle);
 

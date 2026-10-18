@@ -1,4 +1,5 @@
 FS_OBJS = devfs.o
+FS_OBJS += fd.o
 FS_OBJS += initrd.o
 FS_OBJS += syscall.o
 FS_OBJS += tmpfs.o
