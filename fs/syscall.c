@@ -1,7 +1,7 @@
 /*
  * Grinch, a minimalist operating system
  *
- * Copyright (c) OTH Regensburg, 2024
+ * Copyright (c) OTH Regensburg, 2024-2026
  *
  * Authors:
  *  Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
@@ -105,7 +105,7 @@ SYSCALL_DEF2(open, const char __user *, _pathname, int, oflag)
 		if (process->fds[d] == NULL)
 			goto found;
 
-	ret = -ENOENT;
+	ret = -EMFILE;
 	goto unlock_out;
 
 found:
