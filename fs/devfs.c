@@ -408,6 +408,7 @@ void __init devfs_node_deinit(struct devfs_node *node)
 
 	if (node->reader)
 		BUG();
+	spin_unlock(&node->lock);
 }
 
 int __init devfs_node_init(struct devfs_node *node)
