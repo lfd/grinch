@@ -708,6 +708,8 @@ static const char *task_wfe_to_string(enum task_wfe wfe)
 			return "child ";
 		case WFE_TIMER:
 			return "timer ";
+		case WFE_READ:
+			return "read  ";
 		default:
 			return "unkn  ";
 	}
