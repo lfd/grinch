@@ -154,12 +154,9 @@ int __init firmware_init(void)
 	if (!ext)
 		return -ENOSYS;
 
-	/* Optional: system reset. Leave whatever above us already provides. */
 	if (sbi_probe_extension(SBI_EXT_SRST, ISTR("SRST"))) {
-		if (!arch_shutdown)
-			arch_shutdown = sbi_shutdown;
-		if (!arch_reboot)
-			arch_reboot = sbi_reboot;
+		shutdown_method_set(sbi_shutdown, REBOOT_PRIO_FIRMWARE);
+		reboot_method_set(sbi_reboot, REBOOT_PRIO_FIRMWARE);
 	}
 
 	return 0;

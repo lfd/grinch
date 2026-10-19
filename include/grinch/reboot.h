@@ -16,12 +16,26 @@
 #include <grinch/compiler_attributes.h>
 
 /*
- * Machine power-off / reset hooks. An arch or driver installs these during
- * init; each returns an error only on failure -- a successful call never
- * returns. A NULL hook means no method is available.
+ * How much a method knows about the machine it ends. Several may be found
+ * during init, in an order nobody should have to rely on, so the more
+ * specific one wins no matter who installs first.
  */
-extern int (*arch_shutdown)(int err);
-extern int (*arch_reboot)(void);
+enum reboot_prio {
+	REBOOT_PRIO_FIRMWARE,	/* SBI, PSCI: whatever the machine offers */
+	REBOOT_PRIO_PLATFORM,	/* a device that says how this machine ends */
+	REBOOT_PRIO_GUEST,	/* we are not the machine; ask the host */
+};
+
+/*
+ * Machine power-off / reset methods. An arch or driver installs one during
+ * init; it returns an error only on failure -- a successful call never
+ * returns.
+ */
+void shutdown_method_set(int (*method)(int err), enum reboot_prio prio);
+void reboot_method_set(int (*method)(void), enum reboot_prio prio);
+
+/* Returns only if no method took effect. */
+void shutdown_attempt(int err);
 
 void __noreturn shutdown(int err);
 void __noreturn reboot(void);

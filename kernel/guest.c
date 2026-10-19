@@ -40,6 +40,6 @@ void __init guest_init(void)
 	grinch_is_guest = true;
 	grinch_id = ret;
 
-	arch_shutdown = guest_shutdown;
-	arch_reboot = guest_reboot;
+	shutdown_method_set(guest_shutdown, REBOOT_PRIO_GUEST);
+	reboot_method_set(guest_reboot, REBOOT_PRIO_GUEST);
 }

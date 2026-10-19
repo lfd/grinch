@@ -112,6 +112,6 @@ void __init psci_init(void)
 	    psci_version & 0xffff, method);
 
 	/* PSCI 0.2+ standardises SYSTEM_OFF/SYSTEM_RESET. */
-	arch_shutdown = psci_system_off;
-	arch_reboot = psci_system_reset;
+	shutdown_method_set(psci_system_off, REBOOT_PRIO_FIRMWARE);
+	reboot_method_set(psci_system_reset, REBOOT_PRIO_FIRMWARE);
 }

@@ -13,24 +13,55 @@
 #define dbg_fmt(x)	"reboot: " x
 
 #include <grinch/errno.h>
+#include <grinch/init.h>
 #include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/reboot.h>
 #include <grinch/syscall.h>
 #include <grinch/reboot_abi.h>
 
-int (*arch_shutdown)(int err);
-int (*arch_reboot)(void);
+static struct {
+	int (*method)(int err);
+	enum reboot_prio prio;
+} shutdown_method;
+
+static struct {
+	int (*method)(void);
+	enum reboot_prio prio;
+} reboot_method;
+
+void __init shutdown_method_set(int (*method)(int err), enum reboot_prio prio)
+{
+	if (shutdown_method.method && shutdown_method.prio > prio)
+		return;
+
+	shutdown_method.method = method;
+	shutdown_method.prio = prio;
+}
+
+void __init reboot_method_set(int (*method)(void), enum reboot_prio prio)
+{
+	if (reboot_method.method && reboot_method.prio > prio)
+		return;
+
+	reboot_method.method = method;
+	reboot_method.prio = prio;
+}
+
+void shutdown_attempt(int err)
+{
+	if (shutdown_method.method)
+		shutdown_method.method(err);
+}
 
 void __noreturn shutdown(int err)
 {
 	pr("Shutdown. Reason: %pe\n", ERR_PTR(err));
 
-	if (arch_shutdown)
-		err = arch_shutdown(err);
-	else
+	if (!shutdown_method.method)
 		panic("No shutdown method\n");
 
+	err = shutdown_method.method(err);
 	panic("Shutdown failed: %pe\n", ERR_PTR(err));
 }
 
@@ -38,11 +69,10 @@ void __noreturn reboot(void)
 {
 	int err;
 
-	if (arch_reboot)
-		err = arch_reboot();
-	else
+	if (!reboot_method.method)
 		panic("No reboot method\n");
 
+	err = reboot_method.method();
 	panic("Reboot failed: %pe\n", ERR_PTR(err));
 }
 
