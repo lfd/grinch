@@ -64,6 +64,15 @@ struct registers {
 	unsigned long t6;
 
 	unsigned long pc;
+
+	/*
+	 * The trap's origin, recorded on entry: sstatus cannot tell, as a
+	 * VS-mode guest leaves SPP set just like the kernel. Zero in a fresh
+	 * frame reads "a context of its own".
+	 */
+	unsigned long from_kernel;
+	/* The frame is what sp points at; keep it 16 byte aligned. */
+	unsigned long __pad;
 } __packed;
 
 struct trap_context {

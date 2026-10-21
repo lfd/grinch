@@ -34,11 +34,16 @@ excp_handler:
 	csrr	sp, CSR_SCRATCH
 	addi	sp, sp, -STRUCT_REGISTERS_SIZE
 	context REG_S
+
+	/* t0 belongs to the frame now, so it is ours to use. */
+	li	t0, 1
+	REG_S	t0, REG_FROM_KERNEL(sp)
 	j	common_ctx
 
 save_user_ctx:
 	addi	sp, sp, -STRUCT_REGISTERS_SIZE
 	context REG_S
+	REG_S	zero, REG_FROM_KERNEL(sp)
 
 	/*
 	 * Reclaim tp; the user's copy was just saved. The register frame
@@ -80,14 +85,11 @@ return_from_trap:
 	csrw	CSR_EPC, a0
 
 	/*
-	 * Where do we return to? Only the frame on top of the per-CPU stack
-	 * belongs to a context of its own -- a task or a VM -- whose sp has to
-	 * be swapped back in. A nested kernel frame, taken while idling, sits
-	 * deeper and returns to the stack it already runs on.
+	 * Only a frame that interrupted a context of its own has an sp to
+	 * swap back in; a nested kernel frame stays on the stack it runs on.
 	 */
-	li	a0, STACK_SIZE - STRUCT_REGISTERS_SIZE
-	add	a0, tp, a0
-	bne	sp, a0, return_to_kernel
+	REG_L	a0, REG_FROM_KERNEL(sp)
+	bnez	a0, return_to_kernel
 
 return_to_user:
 #ifdef CONFIG_RISCV_M_MODE

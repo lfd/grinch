@@ -20,4 +20,5 @@ void common(void)
 
 	OFFSET(REG_SP, registers, sp);
 	OFFSET(REG_PC, registers, pc);
+	OFFSET(REG_FROM_KERNEL, registers, from_kernel);
 }

@@ -26,14 +26,13 @@ void arch_handle_irq(struct registers *regs, u64 cause);
 /*
  * Did the trap interrupt a task, rather than the kernel itself? Where there is
  * a user mode, the level the trap came from says it. Where there is not, a task
- * runs in machine mode just like us, so ask the same question entry.S asks:
- * only the frame at the top of the per-CPU stack belongs to a context of its
- * own. A trap taken in the kernel lands on a nested frame deeper down.
+ * runs in machine mode just like us, so only the entry path knows -- it
+ * recorded the origin in the frame.
  */
 static bool trap_from_task(struct registers *regs, struct trap_context *ctx)
 {
 	if (!riscv_have_umode)
-		return regs == &this_per_cpu()->stack.regs;
+		return !regs->from_kernel;
 
 	return trap_from_umode(ctx);
 }
