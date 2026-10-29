@@ -903,7 +903,10 @@ SYSCALL_DEF2(nanosleep, const struct timespec __user *, _req,
 		return -EFAULT;
 
 	task_sleep_for(t, &req);
-	this_per_cpu()->schedule = true;
+
+	/* The deadline waits here, not in the trap tail. */
+	while (t->wfe.type == WFE_TIMER)
+		task_sleep();
 
 	if (rem)
 		if (umemset(t, rem, 0, sizeof(rem)) != sizeof(rem))
