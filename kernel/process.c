@@ -635,7 +635,7 @@ struct task *process_alloc_new(const char *name)
 #ifdef CONFIG_MMU
 	task->process.mm.page_table = zalloc_pages(1);
 	if (!task->process.mm.page_table) {
-		kfree(task);
+		task_put(task);
 		return ERR_PTR(-ENOMEM);
 	}
 
