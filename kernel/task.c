@@ -76,7 +76,7 @@ static inline void _task_set_wfe(struct task *task)
 		BUG();
 
 	/* Ensure that the WFE type is really set */
-	if (task->wfe.type == WFE_NONE)
+	if (task->wfe == WFE_NONE)
 		BUG();
 
 	task->state = TASK_WFE;
@@ -142,7 +142,7 @@ SYSCALL_DEF3(wait, pid_t, pid, int __user *, wstatus, int, options)
 		 * the same lock, so no death between the scan and the sleep
 		 * is lost. A death of the wrong child just rescans.
 		 */
-		task->wfe.type = WFE_CHILD;
+		task->wfe = WFE_CHILD;
 		_task_set_wfe(task);
 		spin_unlock(&task->lock);
 
@@ -225,7 +225,7 @@ void task_exit(struct task *task, int code)
 		spin_unlock(&init_task->lock);
 
 	/* The parent reaps on its own stack; all it needs is a wake. */
-	if (parent->wfe.type == WFE_CHILD)
+	if (parent->wfe == WFE_CHILD)
 		__task_wake(parent);
 
 	spin_unlock(&parent->lock);
@@ -473,7 +473,7 @@ void task_sleep(void)
 static void __task_wake(struct task *task)
 {
 	if (task->state == TASK_WFE) {
-		task->wfe.type = WFE_NONE;
+		task->wfe = WFE_NONE;
 		task->state = TASK_RUNNABLE;
 	}
 
@@ -644,7 +644,7 @@ static bool timer_comp(struct list_head *_a, struct list_head *_b)
 	struct task *a = list_entry(_a, struct task, timer_list);
 	struct task *b = list_entry(_b, struct task, timer_list);
 
-	return a->wfe.timer.expiration > b->wfe.timer.expiration;
+	return a->deadline > b->deadline;
 }
 
 void task_sleep_until(struct task *task, struct timespec *ts)
@@ -653,15 +653,15 @@ void task_sleep_until(struct task *task, struct timespec *ts)
 
 	spin_lock(&task_lock);
 
-	if (task->wfe.type != WFE_NONE) {
+	if (task->wfe != WFE_NONE) {
 		/* A VM may re-arm its timer while a previous one is still pending */
-		if (task->type != GRINCH_VMACHINE || task->wfe.type != WFE_TIMER)
+		if (task->type != GRINCH_VMACHINE || task->wfe != WFE_TIMER)
 			BUG();
 	}
 
 	wall_ns = ts_to_ns(ts);
-	task->wfe.timer.expiration = wall_ns;
-	task->wfe.type = WFE_TIMER;
+	task->deadline = wall_ns;
+	task->wfe = WFE_TIMER;
 
 	/* VMs remain runnable */
 	if (task->type == GRINCH_PROCESS)
@@ -692,8 +692,8 @@ void task_cancel_timer(struct task *task)
 
 	list_del(&task->timer_list);
 	INIT_LIST_HEAD(&task->timer_list);
-	if (task->wfe.type == WFE_TIMER)
-		task->wfe.type = WFE_NONE;
+	if (task->wfe == WFE_TIMER)
+		task->wfe = WFE_NONE;
 
 	spin_unlock(&task_lock);
 }
@@ -710,10 +710,10 @@ void task_handle_events(void)
 		if (task->state != TASK_WFE && task->type != GRINCH_VMACHINE)
 			BUG();
 
-		if (task->wfe.type != WFE_TIMER)
+		if (task->wfe != WFE_TIMER)
 			BUG();
 
-		if (task->wfe.timer.expiration <= timer_get_wall_ns()) {
+		if (task->deadline <= timer_get_wall_ns()) {
 			if (task->type == GRINCH_VMACHINE) {
 				vmachine_set_timer_pending(&task->vmachine);
 				if (task->state == TASK_RUNNING) {
@@ -731,7 +731,7 @@ void task_handle_events(void)
 				BUG();
 			list_del(&task->timer_list);
 			INIT_LIST_HEAD(&task->timer_list);
-			task->wfe.type = WFE_NONE;
+			task->wfe = WFE_NONE;
 			continue;
 		}
 
@@ -886,7 +886,7 @@ void tasks_dump(void)
 		pr("PID: %u Type: %s State: %s WFE: %s On CPU: %s - %s\n",
 		   task->pid, task_type_to_string(task->type),
 		   task_state_to_string(task->state),
-		   task_wfe_to_string(task->wfe.type),
+		   task_wfe_to_string(task->wfe),
 		   on_cpu, task->name);
 	}
 

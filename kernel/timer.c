@@ -66,8 +66,8 @@ void timer_update(struct task *task)
 	timeu_t *next;
 
 	next = &this_per_cpu()->timer.next;
-	if (task && task->wfe.timer.expiration < *next)
-		*next = task->wfe.timer.expiration;
+	if (task && task->deadline < *next)
+		*next = task->deadline;
 
 	if (*next != (timeu_t)-1)
 		arch_timer_set(*next + wall_base);

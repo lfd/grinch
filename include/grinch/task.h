@@ -53,22 +53,6 @@ enum task_type {
 	GRINCH_KTHREAD,
 };
 
-struct wfe_child {
-	pid_t pid;
-	int __user *status;
-};
-
-struct wfe_timer {
-	timeu_t expiration;
-};
-
-/* Blocking read from file descriptor */
-struct wfe_read {
-	struct file_handle *fh;
-	char __user *ubuf;
-	size_t count;
-};
-
 struct task {
 	struct list_head tasks;
 	spinlock_t lock;
@@ -97,15 +81,12 @@ struct task {
 	struct list_head sibling;
 	struct list_head timer_list;
 
-	struct {
-		enum task_wfe type;
+	/* Why the task waits; purely descriptive, the waiter keeps its own
+	 * state on its stack. */
+	enum task_wfe wfe;
 
-		union {
-			struct wfe_child child;
-			struct wfe_timer timer;
-			struct wfe_read read;
-		};
-	} wfe; /* wait for event */
+	/* Wall-clock deadline, valid while queued on the timer list. */
+	timeu_t deadline;
 
 	int exit_code;
 

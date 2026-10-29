@@ -197,7 +197,7 @@ devfs_read_blocking(struct file_handle *fh, char *ubuf, size_t count)
 
 		/* Mark before the lock drops, so no wake-up is lost. */
 		node->reader = task;
-		task->wfe.type = WFE_READ;
+		task->wfe = WFE_READ;
 		task_set_wfe(task);
 
 		spin_unlock_irqrestore(&node->lock, flags);

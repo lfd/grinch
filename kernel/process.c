@@ -908,7 +908,7 @@ SYSCALL_DEF2(nanosleep, const struct timespec __user *, _req,
 	task_sleep_for(t, &req);
 
 	/* The deadline waits here, not in the trap tail. */
-	while (t->wfe.type == WFE_TIMER)
+	while (t->wfe == WFE_TIMER)
 		task_sleep();
 
 	if (rem)
