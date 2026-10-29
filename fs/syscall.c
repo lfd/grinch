@@ -188,15 +188,10 @@ SYSCALL_DEF3(read, unsigned int, fd, char __user *, buf, size_t, count)
 	if (handle->flags.nonblock)
 		return 0;
 
-	if (!file->fops->register_reader)
+	if (!file->fops->read_blocking)
 		return -EWOULDBLOCK;
 
-	bread = file->fops->register_reader(handle, buf, count);
-	if (bread)
-		return bread;
-
-	/* Parked: whoever wakes us sets the return value. */
-	return SYSCALL_NO_RETVAL;
+	return file->fops->read_blocking(handle, buf, count);
 }
 
 SYSCALL_DEF3(write, unsigned int, fd, const char __user *, buf, size_t, count)

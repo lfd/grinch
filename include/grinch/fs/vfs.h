@@ -55,8 +55,9 @@ struct file_operations {
 	/* File + Directory operations */
 	void (*close)(struct file *);
 
-	ssize_t (*register_reader)(struct file_handle *h, char *ubuf,
-				   size_t count);
+	/* Read that may sleep in place until data arrives. */
+	ssize_t (*read_blocking)(struct file_handle *h, char *ubuf,
+				 size_t count);
 	int (*stat)(struct file *filep, struct stat *st);
 
 	/* Directory operations */

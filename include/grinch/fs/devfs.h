@@ -55,7 +55,8 @@ struct devfs_node {
 	 */
 	void *drvdata;
 
-	struct wfe_read *reader;
+	/* The one task parked in a blocking read on this node. */
+	struct task *reader;
 
 	struct ringbuf rb;
 };

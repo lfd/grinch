@@ -165,10 +165,9 @@ static ssize_t __devfs_chardev_read(struct task *task, struct devfs_node *node,
 				    size_t count);
 
 static ssize_t
-devfs_register_reader(struct file_handle *fh, char *ubuf, size_t count)
+devfs_read_blocking(struct file_handle *fh, char *ubuf, size_t count)
 {
 	struct devfs_node *node;
-	struct wfe_read *reader;
 	unsigned long flags;
 	struct task *task;
 	ssize_t err;
@@ -183,36 +182,28 @@ devfs_register_reader(struct file_handle *fh, char *ubuf, size_t count)
 	}
 
 	task = current_task();
-	if (task->wfe.type != WFE_NONE)
-		BUG();
+	for (;;) {
+		flags = spin_lock_irqsave(&node->lock);
 
-	flags = spin_lock_irqsave(&node->lock);
+		/* What arrived while we were not looking must not park us. */
+		err = __devfs_chardev_read(task, node, fh, ubuf, count);
+		if (err != -EWOULDBLOCK)
+			break;
 
-	/* What arrived since the read came up empty must not park us. */
-	err = __devfs_chardev_read(task, node, fh, ubuf, count);
-	if (err != -EWOULDBLOCK)
-		goto unlock_out;
+		if (node->reader) {
+			err = -EBUSY;
+			break;
+		}
 
-	if (node->reader) {
-		err = -EBUSY;
-		goto unlock_out;
+		/* Mark before the lock drops, so no wake-up is lost. */
+		node->reader = task;
+		task->wfe.type = WFE_READ;
+		task_set_wfe(task);
+
+		spin_unlock_irqrestore(&node->lock, flags);
+		task_sleep();
 	}
 
-	task->wfe.type = WFE_READ;
-
-	reader = &task->wfe.read;
-	reader->fh = fh;
-	reader->ubuf = ubuf;
-	reader->count = count;
-
-	node->reader = reader;
-
-	task_set_wfe(task);
-	this_per_cpu()->schedule = true;
-
-	err = 0;
-
-unlock_out:
 	spin_unlock_irqrestore(&node->lock, flags);
 	return err;
 }
@@ -265,7 +256,7 @@ static const struct file_operations devfs_fops = {
 	.write = devfs_write,
 	.stat = devfs_stat,
 	.getdents = devfs_getdents,
-	.register_reader = devfs_register_reader,
+	.read_blocking = devfs_read_blocking,
 	.open = devfs_open,
 	.ioctl = devfs_ioctl,
 };
@@ -311,9 +302,7 @@ unlock_out:
 
 void devfs_chardev_write(struct devfs_node *node, char c)
 {
-	struct wfe_read *wfe;
 	struct task *task;
-	ssize_t ret;
 
 	if (node->type != DEVFS_CHARDEV)
 		BUG();
@@ -321,27 +310,13 @@ void devfs_chardev_write(struct devfs_node *node, char c)
 	/* Runs from the UART handler, so interrupts are masked already. */
 	spin_lock(&node->lock);
 	ringbuf_write(&node->rb, c);
-
-	if (!node->reader) {
-		spin_unlock(&node->lock);
-		return;
-	}
-
-	/* Notify first blocking asynchronous reader */
-	task = container_of(node->reader, struct task, wfe.read);
-	spin_lock(&task->lock);
-	wfe = node->reader;
+	task = node->reader;
 	node->reader = NULL;
 	spin_unlock(&node->lock);
 
-	ret = devfs_chardev_read(task, node, wfe->fh, wfe->ubuf, wfe->count);
-
-	regs_set_retval(task->regs, ret);
-	task->wfe.type = WFE_NONE;
-	task->state = TASK_RUNNABLE;
-	this_per_cpu()->schedule = true;
-
-	spin_unlock(&task->lock);
+	/* The reader does its own reading; this is a plain wake. */
+	if (task)
+		task_wake(task);
 }
 
 static ssize_t __devfs_chardev_read(struct task *task, struct devfs_node *node,
