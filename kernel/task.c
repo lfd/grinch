@@ -52,6 +52,8 @@ static DEFINE_SPINLOCK(task_lock);
 
 static atomic_t next_pid = ATOMIC_INIT(1);
 
+static void task_restore(void);
+
 static void task_dequeue(struct task *task)
 {
 	spin_lock(&task_lock);
@@ -190,8 +192,6 @@ found:
 
 	_task_set_wfe(task);
 	this_per_cpu()->schedule = true;
-	this_per_cpu()->current_task = this_per_cpu()->idle_task;
-	task_release_cpu(task);
 	err = SYSCALL_NO_RETVAL;
 
 unlock_out:
@@ -202,6 +202,10 @@ unlock_out:
 void task_exit(struct task *task, int code)
 {
 	struct task *parent, *child, *tmp;
+
+	/* The dying task's stack may be freed here: never our own. */
+	if (this_per_cpu()->current_task == task)
+		BUG();
 
 	parent = task->parent;
 	if (!parent) {
@@ -256,21 +260,28 @@ void task_exit(struct task *task, int code)
 	if (parent != init_task)
 		spin_unlock(&init_task->lock);
 
-	/*
-	 * Once we have proper support for threads, this won't work like that
-	 * any longer. We first have to make sure, that a task got suspended
-	 * before being dequeued.
-	 */
-
-	if (this_per_cpu()->current_task == task) {
-		this_per_cpu()->schedule = true;
-		this_per_cpu()->current_task = this_per_cpu()->idle_task;
-		task_release_cpu(task);
-	}
-
 	task_notify_wait(parent, task);
 	spin_unlock(&parent->lock);
 	spin_unlock(&task->lock);
+}
+
+/*
+ * A task taking itself down must not become reapable while it still runs on
+ * its own stack: mark it dying and let whoever follows it on this CPU finish
+ * the job from safe ground (task_switch_finish()).
+ */
+void task_exit_self(int code)
+{
+	struct task *task = current_task();
+
+	task_cancel_timer(task);
+
+	spin_lock(&task->lock);
+	task->exit_code = code;
+	task->state = TASK_EXIT_DYING;
+	spin_unlock(&task->lock);
+
+	this_per_cpu()->schedule = true;
 }
 
 /*
@@ -343,6 +354,9 @@ struct task *task_alloc_new(const char *name)
 	task->regs = task->stack + KERNEL_STACK_SIZE - sizeof(struct registers);
 	memset(task->regs, 0, sizeof(*task->regs));
 
+	/* The first switch to this task lands in ret_from_fork. */
+	task_setup_thread(task);
+
 	task->pid = get_new_pid();
 
 	return task;
@@ -401,20 +415,15 @@ static void task_activate(struct task *task)
 	}
 
 	tpcpu = this_per_cpu();
-	if (old && !task_is_idle(old)) {
-		/*
-		 * Only set the task to runnable, if it was running before.
-		 * Through a syscall, it might be set to wait for events.
-		 */
-		if (old->state == TASK_RUNNING && old->on_cpu == this_cpu_id())
-			old->state = TASK_RUNNABLE;
-
-		/*
-		 * We are switching away from old; it no longer belongs to
-		 * this CPU.
-		 */
-		task_release_cpu(old);
-	}
+	/*
+	 * Only set the task to runnable, if it was running before.
+	 * Through a syscall, it might be set to wait for events.
+	 * The CPU release follows in task_switch_finish(), once old has
+	 * left its stack.
+	 */
+	if (old && !task_is_idle(old) &&
+	    old->state == TASK_RUNNING && old->on_cpu == this_cpu_id())
+		old->state = TASK_RUNNABLE;
 
 	tpcpu->current_task = task;
 	if (task_is_idle(task)) {
@@ -452,6 +461,31 @@ static void task_activate(struct task *task)
 }
 
 /*
+ * The second half of a context switch, on the incoming task's stack, with
+ * task_lock still held from the frozen schedule() frame. Only now has prev
+ * fully left its stack, so only now may another CPU pick it up -- or, for a
+ * dying task, its memory be given back.
+ */
+static void task_switch_finish(struct task *prev)
+{
+	bool dying = prev->state == TASK_EXIT_DYING;
+
+	if (!task_is_idle(prev))
+		task_release_cpu(prev);
+	spin_unlock(&task_lock);
+
+	if (dying)
+		task_exit(prev, prev->exit_code);
+}
+
+/* First landing of a task that never ran, called from ret_from_fork. */
+void task_entry_finish(struct task *prev)
+{
+	task_switch_finish(prev);
+	task_restore();
+}
+
+/*
  * A task may be activated on this CPU only if no other CPU still owns it.
  * A task we already own (or that is free) stays eligible; one still held by
  * another CPU is skipped until that CPU releases it via task_release_cpu().
@@ -465,7 +499,7 @@ static bool task_claimable(struct task *task)
 
 static void schedule(void)
 {
-	struct task *task;
+	struct task *task, *old;
 	struct per_cpu *tpcpu;
 
 	tpcpu = this_per_cpu();
@@ -531,10 +565,19 @@ nothing:
 
 out:
 	/* We arrive here with the task->lock held */
+	old = tpcpu->current_task;
 	task_activate(task);
 	spin_unlock(&task->lock);
 
-	spin_unlock(&task_lock);
+	/*
+	 * The switch returns here only once this context is scheduled again,
+	 * handing back whatever ran last on this CPU. task_switch_finish()
+	 * releases task_lock for the frame it resumes.
+	 */
+	if (old != task)
+		task_switch_finish(__switch_to(old, task));
+	else
+		spin_unlock(&task_lock);
 }
 
 SYSCALL_DEF0(fork)
@@ -733,11 +776,16 @@ static void do_idle(void)
 	mb();
 }
 
+/*
+ * The register frame lives where the trap entry put it -- on the task's own
+ * stack -- so there is nothing to copy any more. What remains is the virtual
+ * machine context, which lives in CSRs the kernel clobbers between exit and
+ * re-entry.
+ */
 static void task_restore(void)
 {
 	struct task *task = current_task();
 
-	this_per_cpu()->stack.regs = *task->regs;
 	if (task->type == GRINCH_VMACHINE)
 		arch_vmachine_restore(&task->vmachine);
 }
@@ -747,8 +795,6 @@ void task_save(struct registers *regs)
 	struct task *task;
 
 	task = current_task();
-	/* Save task context */
-	*task->regs = *regs;
 	if (task->type == GRINCH_VMACHINE)
 		arch_vmachine_save(&task->vmachine);
 }
@@ -780,6 +826,8 @@ static const char *task_state_to_string(enum task_state state)
 			return "running ";
 		case TASK_WFE:
 			return "wfe     ";
+		case TASK_EXIT_DYING:
+			return "dying   ";
 		case TASK_EXIT_DEAD:
 			return "ext dead";
 		default:
@@ -848,8 +896,13 @@ void prepare_user_return(void)
 	struct per_cpu *tpcpu;
 	struct task *t;
 
-	tpcpu = this_per_cpu();
 retry:
+	/*
+	 * Re-fetched on every lap: schedule() switches stacks, and a context
+	 * that froze on one CPU may thaw on another -- nothing per-CPU
+	 * survives the call.
+	 */
+	tpcpu = this_per_cpu();
 	if (tpcpu->handle_events) {
 		tpcpu->handle_events = false;
 		task_handle_events();
@@ -858,7 +911,7 @@ retry:
 	if (tpcpu->schedule)
 		schedule();
 
-	if (task_is_idle(tpcpu->current_task)) {
+	if (task_is_idle(current_task())) {
 		do_idle();
 		goto retry;
 	}
@@ -908,7 +961,7 @@ void task_handle_fault(void __user *addr, bool is_write)
 		/* We have a page fault. */
 		pr("PID %d: SEGFAULT at 0x%p (%s)\n", task->pid, addr,
 		   is_write ? "write" : "read");
-		task_exit(task, -EFAULT);
+		task_exit_self(-EFAULT);
 		return;
 	}
 }

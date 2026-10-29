@@ -200,10 +200,8 @@ vmm_handle_trap(struct trap_context *ctx, struct registers *regs)
 		BUG();
 
 	task = current_task();
-	/* Save regular registers */
-	*task->regs = *regs;
 
-	/* Save VM specific registers */
+	/* Save VM specific registers; the frame already sits on task's stack */
 	vm = &task->vmachine;
 	arch_vmachine_save(vm);
 

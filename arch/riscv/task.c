@@ -24,6 +24,14 @@ void task_set_context(struct task *task, unsigned long pc, unsigned long sp)
 	task->regs->sp = sp;
 }
 
+void ret_from_fork(void);
+
+void task_setup_thread(struct task *task)
+{
+	task->thread.ra = (unsigned long)ret_from_fork;
+	task->thread.sp = (unsigned long)task->regs;
+}
+
 void arch_kinfo_init(struct kinfo *kinfo)
 {
 	kinfo->riscv.timebase_frequency = riscv_timebase_frequency;

@@ -160,3 +160,13 @@ __switch_to:
 	switch_thread REG_S, a0
 	switch_thread REG_L, a1
 	ret
+
+/*
+ * First landing of a task that never ran: __switch_to came here with prev
+ * still in a0 and sp at the task's register frame. Finish the switch, then
+ * consume the frame the task was built with.
+ */
+.globl ret_from_fork
+ret_from_fork:
+	jal	task_entry_finish
+	j	return_from_trap

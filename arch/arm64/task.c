@@ -25,6 +25,14 @@ void task_set_context(struct task *task, unsigned long pc, unsigned long sp)
 	task->regs->sp = sp;
 }
 
+void ret_from_fork(void);
+
+void task_setup_thread(struct task *task)
+{
+	task->thread.pc = (unsigned long)ret_from_fork;
+	task->thread.sp = (unsigned long)task->regs;
+}
+
 void arch_process_activate(struct process *p)
 {
 	unsigned long tmp;

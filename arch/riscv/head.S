@@ -162,9 +162,9 @@ grinch_start:
 	/* Terminate stack frame */
 	mv	s0, sp
 
-	/* Hand over to C */
+	/* Hand over to C; cmain enters the scheduler and never returns. */
 	jal	cmain
-	j	return_from_trap
+	j	_cpu_halt
 
 .globl _cpu_halt
 _cpu_halt:
@@ -235,6 +235,7 @@ secondary_virt_entry:
 	la	t0, excp_handler
 	csrw	CSR_TVEC, t0
 
+	/* secondary_cmain enters the scheduler and never returns. */
 	jal	secondary_cmain
 
-	j	return_from_trap
+	j	_cpu_halt

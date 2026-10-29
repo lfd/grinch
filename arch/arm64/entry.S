@@ -110,6 +110,16 @@ __switch_to:
 	mov	sp, x9
 	ret
 
+/*
+ * First landing of a task that never ran: __switch_to came here with prev
+ * still in x0 and sp at the task's register frame. Finish the switch, then
+ * consume the frame the task was built with.
+ */
+.globl ret_from_fork
+ret_from_fork:
+	bl	task_entry_finish
+	b	__return
+
 .globl vectors
 .align 11
 vectors:

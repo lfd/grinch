@@ -85,7 +85,6 @@ void arch_handle_exception(struct registers *regs)
 	switch (SPSR_EL(regs->spsr)) {
 		case 0:
 			arm_read_sysreg(SP_EL0, regs->sp);
-			*current_task()->regs = *regs;
 			err = handle_user_abort(&ctx);
 			break;
 
@@ -114,16 +113,12 @@ void arch_handle_exception(struct registers *regs)
 }
 
 /*
- * We reschedule (preempt) only when the interrupt was taken from EL0.
- * Only then is the register frame the canonical top-of-stack slot
- * (this_per_cpu()->stack.regs) that task_save()/task_restore() and
- * return_to_user (head.S) all agree on, so schedule() may swap it.
- *
- * An IRQ taken at EL1 -- e.g. while idling in do_idle(), which runs
- * wfi with IRQs enabled -- nests its frame lower on the stack, so we must
- * not reschedule here; prepare_user_return()'s retry loop picks up the new
- * task once we unwind back to idle. RISC-V's arch_handle_irq works the
- * same way.
+ * We reschedule (preempt) only when the interrupt was taken from EL0: only
+ * then does the frame belong to a task. An IRQ taken at EL1 -- e.g. while
+ * idling in do_idle(), which runs wfi with IRQs enabled -- nests its frame
+ * on the stack we already run on, so we must not reschedule here;
+ * prepare_user_return()'s retry loop picks up the new task once we unwind
+ * back to idle. RISC-V's arch_handle_irq works the same way.
  */
 void arch_handle_irq(struct registers *regs)
 {
@@ -141,13 +136,8 @@ void arch_handle_irq(struct registers *regs)
 	else
 		pr("\nFATAL IRQ on CPU %lu: No IRQ driver\n", this_cpu_id());
 
-	if (SPSR_EL(spsr) == 0 && !this_per_cpu()->idling) {
+	if (SPSR_EL(spsr) == 0) {
 		task_save(regs);
-		/*
-		 * prepare_user_return() -> task_restore() rewrites the frame
-		 * (== regs on an EL0 entry) with the scheduled task's context,
-		 * which return_to_user then erets to -- no further copy needed.
-		 */
 		prepare_user_return();
 	}
 }

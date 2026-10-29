@@ -99,8 +99,9 @@ grinch_start:
 	/* Pop Device tree location from the stack */
 	ldr	x1, [sp], #8
 
+	/* cmain enters the scheduler and never returns. */
 	bl	cmain
-	b	return_to_user
+	b	_cpu_halt
 
 .globl _cpu_halt
 _cpu_halt:
@@ -263,9 +264,6 @@ secondary_start:
 	ldr	x2, =vectors
 	msr	vbar_el1, x2
 
-	/*
-	 * Into C, then eret to EL0 like the boot CPU (see 'b return_to_user'
-	 * after 'bl cmain' above). secondary_cmain() enters the scheduler.
-	 */
+	/* secondary_cmain enters the scheduler and never returns. */
 	bl	secondary_cmain
-	b	return_to_user
+	b	_cpu_halt

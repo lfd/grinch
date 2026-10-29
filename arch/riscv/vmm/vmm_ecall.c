@@ -136,7 +136,7 @@ static inline struct sbiret handle_sbi_grinch(unsigned long num, unsigned long a
 			break;
 
 		case GRINCH_HYPERCALL_VMQUIT:
-			task_exit(current_task(), arg0);
+			task_exit_self(arg0);
 			break;
 
 		default:

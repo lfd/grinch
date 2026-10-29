@@ -580,7 +580,7 @@ static int process_replace(struct task *task, struct file *at,
 	kfree(elf);
 	if (err) {
 		pr("execve failed on task %u: %pe\n", task->pid, ERR_PTR(err));
-		task_exit(task, err);
+		task_exit_self(err);
 	}
 
 	return err;
@@ -914,7 +914,7 @@ SYSCALL_DEF2(nanosleep, const struct timespec __user *, _req,
 
 SYSCALL_DEF1(exit, long, errno)
 {
-	task_exit(current_task(), errno);
+	task_exit_self(errno);
 
 	return 0;
 }
