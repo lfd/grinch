@@ -54,6 +54,7 @@ static atomic_t next_pid = ATOMIC_INIT(1);
 
 static void task_restore(void);
 static void schedule(void);
+static void __task_wake(struct task *task);
 
 static void task_dequeue(struct task *task)
 {
@@ -94,47 +95,12 @@ static void task_release_cpu(struct task *task)
 	smp_store_release(&task->on_cpu, TASK_NO_CPU);
 }
 
-/* must hold the parent's lock */
-static int task_notify_wait(struct task *parent, struct task *child)
-{
-	struct wfe_child *wfe;
-	int status;
-
-	if (parent->wfe.type != WFE_CHILD)
-		return -ECHILD;
-
-	wfe = &parent->wfe.child;
-
-	if (wfe->pid != -1 && wfe->pid != child->pid)
-		return -ECHILD;
-
-	if (child->state != TASK_EXIT_DEAD)
-		BUG();
-
-	/* Forward status code */
-	if (wfe->status) {
-		status = (child->exit_code & 0xff) << 8;
-		copy_to_user(parent, wfe->status, &status, sizeof(status));
-	}
-
-	/*
-	 * Parent's state might also be TASK_RUNNING, if we have a direct
-	 * notification
-	 */
-	regs_set_retval(parent->regs, child->pid);
-	if (parent->state == TASK_WFE)
-		parent->state = TASK_RUNNABLE;
-
-	task_put(child);
-	parent->wfe.type = WFE_NONE;
-
-	return 0;
-}
-
 SYSCALL_DEF3(wait, pid_t, pid, int __user *, wstatus, int, options)
 {
 	struct task *task, *child;
-	long err;
+	pid_t child_pid;
+	int status;
+	bool seen;
 
 	/* not supported at the moment */
 	if (options)
@@ -145,59 +111,56 @@ SYSCALL_DEF3(wait, pid_t, pid, int __user *, wstatus, int, options)
 		return -ENOSYS;
 
 	task = current_task();
-	spin_lock(&task->lock);
 
-	if (list_empty(&task->children)) {
-		err = -ECHILD;
-		goto unlock_out;
-	}
+	for (;;) {
+		spin_lock(&task->lock);
 
-	if (pid == -1) {
+		if (list_empty(&task->children)) {
+			spin_unlock(&task->lock);
+			return -ECHILD;
+		}
+
+		seen = false;
 		list_for_each_entry(child, &task->children, sibling) {
+			if (pid != -1 && child->pid != pid)
+				continue;
+
+			seen = true;
 			spin_lock(&child->lock);
 			if (child->state == TASK_EXIT_DEAD)
-				goto found;
+				goto reap;
 			spin_unlock(&child->lock);
 		}
-		child = NULL;
-		goto found;
-	} else {
-		list_for_each_entry(child, &task->children, sibling) {
-			spin_lock(&child->lock);
-			if (child->pid == pid)
-				goto found;
-			spin_unlock(&child->lock);
+
+		if (pid != -1 && !seen) {
+			spin_unlock(&task->lock);
+			return -ECHILD;
 		}
+
+		/*
+		 * Mark under our own lock: task_exit() wakes the parent under
+		 * the same lock, so no death between the scan and the sleep
+		 * is lost. A death of the wrong child just rescans.
+		 */
+		task->wfe.type = WFE_CHILD;
+		_task_set_wfe(task);
+		spin_unlock(&task->lock);
+
+		task_sleep();
 	}
 
-	spin_unlock(&task->lock);
-	return -ECHILD;
-
-found:
-	if (task->wfe.type != WFE_NONE)
-		BUG();
-
-	task->wfe.type = WFE_CHILD;
-	task->wfe.child.pid = pid;
-	task->wfe.child.status = wstatus;
-
-	if (child) {
-		if (child->state == TASK_EXIT_DEAD) {
-			if (task_notify_wait(task, child))
-				BUG();
-			err = SYSCALL_NO_RETVAL;
-			goto unlock_out;
-		} else
-			spin_unlock(&child->lock);
+reap:
+	if (wstatus) {
+		status = (child->exit_code & 0xff) << 8;
+		copy_to_user(task, wstatus, &status, sizeof(status));
 	}
 
-	_task_set_wfe(task);
-	this_per_cpu()->schedule = true;
-	err = SYSCALL_NO_RETVAL;
-
-unlock_out:
+	child_pid = child->pid;
+	spin_unlock(&child->lock);
+	task_put(child);
 	spin_unlock(&task->lock);
-	return err;
+
+	return child_pid;
 }
 
 void task_exit(struct task *task, int code)
@@ -261,7 +224,10 @@ void task_exit(struct task *task, int code)
 	if (parent != init_task)
 		spin_unlock(&init_task->lock);
 
-	task_notify_wait(parent, task);
+	/* The parent reaps on its own stack; all it needs is a wake. */
+	if (parent->wfe.type == WFE_CHILD)
+		__task_wake(parent);
+
 	spin_unlock(&parent->lock);
 	spin_unlock(&task->lock);
 }
@@ -498,17 +464,27 @@ void task_sleep(void)
 	schedule();
 }
 
-/* Make a waiting task runnable again; the woken task rescans in place. */
-void task_wake(struct task *task)
+/*
+ * Make a waiting task runnable again; the woken task rescans in place.
+ * The bare variant is for callers already serialised against the sleeper's
+ * mark by another lock -- schedule()'s pick loop takes the task's own lock,
+ * so a state write under it cannot tear a decision.
+ */
+static void __task_wake(struct task *task)
 {
-	spin_lock(&task_lock);
 	if (task->state == TASK_WFE) {
 		task->wfe.type = WFE_NONE;
 		task->state = TASK_RUNNABLE;
 	}
-	spin_unlock(&task_lock);
 
 	this_per_cpu()->schedule = true;
+}
+
+void task_wake(struct task *task)
+{
+	spin_lock(&task_lock);
+	__task_wake(task);
+	spin_unlock(&task_lock);
 }
 
 /*
