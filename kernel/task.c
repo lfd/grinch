@@ -25,6 +25,7 @@
 #include <grinch/string.h>
 #include <grinch/syscall.h>
 #include <grinch/task.h>
+#include <grinch/vsprintf.h>
 
 #define GRINCH_VM_PID_OFFSET	10000
 
@@ -732,16 +733,24 @@ static void dump_timers(void)
 
 void tasks_dump(void)
 {
+	const char *on_cpu;
 	struct task *task;
+	char buf[16];
 
 	spin_lock(&task_lock);
 
 	list_for_each_entry(task, &task_list, tasks) {
-		pr("PID: %u Type: %s State: %s WFE: %s On CPU: %lu - %s\n",
+		if (task->on_cpu == TASK_NO_CPU) {
+			on_cpu = "-";
+		} else {
+			snprintf(buf, sizeof(buf), "%lu", task->on_cpu);
+			on_cpu = buf;
+		}
+		pr("PID: %u Type: %s State: %s WFE: %s On CPU: %s - %s\n",
 		   task->pid, task_type_to_string(task->type),
 		   task_state_to_string(task->state),
 		   task_wfe_to_string(task->wfe.type),
-		   task->on_cpu, task->name);
+		   on_cpu, task->name);
 	}
 
 	spin_unlock(&task_lock);
