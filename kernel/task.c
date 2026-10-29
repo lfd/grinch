@@ -283,7 +283,7 @@ void task_set_name(struct task *task, const char *name)
 	strncpy(task->name, name, TASK_NAME_LEN - 1);
 }
 
-struct task *task_alloc_new(const char *name)
+static struct task *task_alloc(const char *name)
 {
 	struct task *task;
 
@@ -294,7 +294,6 @@ struct task *task_alloc_new(const char *name)
 	task_set_name(task, name);
 
 	spin_init(&task->lock);
-	task->pid = get_new_pid();
 	task->state = TASK_INIT;
 	task->on_cpu = TASK_NO_CPU;
 	task->type = GRINCH_UNDEF;
@@ -302,6 +301,19 @@ struct task *task_alloc_new(const char *name)
 	INIT_LIST_HEAD(&task->timer_list);
 	INIT_LIST_HEAD(&task->sibling);
 	INIT_LIST_HEAD(&task->children);
+
+	return task;
+}
+
+struct task *task_alloc_new(const char *name)
+{
+	struct task *task;
+
+	task = task_alloc(name);
+	if (IS_ERR(task))
+		return task;
+
+	task->pid = get_new_pid();
 
 	return task;
 }
