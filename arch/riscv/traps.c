@@ -43,7 +43,7 @@ static void handle_syscall(void)
 	struct syscall_args args;
 
 	/* we had an ecall, so skip 4b of instructions */
-	regs = &current_task()->regs;
+	regs = current_task()->regs;
 	regs->pc += 4;
 
 	args.arg1 = regs->a0;

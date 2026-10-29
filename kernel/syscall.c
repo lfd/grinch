@@ -73,5 +73,5 @@ sys_out:
 
 	cur = current_task();
 	if (!task_is_idle(cur))
-		regs_set_retval(&cur->regs, ret);
+		regs_set_retval(cur->regs, ret);
 }

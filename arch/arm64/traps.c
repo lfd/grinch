@@ -42,7 +42,7 @@ static int handle_user_abort(struct trap_context *ctx)
 	struct registers *regs;
 	int err;
 
-	regs = &current_task()->regs;
+	regs = current_task()->regs;
 
 	switch (ESR_EC(ctx->esr)) {
 		case ESR_EC_SVC64:
@@ -85,7 +85,7 @@ void arch_handle_exception(struct registers *regs)
 	switch (SPSR_EL(regs->spsr)) {
 		case 0:
 			arm_read_sysreg(SP_EL0, regs->sp);
-			current_task()->regs = *regs;
+			*current_task()->regs = *regs;
 			err = handle_user_abort(&ctx);
 			break;
 

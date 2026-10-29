@@ -151,7 +151,7 @@ static int vmm_handle_inst(void)
 	bool is_compressed;
 	u32 instruction;
 
-	regs = &current_task()->regs;
+	regs = current_task()->regs;
 	/* Ensure the instruction is 16-bit aligned */
 	if (regs->pc & 0x1)
 		return -EINVAL;
@@ -201,7 +201,7 @@ vmm_handle_trap(struct trap_context *ctx, struct registers *regs)
 
 	task = current_task();
 	/* Save regular registers */
-	task->regs = *regs;
+	*task->regs = *regs;
 
 	/* Save VM specific registers */
 	vm = &task->vmachine;
@@ -431,8 +431,8 @@ static struct task *vmm_alloc_new(void)
 	if (err)
 		goto vmfree_out;
 
-	task->regs.a0 = 0;
-	task->regs.a1 = VM_FDT_ADDR;
+	task->regs->a0 = 0;
+	task->regs->a1 = VM_FDT_ADDR;
 	vm->vregs.vs = true;
 
 	/* setup G-Stage paging */
@@ -501,7 +501,7 @@ SYSCALL_DEF0(grinch_create_grinch_vm)
 	if (IS_ERR(task))
 		return PTR_ERR(task);
 
-	task->regs.pc = VM_GPHYS_BASE;
+	task->regs->pc = VM_GPHYS_BASE;
 	task->state = TASK_RUNNABLE;
 	task_enqueue(task);
 

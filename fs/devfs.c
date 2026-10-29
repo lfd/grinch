@@ -336,7 +336,7 @@ void devfs_chardev_write(struct devfs_node *node, char c)
 
 	ret = devfs_chardev_read(task, node, wfe->fh, wfe->ubuf, wfe->count);
 
-	regs_set_retval(&task->regs, ret);
+	regs_set_retval(task->regs, ret);
 	task->wfe.type = WFE_NONE;
 	task->state = TASK_RUNNABLE;
 	this_per_cpu()->schedule = true;

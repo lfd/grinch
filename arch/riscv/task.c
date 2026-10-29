@@ -20,8 +20,8 @@
 
 void task_set_context(struct task *task, unsigned long pc, unsigned long sp)
 {
-	task->regs.pc = pc;
-	task->regs.sp = sp;
+	task->regs->pc = pc;
+	task->regs->sp = sp;
 }
 
 void arch_kinfo_init(struct kinfo *kinfo)

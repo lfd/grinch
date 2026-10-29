@@ -75,7 +75,8 @@ struct task {
 	/* Base of the kernel stack this task blocks and takes its traps on. */
 	void *stack;
 
-	struct registers regs;
+	/* The task's register frame, at the top of its kernel stack. */
+	struct registers *regs;
 	pid_t pid;
 	enum task_state state;
 	/*

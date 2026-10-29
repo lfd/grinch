@@ -36,6 +36,8 @@
  */
 #define STACK_END_MAGIC	0x57AC6E9D
 
+#define KERNEL_STACK_SIZE	(CONFIG_KERNEL_STACK_PAGES * PAGE_SIZE)
+
 static inline unsigned long *end_of_stack(struct task *task)
 {
 	return task->stack;
@@ -116,7 +118,7 @@ static int task_notify_wait(struct task *parent, struct task *child)
 	 * Parent's state might also be TASK_RUNNING, if we have a direct
 	 * notification
 	 */
-	regs_set_retval(&parent->regs, child->pid);
+	regs_set_retval(parent->regs, child->pid);
 	if (parent->state == TASK_WFE)
 		parent->state = TASK_RUNNABLE;
 
@@ -333,6 +335,14 @@ struct task *task_alloc_new(const char *name)
 	}
 	*end_of_stack(task) = STACK_END_MAGIC;
 
+	/*
+	 * The frame sits at the top of the stack. A task starts from a zeroed
+	 * frame: nothing leaks into it, and the origin marker reads "a context
+	 * of its own" without anybody setting it.
+	 */
+	task->regs = task->stack + KERNEL_STACK_SIZE - sizeof(struct registers);
+	memset(task->regs, 0, sizeof(*task->regs));
+
 	task->pid = get_new_pid();
 
 	return task;
@@ -361,6 +371,7 @@ void idle_task_install(void)
 	/* The idle task runs on the stack the CPU booted on. */
 	idle->stack = tpcpu->stack.stack;
 	*end_of_stack(idle) = STACK_END_MAGIC;
+	idle->regs = &tpcpu->stack.regs;
 
 	tpcpu->idle_task = idle;
 	tpcpu->current_task = idle;
@@ -541,9 +552,9 @@ SYSCALL_DEF0(fork)
 	if (IS_ERR(new))
 		return PTR_ERR(new);
 
-	new->regs = this->regs;
+	*new->regs = *this->regs;
 	new->parent = this;
-	regs_set_retval(&new->regs, 0);
+	regs_set_retval(new->regs, 0);
 
 	spin_lock(&this->lock);
 	process_dup_fds(this, new);
@@ -726,7 +737,7 @@ static void task_restore(void)
 {
 	struct task *task = current_task();
 
-	this_per_cpu()->stack.regs = task->regs;
+	this_per_cpu()->stack.regs = *task->regs;
 	if (task->type == GRINCH_VMACHINE)
 		arch_vmachine_restore(&task->vmachine);
 }
@@ -737,7 +748,7 @@ void task_save(struct registers *regs)
 
 	task = current_task();
 	/* Save task context */
-	task->regs = *regs;
+	*task->regs = *regs;
 	if (task->type == GRINCH_VMACHINE)
 		arch_vmachine_save(&task->vmachine);
 }
