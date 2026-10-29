@@ -163,6 +163,8 @@ void task_save(struct registers *regs);
 void task_handle_fault(void __user *addr, bool is_write);
 
 void task_set_wfe(struct task *task);
+void task_sleep(void);
+void task_wake(struct task *task);
 
 /* task timer handling */
 void task_sleep_until(struct task *task, struct timespec *ts);

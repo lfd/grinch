@@ -53,6 +53,7 @@ static DEFINE_SPINLOCK(task_lock);
 static atomic_t next_pid = ATOMIC_INIT(1);
 
 static void task_restore(void);
+static void schedule(void);
 
 static void task_dequeue(struct task *task)
 {
@@ -483,6 +484,31 @@ void task_entry_finish(struct task *prev)
 {
 	task_switch_finish(prev);
 	task_restore();
+}
+
+/*
+ * Give up the CPU until task_wake(). The caller has marked the task waiting
+ * (task_set_wfe()) before dropping the lock of whoever will wake it, so a
+ * wake-up between the mark and this call is not lost: schedule() re-examines
+ * the state under task_lock and simply keeps running a task already made
+ * runnable again. Returns with the task running, possibly on another CPU.
+ */
+void task_sleep(void)
+{
+	schedule();
+}
+
+/* Make a waiting task runnable again; the woken task rescans in place. */
+void task_wake(struct task *task)
+{
+	spin_lock(&task_lock);
+	if (task->state == TASK_WFE) {
+		task->wfe.type = WFE_NONE;
+		task->state = TASK_RUNNABLE;
+	}
+	spin_unlock(&task_lock);
+
+	this_per_cpu()->schedule = true;
 }
 
 /*
