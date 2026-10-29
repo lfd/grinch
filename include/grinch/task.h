@@ -72,6 +72,9 @@ struct task {
 	spinlock_t lock;
 	char name[TASK_NAME_LEN];
 
+	/* Base of the kernel stack this task blocks and takes its traps on. */
+	void *stack;
+
 	struct registers regs;
 	pid_t pid;
 	enum task_state state;

@@ -19,6 +19,7 @@
 #include <grinch/cpu.h>
 #include <grinch/errno.h>
 #include <grinch/gconfig.h>
+#include <grinch/gfp.h>
 #include <grinch/grinch_guest.h>
 #include <grinch/panic.h>
 #include <grinch/reboot.h>
@@ -28,6 +29,17 @@
 #include <grinch/vsprintf.h>
 
 #define GRINCH_VM_PID_OFFSET	10000
+
+/*
+ * Written to the base of every kernel stack; no guard page, so this word is
+ * all that tells an overflow happened. Linux's STACK_END_MAGIC.
+ */
+#define STACK_END_MAGIC	0x57AC6E9D
+
+static inline unsigned long *end_of_stack(struct task *task)
+{
+	return task->stack;
+}
 
 struct task *init_task;
 
@@ -270,6 +282,7 @@ void task_put(struct task *task)
 
 	list_del(&task->sibling);
 
+	free_pages(task->stack, CONFIG_KERNEL_STACK_PAGES);
 	kfree(task);
 }
 
@@ -313,6 +326,13 @@ struct task *task_alloc_new(const char *name)
 	if (IS_ERR(task))
 		return task;
 
+	task->stack = alloc_pages(CONFIG_KERNEL_STACK_PAGES);
+	if (!task->stack) {
+		kfree(task);
+		return ERR_PTR(-ENOMEM);
+	}
+	*end_of_stack(task) = STACK_END_MAGIC;
+
 	task->pid = get_new_pid();
 
 	return task;
@@ -337,6 +357,11 @@ void idle_task_install(void)
 	idle->on_cpu = this_cpu_id();
 
 	tpcpu = this_per_cpu();
+
+	/* The idle task runs on the stack the CPU booted on. */
+	idle->stack = tpcpu->stack.stack;
+	*end_of_stack(idle) = STACK_END_MAGIC;
+
 	tpcpu->idle_task = idle;
 	tpcpu->current_task = idle;
 }
@@ -433,6 +458,11 @@ static void schedule(void)
 	struct per_cpu *tpcpu;
 
 	tpcpu = this_per_cpu();
+
+	if (*end_of_stack(tpcpu->current_task) != STACK_END_MAGIC)
+		panic("PID %d: kernel stack overflow\n",
+		      tpcpu->current_task->pid);
+
 	spin_lock(&task_lock);
 	tpcpu->schedule = false;
 	task = NULL;

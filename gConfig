@@ -88,6 +88,13 @@ const CONFIG_FEATURES "Features" {
         help "Memory set aside for a process's stack. With address translation the pages arrive on first use and this is only an upper bound. Without it the stack is given its final size when the program is loaded, and there is no guard page: overflowing it silently corrupts neighbouring memory."
     }
 
+    int CONFIG_KERNEL_STACK_PAGES "Kernel stack pages per task" {
+        default 2
+        base dec
+        header
+        help "Pages for the kernel stack each task blocks and takes its traps on. There is no guard page: an overflow silently corrupts neighbouring memory, caught only by the signature check at the stack base."
+    }
+
     int CONFIG_EARLY_POOL_PAGES "Early memory pool pages" {
         default 32
         base dec
