@@ -12,9 +12,12 @@
 
 #include <asm-generic/asm_defines.h>
 #include <grinch/percpu.h>
+#include <grinch/task.h>
 
 void common(void)
 {
+	OFFSET(TASK_THREAD, task, thread);
+
 	DEFINE(STRUCT_REGISTERS_SIZE, sizeof(struct registers));
 	DEFINE(STRUCT_PER_CPU_SIZE, sizeof(struct per_cpu));
 	DEFINE(PCPU_STACK_TOP,

@@ -81,6 +81,35 @@ __return:
 	dsb nsh
 	isb
 
+/*
+ * struct task *__switch_to(struct task *prev, struct task *next)
+ *
+ * The callee-saved registers and sp swap over through task->thread (layout:
+ * x19..x28, fp, sp, pc); everything else is dead at a call site. Returns on
+ * next's stack, at next's saved pc; x0 still holds prev, the return value.
+ */
+.globl __switch_to
+__switch_to:
+	add	x8, x0, #TASK_THREAD
+	mov	x9, sp
+	stp	x19, x20, [x8], #16
+	stp	x21, x22, [x8], #16
+	stp	x23, x24, [x8], #16
+	stp	x25, x26, [x8], #16
+	stp	x27, x28, [x8], #16
+	stp	x29, x9, [x8], #16
+	str	x30, [x8]
+	add	x8, x1, #TASK_THREAD
+	ldp	x19, x20, [x8], #16
+	ldp	x21, x22, [x8], #16
+	ldp	x23, x24, [x8], #16
+	ldp	x25, x26, [x8], #16
+	ldp	x27, x28, [x8], #16
+	ldp	x29, x9, [x8], #16
+	ldr	x30, [x8]
+	mov	sp, x9
+	ret
+
 .globl vectors
 .align 11
 vectors:
