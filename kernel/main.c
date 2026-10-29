@@ -251,6 +251,7 @@ void cmain(unsigned long boot_cpu, paddr_t __fdt)
 	if (err)
 		goto out;
 
+	idle_task_install();
 	sched_all();
 
 	prepare_user_return();

@@ -48,6 +48,7 @@ enum task_type {
 	GRINCH_UNDEF = 0,
 	GRINCH_PROCESS,
 	GRINCH_VMACHINE,
+	GRINCH_KTHREAD,
 };
 
 struct wfe_child {
@@ -111,6 +112,12 @@ static __always_inline struct task *current_task(void)
 	return this_per_cpu()->current_task;
 }
 
+/* The idle tasks are the only kernel threads there are. */
+static inline bool task_is_idle(struct task *task)
+{
+	return task->type == GRINCH_KTHREAD;
+}
+
 static inline struct process *current_process(void)
 {
 	struct task *cur;
@@ -150,6 +157,7 @@ void task_sleep_for(struct task *task, struct timespec *ts);
 void task_cancel_timer(struct task *task);
 
 int task_init(void);
+void idle_task_install(void);
 
 void prepare_user_return(void);
 

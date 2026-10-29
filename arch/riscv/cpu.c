@@ -85,6 +85,7 @@ void dump_regs(struct registers *a)
 void dump_exception(struct trap_context *ctx)
 {
 	const char *cause_str = "UNKNOWN";
+	struct task *cur;
 	bool from_task;
 
 	if (ctx->cause <= 23)
@@ -96,10 +97,12 @@ void dump_exception(struct trap_context *ctx)
 	 * Where a task runs in machine mode, the level the trap came from no
 	 * longer tells it apart from the kernel: go by whether there is a task.
 	 */
-	if (riscv_have_umode)
+	if (riscv_have_umode) {
 		from_task = trap_from_umode(ctx);
-	else
-		from_task = current_task() != NULL;
+	} else {
+		cur = current_task();
+		from_task = cur && !task_is_idle(cur);
+	}
 
 	if (from_task)
 		pr("Active PID: %u\n", current_task()->pid);

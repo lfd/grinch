@@ -68,6 +68,7 @@ struct per_cpu {
 	} remote_call;
 
 	struct task *current_task;
+	struct task *idle_task;
 
 	union {
 		unsigned char stack[STACK_SIZE];

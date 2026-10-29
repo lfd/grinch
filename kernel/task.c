@@ -176,7 +176,7 @@ found:
 
 	_task_set_wfe(task);
 	this_per_cpu()->schedule = true;
-	this_per_cpu()->current_task = NULL;
+	this_per_cpu()->current_task = this_per_cpu()->idle_task;
 	task_release_cpu(task);
 	err = SYSCALL_NO_RETVAL;
 
@@ -250,7 +250,7 @@ void task_exit(struct task *task, int code)
 
 	if (this_per_cpu()->current_task == task) {
 		this_per_cpu()->schedule = true;
-		this_per_cpu()->current_task = NULL;
+		this_per_cpu()->current_task = this_per_cpu()->idle_task;
 		task_release_cpu(task);
 	}
 
@@ -318,6 +318,29 @@ struct task *task_alloc_new(const char *name)
 	return task;
 }
 
+/*
+ * Give the context this CPU boots on a struct task and a name. The idle task
+ * owns no address space and no PID, never enters the task list, always counts
+ * as running and never leaves its CPU.
+ */
+void idle_task_install(void)
+{
+	struct per_cpu *tpcpu;
+	struct task *idle;
+
+	idle = task_alloc("idle");
+	if (IS_ERR(idle))
+		panic("No memory for the idle task\n");
+
+	idle->type = GRINCH_KTHREAD;
+	idle->state = TASK_RUNNING;
+	idle->on_cpu = this_cpu_id();
+
+	tpcpu = this_per_cpu();
+	tpcpu->idle_task = idle;
+	tpcpu->current_task = idle;
+}
+
 static void task_activate(struct task *task)
 {
 	struct per_cpu *tpcpu;
@@ -325,9 +348,6 @@ static void task_activate(struct task *task)
 
 	old = current_task();
 	if (old == task) {
-		if (!task)
-			return;
-
 		/* sanity check - don't remove */
 		if (task->state == TASK_RUNNING)
 			return;
@@ -345,19 +365,23 @@ static void task_activate(struct task *task)
 	}
 
 	tpcpu = this_per_cpu();
-	/*
-	 * Only set the task to runnable, if it was running before.
-	 * Through a syscall, it might be set to wait for events.
-	 */
-	if (old && old->state == TASK_RUNNING && old->on_cpu == this_cpu_id())
-		tpcpu->current_task->state = TASK_RUNNABLE;
+	if (old && !task_is_idle(old)) {
+		/*
+		 * Only set the task to runnable, if it was running before.
+		 * Through a syscall, it might be set to wait for events.
+		 */
+		if (old->state == TASK_RUNNING && old->on_cpu == this_cpu_id())
+			old->state = TASK_RUNNABLE;
 
-	/* We are switching away from old; it no longer belongs to this CPU. */
-	if (old)
+		/*
+		 * We are switching away from old; it no longer belongs to
+		 * this CPU.
+		 */
 		task_release_cpu(old);
+	}
 
 	tpcpu->current_task = task;
-	if (!task) {
+	if (task_is_idle(task)) {
 		/* Don't leave the translation root on a process' page table */
 		arch_process_deactivate();
 		return;
@@ -419,7 +443,7 @@ static void schedule(void)
 		hypercall_yield();
 #endif
 
-	if (!tpcpu->current_task)
+	if (task_is_idle(tpcpu->current_task))
 		goto begin;
 
 	if (list_is_singular(&task_list)) {
@@ -427,7 +451,7 @@ static void schedule(void)
 		spin_lock(&task->lock);
 		if (task->state == TASK_WFE || !task_claimable(task)) {
 			spin_unlock(&task->lock);
-			task = NULL;
+			goto nothing;
 		}
 		goto out;
 	}
@@ -456,20 +480,18 @@ begin:
 
 nothing:
 	/*
-	 * We have nothing to schedule. But is the current task running and may
-	 * continue?
+	 * Nothing else to schedule. The current task continues if it still may
+	 * run; otherwise the CPU falls back to its idle task.
 	 */
-	if (current_task() && current_task()->state == TASK_RUNNING) {
-		task = current_task();
-		spin_lock(&task->lock);
-	} else
-		task = NULL;
+	task = tpcpu->current_task;
+	if (task->state != TASK_RUNNING)
+		task = tpcpu->idle_task;
+	spin_lock(&task->lock);
 
 out:
-	/* If task is set, we arrive here with the task->lock hold */
+	/* We arrive here with the task->lock held */
 	task_activate(task);
-	if (task)
-		spin_unlock(&task->lock);
+	spin_unlock(&task->lock);
 
 	spin_unlock(&task_lock);
 }
@@ -637,7 +659,22 @@ void task_handle_events(void)
 
 static void do_idle(void)
 {
-	this_per_cpu()->idling = true;
+	struct per_cpu *tpcpu;
+	bool empty;
+
+	tpcpu = this_per_cpu();
+
+	spin_lock(&task_lock);
+	empty = list_empty(&task_list);
+	spin_unlock(&task_lock);
+
+	/* An empty task list can never fill up again. */
+	if (empty && tpcpu->primary) {
+		pr("Nothing to schedule!\n");
+		shutdown(-ENOENT);
+	}
+
+	tpcpu->idling = true;
 
 	/*
 	 * Enable interrupts across the idle instruction so a pending IRQ is
@@ -651,7 +688,7 @@ static void do_idle(void)
 
 	check_panic();
 
-	this_per_cpu()->idling = false;
+	tpcpu->idling = false;
 	mb();
 }
 
@@ -684,6 +721,8 @@ static const char *task_type_to_string(enum task_type type)
 			return "process";
 		case GRINCH_VMACHINE:
 			return "VM     ";
+		case GRINCH_KTHREAD:
+			return "kthread";
 		default:
 			return "unknown";
 	};
@@ -778,19 +817,7 @@ retry:
 	if (tpcpu->schedule)
 		schedule();
 
-	if (!tpcpu->current_task) {
-		spin_lock(&task_lock);
-		if (list_empty(&task_list)) {
-			spin_unlock(&task_lock);
-			if (tpcpu->primary) {
-				pr("Nothing to schedule!\n");
-				shutdown(-ENOENT);
-			}
-		} else {
-			spin_unlock(&task_lock);
-			if (tpcpu->idling)
-				BUG();
-		}
+	if (task_is_idle(tpcpu->current_task)) {
 		do_idle();
 		goto retry;
 	}
@@ -798,7 +825,7 @@ retry:
 	task_restore();
 
 	t = current_task();
-	if (t && t->state != TASK_RUNNING)
+	if (t->state != TASK_RUNNING)
 		BUG();
 }
 

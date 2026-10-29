@@ -64,13 +64,14 @@ void syscall(unsigned long no, struct syscall_args *args)
 
 	/*
 	 * 1. A handler may have left the return value to someone else
-	 * 2. Syscalls might have killed the task. Check for its existence
+	 * 2. Syscalls might have killed the task; the CPU then fell back to
+	 *    its idle task, whose registers are nobody's to write.
 	 */
 sys_out:
 	if (ret == SYSCALL_NO_RETVAL)
 		return;
 
 	cur = current_task();
-	if (cur)
+	if (!task_is_idle(cur))
 		regs_set_retval(&cur->regs, ret);
 }

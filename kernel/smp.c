@@ -135,6 +135,7 @@ void secondary_cmain(void)
 	 * Enter the scheduler: run a runnable task, or idle until this CPU is
 	 * assigned one.
 	 */
+	idle_task_install();
 	prepare_user_return();
 }
 
