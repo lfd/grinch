@@ -106,9 +106,6 @@ grinch_start:
 	/*
 	 * Setup stack: each HART's per_cpu block lies at
 	 * __percpu_start + hartid * STRUCT_PER_CPU_SIZE, its stack on top.
-	 *
-	 * From this address, subtract STRUCT_REGISTERS_SIZE. We will place
-	 * user context here on return.
 	 */
 	la	t0, __percpu_start
 	li	t1, STRUCT_PER_CPU_SIZE
@@ -125,7 +122,7 @@ grinch_start:
 	bnez	t1, 1b
 
 	/* setup stack */
-	li	t0, PCPU_STACK_TOP - STRUCT_REGISTERS_SIZE
+	li	t0, PCPU_STACK_TOP
 	add	sp, tp, t0
 
 	/* push fdt location */
@@ -224,7 +221,7 @@ secondary_virt_entry:
 	add	tp, t0, t2
 
 	/* setup stack */
-	li	t0, PCPU_STACK_TOP - STRUCT_REGISTERS_SIZE
+	li	t0, PCPU_STACK_TOP
 	add	sp, tp, t0
 
 	/* Terminate stack frame */

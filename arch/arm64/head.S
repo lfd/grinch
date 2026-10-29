@@ -166,9 +166,9 @@ converge_to_el1:
 	ret
 
 /*
- * setup_percpu_stack - set SP and TPIDR_EL1 for this CPU and reserve a
- * register frame at the top of the stack. Uses no stack of its own (safe to
- * bl before a stack exists); clobbers x2-x5, preserves x0/x1/x30.
+ * setup_percpu_stack - set SP and TPIDR_EL1 for this CPU. Uses no stack of
+ * its own (safe to bl before a stack exists); clobbers x2-x5, preserves
+ * x0/x1/x30.
  *
  * One STRUCT_PER_CPU_SIZE block per CPU, ascending from __percpu_start; the
  * slot is mpidr[7:0] (== the logical cpuid assigned in arch_platform_init).
@@ -184,7 +184,7 @@ setup_percpu_stack:
 	/* TPIDR_EL1 holds this CPU's per_cpu structure from here on. */
 	msr	tpidr_el1, x5
 
-	mov	x2, #(PCPU_STACK_TOP - STRUCT_REGISTERS_SIZE)
+	mov	x2, #PCPU_STACK_TOP
 	add	x2, x5, x2
 	mov	sp, x2
 	ret

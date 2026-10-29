@@ -50,7 +50,6 @@ struct per_cpu {
 
 	bool primary;
 	bool schedule;
-	bool idling;
 	bool handle_events;
 
 	struct ttp_storage ttp_stor;
@@ -70,13 +69,7 @@ struct per_cpu {
 	struct task *current_task;
 	struct task *idle_task;
 
-	union {
-		unsigned char stack[STACK_SIZE];
-		struct {
-			unsigned char __fill[STACK_SIZE - sizeof(struct registers)];
-			struct registers regs;
-		};
-	} stack __aligned(16);
+	unsigned char stack[STACK_SIZE] __aligned(16);
 } __aligned(PAGE_SIZE);
 
 static __always_inline unsigned long this_cpu_id(void)

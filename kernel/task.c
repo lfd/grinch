@@ -349,10 +349,12 @@ void idle_task_install(void)
 
 	tpcpu = this_per_cpu();
 
-	/* The idle task runs on the stack the CPU booted on. */
-	idle->stack = tpcpu->stack.stack;
+	/*
+	 * The idle task runs on the stack the CPU booted on, and never leaves
+	 * the kernel: there is no register frame to point at.
+	 */
+	idle->stack = tpcpu->stack;
 	*end_of_stack(idle) = STACK_END_MAGIC;
-	idle->regs = &tpcpu->stack.regs;
 
 	tpcpu->idle_task = idle;
 	tpcpu->current_task = idle;
@@ -760,8 +762,6 @@ static void do_idle(void)
 		shutdown(-ENOENT);
 	}
 
-	tpcpu->idling = true;
-
 	/*
 	 * Enable interrupts across the idle instruction so a pending IRQ is
 	 * taken as a trap and serviced by the arch IRQ handler (which
@@ -773,9 +773,6 @@ static void do_idle(void)
 	irq_disable();
 
 	check_panic();
-
-	tpcpu->idling = false;
-	mb();
 }
 
 /*
