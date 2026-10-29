@@ -75,7 +75,7 @@ $(version_h): $(srctree)/scripts/mkversion_h $(srctree)/Makefile
 $(ARCH_DIR)/asm_defines.S: $(srctree)/$(ARCH_DIR)/asm_defines.c
 	$(QUIET) "[GEN]   $@"
 	$(VERBOSE) $(MKDIR_P) $(dir $@)
-	$(VERBOSE) $(CC) $(CFLAGS_KERNEL_COMMON) -S -o $@ $^
+	$(VERBOSE) $(CC) $(CFLAGS_KERNEL_COMMON) $(DEPFLAGS) -S -o $@ $<
 
 grinch.o: $(ARCH_DIR)/built-in.a drivers/built-in.a fs/built-in.a kernel/built-in.a lib/built-in.a mm/built-in.a
 	$(QUIET) "[LD]    $@"
