@@ -231,6 +231,7 @@ secondary_virt_entry:
 	mv	s0, sp
 
 	/* Setup exception trap vector. Exception stack is yet uninitialised. */
+	csrw	CSR_SCRATCH, zero
 	la	t0, excp_handler
 	csrw	CSR_TVEC, t0
 
