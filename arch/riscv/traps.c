@@ -57,19 +57,18 @@ static void handle_syscall(void)
 }
 
 /*
- * We reschedule only when the trap came from U-mode. An interrupt taken
- * while idling (do_idle runs the idle instruction with interrupts enabled)
- * traps from supervisor mode onto a nested kernel frame, which is not the
- * task's context: don't save it and don't reschedule here (prepare_user_return()
- * below is guarded by !idling). The idle retry loop reschedules once we
- * unwind.
+ * We save and reschedule only when the trap interrupted a task. An interrupt
+ * taken while idling (do_idle runs the idle instruction with interrupts
+ * enabled) traps onto a nested kernel frame, which is not a task's context:
+ * don't save it and don't reschedule here. The idle retry loop reschedules
+ * once we unwind.
  */
 void arch_handle_irq(struct registers *regs, u64 cause)
 {
 	bool prepare_user = false;
 	u64 irq;
 
-	if (!this_per_cpu()->idling)
+	if (!regs->from_kernel)
 		task_save(regs);
 
 	irq = to_irq(cause);
@@ -97,7 +96,7 @@ void arch_handle_irq(struct registers *regs, u64 cause)
 			break;
 	}
 
-	if (prepare_user && !this_per_cpu()->idling)
+	if (prepare_user && !regs->from_kernel)
 		prepare_user_return();
 }
 
