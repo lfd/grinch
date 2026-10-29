@@ -75,6 +75,13 @@ struct registers {
 	unsigned long __pad;
 } __packed;
 
+/* Callee-saved context of a task that is not running, kept by switch_to(). */
+struct thread {
+	unsigned long ra;
+	unsigned long sp;
+	unsigned long s[12];
+};
+
 struct trap_context {
 	/* Privileged registers */
 	unsigned long cause;

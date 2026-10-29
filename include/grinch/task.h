@@ -77,6 +77,9 @@ struct task {
 
 	/* The task's register frame, at the top of its kernel stack. */
 	struct registers *regs;
+
+	/* Callee-saved context while the task is switched out. */
+	struct thread thread;
 	pid_t pid;
 	enum task_state state;
 	/*
@@ -162,6 +165,12 @@ void task_cancel_timer(struct task *task);
 
 int task_init(void);
 void idle_task_install(void);
+
+/*
+ * Swap the callee-saved context and stack: returns on next's stack, handing
+ * back prev so the switched-to context knows whom it came from.
+ */
+struct task *__switch_to(struct task *prev, struct task *next);
 
 void prepare_user_return(void);
 

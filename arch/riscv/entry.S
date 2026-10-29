@@ -139,3 +139,24 @@ return_to_kernel:
 	addi	sp, sp, STRUCT_REGISTERS_SIZE
 
 	xret
+
+.macro switch_thread cmd, reg
+	\cmd	ra, TASK_THREAD_RA(\reg)
+	\cmd	sp, TASK_THREAD_SP(\reg)
+	.irp idx 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+		\cmd	s\idx, TASK_THREAD_S0 + SZREG * \idx(\reg)
+	.endr
+.endm
+
+/*
+ * struct task *__switch_to(struct task *prev, struct task *next)
+ *
+ * The callee-saved registers and sp swap over; everything else is dead at a
+ * call site. Returns on next's stack, at next's saved ra; a0 still holds
+ * prev, which is the return value.
+ */
+.globl __switch_to
+__switch_to:
+	switch_thread REG_S, a0
+	switch_thread REG_L, a1
+	ret

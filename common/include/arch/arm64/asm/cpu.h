@@ -41,6 +41,14 @@ struct registers {
 	unsigned long elr;
 } __attribute__((packed));
 
+/* Callee-saved context of a task that is not running, kept by switch_to(). */
+struct thread {
+	unsigned long x19_28[10];
+	unsigned long fp;
+	unsigned long sp;
+	unsigned long pc;
+};
+
 struct trap_context {
 	unsigned long esr;
 };
