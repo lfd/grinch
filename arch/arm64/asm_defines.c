@@ -17,6 +17,8 @@ void common(void)
 {
 	DEFINE(STRUCT_REGISTERS_SIZE, sizeof(struct registers));
 	DEFINE(STRUCT_PER_CPU_SIZE, sizeof(struct per_cpu));
+	DEFINE(PCPU_STACK_TOP,
+	       __builtin_offsetof(struct per_cpu, stack) + STACK_SIZE);
 
 	OFFSET(REG_SP, registers, sp);
 	OFFSET(REG_PC, registers, pc);

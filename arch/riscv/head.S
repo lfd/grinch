@@ -82,7 +82,7 @@ _loader_start:
 #ifdef CONFIG_MMU
 	/* Borrow the first per-CPU stack; its owner zeroes it on entry. */
 	lpc	sp, __percpu_start
-	li	t0, STACK_SIZE
+	li	t0, PCPU_STACK_TOP
 	add	sp, sp, t0
 	jal	loader
 
@@ -125,7 +125,7 @@ grinch_start:
 	bnez	t1, 1b
 
 	/* setup stack */
-	li	t0, STACK_SIZE - STRUCT_REGISTERS_SIZE
+	li	t0, PCPU_STACK_TOP - STRUCT_REGISTERS_SIZE
 	add	sp, tp, t0
 
 	/* push fdt location */
@@ -224,7 +224,7 @@ secondary_virt_entry:
 	add	tp, t0, t2
 
 	/* setup stack */
-	li	t0, STACK_SIZE - STRUCT_REGISTERS_SIZE
+	li	t0, PCPU_STACK_TOP - STRUCT_REGISTERS_SIZE
 	add	sp, tp, t0
 
 	/* Terminate stack frame */

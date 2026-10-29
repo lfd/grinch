@@ -27,39 +27,48 @@
 .align 4
 .globl excp_handler
 excp_handler:
-	csrrw	sp, CSR_SCRATCH, sp
-	bnez	sp, save_user_ctx
+	csrrw	tp, CSR_SCRATCH, tp
+	bnez	tp, save_user_ctx
 
-	/* sp is zero: we have an exception from kernel space. So restore sp. */
-	csrr	sp, CSR_SCRATCH
+	/*
+	 * tp is zero: the trap came from the kernel, whose tp just went into
+	 * scratch. Take it back; the nested frame goes below the interrupted
+	 * sp, which we still run on.
+	 */
+	csrr	tp, CSR_SCRATCH
 	addi	sp, sp, -STRUCT_REGISTERS_SIZE
 	context REG_S
 
 	/* t0 belongs to the frame now, so it is ours to use. */
 	li	t0, 1
 	REG_S	t0, REG_FROM_KERNEL(sp)
+	addi	t0, sp, STRUCT_REGISTERS_SIZE
+	REG_S	t0, REG_SP(sp)
 	j	common_ctx
 
 save_user_ctx:
+	/*
+	 * tp holds the per-CPU block, handed over by scratch, which holds the
+	 * task's tp in exchange. Spill the task's sp and fetch the kernel
+	 * stack out of the block.
+	 */
+	REG_S	sp, PCPU_USER_SP(tp)
+	REG_L	sp, PCPU_KERNEL_SP(tp)
 	addi	sp, sp, -STRUCT_REGISTERS_SIZE
 	context REG_S
 	REG_S	zero, REG_FROM_KERNEL(sp)
 
-	/*
-	 * Reclaim tp; the user's copy was just saved. The register frame
-	 * sits at the top of the per-CPU stack, which in turn is the
-	 * first member of struct per_cpu.
-	 */
-	li	t0, STACK_SIZE - STRUCT_REGISTERS_SIZE
-	sub	tp, sp, t0
+	/* The frame caught our tp; replace it and the sp with the task's. */
+	csrr	t0, CSR_SCRATCH
+	REG_S	t0, REG_TP(sp)
+	REG_L	t0, PCPU_USER_SP(tp)
+	REG_S	t0, REG_SP(sp)
 
 common_ctx:
 	csrr	a0, CSR_EPC
 	REG_S	a0, REG_PC(sp)
 
-	/* push SP */
-	csrr	a0, CSR_SCRATCH
-	REG_S	a0, REG_SP(sp)
+	/* A nested trap must take the kernel path. */
 	csrw	CSR_SCRATCH, zero
 
 	/* Terminate stack frame */
@@ -110,22 +119,22 @@ return_to_user:
 	csrs	CSR_STATUS, a0
 1:
 #endif
-	/* restore the context's SP, keep the kernel SP in the scratch register */
-	REG_L	a0, REG_SP(sp)
-	/* No preemption must happen from now on */
-	csrw	CSR_SCRATCH, a0
+	/*
+	 * Re-arm the entry path: scratch hands over the per-CPU block, the
+	 * block hands out the kernel stack, whose top the frame sits at.
+	 * No preemption must happen from now on.
+	 */
+	addi	a0, sp, STRUCT_REGISTERS_SIZE
+	REG_S	a0, PCPU_KERNEL_SP(tp)
+	csrw	CSR_SCRATCH, tp
 
 	context REG_L
-	addi	sp, sp, STRUCT_REGISTERS_SIZE
-
-	csrrw	sp, CSR_SCRATCH, sp
+	REG_L	sp, REG_SP(sp)
 
 	xret
 
 return_to_kernel:
 	/* Kernel return: sp is already the kernel stack; scratch stays 0. */
-	csrw	CSR_SCRATCH, zero
-
 	context REG_L
 	addi	sp, sp, STRUCT_REGISTERS_SIZE
 

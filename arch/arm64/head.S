@@ -47,7 +47,8 @@ _loader_start:
 
 	/* Borrow the boot CPU's stack; it is zeroed right after the loader. */
 	adrp	x1, __percpu_start
-	add	x1, x1, #STACK_SIZE
+	mov	x2, #PCPU_STACK_TOP
+	add	x1, x1, x2
 	mov	sp, x1
 
 	msr	daif, xzr
@@ -182,8 +183,9 @@ setup_percpu_stack:
 	/* TPIDR_EL1 holds this CPU's per_cpu structure from here on. */
 	msr	tpidr_el1, x5
 
-	add	sp, x5, #STACK_SIZE
-	sub	sp, sp, #STRUCT_REGISTERS_SIZE
+	mov	x2, #(PCPU_STACK_TOP - STRUCT_REGISTERS_SIZE)
+	add	x2, x5, x2
+	mov	sp, x2
 	ret
 
 /*

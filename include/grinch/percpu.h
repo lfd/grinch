@@ -33,13 +33,13 @@
 #include <grinch/ttp.h>
 
 struct per_cpu {
-	union {
-		unsigned char stack[STACK_SIZE];
-		struct {
-			unsigned char __fill[STACK_SIZE - sizeof(struct registers)];
-			struct registers regs;
-		};
-	} stack;
+	/*
+	 * Read by the trap entry path with tp as the only free register, so
+	 * they must stay within reach of a 12-bit immediate -- in front of
+	 * the stack.
+	 */
+	unsigned long kernel_sp;
+	unsigned long user_sp;
 
 	ARCH_PER_CPU_FIELDS
 
@@ -68,6 +68,14 @@ struct per_cpu {
 	} remote_call;
 
 	struct task *current_task;
+
+	union {
+		unsigned char stack[STACK_SIZE];
+		struct {
+			unsigned char __fill[STACK_SIZE - sizeof(struct registers)];
+			struct registers regs;
+		};
+	} stack __aligned(16);
 } __aligned(PAGE_SIZE);
 
 static __always_inline unsigned long this_cpu_id(void)
