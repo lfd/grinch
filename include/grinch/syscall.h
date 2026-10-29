@@ -30,13 +30,6 @@ struct syscall_args {
 
 typedef long (*syscall_stub_t)(struct syscall_args *args);
 
-/*
- * Returned by handlers whose return value is not theirs to give: it was
- * placed in the registers already, or whoever wakes the task will place it
- * there. Either way the dispatcher must not touch it.
- */
-#define SYSCALL_NO_RETVAL	LONG_MIN
-
 #define __SC_DECL(t,a)		t a
 #define __SC_CA(type, no)	(type)(___a->arg##no)
 

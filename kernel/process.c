@@ -726,8 +726,11 @@ uargv_free_out:
 pathname_out:
 	kfree(pathname);
 
-	/* On success the registers belong to the program we just loaded. */
-	return err ?: SYSCALL_NO_RETVAL;
+	/*
+	 * On success the frame belongs to the program we just loaded; the
+	 * dispatcher's retval lands in a register _start never reads.
+	 */
+	return err;
 }
 
 /*
