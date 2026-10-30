@@ -307,7 +307,7 @@ int fdt_irq_get(struct device *dev)
 
 	res = fdt_getprop(_fdt, dev->of.node, ISTR("interrupts"), &len);
 	if (!res)
-		return len;
+		return len == -FDT_ERR_NOTFOUND ? -ENOENT : -EINVAL;
 
 	return irqchip_decode(res, len / sizeof(u32));
 }

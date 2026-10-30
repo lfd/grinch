@@ -360,7 +360,7 @@ int pci_intx_irq(struct pci_device *dev)
 
 		parent = fdt_node_offset_by_phandle(_fdt, fdt32_to_cpu(entry[4]));
 		if (parent < 0)
-			return parent;
+			return -ENOENT;
 
 		pac = of_cells(parent, ISTR("#address-cells"), 0);
 		pic = of_cells(parent, ISTR("#interrupt-cells"), -EINVAL);
