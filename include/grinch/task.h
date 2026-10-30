@@ -39,10 +39,6 @@ enum task_state {
 	TASK_EXIT_DEAD,
 };
 
-enum task_wfe {
-	WFE_NONE = 0,
-};
-
 enum task_type {
 	GRINCH_UNDEF = 0,
 	GRINCH_PROCESS,
@@ -77,10 +73,6 @@ struct task {
 	/* working on siblings always requires the parent's lock */
 	struct list_head sibling;
 	struct list_head timer_list;
-
-	/* Why the task waits; purely descriptive, the waiter keeps its own
-	 * state on its stack. */
-	enum task_wfe wfe;
 
 	/* Wall-clock deadline, valid while queued on the timer list. */
 	timeu_t deadline;

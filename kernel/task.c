@@ -473,10 +473,8 @@ void task_sleep(void)
  */
 static void __task_wake(struct task *task)
 {
-	if (task->state == TASK_WFE) {
-		task->wfe = WFE_NONE;
+	if (task->state == TASK_WFE)
 		task->state = TASK_RUNNABLE;
-	}
 
 	this_per_cpu()->schedule = true;
 }
@@ -830,16 +828,6 @@ static const char *task_state_to_string(enum task_state state)
 	}
 }
 
-static const char *task_wfe_to_string(enum task_wfe wfe)
-{
-	switch (wfe) {
-		case WFE_NONE:
-			return "none  ";
-		default:
-			return "unkn  ";
-	}
-}
-
 #if 0
 static void dump_timers(void)
 {
@@ -870,10 +858,9 @@ void tasks_dump(void)
 			snprintf(buf, sizeof(buf), "%lu", task->on_cpu);
 			on_cpu = buf;
 		}
-		pr("PID: %u Type: %s State: %s WFE: %s On CPU: %s - %s\n",
+		pr("PID: %u Type: %s State: %s On CPU: %s - %s\n",
 		   task->pid, task_type_to_string(task->type),
 		   task_state_to_string(task->state),
-		   task_wfe_to_string(task->wfe),
 		   on_cpu, task->name);
 	}
 
