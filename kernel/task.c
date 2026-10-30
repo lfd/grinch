@@ -767,9 +767,15 @@ static void do_idle(void)
 	 * taken as a trap and serviced by the arch IRQ handler (which
 	 * tolerates the idle context), instead of being polled here. The
 	 * handler records a reschedule; we act on it once we unwind.
+	 *
+	 * A task that parked itself through task_sleep() left its event
+	 * handling (arming a timer, say) for the idle loop to pick up; don't
+	 * halt with that still pending, or on a tickless CPU nothing would
+	 * ever wake us to do it.
 	 */
 	irq_enable();
-	wait_for_interrupt();
+	if (!tpcpu->handle_events && !tpcpu->schedule)
+		wait_for_interrupt();
 	irq_disable();
 
 	check_panic();
