@@ -57,6 +57,12 @@ void arch_timer_set(timeu_t ns)
 {
 	timeu_t then;
 
+	/* "Never" must survive the tick conversion, which would wrap it. */
+	if (ns == (timeu_t)-1) {
+		firmware_timer_set(-1);
+		return;
+	}
+
 	then = ns * riscv_timebase_frequency;
 	do_div(then, NSEC_PER_SEC);
 
