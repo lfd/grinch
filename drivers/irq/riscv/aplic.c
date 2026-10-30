@@ -40,7 +40,7 @@ static int __init aplic_init(struct device *dev)
 /* <hwirq flags>; the trigger mode the flags name is not ours to pick. */
 static int aplic_decode(const u32 *cells, unsigned int n)
 {
-	if (n != 2)
+	if (n < 2)
 		return -EINVAL;
 
 	return fdt32_to_cpu(cells[0]);

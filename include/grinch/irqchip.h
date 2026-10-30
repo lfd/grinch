@@ -39,7 +39,10 @@ struct irqchip_fn {
 	int (*disable_irq)(unsigned int irq);
 	int (*set_affinity)(unsigned int irq, unsigned long cpu);
 	int (*init)(struct device *dev);
-	/* A line number out of the cells a tree spends on this chip. */
+	/*
+	 * A line number out of the cells a tree spends on this chip. The
+	 * property may carry several specifiers; decode takes the first.
+	 */
 	int (*decode)(const u32 *cells, unsigned int n);
 	/* Send an inter-processor interrupt to a remote CPU. */
 	void (*send_ipi)(unsigned long cpuid);

@@ -185,7 +185,7 @@ static int __init plic_init(struct device *dev)
 
 static int plic_decode(const u32 *cells, unsigned int n)
 {
-	if (n != 1)
+	if (n < 1)
 		return -EINVAL;
 
 	return fdt32_to_cpu(cells[0]);

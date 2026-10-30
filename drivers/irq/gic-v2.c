@@ -160,7 +160,7 @@ static int gic_v2_decode(const u32 *cells, unsigned int n)
 {
 	u32 hwirq, type;
 
-	if (n != 3)
+	if (n < 3)
 		return -EINVAL;
 
 	type = fdt32_to_cpu(cells[0]);
