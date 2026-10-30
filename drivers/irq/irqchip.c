@@ -247,6 +247,7 @@ void irqchip_handle_irq(unsigned int irq)
 {
 	struct irq_action *act;
 	int ret = IRQ_NONE;
+	int res;
 
 	if (irq >= IRQ_MAX || !irq_actions[irq]) {
 		pr("No Handler for IRQ %u\n", irq);
@@ -254,7 +255,7 @@ void irqchip_handle_irq(unsigned int irq)
 	}
 
 	for (act = READ_ONCE(irq_actions[irq]); act; act = READ_ONCE(act->next)) {
-		int res = act->handler(act->userdata);
+		res = act->handler(act->userdata);
 
 		if (res < 0) {
 			pr("Handler error for IRQ %u: %pe\n", irq, ERR_PTR(res));
