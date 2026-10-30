@@ -71,15 +71,10 @@ void task_set_wfe(struct task *task)
 	spin_unlock(&task_lock);
 }
 
-/*
- * Drop this CPU's ownership claim on a task. The release fence publishes our
- * prior writes to the task, so a CPU that later observes TASK_NO_CPU and
- * activates the task sees a consistent state.
- */
+/* Drop this CPU's ownership claim; publishes our prior writes to the task. */
 static void task_release_cpu(struct task *task)
 {
-	__atomic_release_fence();
-	WRITE_ONCE(task->on_cpu, TASK_NO_CPU);
+	smp_store_release(&task->on_cpu, TASK_NO_CPU);
 }
 
 /* must hold the parent's lock */
