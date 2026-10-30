@@ -230,7 +230,7 @@ devfs_read_blocking(struct file_handle *fh, char *ubuf, size_t count)
 		task_set_wfe(task);
 
 		spin_unlock_irqrestore(&node->lock, flags);
-		task_sleep();
+		schedule();
 	}
 
 	/* The user page may need faulting in; the lock is long gone. */

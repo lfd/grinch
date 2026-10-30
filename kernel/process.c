@@ -909,7 +909,7 @@ SYSCALL_DEF2(nanosleep, const struct timespec __user *, _req,
 
 	/* The deadline waits here, not in the trap tail. */
 	while (t->state == TASK_WFE)
-		task_sleep();
+		schedule();
 
 	if (rem)
 		if (umemset(t, rem, 0, sizeof(rem)) != sizeof(rem))

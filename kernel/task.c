@@ -53,7 +53,6 @@ static DEFINE_SPINLOCK(task_lock);
 static atomic_t next_pid = ATOMIC_INIT(1);
 
 static void task_restore(void);
-static void schedule(void);
 static void __task_wake(struct task *task);
 
 static void task_dequeue(struct task *task)
@@ -141,7 +140,7 @@ SYSCALL_DEF3(wait, pid_t, pid, int __user *, wstatus, int, options)
 		_task_set_wfe(task);
 		spin_unlock(&task->lock);
 
-		task_sleep();
+		schedule();
 	}
 
 reap:
@@ -454,18 +453,6 @@ void task_entry_finish(struct task *prev)
 }
 
 /*
- * Give up the CPU until task_wake(). The caller has marked the task waiting
- * (task_set_wfe()) before dropping the lock of whoever will wake it, so a
- * wake-up between the mark and this call is not lost: schedule() re-examines
- * the state under task_lock and simply keeps running a task already made
- * runnable again. Returns with the task running, possibly on another CPU.
- */
-void task_sleep(void)
-{
-	schedule();
-}
-
-/*
  * Make a waiting task runnable again; the woken task rescans in place.
  * The bare variant is for callers already serialised against the sleeper's
  * mark by another lock -- schedule()'s pick loop takes the task's own lock,
@@ -498,7 +485,14 @@ static bool task_claimable(struct task *task)
 	return owner == TASK_NO_CPU || owner == this_cpu_id();
 }
 
-static void schedule(void)
+/*
+ * The scheduler. A task blocks by marking itself TASK_WFE (task_set_wfe())
+ * under the lock its waker holds and then calling schedule() -- a wake-up in
+ * between is not lost, as schedule() re-examines the state under task_lock and
+ * keeps running a task already made runnable again. Returns with the caller
+ * running, possibly on another CPU.
+ */
+void schedule(void)
 {
 	struct task *task, *old;
 	struct per_cpu *tpcpu;
@@ -756,7 +750,7 @@ static void do_idle(void)
 	 * tolerates the idle context), instead of being polled here. The
 	 * handler records a reschedule; we act on it once we unwind.
 	 *
-	 * A task that parked itself through task_sleep() left its event
+	 * A task that parked itself through schedule() left its event
 	 * handling (arming a timer, say) for the idle loop to pick up; don't
 	 * halt with that still pending, or on a tickless CPU nothing would
 	 * ever wake us to do it.
