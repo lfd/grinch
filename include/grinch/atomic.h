@@ -15,6 +15,8 @@
 #ifndef _ATOMIC_H
 #define _ATOMIC_H
 
+#include <grinch/compiler_attributes.h>
+
 typedef struct {
 	int counter;
 } atomic_t;

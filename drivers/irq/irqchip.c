@@ -10,12 +10,15 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <grinch/atomic.h>
 #include <grinch/driver.h>
 #include <grinch/errno.h>
 #include <grinch/init.h>
 #include <grinch/irqchip.h>
+#include <grinch/panic.h>
 #include <grinch/printk.h>
 #include <grinch/smp.h>
+#include <grinch/spinlock.h>
 #include <grinch/symbols.h>
 
 /* Maximum number of cascaded interrupt controllers in the system */
@@ -24,6 +27,14 @@
 const struct irqchip_fn *irqchip_fn;
 
 static struct irq_action *irq_actions[IRQ_MAX];
+
+/*
+ * Serializes the list mutators against each other. The handler walk runs
+ * lock-free: an append publishes with a release so a concurrent walk sees a
+ * fully initialised action, and an unregister requires the line to be quiet
+ * (disabled, or its device not yet live) -- there is no synchronize_irq.
+ */
+static DEFINE_SPINLOCK(irq_actions_lock);
 
 struct irqchip_candidate {
 	const struct driver *drv;
@@ -179,6 +190,8 @@ int irqchip_cpu_init(void)
 int irq_register_action(u32 irq, struct irq_action *act)
 {
 	struct irq_action *head, **tail;
+	unsigned long flags;
+	int ret;
 
 	if (!act || !act->handler)
 		return -EINVAL;
@@ -186,33 +199,48 @@ int irq_register_action(u32 irq, struct irq_action *act)
 	if (irq >= IRQ_MAX)
 		return -EINVAL;
 
+	flags = spin_lock_irqsave(&irq_actions_lock);
+
+	ret = -EBUSY;
 	head = irq_actions[irq];
 	if (head && !((head->flags & act->flags) & IRQ_SHARED))
-		return -EBUSY;
+		goto unlock_out;
 
 	tail = &irq_actions[irq];
-	while (*tail)
+	while (*tail) {
+		/* Registering an action twice would loop the list on itself. */
+		if (*tail == act)
+			BUG();
 		tail = &(*tail)->next;
+	}
 
+	/* Publish only a fully initialised action to the lock-free walk. */
 	act->next = NULL;
-	*tail = act;
+	smp_store_release(tail, act);
+	ret = 0;
 
-	return 0;
+unlock_out:
+	spin_unlock_irqrestore(&irq_actions_lock, flags);
+
+	return ret;
 }
 
 void irq_unregister_action(u32 irq, struct irq_action *act)
 {
 	struct irq_action **link;
+	unsigned long flags;
 
 	if (irq >= IRQ_MAX)
 		return;
 
+	flags = spin_lock_irqsave(&irq_actions_lock);
 	for (link = &irq_actions[irq]; *link; link = &(*link)->next)
 		if (*link == act) {
-			*link = act->next;
+			WRITE_ONCE(*link, act->next);
 			act->next = NULL;
-			return;
+			break;
 		}
+	spin_unlock_irqrestore(&irq_actions_lock, flags);
 }
 
 void irqchip_handle_irq(unsigned int irq)
@@ -225,7 +253,7 @@ void irqchip_handle_irq(unsigned int irq)
 		return;
 	}
 
-	for (act = irq_actions[irq]; act; act = act->next) {
+	for (act = READ_ONCE(irq_actions[irq]); act; act = READ_ONCE(act->next)) {
 		int res = act->handler(act->userdata);
 
 		if (res < 0) {
