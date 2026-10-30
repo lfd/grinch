@@ -60,11 +60,13 @@ static struct fs_flags get_flags(int oflag)
 
 SYSCALL_DEF2(open, const char __user *, _pathname, int, oflag)
 {
+	struct file_handle *handle;
 	struct fs_flags flags;
 	struct file *file;
 	char *pathname;
 	bool must_dir;
 	long ret;
+	int fd;
 
 	pathname = pathname_from_user(_pathname, &must_dir);
 	if (IS_ERR(pathname))
@@ -81,21 +83,42 @@ SYSCALL_DEF2(open, const char __user *, _pathname, int, oflag)
 		goto free_out;
 	}
 
+	/*
+	 * The descriptor comes first: creating the file is a side effect that
+	 * would outlive a full table, so a table with no room must fail the
+	 * call before anything exists.
+	 */
+	fd = fd_reserve();
+	if (fd < 0) {
+		ret = fd;
+		goto free_out;
+	}
+
 	file = file_ocreate_at(cwd(), pathname, flags.create);
 	if (IS_ERR(file)) {
 		ret = PTR_ERR(file);
-		goto free_out;
+		goto release_out;
 	}
 
 	if (must_dir && !S_ISDIR(file->mode)) {
-		file_close(file);
 		ret = -ENOTDIR;
-		goto free_out;
+		goto close_out;
 	}
 
-	ret = fd_new(file, flags);
-	if (ret < 0)
-		file_close(file);
+	handle = file_handle_new(file, flags);
+	if (IS_ERR(handle)) {
+		ret = PTR_ERR(handle);
+		goto close_out;
+	}
+
+	fd_install(fd, handle);
+	ret = fd;
+	goto free_out;
+
+close_out:
+	file_close(file);
+release_out:
+	fd_release(fd);
 
 free_out:
 	kfree(pathname);

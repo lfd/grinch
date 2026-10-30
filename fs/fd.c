@@ -17,6 +17,13 @@
 #include <grinch/percpu.h>
 #include <grinch/task.h>
 
+/*
+ * A reserved slot: taken, so nothing else grabs the descriptor, but not yet
+ * pointing at an open file. A process has one task, so the reservation can
+ * never be observed through a syscall of its own process.
+ */
+#define FD_RESERVED	((struct file_handle *)1)
+
 struct file_handle *fd_get(unsigned int fd)
 {
 	struct file_handle *handle;
@@ -31,8 +38,7 @@ struct file_handle *fd_get(unsigned int fd)
 	return handle;
 }
 
-/* Consumes the file reference on success. */
-int fd_new(struct file *file, struct fs_flags flags)
+int fd_reserve(void)
 {
 	struct process *process;
 	struct task *task;
@@ -44,22 +50,60 @@ int fd_new(struct file *file, struct fs_flags flags)
 	process = &task->process;
 	for (d = 0; d < MAX_FDS; d++)
 		if (process->fds[d] == NULL)
-			goto found;
+			break;
 
-	ret = -EMFILE;
-	goto unlock_out;
+	if (d == MAX_FDS) {
+		ret = -EMFILE;
+	} else {
+		process->fds[d] = FD_RESERVED;
+		ret = d;
+	}
+	spin_unlock(&task->lock);
 
-found:
-	process->fds[d] = file_handle_new(file, flags);
-	if (IS_ERR(process->fds[d])) {
-		ret = PTR_ERR(process->fds[d]);
-		process->fds[d] = NULL;
-		goto unlock_out;
+	return ret;
+}
+
+void fd_install(unsigned int fd, struct file_handle *handle)
+{
+	struct task *task;
+
+	task = current_task();
+	spin_lock(&task->lock);
+	if (task->process.fds[fd] != FD_RESERVED)
+		BUG();
+	task->process.fds[fd] = handle;
+	spin_unlock(&task->lock);
+}
+
+void fd_release(unsigned int fd)
+{
+	struct task *task;
+
+	task = current_task();
+	spin_lock(&task->lock);
+	if (task->process.fds[fd] != FD_RESERVED)
+		BUG();
+	task->process.fds[fd] = NULL;
+	spin_unlock(&task->lock);
+}
+
+/* Consumes the file reference on success. */
+int fd_new(struct file *file, struct fs_flags flags)
+{
+	struct file_handle *handle;
+	int d;
+
+	d = fd_reserve();
+	if (d < 0)
+		return d;
+
+	handle = file_handle_new(file, flags);
+	if (IS_ERR(handle)) {
+		fd_release(d);
+		return PTR_ERR(handle);
 	}
 
-	ret = d;
+	fd_install(d, handle);
 
-unlock_out:
-	spin_unlock(&task->lock);
-	return ret;
+	return d;
 }
