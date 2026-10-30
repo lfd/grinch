@@ -654,15 +654,12 @@ void task_sleep_until(struct task *task, struct timespec *ts)
 
 	spin_lock(&task_lock);
 
-	if (task->wfe != WFE_NONE) {
-		/* A VM may re-arm its timer while a previous one is still pending */
-		if (task->type != GRINCH_VMACHINE || task->wfe != WFE_TIMER)
-			BUG();
-	}
+	/* A VM may re-arm its timer while a previous one is still queued. */
+	if (!list_empty(&task->timer_list) && task->type != GRINCH_VMACHINE)
+		BUG();
 
 	wall_ns = ts_to_ns(ts);
 	task->deadline = wall_ns;
-	task->wfe = WFE_TIMER;
 
 	/* VMs remain runnable */
 	if (task->type == GRINCH_PROCESS)
@@ -693,8 +690,6 @@ void task_cancel_timer(struct task *task)
 
 	list_del(&task->timer_list);
 	INIT_LIST_HEAD(&task->timer_list);
-	if (task->wfe == WFE_TIMER)
-		task->wfe = WFE_NONE;
 
 	spin_unlock(&task_lock);
 }
@@ -709,9 +704,6 @@ void task_handle_events(void)
 	list_for_each_entry_safe(task, tmp, &timer_list, timer_list) {
 		/* sanity check */
 		if (task->state != TASK_WFE && task->type != GRINCH_VMACHINE)
-			BUG();
-
-		if (task->wfe != WFE_TIMER)
 			BUG();
 
 		if (task->deadline <= timer_get_wall_ns()) {
@@ -732,7 +724,6 @@ void task_handle_events(void)
 				BUG();
 			list_del(&task->timer_list);
 			INIT_LIST_HEAD(&task->timer_list);
-			task->wfe = WFE_NONE;
 			continue;
 		}
 
@@ -844,8 +835,6 @@ static const char *task_wfe_to_string(enum task_wfe wfe)
 	switch (wfe) {
 		case WFE_NONE:
 			return "none  ";
-		case WFE_TIMER:
-			return "timer ";
 		default:
 			return "unkn  ";
 	}

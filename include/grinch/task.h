@@ -41,7 +41,6 @@ enum task_state {
 
 enum task_wfe {
 	WFE_NONE = 0,
-	WFE_TIMER,
 };
 
 enum task_type {
