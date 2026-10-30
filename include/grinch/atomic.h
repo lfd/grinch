@@ -24,6 +24,16 @@ typedef struct {
 #include <grinch/arch/atomic.h>
 #include <asm/cmpxchg.h>
 
+/*
+ * Publish a store: everything written before it is visible to whoever
+ * observes the stored value.
+ */
+#define smp_store_release(p, v)					\
+	do {							\
+		__atomic_release_fence();			\
+		WRITE_ONCE(*(p), (v));				\
+	} while (0)
+
 static __always_inline int
 atomic_fetch_sub_release(int i, atomic_t *v)
 {
