@@ -160,17 +160,38 @@ static long devfs_ioctl(struct file *file, unsigned int op, unsigned long arg)
 	return node->fops->ioctl(node, op, arg);
 }
 
-static ssize_t __devfs_chardev_read(struct task *task, struct devfs_node *node,
-				    struct file_handle *h, char *buf,
-				    size_t count);
+/* Caller holds node->lock; moves up to count bytes out of the ringbuf. */
+static size_t devfs_chardev_drain(struct devfs_node *node, char *kbuf,
+				  size_t count)
+{
+	struct ringbuf *rb = &node->rb;
+	unsigned int cnt;
+	size_t ret = 0;
+	char *src;
+
+	while (count) {
+		src = ringbuf_read(rb, &cnt);
+		if (!cnt)
+			break;
+		if (cnt > count)
+			cnt = count;
+		memcpy(kbuf + ret, src, cnt);
+		ringbuf_consume(rb, cnt);
+		ret += cnt;
+		count -= cnt;
+	}
+
+	return ret;
+}
 
 static ssize_t
 devfs_read_blocking(struct file_handle *fh, char *ubuf, size_t count)
 {
+	char kbuf[CHARDEV_RINGBUF_SIZE];
 	struct devfs_node *node;
 	unsigned long flags;
 	struct task *task;
-	ssize_t err;
+	size_t n;
 
 	node = fh->fp->drvdata;
 	if (node->type == DEVFS_SYMLINK)
@@ -181,18 +202,27 @@ devfs_read_blocking(struct file_handle *fh, char *ubuf, size_t count)
 		return -ENOSYS;
 	}
 
+	if (fh->flags.is_kernel)
+		BUG();
+
+	if (!count)
+		return 0;
+
 	task = current_task();
 	for (;;) {
 		flags = spin_lock_irqsave(&node->lock);
 
 		/* What arrived while we were not looking must not park us. */
-		err = __devfs_chardev_read(task, node, fh, ubuf, count);
-		if (err != -EWOULDBLOCK)
+		n = devfs_chardev_drain(node, kbuf,
+					min(count, sizeof(kbuf)));
+		if (n) {
+			spin_unlock_irqrestore(&node->lock, flags);
 			break;
+		}
 
 		if (node->reader) {
-			err = -EBUSY;
-			break;
+			spin_unlock_irqrestore(&node->lock, flags);
+			return -EBUSY;
 		}
 
 		/* Mark before the lock drops, so no wake-up is lost. */
@@ -204,8 +234,10 @@ devfs_read_blocking(struct file_handle *fh, char *ubuf, size_t count)
 		task_sleep();
 	}
 
-	spin_unlock_irqrestore(&node->lock, flags);
-	return err;
+	/* The user page may need faulting in; the lock is long gone. */
+	n = copy_to_user(task, ubuf, kbuf, n);
+
+	return n ? (ssize_t)n : -EFAULT;
 }
 
 static struct devfs_node *devfs_find_node(const char *name)
@@ -319,15 +351,12 @@ void devfs_chardev_write(struct devfs_node *node, char c)
 		task_wake(task);
 }
 
-static ssize_t __devfs_chardev_read(struct task *task, struct devfs_node *node,
-				    struct file_handle *h, char *buf,
-				    size_t count)
+ssize_t devfs_chardev_read(struct task *task, struct devfs_node *node,
+			   struct file_handle *h, char *buf, size_t count)
 {
-	unsigned long copied;
-	struct ringbuf *rb;
-	unsigned int cnt;
-	ssize_t ret;
-	char *src;
+	char kbuf[CHARDEV_RINGBUF_SIZE];
+	unsigned long flags;
+	size_t n;
 
 	if (node->type != DEVFS_CHARDEV)
 		BUG();
@@ -338,41 +367,17 @@ static ssize_t __devfs_chardev_read(struct task *task, struct devfs_node *node,
 	if (h->flags.is_kernel)
 		BUG();
 
-	rb = &node->rb;
-	ret = 0;
-	do {
-		src = ringbuf_read(rb, &cnt);
-		if (!cnt)
-			break;
-		cnt = min(cnt, count);
-		ringbuf_consume(rb, cnt);
-
-		copied = copy_to_user(task, buf, src, cnt);
-
-		buf += cnt;
-		count -= cnt;
-		ret += copied;
-		if (copied != cnt)
-			break;
-	} while (count);
-
-	if (!ret)
-		return -EWOULDBLOCK;
-
-	return ret;
-}
-
-ssize_t devfs_chardev_read(struct task *task, struct devfs_node *node,
-			   struct file_handle *h, char *buf, size_t count)
-{
-	unsigned long flags;
-	ssize_t ret;
-
 	flags = spin_lock_irqsave(&node->lock);
-	ret = __devfs_chardev_read(task, node, h, buf, count);
+	n = devfs_chardev_drain(node, kbuf, min(count, sizeof(kbuf)));
 	spin_unlock_irqrestore(&node->lock, flags);
 
-	return ret;
+	if (!n)
+		return -EWOULDBLOCK;
+
+	/* The user page may need faulting in; the lock is long gone. */
+	n = copy_to_user(task, buf, kbuf, n);
+
+	return n ? (ssize_t)n : -EFAULT;
 }
 
 void __init devfs_node_deinit(struct devfs_node *node)
