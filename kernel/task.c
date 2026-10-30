@@ -138,7 +138,6 @@ SYSCALL_DEF3(wait, pid_t, pid, int __user *, wstatus, int, options)
 		 * the same lock, so no death between the scan and the sleep
 		 * is lost. A death of the wrong child just rescans.
 		 */
-		task->wfe = WFE_CHILD;
 		_task_set_wfe(task);
 		spin_unlock(&task->lock);
 
@@ -220,8 +219,12 @@ void task_exit(struct task *task, int code)
 	if (parent != init_task)
 		spin_unlock(&init_task->lock);
 
-	/* The parent reaps on its own stack; all it needs is a wake. */
-	if (parent->wfe == WFE_CHILD)
+	/*
+	 * The parent reaps on its own stack; all it needs is a wake. A parent
+	 * blocked for another reason wakes spuriously and rescans -- the dead
+	 * child keeps until its next wait().
+	 */
+	if (parent->state == TASK_WFE)
 		__task_wake(parent);
 
 	spin_unlock(&parent->lock);
@@ -841,8 +844,6 @@ static const char *task_wfe_to_string(enum task_wfe wfe)
 	switch (wfe) {
 		case WFE_NONE:
 			return "none  ";
-		case WFE_CHILD:
-			return "child ";
 		case WFE_TIMER:
 			return "timer ";
 		default:
