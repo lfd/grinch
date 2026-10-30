@@ -43,7 +43,6 @@ enum task_wfe {
 	WFE_NONE = 0,
 	WFE_CHILD,
 	WFE_TIMER,
-	WFE_READ,
 };
 
 enum task_type {

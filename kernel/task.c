@@ -75,10 +75,6 @@ static inline void _task_set_wfe(struct task *task)
 	if (task->state == TASK_WFE)
 		BUG();
 
-	/* Ensure that the WFE type is really set */
-	if (task->wfe == WFE_NONE)
-		BUG();
-
 	task->state = TASK_WFE;
 }
 
@@ -849,8 +845,6 @@ static const char *task_wfe_to_string(enum task_wfe wfe)
 			return "child ";
 		case WFE_TIMER:
 			return "timer ";
-		case WFE_READ:
-			return "read  ";
 		default:
 			return "unkn  ";
 	}
